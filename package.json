@@ -1,0 +1,28 @@
+{
+  "name": "medi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron .",
+    "rebuild": "electron-rebuild -f -w better-sqlite3"
+  },
+  "keywords": [
+    "electron",
+    "reactjs",
+    "typescript"
+  ],
+  "author": "Hemant",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.8",
+    "better-sqlite3": "^9.4.3",
+    "mongoose": "^8.3.1",
+    "react-router-dom": "^6.22.3"
+  },
+  "devDependencies": {
+    "electron": "^28.2.8",
+    "electron-rebuild": "^3.2.9"
+  }
+}

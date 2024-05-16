@@ -1,0 +1,23 @@
+module.exports.groups = [
+    { group_name: 'FIX ASSETS', group_code: 1, parent_code: null, type: 'balance sheet', isPredefinedGroup: true },
+    { group_name: 'GENERAL GROUP', group_code: 2, parent_code: null, type: 'balance sheet', isPredefinedGroup: true },
+    { group_name: 'PURCHASE A/C', group_code: 3, parent_code: null, type: 'balance sheet', isPredefinedGroup: true },
+    { group_name: 'SALE A/C', group_code: 4, parent_code: null, type: 'balance sheet', isPredefinedGroup: true },
+    { group_name: 'COMPANY', group_code: 5, parent_code: null, type: 'balance sheet', isPredefinedGroup: true },
+    { group_name: 'CASH & BANK  SDFG', group_code: 6, parent_code: null, type: 'balance sheet', isPredefinedGroup: true },
+    { group_name: 'TRADE DEBTORS', group_code: 7, parent_code: null, type: 'balance sheet', isPredefinedGroup: true },
+    { group_name: 'EXPENSES', group_code: 8, parent_code: null, type: 'balance sheet', isPredefinedGroup: true },
+    { group_name: '0', group_code: 9, parent_code: null, type: 'balance sheet', isPredefinedGroup: true },
+    { group_name: 'UNSECURED LOAN', group_code: 10, parent_code: null, type: 'balance sheet', isPredefinedGroup: true },
+    { group_name: 'TRADE CREDITORS', group_code: 11, parent_code: null, type: 'balance sheet', isPredefinedGroup: true },
+    { group_name: '.', group_code: 12, parent_code: null, type: 'balance sheet', isPredefinedGroup: true },
+    { group_name: 'SECURED LOAN', group_code: 13, parent_code: null, type: 'balance sheet', isPredefinedGroup: true },
+    { group_name: 'WHOLSALERS', group_code: 14, parent_code: null, type: 'balance sheet', isPredefinedGroup: true },
+    { group_name: 'ADMINSTRATIVE EXP.', group_code: 17, parent_code: null, type: 'balance sheet', isPredefinedGroup: true },
+    { group_name: 'PERSONAL EXP.', group_code: 18, parent_code: null, type: 'balance sheet', isPredefinedGroup: true },
+    { group_name: 'FINANCIAL EXP.', group_code: 19, parent_code: null, type: 'balance sheet', isPredefinedGroup: true },
+    { group_name: 'OTHER EXP.', group_code: 20, parent_code: null, type: 'balance sheet', isPredefinedGroup: true },
+    { group_name: 'PERSONAL EXP', group_code: 21, parent_code: 8, type: 'balance sheet', isPredefinedGroup: true },
+    { group_name: 'ADMINSTRATIVE EXP', group_code: 22, parent_code: 8, type: 'balance sheet', isPredefinedGroup: true },
+    { group_name: 'OFFICE EXP', group_code: 23, parent_code: 8, type: 'balance sheet', isPredefinedGroup: true }
+  ]   

@@ -1,0 +1,6 @@
+node_modules
+accounts.db-shm
+accounts.db
+accounts.db-wal
+package-lock.json
+.DS_Store
