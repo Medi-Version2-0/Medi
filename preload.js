@@ -8,6 +8,7 @@ const Groups = require('./database/models/groupsData.js');
 const stationService = require('./helpers/stationService.js');
 const groupService = require('./helpers/groupService.js');
 const accountGroupService = require('./helpers/accountGroupService.js');
+// const partyService =require('./helpers/partyService.js');
 
 const station = new Station()
 const account_groups = new Account_groups()
@@ -44,4 +45,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   addSubGroup: (groupData) => groupService.addSubGroup(groupData),
   updateSubGroup: (id, groupData) => groups.update(id, groupData, 'group_code'),
   deleteSubGroup: (group_code) => groups.delete(group_code, "group_code"),
+
+  // ledger party
+  // addParty:(partyData)=> partyService.addParty(partyData)
 });
