@@ -8,6 +8,7 @@ import 'ag-grid-community/styles/ag-theme-quartz.css';
 import './stations.css';
 import { StationFormData } from '../../interface/global';
 import Confirm_Alert_Popup from '../helpers/Confirm_Alert_Popup';
+import Sidebar from '../sidebar/sidebar';
 
 const initialValue = {
   station_id: '',
@@ -362,7 +363,12 @@ export const Stations = () => {
   ];
 
   return (
-    <div className='container'>
+    <>
+    <div className="stations_content">
+      <div className="stations_sidebar">
+        <Sidebar isGroup={true} isSubGroup={true}/>
+      </div>
+      <div className='stations_container'>
       <div id='account_main'>
         <h1 id='account_header'>Stations</h1>
         <button
@@ -407,5 +413,8 @@ export const Stations = () => {
         />
       )}
     </div>
+    </div>
+    </>
+    
   );
 };

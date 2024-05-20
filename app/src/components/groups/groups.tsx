@@ -9,6 +9,8 @@ import { GroupFormData } from '../../interface/global';
 import Confirm_Alert_Popup from '../helpers/Confirm_Alert_Popup';
 import { ColDef, ColGroupDef } from 'ag-grid-community';
 import { CreateGroup } from './create_group';
+import Sidebar from '../sidebar/sidebar';
+import './groups.css';
 
 const initialValue = {
   group_code: '',
@@ -37,17 +39,14 @@ export const Groups = () => {
 
   const extractKeys = (mappings: any) => {
     const value = Object.keys(mappings);
-    value[0] = 'p&l'; 
+    value[0] = 'p&l';
     value[1] = 'balance sheet';
     return value;
   };
 
   const types = extractKeys(typeMapping);
 
-  const lookupValue = (
-    mappings:any,
-    key: string | number
-  ) => {
+  const lookupValue = (mappings: any, key: string | number) => {
     return mappings[key];
   };
 
@@ -129,7 +128,6 @@ export const Groups = () => {
       });
       setFormData(values);
     }
-
   };
 
   const handleCellEditingStopped = (e: {
@@ -212,17 +210,23 @@ export const Groups = () => {
         break;
       case 'd':
       case 'D':
-        if (event.ctrlKey && selectedRow &&
-          selectedRow.isPredefinedGroup === false) {
+        if (
+          event.ctrlKey &&
+          selectedRow &&
+          selectedRow.isPredefinedGroup === false
+        ) {
           handleDelete(selectedRow);
-        }else if(event.ctrlKey && selectedRow &&
-          selectedRow.isPredefinedGroup === true){
-            setPopupState({
-              ...popupState,
-              isAlertOpen: true,
-              message: 'Predefined Groups should not be deleted',
-            });
-          }
+        } else if (
+          event.ctrlKey &&
+          selectedRow &&
+          selectedRow.isPredefinedGroup === true
+        ) {
+          setPopupState({
+            ...popupState,
+            isAlertOpen: true,
+            message: 'Predefined Groups should not be deleted',
+          });
+        }
         break;
       case 'e':
       case 'E':
@@ -232,14 +236,17 @@ export const Groups = () => {
           selectedRow.isPredefinedGroup === false
         ) {
           handleUpdate(selectedRow);
-        }else if(event.ctrlKey && selectedRow &&
-          selectedRow.isPredefinedGroup === true){
-            setPopupState({
-              ...popupState,
-              isAlertOpen: true,
-              message: 'Predefined Groups are not editable',
-            });
-          }
+        } else if (
+          event.ctrlKey &&
+          selectedRow &&
+          selectedRow.isPredefinedGroup === true
+        ) {
+          setPopupState({
+            ...popupState,
+            isAlertOpen: true,
+            message: 'Predefined Groups are not editable',
+          });
+        }
         break;
       default:
         break;
@@ -299,24 +306,24 @@ export const Groups = () => {
             <FaEdit
               style={{ cursor: 'pointer', fontSize: '1.1rem' }}
               onClick={() => {
-                if(params.data.isPredefinedGroup === false ){
+                if (params.data.isPredefinedGroup === false) {
                   handleUpdate(params.data);
-                }else if(params.data.isPredefinedGroup === true){
+                } else if (params.data.isPredefinedGroup === true) {
                   setPopupState({
                     ...popupState,
                     isAlertOpen: true,
                     message: 'Predefined Groups are not editable',
                   });
-                }  
+                }
               }}
             />
 
             <MdDeleteForever
               style={{ cursor: 'pointer', fontSize: '1.2rem' }}
               onClick={() => {
-                if(params.data.isPredefinedGroup === false){
+                if (params.data.isPredefinedGroup === false) {
                   handleDelete(params.data);
-                }else if(params.data.isPredefinedGroup === true){
+                } else if (params.data.isPredefinedGroup === true) {
                   setPopupState({
                     ...popupState,
                     isAlertOpen: true,
@@ -330,50 +337,59 @@ export const Groups = () => {
       },
     ];
   return (
-    <div className='container'>
-      <div id='account_main'>
-        <h1 id='account_header'>Groups</h1>
-        <button
-          id='account_button'
-          className='account_button'
-          onClick={() => togglePopup(true)}
-        >
-          Add Group
-        </button>
+    <>
+      <div className='groups_content'>
+        <div className='groups_page_sidebar'>
+          <Sidebar isGroup={true} isSubGroup={false}/>
+        </div>
+        <div className='container'>
+          <div id='account_main'>
+            <h1 id='account_header'>Groups</h1>
+            <button
+              id='account_button'
+              className='account_button'
+              onClick={() => togglePopup(true)}
+            >
+              Add Group
+            </button>
+          </div>
+          <div id='account_table' className='ag-theme-quartz'>
+            {
+              <AgGridReact
+                rowData={tableData}
+                columnDefs={colDefs}
+                defaultColDef={{
+                  floatingFilter: true,
+                }}
+                onCellClicked={onCellClicked}
+                onCellEditingStarted={cellEditingStarted}
+                onCellEditingStopped={handleCellEditingStopped}
+              />
+            }
+          </div>
+          {(popupState.isModalOpen || popupState.isAlertOpen) && (
+            <Confirm_Alert_Popup
+              onClose={handleClosePopup}
+              onConfirm={
+                popupState.isAlertOpen
+                  ? handleAlertCloseModal
+                  : handleConfirmPopup
+              }
+              message={popupState.message}
+              isAlert={popupState.isAlertOpen}
+            />
+          )}
+          {open && (
+            <CreateGroup
+              togglePopup={togglePopup}
+              data={formData}
+              handelFormSubmit={handelFormSubmit}
+              isDelete={isDelete.current}
+              deleteAcc={deleteAcc}
+            />
+          )}
+        </div>
       </div>
-      <div id='account_table' className='ag-theme-quartz'>
-        {
-          <AgGridReact
-            rowData={tableData}
-            columnDefs={colDefs}
-            defaultColDef={{
-              floatingFilter: true,
-            }}
-            onCellClicked={onCellClicked}
-            onCellEditingStarted={cellEditingStarted}
-            onCellEditingStopped={handleCellEditingStopped}
-          />
-        }
-      </div>
-      {(popupState.isModalOpen || popupState.isAlertOpen) && (
-        <Confirm_Alert_Popup
-          onClose={handleClosePopup}
-          onConfirm={
-            popupState.isAlertOpen ? handleAlertCloseModal : handleConfirmPopup
-          }
-          message={popupState.message}
-          isAlert={popupState.isAlertOpen}
-        />
-      )}
-      {open && (
-        <CreateGroup
-          togglePopup={togglePopup}
-          data={formData}
-          handelFormSubmit={handelFormSubmit}
-          isDelete={isDelete.current}
-          deleteAcc={deleteAcc}
-        />
-      )}
-    </div>
+    </>
   );
 };

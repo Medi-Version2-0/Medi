@@ -9,6 +9,8 @@ import { SubGroupFormData } from '../../interface/global';
 import Confirm_Alert_Popup from '../helpers/Confirm_Alert_Popup';
 import { ColDef, ColGroupDef } from 'ag-grid-community';
 import { CreateSubGroup } from './create_sub_groups';
+import Sidebar from '../sidebar/sidebar';
+import './sub_groups.css'
 
 const initialValue = {
   group_code: '',
@@ -38,17 +40,14 @@ export const SubGroups = () => {
 
   const extractKeys = (mappings: any) => {
     const value = Object.keys(mappings);
-    value[0] = 'p&l'; 
+    value[0] = 'p&l';
     value[1] = 'balance sheet';
     return value;
   };
 
   const types = extractKeys(typeMapping);
 
-  const lookupValue = (
-    mappings:any,
-    key: string | number
-  ) => {
+  const lookupValue = (mappings: any, key: string | number) => {
     return mappings[key];
   };
 
@@ -97,7 +96,7 @@ export const SubGroups = () => {
   };
 
   const getSubGroups = () => {
-    setTableData(electronAPI.getAllSubGroups("", "",""));
+    setTableData(electronAPI.getAllSubGroups('', '', ''));
   };
 
   const deleteAcc = (group_code: string) => {
@@ -355,50 +354,60 @@ export const SubGroups = () => {
       },
     ];
   return (
-    <div className='container'>
-      <div id='account_main'>
-        <h1 id='account_header'>Sub Groups</h1>
-        <button
-          id='account_button'
-          className='account_button'
-          onClick={() => togglePopup(true)}
-        >
-          Add Group
-        </button>
-      </div>
-      <div id='account_table' className='ag-theme-quartz'>
-        {
-          <AgGridReact
-            rowData={tableData}
-            columnDefs={colDefs}
-            defaultColDef={{
-              floatingFilter: true,
-            }}
-            onCellClicked={onCellClicked}
-            onCellEditingStarted={cellEditingStarted}
-            onCellEditingStopped={handleCellEditingStopped}
-          />
-        }
-      </div>
-      {(popupState.isModalOpen || popupState.isAlertOpen) && (
-        <Confirm_Alert_Popup
-          onClose={handleClosePopup}
-          onConfirm={
-            popupState.isAlertOpen ? handleAlertCloseModal : handleConfirmPopup
+    <>
+      <div className='subgroups_content'>
+        <div className='subgroups_page_sidebar'>
+          <Sidebar isGroup={false} isSubGroup={true}/>
+        </div>
+        <div className='container'>
+        <div id='account_main'>
+          <h1 id='account_header'>Sub Groups</h1>
+          <button
+            id='account_button'
+            className='account_button'
+            onClick={() => togglePopup(true)}
+          >
+            Add Group
+          </button>
+        </div>
+        <div id='account_table' className='ag-theme-quartz'>
+          {
+            <AgGridReact
+              rowData={tableData}
+              columnDefs={colDefs}
+              defaultColDef={{
+                floatingFilter: true,
+              }}
+              onCellClicked={onCellClicked}
+              onCellEditingStarted={cellEditingStarted}
+              onCellEditingStopped={handleCellEditingStopped}
+            />
           }
-          message={popupState.message}
-          isAlert={popupState.isAlertOpen}
-        />
-      )}
-      {open && (
-        <CreateSubGroup
-          togglePopup={togglePopup}
-          data={formData}
-          handelFormSubmit={handelFormSubmit}
-          isDelete={isDelete.current}
-          deleteAcc={deleteAcc}
-        />
-      )}
-    </div>
+        </div>
+        {(popupState.isModalOpen || popupState.isAlertOpen) && (
+          <Confirm_Alert_Popup
+            onClose={handleClosePopup}
+            onConfirm={
+              popupState.isAlertOpen
+                ? handleAlertCloseModal
+                : handleConfirmPopup
+            }
+            message={popupState.message}
+            isAlert={popupState.isAlertOpen}
+          />
+        )}
+        {open && (
+          <CreateSubGroup
+            togglePopup={togglePopup}
+            data={formData}
+            handelFormSubmit={handelFormSubmit}
+            isDelete={isDelete.current}
+            deleteAcc={deleteAcc}
+          />
+        )}
+      </div>
+      </div>
+      
+    </>
   );
 };

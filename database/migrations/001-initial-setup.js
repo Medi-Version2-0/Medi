@@ -32,7 +32,7 @@ module.exports = {
     `CREATE TABLE IF NOT EXISTS groups (
             group_code INTEGER PRIMARY KEY,
             group_name TEXT NOT NULL,
-            type TEXT CHECK (type IN ('p&l', 'balance sheet')) NOT NULL,
+            type TEXT CHECK (type IN ('P&L', 'Balance Sheet')) NOT NULL,
             parent_code INTEGER,
             isPredefinedGroup BOOLEAN NOT NULL,
             FOREIGN KEY (parent_code) REFERENCES groups(group_code)

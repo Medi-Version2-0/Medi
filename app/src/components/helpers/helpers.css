@@ -69,21 +69,26 @@
 }
 
 .modal-content {
+  /* display: flex; */
     background-color: #fefefe;
-    padding: 20px;
+    padding: 20px 0px;
     border: 1px solid #888;
-    max-width: 18.7rem;
+    max-width: 20rem;
+    max-height: 30rem;
     border-radius: 0.8rem;
 }
 
 .modal-actions {
-    margin-top: 20px;
+    width: 90%;
+    margin: 1.3rem auto;
     display: flex;
     justify-content: space-between;
 }
 
 #add_account_header {
-      /* font-family: Montserrat; */
+      width: 90%;
+      margin: 0rem auto;
+      margin-bottom: 1rem;
       font-weight: 700;
       color: #171A1FFF;
   }

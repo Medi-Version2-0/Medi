@@ -294,15 +294,17 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
             </div>
             <div
               style={{
-                marginBottom: '0.6rem',
+                width:'90%',
+                margin: '0rem auto',
+                marginTop:'0.6rem',
                 display: 'flex',
-                height: '2.2rem',
+                height: '2.8rem',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 gap: '0.8rem',
                 borderRadius: '0.4rem',
                 border: '1px solid #c1c1c1',
-                padding: '0.4rem',
+                // padding: '0.4rem',
               }}
             >
               <label

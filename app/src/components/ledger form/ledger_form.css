@@ -1,0 +1,335 @@
+.ledger_content{
+    display: flex;
+    width: 100vw;
+}
+
+.ledger_sidebar{
+    width: 14%;
+}
+
+.ledger_container{
+    width: 86%;
+}
+#ledger_main {
+    margin: 2rem 1.6rem;
+    display: flex;
+    justify-content: space-between;
+    background: #f3f3f3;
+  }
+
+#ledger_header {
+    margin: 0;
+      font-weight: 700;
+      color: #171A1FFF;
+  } 
+
+   
+  .ledger_button {
+    padding: 8px 20px;
+    border: 2px solid #009196FF;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    font-weight: 500;
+    color: #171A1FFF;
+    background: #EAFBFCFF;
+    opacity: 1;
+  }
+  .ledger_button:focus{
+    border-color: rgb(208, 208, 30);
+  }
+  .ledger_button:hover {
+    color: #171A1FFF;
+    background: #EAFBFCFF;
+  }  
+  .ledger_button:disabled {
+    opacity: 0.4;
+  }  
+  .ledger_button:hover:active {
+    color: #171A1FFF;
+    background: #EAFBFCFF;
+  }  
+
+  .middle_form{
+    display: flex;
+    gap: 1rem;
+    width: 97%;
+    height: 43% ;
+    margin: 0 auto;
+    padding: 1rem;
+  }
+
+  .ledger_general_info{
+border: 1px solid gray;
+    width: 60%;
+    height: 100%;
+    padding-top: 1rem;
+  }
+
+  .general_info_prefix{
+    position: absolute;
+  left: 17%;
+  /* top: 21%; */
+  transform: translateY(-150%);
+  color: black;
+  width: 6rem;
+  background-color: rgb(246, 238, 238);
+  }
+
+  .ledger_general_details{
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+width: 40%;
+height: 100%;
+  }
+
+  .ledger_balance_info{
+    border: 1px solid gray;
+    padding-top: 1rem;
+    height: 50%;
+  }
+
+  .ledger_contacts_info{
+    border: 1px solid gray;
+    padding-top: 1rem;
+    height: 50%;
+  }
+
+  .general_info_inputs{
+display: flex;
+flex-direction: column;
+gap: 1rem;
+width: 100%;
+padding:0rem 1rem;
+  }
+
+  .ledger_inputs{
+    width: 100%;
+    display: flex;
+    margin-bottom: 0.5rem;
+    align-items: center;
+  }
+
+  .input_class{
+    width: 100%;
+    height: 1.5rem;
+    padding: 0.8rem; }
+
+  .label_name{
+    width: 18%;
+    margin-right: 1rem;
+  }
+
+  .acc_group_input{
+    margin-right: 4rem;
+    width: 57%;
+  }
+  #accountGroup{
+    width: 68%;
+    height: 1.5rem;
+    padding: 0.8rem;
+  }
+  .stations_input{
+    position: relative;
+    width: 35%;
+  }
+  #stationName{
+    width: 73%;
+    height: 1.5rem;
+    padding: 0.8rem;
+    margin-left: 1rem;
+  }
+
+  .country_div{
+    display: flex;
+    justify-content: space-between;
+  }
+
+  #country{
+    margin-left: 3.2rem;
+    height: 1.5rem;
+  }
+
+  .state_input{
+    margin-left: 1rem;
+    height: 1.5rem;
+  }
+
+  .label_name_css{
+    font-size: 0.9rem;
+    color: gray;
+    font-weight: bold;
+  }
+
+  /* Balance form */
+  .balance_prefix{
+    position: absolute;
+    left: 66%;
+    transform: translateY(-150%);
+    color: black;
+    width: 4rem;
+    background-color: rgb(246, 238, 238);
+  }
+  .balance_inputs{
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    width: 100%;
+    padding:0rem 1rem;
+      }
+
+      .balance_label_name{
+        width: 48%;
+        margin-right: 1rem;
+      }
+
+      .opening_bal_input{
+        position: relative;
+width: 100%;
+      }
+      #openingBal{
+        margin-left: 1.7rem;
+        height: 1.5rem;
+        width: 35%; 
+      }
+
+      #openingBalType{
+        height: 1.5rem;
+        width: 20%; 
+      }
+
+      .opening_bal_prefix{
+        position: absolute;
+    left: 35%;
+    top: 10%;
+    /* transform: translateY(-10%); */
+    color: black;
+    width: 1rem;
+    /* background-color: rgb(246, 238, 238); */
+      }
+
+      /* contacts form */
+
+      .contacts_prefix{
+        position: absolute;
+    left: 66%;
+    transform: translateY(-150%);
+    color: black;
+    width: 9rem;
+    background-color: rgb(246, 238, 238);
+      }
+
+      .contacts_label_name{
+        width: 28%;
+        margin-right: 1.8rem;
+      }
+
+      .contact_inputs{
+        display: flex;
+        flex-direction: column;
+        gap: 0.7rem;
+        width: 100%;
+        padding:0rem 1rem;
+          }
+
+          .mobile_prefix{
+            font-size: 0.7rem;
+            border: 1px solid gray;
+            border-right: none;
+            height: 1.9rem;
+            width: 12%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+
+          .contacts_input_class{
+            width: 40%;
+            height: 1.5rem;
+            padding: 0.8rem;
+          }
+
+          .contact_ledger_inputs{
+            width: 100%;
+            display: flex;
+            margin-bottom: 0.5rem;
+            align-items: center;
+          }
+
+          .add_contact_btn{
+            font-size: 1rem;
+            width: 10%;
+            border: 1px solid gray;
+            border-radius: 5px;
+            padding: 0.3rem 0.5rem;
+            margin-left: 1rem;
+          }
+          .add_contact_btn:hover{
+           background-color: #009196FF;
+           color: white;
+          }
+
+          .input_with_error {
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 100%;
+          }
+          
+          .error_icon {
+            color: red;
+            margin-left: 8px;
+            cursor: pointer;
+            position: absolute;
+            right: 10px;
+          }
+          
+          /* .input_class {
+            flex: 1;
+          } */
+          .custom-tooltip {
+            background-color: #89050b !important;
+            color: white !important; 
+            border: 1px solid #d8000c !important;
+            padding: 8px !important;
+            border-radius: 4px !important;
+            font-size: 14px !important;
+          }
+
+          .station_suggestion{
+            padding: 0.8rem 0rem;
+            position: absolute;
+            top: 110%;
+            left: 27%;
+            max-height: 7rem;
+            min-width: 11.5rem;
+            max-width: 17rem;
+            overflow: auto;
+            background-color: white;
+            border: 1px solid black;
+            border-radius: 5px; 
+            box-shadow: 3px 3px 3px gray; 
+            list-style-type: none;  
+            cursor: pointer;
+            font-size: 0.9rem;
+          }
+
+          .station_suggestion_list{
+            height: 35px;
+            display: flex;
+            align-items: center;
+            padding-left: 1rem;
+            border-bottom: 1px solid gray;
+          }
+          .station_suggestion_list:hover{
+            background-color: rgb(183, 179, 179);    
+          } 
+
+          .station_selected{
+            height: 35px;
+            display: flex;
+            align-items: center;
+            padding-left: 1rem;
+            background-color: rgb(183, 179, 179);
+          }
