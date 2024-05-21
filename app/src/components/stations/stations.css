@@ -4,9 +4,6 @@
   width: 100vw;
 }
 
-.stations_sidebar{
-  width: 14%;
-}
 
 .stations_container{
   width: 86%;
@@ -35,11 +32,14 @@
   .credit-type {
     width: 50%;
     border-radius: 0.4rem;
-    padding: 0.5rem;
+    padding: 0.688rem;
     text-align: center;
     font-weight: bold;
     cursor: pointer;
     font-size: 1rem;
+  }
+  .credit-type input[type='radio'] {
+    margin-right: 3px;
   }
   .disabled {
       pointer-events: none;
@@ -190,7 +190,7 @@
   .suggestion{
     padding: 0.8rem 0rem;
     position: absolute;
-    top: 49%;
+    top: 41%;
     max-height: 6rem;
     min-width: 16.5rem;
     max-width: 17rem;

@@ -11,12 +11,8 @@
     /* background-color: #f0f0f0; */
     padding: 10px 0px 0px 0px;
   }
-  .sidebar_header_content{
-    height: 14%;
-  }
 
   .sidebar_content{
-    height: 86%;
     background-color: #009196FF;
   }
 
@@ -30,20 +26,22 @@
   .sidebar_search{
     width: 92%;
     margin: 1rem auto;
-    position: relative;
+    display: flex;
+    gap: 5px;
   }
 
   .search_icon{
-    position: absolute;
-  left: 157px;
-  top: 21%;
-  color: #433e3e;
-  width: 1.4rem;
-  background-color: white;
+    display: block;
+    color: #433e3e;
+    width: 1.4rem;
+    background-color: transparent;
+    margin-top: 8px;
+    margin-left: -30px;
+    cursor: pointer;
   }
 
   .searchbar {
-    width: 94%;
+    width: 100%;
     padding: 8px 4px;
     border: 1px solid #ccc;
     border-radius: 5px;

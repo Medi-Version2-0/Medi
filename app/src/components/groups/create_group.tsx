@@ -118,17 +118,14 @@ export const CreateGroup: React.FC<CreateGroupProps> = ({
                 className='error'
               />
             </div>
-            <div
+            <div className='inputs'
               style={{
-                marginBottom: '0.6rem',
                 display: 'flex',
-                height: '2.2rem',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 gap: '0.8rem',
                 borderRadius: '0.4rem',
                 border: '1px solid #c1c1c1',
-                padding: '0.4rem',
               }}
             >
               <label
@@ -137,9 +134,9 @@ export const CreateGroup: React.FC<CreateGroupProps> = ({
                 <Field
                   type='radio'
                   name='type'
-                  value='p&l'
+                  value='P&L'
                   id='p_and_l'
-                  checked={formik.values.type === 'p&l'}
+                  checked={formik.values.type === 'P&L'}
                   disabled={group_code && isDelete}
                   data-next-field='submit_button'
                   data-side-field='balance_sheet'
@@ -155,9 +152,9 @@ export const CreateGroup: React.FC<CreateGroupProps> = ({
                 <Field
                   type='radio'
                   name='type'
-                  value='balance sheet'
+                  value='Balance Sheet'
                   id='balance_sheet'
-                  checked={formik.values.type === 'balance sheet'}
+                  checked={formik.values.type === 'Balance Sheet'}
                   disabled={group_code && isDelete}
                   data-next-field='submit_button'
                   data-side-field='p_and_l'

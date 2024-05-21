@@ -267,7 +267,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
               />
               {/* {inputValue && !!suggestions.length && ( */}
               {!!suggestions.length && (
-                <ul className={'suggestion'}>
+                <ul className={'suggestion'} style={{ top : "49%" }}>
                   {suggestions.map((group: any, index: number) => (
                     <li
                       key={group.group_code}
@@ -313,10 +313,10 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                 <Field
                   type='radio'
                   name='type'
-                  value='p&l'
+                  value='P&L'
                   // value={typeVal.current === 'p&l'}
                   id='p_and_l'
-                  checked={formik.values.type === 'p&l'}
+                  checked={formik.values.type === 'P&L'}
                   // checked={formik.values.type === 'p&l' || typeVal.current === 'p&l'}
                   // checked={formik.values.type === 'p&l' ||formik.values.type === typeVal.current}
                   disabled={group_code && isDelete}
@@ -334,10 +334,10 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                 <Field
                   type='radio'
                   name='type'
-                  value='balance sheet'
+                  value='Balance Sheet'
                   // value={typeVal.current === 'balance sheet'}
                   id='balance_sheet'
-                  checked={formik.values.type === 'balance sheet'}
+                  checked={formik.values.type === 'Balance Sheet'}
                   // checked={formik.values.type === 'balance sheet' || typeVal.current === 'balance sheet'}
                   // checked={formik.values.type === 'balance sheet' || formik.values.type === typeVal.current}
                   // checked={formik.values.type === 'balance sheet' || !!formik.values.parent_group && formik.values.type === typeVal.current}
@@ -384,6 +384,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                 <button
                   id='submit_button'
                   className='account_add_button'
+                  disabled={!formik.isValid || formik.isSubmitting || !!err}
                   type='submit'
                   autoFocus
                   onKeyDown={(e) => {

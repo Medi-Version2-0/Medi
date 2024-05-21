@@ -16,6 +16,7 @@ const initialValue = {
   cst_sale: '',
   station_state: '',
   station_pinCode: '',
+  station_headQuarter: ''
 };
 
 export const Stations = () => {
@@ -229,6 +230,30 @@ export const Stations = () => {
           }
         }
         break;
+        case 'station_headQuarter':
+          {
+            const stationNames = tableData.map((station: { station_name: string; }) => station.station_name.toLowerCase());
+            if (!newValue) {
+              setPopupState({
+                ...popupState,
+                isAlertOpen: true,
+                message: 'Headquarter is required'
+              });
+              node.setDataValue(field, oldValue);
+              return;
+            }
+            if (!stationNames.includes(newValue?.toLowerCase())) {
+              setPopupState({
+                ...popupState,
+                isAlertOpen: true,
+                message: 'Headquarter must match an existing station name',
+              });
+              node.setDataValue(field, oldValue);
+              return;
+            }
+            newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
+          }
+          break;
       default:
         break;
     }
@@ -327,6 +352,15 @@ export const Stations = () => {
     {
       headerName: 'Pin Code',
       field: 'station_pinCode',
+      flex: 1,
+      filter: true,
+      editable: true,
+      headerClass: 'custom-header custom_header_class',
+      suppressMovable: true,
+    },
+    {
+      headerName: 'Headquarter',
+      field: 'station_headQuarter',
       flex: 1,
       filter: true,
       editable: true,
