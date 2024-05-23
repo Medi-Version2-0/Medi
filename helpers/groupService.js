@@ -34,7 +34,6 @@ module.exports.getAll = (where='', sort='', limit='') => {
   }
 
   module.exports.addSubGroup = (groupData) => {
-
     groupData.isPredefinedGroup = 0; 
     groups.insert(groupData);
   }

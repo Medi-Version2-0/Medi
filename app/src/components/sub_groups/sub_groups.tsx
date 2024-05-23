@@ -34,14 +34,14 @@ export const SubGroups = () => {
   });
 
   const typeMapping = {
-    p_and_l: 'p&l',
-    balance_sheet: 'balance sheet',
+    p_and_l: 'P&L',
+    balance_sheet: 'Balance Sheet',
   };
 
   const extractKeys = (mappings: any) => {
     const value = Object.keys(mappings);
-    value[0] = 'p&l';
-    value[1] = 'balance sheet';
+    value[0] = 'P&L';
+    value[1] = 'Balance Sheet';
     return value;
   };
 
@@ -135,8 +135,6 @@ export const SubGroups = () => {
         }
       });
     }
-    // values.isPredefinedGroup = false;
-    // values.parent_code = null;
     if (values !== initialValue) {
       setPopupState({
         ...popupState,

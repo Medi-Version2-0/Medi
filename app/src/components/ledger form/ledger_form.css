@@ -51,8 +51,9 @@
     display: flex;
     gap: 1rem;
     width: 97%;
-    height: 43% ;
-    margin: 0 auto;
+    max-height: 50%;
+    margin: 1rem auto;
+    box-shadow: 5px 0px 8px gray;
     padding: 1rem;
   }
 
@@ -109,7 +110,18 @@ padding:0rem 1rem;
   .input_class{
     width: 100%;
     height: 1.5rem;
-    padding: 0.8rem; }
+    padding: 0.8rem; 
+  }
+
+  #pinCode{
+    width: 20%;
+    transform: translateX(-15%);
+  }
+
+    #balancingMethod{
+      width: 100%;
+    height: 1.5rem;
+    }
 
   .label_name{
     width: 18%;
@@ -119,6 +131,7 @@ padding:0rem 1rem;
   .acc_group_input{
     margin-right: 4rem;
     width: 57%;
+    position: relative;
   }
   #accountGroup{
     width: 68%;
@@ -139,24 +152,36 @@ padding:0rem 1rem;
   .country_div{
     display: flex;
     justify-content: space-between;
+    width: 100%;
   }
 
-  #country{
-    margin-left: 3.2rem;
-    height: 1.5rem;
+  .country{
+    width: 34%;
+    display: flex;
+    justify-content: space-evenly;
   }
 
   .state_input{
-    margin-left: 1rem;
     height: 1.5rem;
+    padding:0rem 0.8rem; 
+    width: 50%;
+  }
+  .country_input{
+    width: 34%;
+    display: flex;
+    justify-content: space-between;
   }
 
   .label_name_css{
     font-size: 0.9rem;
-    color: gray;
+    color: rgb(80, 77, 77);
     font-weight: bold;
   }
 
+  .short_input_class{
+    width:38%; 
+    transform: translateX(-8%);
+  }
   /* Balance form */
   .balance_prefix{
     position: absolute;
@@ -312,11 +337,11 @@ width: 100%;
 
           .station_suggestion_list{
             height: 35px;
-            display: flex;
-            align-items: center;
-            padding-left: 1rem;
-            border-bottom: 1px solid gray;
-          }
+              display: flex;
+              align-items: center;
+              padding-left: 1rem;
+              border-bottom: 1px solid gray;
+            }
           .station_suggestion_list:hover{
             background-color: rgb(183, 179, 179);    
           } 
@@ -327,4 +352,115 @@ width: 100%;
             align-items: center;
             padding-left: 1rem;
             background-color: rgb(183, 179, 179);
+          }
+
+          .accountGroup_suggestion{
+            left: 30%;
+            max-height: 8rem;
+            width: 100%;
+          }
+
+          #fixedAssets, #taxPercentageType, #itcAvail2{
+            width: 68%;
+            height: 1.5rem;
+            padding: 0.8rem;
+          }
+
+          #hsnCode, #itcAvail{
+            width: 73%;
+            height: 1.5rem;
+            padding: 0.8rem;
+            margin-left: 1rem;
+          }
+
+          .fixed_assets_input{
+            display: flex;
+            align-items: center;
+            gap: 2.1rem;
+            margin-right: 4rem;
+            width: 57%;
+            position: relative;
+          }
+
+          .hsn_input{
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            width: 35%;
+            position: relative;
+          }
+
+
+          /* middle Form 2 */
+          .middle_form_2{
+            width: 97%;
+            max-height: 50%;
+            margin: 1rem auto;
+            box-shadow: 5px 0px 8px gray;
+            padding: 1rem;
+          }
+          .middle_form_2_buttons{
+            display: flex;
+          }
+          .btn{
+            padding:0.6rem 1.2rem;
+            color: gray;
+            font-weight: bold;
+            background-color: white;
+            border: 1px solid gray;
+          }
+
+          .active{
+            color: black;
+            border-bottom: 2px solid #009196FF;
+          }
+
+          .btn_1, .btn_2, .btn_3{
+            border-right: none;
+          }
+
+          /* tax details page */
+
+          .tax_details_page{
+            width: 100%;
+            margin: 1rem 0rem;
+            padding: 1rem;
+          }
+
+          .tax_ledger_inputs{
+            width: 100%;
+            display: flex;
+            margin-bottom: 0.5rem;
+            align-items: center;
+          }
+          .small_tax_ledger_inputs{
+            width: 50%;
+            /* gap: 1rem; */
+          }
+
+          #ledgerType, #gstIn, #registrationDate, #tdsApplicable, #payeeCategory, #panCard, #drugLicenceNo, #expiryDate, #firstName, #lastName, #gender, #maritalStatus, #website_input, #designation, #emailId1, #emailId2, #bankName, #accountNumber, #branchName, #accountType, #ifscCode, #accountHolderName{
+            width: 44%;
+            height: 1.5rem;
+            padding: 0.8rem;
+          }
+
+          .gstIn_input, .drugLic_input, .name_input{
+            display: flex;
+            align-items: center;
+            width: 50%;
+            position: relative;
+          }
+
+          .drug_add_button{
+            padding: 0.3rem 1.9rem;
+            border-radius: 5px;
+            border: 1px solid gray;
+            font-size: 1rem;
+          }
+
+          .drug_add_button:hover, .drug_add_button:focus, .drug_add_button:active{
+            color: white;
+            font-weight: bold;
+            background-color: #009196FF;
+            border: none;
           }

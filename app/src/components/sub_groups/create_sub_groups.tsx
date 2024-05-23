@@ -47,7 +47,6 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
   const handleInputChange = (e: { target: { value: any } }) => {
     const value = e.target.value;
     setInputValue(value);
-    // Filter suggestions based on input value
     const filteredSuggestions = groupData.filter((group: any) => {
       return (
         group.parent_code === null &&
@@ -133,7 +132,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
         });
         if (formikRef.current) {
           formikRef.current.setFieldValue('type', typeVal.current);
-        const id = typeVal.current === 'p&l' ? 'p_and_l' : 'balance_sheet';
+        const id = typeVal.current === 'P&L' ? 'p_and_l' : 'balance_sheet';
         document.getElementById(id)?.focus();
         }
       }
@@ -317,8 +316,6 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                   // value={typeVal.current === 'p&l'}
                   id='p_and_l'
                   checked={formik.values.type === 'P&L'}
-                  // checked={formik.values.type === 'p&l' || typeVal.current === 'p&l'}
-                  // checked={formik.values.type === 'p&l' ||formik.values.type === typeVal.current}
                   disabled={group_code && isDelete}
                   data-next-field='submit_button'
                   data-side-field='parent_group'

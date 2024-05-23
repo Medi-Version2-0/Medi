@@ -118,8 +118,6 @@ export const Groups = () => {
       values.group_name =
         values.group_name.charAt(0).toUpperCase() + values.group_name.slice(1);
     }
-    // values.isPredefinedGroup = false;
-    // values.parent_code = null;
     if (values !== initialValue) {
       setPopupState({
         ...popupState,
