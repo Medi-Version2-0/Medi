@@ -1,14 +1,22 @@
 import { useFormik } from 'formik';
 import React, { useState } from 'react';
+import { FaExclamationCircle } from 'react-icons/fa';
+import { Tooltip as ReactTooltip } from 'react-tooltip';
 import * as Yup from 'yup';
 
 export const ContactDetails = () => {
     const [selectedGender, setSelectedGender] = useState('');
     const [selectedMaritalStatusOption, setSelectedMaritalStatusOption] = useState('');
   const validationSchema = Yup.object({
-    partyName: Yup.string()
-      .max(100, 'Party Name must be 50 characters or less')
-      .required('Party Name is required'),
+    emailId1: Yup.string()
+      .email('Invalid email'),
+      emailId2: Yup.string()
+      .email('Invalid email'),
+    website_input: Yup.string()
+    .matches(
+        /((https?):\/\/)?(www.)?[a-z0-9]+(\.[a-z]{2,}){1,3}(#?\/?[a-zA-Z0-9#]+)*\/?(\?[a-zA-Z0-9-_]+=[a-zA-Z0-9-%]+&?)?$/,
+        'Enter correct url!'
+    )
   });
 
   const formik = useFormik({
@@ -126,8 +134,24 @@ export const ContactDetails = () => {
             name='website_input'
             placeholder='www.example.com'
             onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
             value={formik.values.website_input}
           />
+          {formik.touched.website_input && formik.errors.website_input && (
+              <>
+                <FaExclamationCircle
+                  data-tooltip-id='website_inputError'
+                  className='error_icon'
+                />
+                <ReactTooltip
+                  id='website_inputError'
+                  place='bottom'
+                  className='custom-tooltip'
+                >
+                  {formik.errors.website_input}
+                </ReactTooltip>
+              </>
+            )}
         </div>
       </div>
       <div className='tax_ledger_inputs'>
@@ -140,9 +164,25 @@ export const ContactDetails = () => {
             id='emailId1'
             name='emailId1'
             placeholder='abc@example.com'
+            onBlur={formik.handleBlur}
             onChange={formik.handleChange}
             value={formik.values.emailId1}
           />
+          {formik.touched.emailId1 && formik.errors.emailId1 && (
+              <>
+                <FaExclamationCircle
+                  data-tooltip-id='emailId1Error'
+                  className='error_icon'
+                />
+                <ReactTooltip
+                  id='emailId1Error'
+                  place='bottom'
+                  className='custom-tooltip'
+                >
+                  {formik.errors.emailId1}
+                </ReactTooltip>
+              </>
+            )}
         </div>
         <div className='name_input'>
           <label htmlFor='emailId2' className='label_name label_name_css'>
@@ -153,9 +193,25 @@ export const ContactDetails = () => {
             id='emailId2'
             name='emailId2'
             placeholder='abc@example.com'
+            onBlur={formik.handleBlur}
             onChange={formik.handleChange}
             value={formik.values.emailId2}
           />
+          {formik.touched.emailId2 && formik.errors.emailId2 && (
+              <>
+                <FaExclamationCircle
+                  data-tooltip-id='emailId2Error'
+                  className='error_icon'
+                />
+                <ReactTooltip
+                  id='emailId2Error'
+                  place='bottom'
+                  className='custom-tooltip'
+                >
+                  {formik.errors.emailId2}
+                </ReactTooltip>
+              </>
+            )}
         </div>
       </div>
     </div>

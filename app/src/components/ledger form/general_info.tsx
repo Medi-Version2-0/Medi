@@ -13,12 +13,12 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({ onValueChange }) => {
   const [groupSuggestions, setGroupSuggestions] = useState<any>([]);
   const [stationInputValue, setStationInputValue] = useState('');
   const [accountInputValue, setAccountInputValue] = useState('');
-  const [stationData, setStationData] = useState([]);
-  const [groupData, setGroupData] = useState([]);
+  const [stationData, setStationData] = useState<any[]>([]);
+  const [groupData, setGroupData] = useState<any[]>([]);
   const electronAPI = (window as any).electronAPI;
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [selectedIndex2, setSelectedIndex2] = useState(0);
-  const [selectedOption, setSelectedOption] = useState('');
+  const [selectedOption, setSelectedOption] = useState('Hell');
   const [selectedItcAvailOption, setSelectedItcAvailOption] = useState('');
   const [selectedItcAvail2Option, setSelectedItcAvail2Option] = useState('');
 
@@ -37,57 +37,52 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({ onValueChange }) => {
 
   const handleInputChange = (e: { target: { value: any; id: any } }) => {
     const value = e.target.value;
-    const id = e.target.id;
-    console.log('value: ', e, id, value);
     if (e.target.id === 'stationName') {
       setStationInputValue(value);
+      formik1.setFieldValue(e.target.id,value);
       const filteredSuggestions = stationData.filter((station: any) => {
-        console.log('stations inside filter ===> ', station);
         return station.station_name.toLowerCase().includes(value.toLowerCase());
       });
 
-      console.log('filtered suggestinos ====> ', filteredSuggestions);
       setStationSuggestions(filteredSuggestions);
     } else if (e.target.id === 'accountGroup') {
       setAccountInputValue(value);
+      formik1.setFieldValue(e.target.id,value);
       const filteredSuggestions = groupData.filter((group: any) => {
         return group.group_name.toLowerCase().includes(value.toLowerCase());
       });
-
-      console.log(
-        'filtered suggestinos inside groups ====> ',
-        filteredSuggestions
-      );
       setGroupSuggestions(filteredSuggestions);
     } else if (e.target.id === 'fixedAssets') {
+      console.log("Hello assets >>>>>>>>")
       setSelectedOption(e.target.value);
+      formik1.setFieldValue(e.target.id,value);
     } else if (e.target.id === 'itcAvail') {
       setSelectedItcAvailOption(e.target.value);
+      formik1.setFieldValue(e.target.id,value);
     } else if (e.target.id === 'itcAvail2') {
       setSelectedItcAvail2Option(e.target.value);
+      formik1.setFieldValue(e.target.id,value);
     }
   };
 
   const handleEnterKey = (
-    e: KeyboardEvent<HTMLInputElement>,
+    e: KeyboardEvent<HTMLInputElement> ,
     suggestions: any[],
     setInputValue: React.Dispatch<React.SetStateAction<string>>,
     setSuggestions: React.Dispatch<React.SetStateAction<any[]>>,
     selectedIndex: number
   ) => {
     e.preventDefault();
+    const target = e.target as HTMLInputElement;
     if (suggestions === stationSuggestions) {
       setInputValue(suggestions[selectedIndex].station_name);
+      formik1.setFieldValue(target.id,suggestions[selectedIndex].station_name);
       setSuggestions([]);
-      console.log(
-        'stations value ===> ',
-        suggestions[selectedIndex].station_name
-      );
     } else if (suggestions === groupSuggestions) {
       setInputValue(suggestions[selectedIndex].group_name);
+      formik1.setFieldValue(target.id,suggestions[selectedIndex].group_name);
       onValueChange(suggestions[selectedIndex].group_name);
       setSuggestions([]);
-      console.log('group value ===> ', suggestions[selectedIndex].group_name);
     }
   };
 
@@ -161,8 +156,31 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({ onValueChange }) => {
 
   const validationSchema = Yup.object({
     partyName: Yup.string()
-      .max(100, 'Party Name must be 50 characters or less')
+      .max(100, 'Party Name must be 100 characters or less')
       .required('Party Name is required'),
+    accountGroup: Yup.string()
+      .required('Account group is required')
+      .transform(value => value ? value.toLowerCase() : '')
+      .test('valid-account-group', 'Invalid Account Group', function(value) {
+        return groupData.map(group => group.group_name.toLowerCase()).includes(value);
+      }),
+    country: Yup.string()
+      .required('Country is required'),
+    state: Yup.string()
+      .required('State is required'),
+    stationName: Yup.string()
+      .required('Station is required')
+      .transform(value => value ? value.toLowerCase() : '')
+      .test('valid-station-name', 'Invalid Station name', function(value) {
+        return stationData.map(station => station.station_name.toLowerCase()).includes(value);
+      }),
+    mailTo: Yup.string()
+      .email('Invalid email'),
+    pinCode: Yup.string()
+      .required('PIN code is required')
+      .matches(/^[0-9]+$/, 'PIN code must be a number')
+      .matches(/^[1-9]/, 'PIN code must not start with zero')
+      .matches(/^[0-9]{6}$/, 'PIN code must be exactly 6 digits'),
   });
 
   const formik1 = useFormik({
@@ -189,11 +207,15 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({ onValueChange }) => {
     },
   });
 
+  // useEffect(() => {
+  //   console.log("Selected OPtion >>>>>>... ",selectedOption);
+  // }, [selectedOption]);
+
   return (
     <div className='ledger_general_info'>
       <div className='general_info_prefix'>General Info</div>
       <form onSubmit={formik1.handleSubmit} className='general_info_inputs'>
-        <div className='ledger_inputs'>
+        <div className='ledger_inputs starlabel'>
           <label htmlFor='partyName' className='label_name label_name_css'>
             Party Name
           </label>
@@ -225,8 +247,8 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({ onValueChange }) => {
           </div>
         </div>
         <div className='ledger_inputs'>
-          <div className='fixed_assets_input'>
-            <label htmlFor='accountGroup' className='label_name label_name_css'>
+          <div className='fixed_assets_input starlabel'>
+            <label htmlFor='accountGroup' className='label_name label_name_css starlabel'>
               Account Group
             </label>
             <input
@@ -235,6 +257,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({ onValueChange }) => {
               name='accountGroup'
               value={accountInputValue}
               onChange={handleInputChange}
+              onBlur={formik1.handleBlur}
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                 handleOnKeyDown(
                   e,
@@ -246,6 +269,25 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({ onValueChange }) => {
                 );
               }}
             />
+            {
+            
+            formik1.touched.accountGroup && 
+            formik1.errors.accountGroup && 
+             (
+              <>
+                <FaExclamationCircle
+                  data-tooltip-id='accountGroupError'
+                  className='error_icon'
+                />
+                <ReactTooltip
+                  id='accountGroupError'
+                  place='bottom'
+                  className='custom-tooltip'
+                >
+                  {formik1.errors.accountGroup}
+                </ReactTooltip>
+              </>
+            )}
             {!!groupSuggestions.length && (
               <ul className={'accountGroup_suggestion station_suggestion'}>
                 {groupSuggestions.map((group: any, index: number) => (
@@ -253,6 +295,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({ onValueChange }) => {
                     key={group.group_code}
                     onClick={() => {
                       setAccountInputValue(group.group_name);
+                      formik1.setFieldValue('accountGroup',group.group_name)
                       setGroupSuggestions([]);
                       document.getElementById('accountGroup')?.focus();
                     }}
@@ -267,7 +310,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({ onValueChange }) => {
           </div>
           {(accountInputValue === 'SUNDRY CREDITORS' ||
             accountInputValue === 'SUNDRY DEBTORS') && (
-            <div className='stations_input'>
+            <div className='stations_input starlabel'>
               <label htmlFor='stationName' className='label_name_css'>
                 Station
               </label>
@@ -276,6 +319,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({ onValueChange }) => {
                 id='stationName'
                 name='stationName'
                 onChange={handleInputChange}
+                onBlur={formik1.handleBlur}
                 value={stationInputValue}
                 onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                   handleOnKeyDown(
@@ -288,6 +332,21 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({ onValueChange }) => {
                   );
                 }}
               />
+              {formik1.touched.stationName && formik1.errors.stationName && (
+              <>
+                <FaExclamationCircle
+                  data-tooltip-id='stationNameError'
+                  className='error_icon'
+                />
+                <ReactTooltip
+                  id='stationNameError'
+                  place='bottom'
+                  className='custom-tooltip'
+                >
+                  {formik1.errors.stationName}
+                </ReactTooltip>
+              </>
+            )}
               {!!stationSuggestions.length && (
                 <ul className={'station_suggestion'}>
                   {stationSuggestions.map((station: any, index: number) => (
@@ -295,6 +354,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({ onValueChange }) => {
                       key={station.station_id}
                       onClick={() => {
                         setStationInputValue(station.station_name);
+                        formik1.setFieldValue('stationName',station.station_name)
                         setStationSuggestions([]);
                         document.getElementById('station_state')?.focus();
                       }}
@@ -316,13 +376,29 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({ onValueChange }) => {
               Mail to
             </label>
             <input
-              type='text'
+              type='email'
               id='mailTo'
               name='mailTo'
               className='input_class'
+              onBlur={formik1.handleBlur}
               onChange={formik1.handleChange}
               value={formik1.values.mailTo}
             />
+            {formik1.touched.mailTo && formik1.errors.mailTo && (
+              <>
+                <FaExclamationCircle
+                  data-tooltip-id='mailToError'
+                  className='error_icon'
+                />
+                <ReactTooltip
+                  id='mailToError'
+                  place='bottom'
+                  className='custom-tooltip'
+                >
+                  {formik1.errors.mailTo}
+                </ReactTooltip>
+              </>
+            )}
           </div>
         )}
         {(accountInputValue === 'SUNDRY CREDITORS' ||
@@ -344,8 +420,8 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({ onValueChange }) => {
         {(accountInputValue === 'SUNDRY CREDITORS' ||
           accountInputValue === 'SUNDRY DEBTORS') && (
           <div className='ledger_inputs country_div'>
-            <div className='country_input'>
-              <label htmlFor='country' className='label_name label_name_css'>
+            <div className='country_input starlabel'>
+              <label htmlFor='country' className='label_name label_name_css' style={{ width : "39%" }}>
                 Country
               </label>
               <input
@@ -354,10 +430,26 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({ onValueChange }) => {
                 name='country'
                 className='state_input'
                 onChange={formik1.handleChange}
+                onBlur={formik1.handleBlur}
                 value={formik1.values.country}
               />
+              {formik1.touched.country && formik1.errors.country && (
+              <>
+                <FaExclamationCircle
+                  data-tooltip-id='countryError'
+                  className='error_icon'
+                />
+                <ReactTooltip
+                  id='countryError'
+                  place='bottom'
+                  className='custom-tooltip'
+                >
+                  {formik1.errors.country}
+                </ReactTooltip>
+              </>
+            )}
             </div>
-            <div className='country'>
+            <div className='country starlabel'>
               <label htmlFor='state' className='label_name_css'>
                 State
               </label>
@@ -367,8 +459,24 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({ onValueChange }) => {
                 name='state'
                 className='state_input'
                 onChange={formik1.handleChange}
+                onBlur={formik1.handleBlur}
                 value={formik1.values.state}
               />
+              {formik1.touched.state && formik1.errors.state && (
+              <>
+                <FaExclamationCircle
+                  data-tooltip-id='stateError'
+                  className='error_icon'
+                />
+                <ReactTooltip
+                  id='stateError'
+                  place='bottom'
+                  className='custom-tooltip'
+                >
+                  {formik1.errors.state}
+                </ReactTooltip>
+              </>
+            )}
             </div>
             <div className='country'>
               <label htmlFor='city' className='label_name_css'>
@@ -396,9 +504,27 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({ onValueChange }) => {
               id='pinCode'
               name='pinCode'
               className='input_class'
+              maxLength={6}
+              onBlur={formik1.handleBlur}
               onChange={formik1.handleChange}
               value={formik1.values.pinCode}
             />
+            {formik1.touched.pinCode && formik1.errors.pinCode && (
+              <>
+                <FaExclamationCircle
+                  data-tooltip-id='pinCodeError'
+                  className='error_icon'
+                  style={{ left: '190px' }}
+                />
+                <ReactTooltip
+                  id='pinCodeError'
+                  place='bottom'
+                  className='custom-tooltip'
+                >
+                  {formik1.errors.pinCode}
+                </ReactTooltip>
+              </>
+            )}
           </div>
         )}
         {accountInputValue === 'DUTIES & TAXES' && (
@@ -428,9 +554,6 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({ onValueChange }) => {
               <select
                 id='fixedAssets'
                 name='fixedAssets'
-                // className='input_class short_input_class'
-                // onChange={formik1.handleChange}
-                // value={formik1.values.fixedAssets}
                 value={selectedOption}
                 onChange={handleInputChange}
                 onBlur={formik1.handleBlur}

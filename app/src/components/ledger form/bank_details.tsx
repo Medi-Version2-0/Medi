@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import * as Yup from 'yup';
 
 export const BankDetails = () => {
-    const [selectedAccountType, setSelectedAccountType] = useState('');
+  const [selectedAccountType, setSelectedAccountType] = useState('');
 
   const validationSchema = Yup.object({
     partyName: Yup.string()
@@ -13,11 +13,11 @@ export const BankDetails = () => {
 
   const formik = useFormik({
     initialValues: {
-        bankName: '',
-        accountNumber: '',
-        branchName:'',
-        ifscCode:'',
-        accountHolderName:'',
+      bankName: '',
+      accountNumber: '',
+      branchName: '',
+      ifscCode: '',
+      accountHolderName: '',
     },
     validationSchema: validationSchema,
     onSubmit: (values) => {
@@ -25,14 +25,14 @@ export const BankDetails = () => {
     },
   });
 
-    const handleInputChange = (e: { target: { value: any; id: any } }) => {
-      const value = e.target.value;
-      const id = e.target.id;
-      console.log('value: ', e, id, value);
-      if (e.target.id === 'accountType') {
-        setSelectedAccountType(e.target.value);
-      }  
-    };
+  const handleInputChange = (e: { target: { value: any; id: any } }) => {
+    const value = e.target.value;
+    const id = e.target.id;
+    console.log('value: ', e, id, value);
+    if (e.target.id === 'accountType') {
+      setSelectedAccountType(e.target.value);
+    }
+  };
 
   return (
     <div className='tax_details_page'>
@@ -54,7 +54,7 @@ export const BankDetails = () => {
             A/C No.
           </label>
           <input
-            type='text'
+            type='number'
             id='accountNumber'
             name='accountNumber'
             onChange={formik.handleChange}
@@ -64,7 +64,7 @@ export const BankDetails = () => {
       </div>
       <div className='tax_ledger_inputs'>
         <div className='name_input'>
-        <label htmlFor='branchName' className='label_name label_name_css'>
+          <label htmlFor='branchName' className='label_name label_name_css'>
             Branch
           </label>
           <input
@@ -72,24 +72,24 @@ export const BankDetails = () => {
             id='branchName'
             name='branchName'
             onChange={formik.handleChange}
-            value={formik.values.branchName}
+            value={formik.values.branchName.toUpperCase()}
           />
         </div>
         <div className='name_input'>
           <label htmlFor='accountType' className='label_name label_name_css'>
-          A/C Type
+            A/C Type
           </label>
           <select
             id='accountType'
             name='accountType'
             value={selectedAccountType}
-          onChange={handleInputChange}
-          onBlur={formik.handleBlur}
-            >
-                <option value='Select'>Select an Option</option>
-          <option value='Saving Account'>Saving Account</option>
-          <option value='Current Account'>Current Account</option>
-            </select>
+            onChange={handleInputChange}
+            onBlur={formik.handleBlur}
+          >
+            <option value='Select'>Select an Option</option>
+            <option value='Saving Account'>Saving Account</option>
+            <option value='Current Account'>Current Account</option>
+          </select>
         </div>
       </div>
       <div className='tax_ledger_inputs'>
@@ -101,12 +101,16 @@ export const BankDetails = () => {
             type='text'
             id='ifscCode'
             name='ifscCode'
+            maxLength={11}
             onChange={formik.handleChange}
-            value={formik.values.ifscCode}
+            value={formik.values.ifscCode.toUpperCase()}
           />
         </div>
         <div className='name_input'>
-          <label htmlFor='accountHolderName' className='label_name label_name_css'>
+          <label
+            htmlFor='accountHolderName'
+            className='label_name label_name_css'
+          >
             A/C Holder Name
           </label>
           <input

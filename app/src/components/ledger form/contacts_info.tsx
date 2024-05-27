@@ -1,5 +1,7 @@
 import { useFormik } from 'formik';
 import React from 'react';
+import { FaExclamationCircle } from 'react-icons/fa';
+import { Tooltip as ReactTooltip } from 'react-tooltip';
 import * as Yup from 'yup';
 
 interface ContactsInfoProps {
@@ -9,10 +11,15 @@ interface ContactsInfoProps {
 export const ContactsInfo: React.FC<ContactsInfoProps> = ({
   accountInputValue,
 }) => {
+  const phoneRegex = /^[6-9][0-9]{9}$/;
   const validationSchema = Yup.object({
-    partyName: Yup.string()
-      .max(100, 'Party Name must be 50 characters or less')
-      .required('Party Name is required'),
+    phone1: Yup.string()
+    .matches(phoneRegex, 'Invalid phone number'),
+    phone2: Yup.string()
+      .matches(phoneRegex, 'Invalid phone number')
+      .required('Phone number is required'),
+    phone3: Yup.string()
+      .matches(phoneRegex, 'Invalid phone number')
   });
 
   const formik = useFormik({
@@ -46,13 +53,29 @@ export const ContactsInfo: React.FC<ContactsInfoProps> = ({
                 type='tel'
                 id='phone1'
                 name='phone1'
-                pattern='[0-9]{3}-[0-9]{3}-[0-9]{4}'
+                maxLength={10}
                 className='contacts_input_class'
+                onBlur={formik.handleBlur}
                 onChange={formik.handleChange}
                 value={formik.values.phone1}
               />
+              {formik.touched.phone1 && formik.errors.phone1 && (
+              <>
+                <FaExclamationCircle
+                  data-tooltip-id='phone1Error'
+                  className='error_icon'
+                />
+                <ReactTooltip
+                  id='phone1Error'
+                  place='bottom'
+                  className='custom-tooltip'
+                >
+                  {formik.errors.phone1}
+                </ReactTooltip>
+              </>
+            )}
             </div>
-            <div className='contact_ledger_inputs'>
+            <div className='contact_ledger_inputs starlabel'>
               <label
                 htmlFor='phone2'
                 className='contacts_label_name label_name_css'
@@ -64,10 +87,27 @@ export const ContactsInfo: React.FC<ContactsInfoProps> = ({
                 type='tel'
                 id='phone2'
                 name='phone2'
+                maxLength={10}
                 className='contacts_input_class'
+                onBlur={formik.handleBlur}
                 onChange={formik.handleChange}
                 value={formik.values.phone2}
               />
+              {formik.touched.phone2 && formik.errors.phone2 && (
+              <>
+                <FaExclamationCircle
+                  data-tooltip-id='phone2Error'
+                  className='error_icon'
+                />
+                <ReactTooltip
+                  id='phone2Error'
+                  place='bottom'
+                  className='custom-tooltip'
+                >
+                  {formik.errors.phone2}
+                </ReactTooltip>
+              </>
+            )}
             </div>
             <div className='contact_ledger_inputs'>
               <label
@@ -81,10 +121,27 @@ export const ContactsInfo: React.FC<ContactsInfoProps> = ({
                 type='tel'
                 id='phone3'
                 name='phone3'
+                maxLength={10}
                 className='contacts_input_class'
+                onBlur={formik.handleBlur}
                 onChange={formik.handleChange}
                 value={formik.values.phone3}
               />
+              {formik.touched.phone3 && formik.errors.phone3 && (
+              <>
+                <FaExclamationCircle
+                  data-tooltip-id='phone3Error'
+                  className='error_icon'
+                />
+                <ReactTooltip
+                  id='phone3Error'
+                  place='bottom'
+                  className='custom-tooltip'
+                >
+                  {formik.errors.phone3}
+                </ReactTooltip>
+              </>
+            )}
               <button className='add_contact_btn'>+</button>
             </div>
           </form>

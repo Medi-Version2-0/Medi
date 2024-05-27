@@ -1,6 +1,6 @@
 import { useFormik } from 'formik';
 import React, { useState } from 'react';
-import * as Yup from 'yup';
+// import * as Yup from 'yup';
 
 interface BalanceInfoProps {
   accountInputValue?: string;
@@ -33,31 +33,43 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
       }
   };
 
-  const validationSchema = Yup.object({
-    partyName: Yup.string()
-      .max(100, 'Party Name must be 50 characters or less')
-      .required('Party Name is required'),
-  });
-
   const formik = useFormik({
     initialValues: {
-      openingBal: '',
-      creditDays: '',
+      openingBal: '0.00',
+      creditDays: '0',
     },
-    validationSchema: validationSchema,
     onSubmit: (values) => {
       console.log('Form data', values);
     },
   });
 
+  const handleOpeningBalInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    if (/^\d*\.?\d{0,3}$/.test(value)) {
+      formik.setFieldValue('openingBal', value);
+    }
+  };
+
+  const handleCreditDaysInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    if (/^\d*$/.test(value)) {
+      formik.setFieldValue('creditDays', value);
+    }
+  };
+
+  const resetField = (e: React.MouseEvent<HTMLInputElement>) => {
+    const { id } = e.currentTarget;
+    formik.setFieldValue(id,'');
+  };
+
   return (
     <div className='ledger_balance_info'>
       <div className='balance_prefix'>Balance</div>
       <form onSubmit={formik.handleSubmit} className='balance_inputs'>
-        {balancing_method_input.map((input: any) => {
+        {balancing_method_input.map((input: any, index: number) => {
           return (
             input===accountInputValue && (
-              <div className='ledger_inputs'>
+              <div className='ledger_inputs' key={index}>
                 <label
                   htmlFor='balancingMethod'
                   className='balance_label_name label_name_css'
@@ -93,8 +105,9 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
                 id='openingBal'
                 name='openingBal'
                 className='opening_bal_inputs'
-                onChange={formik.handleChange}
+                onChange={handleOpeningBalInput}
                 value={formik.values.openingBal}
+                onClick={resetField}
               />
               <select
                   id='openingBalType'
@@ -123,7 +136,8 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
               id='creditDays'
               name='creditDays'
               className='input_class'
-              onChange={formik.handleChange}
+              onChange={handleCreditDaysInput}
+              onClick={resetField}
               value={formik.values.creditDays}
             />
           </div>
