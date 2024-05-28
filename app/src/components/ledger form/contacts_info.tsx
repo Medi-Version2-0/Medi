@@ -1,18 +1,20 @@
-import { useFormik } from 'formik';
-import React from 'react';
-import { FaExclamationCircle } from 'react-icons/fa';
-import { Tooltip as ReactTooltip } from 'react-tooltip';
+import { useEffect, useMemo } from 'react';
 import * as Yup from 'yup';
-
+import { Tooltip as ReactTooltip } from 'react-tooltip';
+import { FaExclamationCircle } from 'react-icons/fa';
 interface ContactsInfoProps {
   accountInputValue?: string;
+  formik?: any;
+  receiveValidationSchemaContactInfo: (schema: Yup.ObjectSchema<any>) => void;
 }
 
 export const ContactsInfo: React.FC<ContactsInfoProps> = ({
   accountInputValue,
+  formik,
+  receiveValidationSchemaContactInfo 
 }) => {
   const phoneRegex = /^[6-9][0-9]{9}$/;
-  const validationSchema = Yup.object({
+  const validationSchema = useMemo(() => Yup.object({
     phone1: Yup.string()
     .matches(phoneRegex, 'Invalid phone number'),
     phone2: Yup.string()
@@ -20,19 +22,11 @@ export const ContactsInfo: React.FC<ContactsInfoProps> = ({
       .required('Phone number is required'),
     phone3: Yup.string()
       .matches(phoneRegex, 'Invalid phone number')
-  });
+  }), []);
 
-  const formik = useFormik({
-    initialValues: {
-      phone1: '',
-      phone2: '',
-      phone3: '',
-    },
-    validationSchema: validationSchema,
-    onSubmit: (values) => {
-      console.log('Form data', values);
-    },
-  });
+  useEffect(() => {
+    receiveValidationSchemaContactInfo(validationSchema);
+  }, [validationSchema, receiveValidationSchemaContactInfo]);
 
   return (
     <>

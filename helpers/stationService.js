@@ -16,9 +16,3 @@ module.exports.getAll = (where='', sort='', limit='') => {
     })
     return data; 
 }
- 
-module.exports.add = (stationData) => {
-    accountData.opening_bal_date = formatDate(accountData.opening_bal_date);
-    accountData.opening_bal = parseFloat(accountData.opening_bal).toFixed(2);
-    return account.insert(accountData);
-  };

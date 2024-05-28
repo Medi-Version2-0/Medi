@@ -1,7 +1,8 @@
 const { statesList } = require("../models/states");
 const { groups } = require("../models/groups");
+const { PartyList } = require("../models/party");
 
-const insertStatements = statesList.map((state) => {
+const insertStatements = (statesList.sort((a, b) => a.state_code - b.state_code)).map((state) => {
   const { state_code, state_name, union_territory } = state;
   const unionTerritoryValue = union_territory ? 1 : 0;
   return `(${state_code}, '${state_name}', ${unionTerritoryValue})`;
@@ -14,22 +15,33 @@ const insertGroups = groups.map((group) => {
   return `(${group_code}, '${group_name}', ${parent_code}, '${type}', ${isPredefinedGroupValue})`;
 });
 
+const insertPartyAccountGroup = PartyList.map((party) => {
+  const { party_name, account_group } = party;
+  return `('${party_name}', '${account_group}')`;
+});
+
 module.exports = {
   up: [
-    `CREATE TABLE IF NOT EXISTS stations (
-            station_id INTEGER PRIMARY KEY, 
-            station_name TEXT NOT NULL, 
-            cst_sale BOOLEAN DEFAULT FALSE, 
-            state_code INTEGER NOT NULL,
-            station_pinCode INTEGER,
-            station_headQuarter TEXT NOT NULL, 
-            FOREIGN KEY (state_code) REFERENCES states(state_code)
-        )`,
+      `CREATE TABLE IF NOT EXISTS stations (
+        station_id INTEGER PRIMARY KEY,
+        station_name TEXT NOT NULL,
+        cst_sale BOOLEAN DEFAULT FALSE,
+        state_code INTEGER NOT NULL,
+        station_pinCode INTEGER,
+        station_headQuarter TEXT NOT NULL,
+        FOREIGN KEY (state_code) REFERENCES states(state_code)
+    )`,
     `CREATE TABLE IF NOT EXISTS states (
-            state_code INTEGER PRIMARY KEY,
-            state_name TEXT NOT NULL,
-            union_territory boolean            
+          state_id INTEGER PRIMARY KEY,
+          state_code INTEGER NOT NULL,
+          state_name TEXT NOT NULL,
+          union_territory boolean            
         )`,
+    `CREATE TABLE IF NOT EXISTS party (
+          party_code INTEGER PRIMARY KEY,
+          party_name TEXT NOT NULL,
+          account_group TEXT NOT NULL            
+      )`,
     `CREATE TABLE IF NOT EXISTS groups (
             group_code INTEGER PRIMARY KEY,
             group_name TEXT NOT NULL,
@@ -47,74 +59,75 @@ module.exports = {
 
     `CREATE TABLE IF NOT EXISTS ledger_party (
             party_id INTEGER PRIMARY KEY,
-            party_name TEXT NOT NULL,
+            partyName TEXT NOT NULL,
             account_code INTEGER NOT NULL,
             station_id INTEGER NOT NULL,
-            email_id TEXT,
+            mailTo TEXT,
             address TEXT,
             country TEXT NOT NULL,
             state TEXT NOT NULL,
             city TEXT,
-            pincode INTEGER,
-            FOREIGN KEY (account_code) REFERENCES account_group(head_code)
+            pinCode INTEGER,
+            parentLedger Text,
+            fixedAssets Text,
+            hsnCode INTEGER,
+            itcAvail TEXT,
+            itcAvail2 TEXT,
+            taxPercentageType TEXT,
+            taxType Text,
+            FOREIGN KEY (account_code) REFERENCES groups(group_code)
         )`,
     `CREATE TABLE IF NOT EXISTS ledger_party_contact (
             contact_id INTEGER PRIMARY KEY,
-            courtesy_titles TEXT,
-            first_name TEXT,
-            last_name TEXT,
+            firstName TEXT,
+            lastName TEXT,
+            gender TEXT,
+            maritalStatus TEXT,
             designation TEXT,
-            phone_number TEXT,
-            mobile_number1 TEXT NOT NULL,
-            whatsapp_number TEXT NOT NULL,
-            mobile_number3 TEXT,
-            mobile_number4 TEXT,
-            mobile_number5 TEXT,
-            website TEXT,
-            email_id TEXT,
-            email_id2 TEXT,
-            email_id3 TEXT,
-            email_id4 TEXT,
+            phone1 TEXT,
+            phone2 TEXT NOT NULL,
+            phone3 TEXT NOT NULL,
+            website_input TEXT,
+            emailId1 TEXT,
+            emailId2 TEXT,
+            party_id INTEGER,
+            FOREIGN KEY (party_id) REFERENCES ledger_party(party_id)
+              )`,
+    `CREATE TABLE IF NOT EXISTS ledger_party_balance (
+            balance_id INTEGER PRIMARY KEY,
+            balancingMethod TEXT,
+            openingBal REAL NOT NULL DEFAULT 0.00,
+            openingBalType TEXT CHECK(openingBalType IN ('credit', 'debit')),
+            creditDays INTEGER NOT NULL DEFAULT 0,
             party_id INTEGER,
             FOREIGN KEY (party_id) REFERENCES ledger_party(party_id)
         )`,
     `CREATE TABLE IF NOT EXISTS ledger_party_licence (
             license_id INTEGER PRIMARY KEY,
-            drug_lic_no TEXT,
-            exp_date DATE,
-            drug_lic_no1 TEXT,
-            exp_date1 DATE,
-            drug_lic_no2 TEXT,
-            exp_date2 DATE,
+            drugLicenceNo TEXT,
+            expiryDate DATE,
             party_id INTEGER,
             FOREIGN KEY (party_id) REFERENCES ledger_party(party_id)
         )`,
-    `CREATE TABLE IF NOT EXISTS ledger_party_balance (
-            balance_id INTEGER PRIMARY KEY, 
-            billing_method TEXT,
-            opening_bal REAL NOT NULL DEFAULT 0.00, 
-            type TEXT CHECK(type IN ('credit', 'debit')) 
-            credit_days INTEGER NOT NULL DEFAULT 0,
-            party_id INTEGER,
-            FOREIGN KEY (party_id) REFERENCES ledger_party(party_id)
-        )`,
-    `CREATE TABLE IF NOT EXISTS ledger_gst_details (
+    `CREATE TABLE IF NOT EXISTS ledger_party_gst (
             gst_id INTEGER PRIMARY KEY,
-            ledger_type TEXT,
-            pan_no TEXT,
-            gstin TEXT,
-            reg_date DATE,
+            ledgerType TEXT,
+            panCard TEXT,
+            gstIn TEXT,
+            payeeCategory TEXT,
+            tdsApplicable TEXT,
+            registrationDate DATE,
             party_id INTEGER,
             FOREIGN KEY (party_id) REFERENCES ledger_party(party_id)
         )`,
     `CREATE TABLE IF NOT EXISTS ledger_account_details (
             acc_detail_id INTEGER PRIMARY KEY,
-            bank TEXT,
-            branch TEXT,
-            ifsc_code TEXT,
-            account_number TEXT,
-            account_type TEXT,
-            holder_name TEXT,
+            bankName TEXT,
+            branchName TEXT,
+            ifscCode TEXT,
+            accountNumber TEXT,
+            accountType TEXT,
+            accountHolderName TEXT,
             party_id INTEGER,
             FOREIGN KEY (party_id) REFERENCES ledger_party(party_id)
         )`,
@@ -124,12 +137,17 @@ module.exports = {
     `INSERT INTO groups (group_code, group_name, parent_code, type, isPredefinedGroup) VALUES ${insertGroups.join(
       ", "
     )};`,
+    `INSERT INTO party (party_name, account_group) VALUES ${insertPartyAccountGroup.join(
+      ", "
+    )};`,
   ],
   down: [
     "DROP TABLE IF EXISTS account_group",
     "DROP TABLE IF EXISTS stations",
+    "DROP TABLE IF EXISTS party",
     "DROP TABLE IF EXISTS states",
     "DROP TABLE IF EXISTS groups",
+    "DROP TABLE IF EXISTS ledger_party",
   ],
 };
 // module.exports.insertQuery = `INSERT INTO states (state_code, state_name, union_territory) VALUES ${insertStatements.join(', ')};`;

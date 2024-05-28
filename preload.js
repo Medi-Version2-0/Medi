@@ -4,16 +4,18 @@ const Station = require('./database/models/stations.js');
 const States = require('./database/models/statesData.js');
 const Account_groups = require('./database/models/account_group.js');
 const Groups = require('./database/models/groupsData.js');
+const PartySuggestions = require('./database/models/partySuggestionData.js');
 
 const stationService = require('./helpers/stationService.js');
 const groupService = require('./helpers/groupService.js');
 const accountGroupService = require('./helpers/accountGroupService.js');
-// const partyService =require('./helpers/partyService.js');
+const partyService =require('./helpers/partyService.js');
 
 const station = new Station()
 const account_groups = new Account_groups()
 const states = new States()
 const groups = new Groups()
+const partySuggestions = new PartySuggestions()
 
 contextBridge.exposeInMainWorld("electronAPI", {
   // STATIONS SERVICE
@@ -47,5 +49,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
   deleteSubGroup: (group_code) => groups.delete(group_code, "group_code"),
 
   // ledger party
-  // addParty:(partyData)=> partyService.addParty(partyData)
+  addParty:(partyData)=> partyService.addParty(partyData),
+
+  // suggestion List for different inputs 
+  addSuggestionList: (where = "", sort = "", limit = "") => partySuggestions.getAll(where, sort, limit),
 });

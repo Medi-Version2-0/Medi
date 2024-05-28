@@ -1,94 +1,69 @@
-import React, { useState } from 'react';
-import { useFormik } from 'formik';
+import React, { useEffect, useMemo } from 'react';
 import * as Yup from 'yup';
 
-export const LicenceInfo = () => {
-  const [licenceInfo, setLicenceInfo] = useState([
-    { drugLicenceNo: '', expiryDate: '' },
-  ]);
-  const [addCount, setAddCount] = useState(0);
+interface LicenceInfoProps {
+  formik?: any;
+  receiveValidationSchemaLicenceInfo: (schema: Yup.ObjectSchema<any>) => void;
+}
 
-  const validationSchema = Yup.object({
+export const LicenceInfo: React.FC<LicenceInfoProps> = ({
+  formik,
+  receiveValidationSchemaLicenceInfo,
+}) => {
+  const validationSchema = useMemo(
+    () => Yup.object({
     partyName: Yup.string()
       .max(100, 'Party Name must be 50 characters or less')
       .required('Party Name is required'),
-  });
+  }),
+  []
+);
 
-  const formik = useFormik({
-    initialValues: {
-      partyName: '',
-      licenceInfo: licenceInfo,
-    },
-    validationSchema: validationSchema,
-    onSubmit: (values) => {
-      console.log('Form data', values);
-    },
-  });
-
-  const handleChange = (index: any, event: any) => {
-    const newLicenceInfo: any = [...licenceInfo];
-    newLicenceInfo[index][event.target.name] = event.target.value;
-    setLicenceInfo(newLicenceInfo);
-    formik.setFieldValue('licenceInfo', newLicenceInfo);
-  };
-
-  const addNewLicenceField = () => {
-  const lastLicenceInfo = licenceInfo[licenceInfo.length - 1];
-  const isEmpty = Object.values(lastLicenceInfo).some(value => value === '');
-  
-  if (addCount < 2 && !isEmpty) {
-    setLicenceInfo([...licenceInfo, { drugLicenceNo: '', expiryDate: '' }]);
-    setAddCount(addCount + 1);
-  }
-
-  };
+useEffect(() => {
+  receiveValidationSchemaLicenceInfo(validationSchema);
+}, [validationSchema, receiveValidationSchemaLicenceInfo]);
 
   return (
       <div className='tax_details_page'>
-        {licenceInfo.map((lic, index) => (
-          <div className='tax_ledger_inputs' key={`tax_ledger_inputs${index}`} >
-            <div className='drugLic_input' key={index}>
+          <div className='tax_ledger_inputs' key={`tax_ledger_inputs`} >
+            <div className='drugLic_input'>
               <label
-                htmlFor={`drugLicenceNo_${index}`}
+                htmlFor={`drugLicenceNo`}
                 className='label_name label_name_css'
               >
                 Drug Lic. No.
               </label>
               <input
                 type='text'
-                id={`drugLicenceNo_${index}`}
+                id={`drugLicenceNo`}
                 name='drugLicenceNo'
-                onChange={(e) => handleChange(index, e)}
-                value={lic.drugLicenceNo.toUpperCase()}
+                onChange={formik.handleChange}
+                value={formik.values.drugLicenceNo}
               />
               <label
-                htmlFor={`expiryDate_${index}`}
+                htmlFor={`expiryDate`}
                 className='label_name label_name_css expiry_date_space'
               >
                 Reg. Date
               </label>
               <input
                 type='date'
-                id={`expiryDate_${index}`}
+                id={`expiryDate`}
                 name='expiryDate'
-                onChange={(e) => handleChange(index, e)}
-                value={lic.expiryDate}
+                onChange={formik.handleChange}
+                value={formik.values.expiryDate}
               />
             </div>
 
-            {index === licenceInfo.length - 1 && addCount < 2 && (
               <div className='add_drug_inputs'>
                 <button
                   type='button'
                   className='drug_add_button'
-                  onClick={addNewLicenceField}
                 >
                   +
                 </button>
               </div>
-            )}
           </div>
-        ))}
       </div>
   );
 };

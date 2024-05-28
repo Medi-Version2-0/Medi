@@ -1,38 +1,29 @@
-import { useFormik } from 'formik';
-import React, { useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import * as Yup from 'yup';
 
-export const BankDetails = () => {
-  const [selectedAccountType, setSelectedAccountType] = useState('');
+interface BankDetailsProps {
+  formik?: any;
+  receiveValidationSchemaBankDetails: (schema: Yup.ObjectSchema<any>) => void;
+}
 
-  const validationSchema = Yup.object({
-    partyName: Yup.string()
-      .max(100, 'Party Name must be 50 characters or less')
-      .required('Party Name is required'),
-  });
+export const BankDetails: React.FC<BankDetailsProps> = ({
+  formik,
+  receiveValidationSchemaBankDetails,
+}) => {
 
-  const formik = useFormik({
-    initialValues: {
-      bankName: '',
-      accountNumber: '',
-      branchName: '',
-      ifscCode: '',
-      accountHolderName: '',
-    },
-    validationSchema: validationSchema,
-    onSubmit: (values) => {
-      console.log('Form data', values);
-    },
-  });
+  const validationSchema = useMemo(
+    () => Yup.object({
+      accountHolderName: Yup.string()
+      .max(100, 'Account Holder Name must be 50 characters or less')
+      .required('Account Holder Name is required'),
+  }),
+  []
+);
 
-  const handleInputChange = (e: { target: { value: any; id: any } }) => {
-    const value = e.target.value;
-    const id = e.target.id;
-    console.log('value: ', e, id, value);
-    if (e.target.id === 'accountType') {
-      setSelectedAccountType(e.target.value);
-    }
-  };
+useEffect(() => {
+  receiveValidationSchemaBankDetails(validationSchema);
+}, [validationSchema, receiveValidationSchemaBankDetails]);  
+
 
   return (
     <div className='tax_details_page'>
@@ -82,8 +73,10 @@ export const BankDetails = () => {
           <select
             id='accountType'
             name='accountType'
-            value={selectedAccountType}
-            onChange={handleInputChange}
+            value={formik.values.accountType}
+            onChange={(e) => {
+              formik.handleChange(e);
+            }}
             onBlur={formik.handleBlur}
           >
             <option value='Select'>Select an Option</option>

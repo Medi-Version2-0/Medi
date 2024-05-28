@@ -1,13 +1,19 @@
-import { useFormik } from 'formik';
-import React, { useState } from 'react';
+import React, { useEffect, useMemo} from 'react';
 import { FaExclamationCircle } from 'react-icons/fa';
 import { Tooltip as ReactTooltip } from 'react-tooltip';
 import * as Yup from 'yup';
 
-export const ContactDetails = () => {
-    const [selectedGender, setSelectedGender] = useState('');
-    const [selectedMaritalStatusOption, setSelectedMaritalStatusOption] = useState('');
-  const validationSchema = Yup.object({
+interface personalInfoProps {
+  formik?: any;
+  receiveValidationSchemaPersonalInfo: (schema: Yup.ObjectSchema<any>) => void;
+}
+
+export const ContactDetails: React.FC<personalInfoProps> = ({
+  formik,
+  receiveValidationSchemaPersonalInfo,
+}) => {
+    const validationSchema = useMemo(
+      () => Yup.object({
     emailId1: Yup.string()
       .email('Invalid email'),
       emailId2: Yup.string()
@@ -17,33 +23,12 @@ export const ContactDetails = () => {
         /((https?):\/\/)?(www.)?[a-z0-9]+(\.[a-z]{2,}){1,3}(#?\/?[a-zA-Z0-9#]+)*\/?(\?[a-zA-Z0-9-_]+=[a-zA-Z0-9-%]+&?)?$/,
         'Enter correct url!'
     )
-  });
+  }),[]
+  );
 
-  const formik = useFormik({
-    initialValues: {
-        firstName: '',
-        lastName: '',
-        designation:'',
-        website_input:'',
-        emailId1:'',
-        emailId2:'',
-    },
-    validationSchema: validationSchema,
-    onSubmit: (values) => {
-      console.log('Form data', values);
-    },
-  });
-
-    const handleInputChange = (e: { target: { value: any; id: any } }) => {
-      const value = e.target.value;
-      const id = e.target.id;
-      console.log('value: ', e, id, value);
-      if (e.target.id === 'gender') {
-        setSelectedGender(e.target.value);
-      }   else if (e.target.id === 'maritalStatus') {
-        setSelectedMaritalStatusOption(e.target.value);
-      } 
-    };
+  useEffect(() => {
+    receiveValidationSchemaPersonalInfo(validationSchema);
+  }, [validationSchema, receiveValidationSchemaPersonalInfo]);
 
   return (
     <div className='tax_details_page'>
@@ -81,8 +66,10 @@ export const ContactDetails = () => {
           <select
             id='gender'
             name='gender'
-            value={selectedGender}
-          onChange={handleInputChange}
+            value={formik.values.gender}
+            onChange={(e) => {
+              formik.handleChange(e);
+            }}
           onBlur={formik.handleBlur}
             >
                 <option value='Select'>Select an Option</option>
@@ -98,8 +85,10 @@ export const ContactDetails = () => {
           <select
             id='maritalStatus'
             name='maritalStatus'
-            value={selectedMaritalStatusOption}
-          onChange={handleInputChange}
+            value={formik.values.maritalStatus}
+            onChange={(e) => {
+              formik.handleChange(e);
+            }}
           onBlur={formik.handleBlur}
             >
                 <option value='Select'>Select an Option</option>

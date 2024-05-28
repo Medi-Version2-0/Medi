@@ -1,16 +1,13 @@
-import { useFormik } from 'formik';
-import React, { useState } from 'react';
-// import * as Yup from 'yup';
-
+import React from 'react';
 interface BalanceInfoProps {
   accountInputValue?: string;
+  formik?:any;
 }
 
 export const BalanceInfo: React.FC<BalanceInfoProps> = ({
   accountInputValue,
+  formik
 }) => {
-  const [selectedBalancingMethod, setSelectedBalancingMethod] = useState('');
-  const [selectedOpeningBalType, setSelectedOpeningBalType] = useState('');
 
   const balancing_method_input = [
     'CURRENT ASSETS',
@@ -21,31 +18,9 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
     'SUNDRY DEBTORS',
   ];
 
-  const handleInputChange = (e: { target: { value: any; id: any } }) => {
-    const value = e.target.value;
-    const id = e.target.id;
-    console.log('value: ', e, id, value);
-
-    if (e.target.id === 'balancingMethod') {
-        setSelectedBalancingMethod(e.target.value);
-    }else if (e.target.id === 'openingBalType') {
-        setSelectedOpeningBalType(e.target.value);
-      }
-  };
-
-  const formik = useFormik({
-    initialValues: {
-      openingBal: '0.00',
-      creditDays: '0',
-    },
-    onSubmit: (values) => {
-      console.log('Form data', values);
-    },
-  });
-
   const handleOpeningBalInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
-    if (/^\d*\.?\d{0,3}$/.test(value)) {
+    if (/^\d*\.?\d{0,2}$/.test(value)) {
       formik.setFieldValue('openingBal', value);
     }
   };
@@ -79,9 +54,10 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
                 <select
                   id='balancingMethod'
                   name='balancingMethod'
-                //   className='input_class'
-                  value={selectedBalancingMethod}
-                  onChange={handleInputChange}
+                  value={formik.values.balancingMethod}
+                  onChange={(e) => {
+                    formik.handleChange(e);
+                  }}
                   onBlur={formik.handleBlur}
                 >
                   <option value='Bill By Bill'>Bill By Bill</option>
@@ -104,6 +80,7 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
                 type='text'
                 id='openingBal'
                 name='openingBal'
+                placeholder='0.00'
                 className='opening_bal_inputs'
                 onChange={handleOpeningBalInput}
                 value={formik.values.openingBal}
@@ -113,8 +90,8 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
                   id='openingBalType'
                   name='openingBalType'
                   className='opening_bal_inputs'
-                  value={selectedOpeningBalType}
-                  onChange={handleInputChange}
+                  onChange={formik.handleChange}
+                value={formik.values.openingBalType}
                   onBlur={formik.handleBlur}
                 >
                   <option value='CR'>CR</option>
@@ -135,6 +112,7 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
               type='text'
               id='creditDays'
               name='creditDays'
+              placeholder='0'
               className='input_class'
               onChange={handleCreditDaysInput}
               onClick={resetField}
