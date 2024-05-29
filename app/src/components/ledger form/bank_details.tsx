@@ -13,9 +13,10 @@ export const BankDetails: React.FC<BankDetailsProps> = ({
   const validationSchema = useMemo(
     () =>
       Yup.object({
-        accountHolderName: Yup.string()
-          .max(100, 'Account Holder Name must be 50 characters or less')
-          .required('Account Holder Name is required'),
+        accountHolderName: Yup.string().max(
+          100,
+          'Account Holder Name must be 50 characters or less'
+        ),
       }),
     []
   );

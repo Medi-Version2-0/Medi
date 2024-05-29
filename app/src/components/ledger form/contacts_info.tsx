@@ -18,12 +18,16 @@ export const ContactsInfo: React.FC<ContactsInfoProps> = ({
     () =>
       Yup.object({
         phone1: Yup.string().matches(phoneRegex, 'Invalid phone number'),
-        phone2: Yup.string()
-          .matches(phoneRegex, 'Invalid phone number')
-          .required('Phone number is required'),
+        phone2:
+          accountInputValue === 'SUNDRY CREDITORS' ||
+          accountInputValue === 'SUNDRY DEBTORS'
+            ? Yup.string()
+                .matches(phoneRegex, 'Invalid phone number')
+                .required('Phone number is required')
+            : Yup.string(),
         phone3: Yup.string().matches(phoneRegex, 'Invalid phone number'),
       }),
-    []
+    [accountInputValue]
   );
 
   useEffect(() => {

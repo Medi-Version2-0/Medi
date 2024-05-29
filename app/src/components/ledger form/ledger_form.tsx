@@ -4,7 +4,7 @@ import Sidebar from '../sidebar/sidebar';
 import './ledger_form.css';
 import { GeneralInfo } from './general_info';
 import { BalanceInfo } from './balance_info';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ContactsInfo } from './contacts_info';
 import { BankDetails } from './bank_details';
 import { ContactDetails } from './contact_details';
@@ -32,10 +32,9 @@ export const Ledger = () => {
   );
   const [personalInfoValidationSchema, setPersonalInfoValidationSchema] =
     useState(Yup.object().shape({}));
-  const [licenceInfoValidationSchema, setLicenceInfoValidationSchema] =
-    useState(Yup.object().shape({}));
   const [bankDetailsValidationSchema, setBankDetailsValidationSchema] =
     useState(Yup.object().shape({}));
+  const [hasErrors, setHasErrors] = useState(true);
 
   const generalInfo = useFormik({
     initialValues: {
@@ -126,7 +125,6 @@ export const Ledger = () => {
       drugLicenceNo: '',
       expiryDate: '',
     },
-    validationSchema: licenceInfoValidationSchema,
     onSubmit: (values) => {
       console.log('licenceInfo data', values);
     },
@@ -161,9 +159,6 @@ export const Ledger = () => {
   const receiveValidationSchemaPersonalInfo = useCallback((schema: any) => {
     setPersonalInfoValidationSchema(schema);
   }, []);
-  const receiveValidationSchemaLicenceInfo = useCallback((schema: any) => {
-    setLicenceInfoValidationSchema(schema);
-  }, []);
   const receiveValidationSchemaBankDetails = useCallback((schema: any) => {
     setBankDetailsValidationSchema(schema);
   }, []);
@@ -197,7 +192,6 @@ export const Ledger = () => {
     personalInfo.handleSubmit();
     licenceInfo.handleSubmit();
     bankDetails.handleSubmit();
-
     const allData = {
       general_info: generalInfo.values,
       balance_contact_info: {
@@ -214,6 +208,41 @@ export const Ledger = () => {
     console.log('all data, ', allData);
     electronAPI.addParty(allData);
   };
+
+  useEffect(() => {
+    const checkErrors = async () => {
+      const generalInfoErrors = await generalInfo.validateForm();
+      const balanceInfoErrors = await balanceInfo.validateForm();
+      const contactsInfoErrors = await contactsInfo.validateForm();
+      const gstDataErrors = await gstData.validateForm();
+      const personalInfoErrors = await personalInfo.validateForm();
+      const licenceInfoErrors = await licenceInfo.validateForm();
+      const bankDetailsErrors = await bankDetails.validateForm();
+
+      const allErrors = {
+        ...generalInfoErrors,
+        ...balanceInfoErrors,
+        ...contactsInfoErrors,
+        ...gstDataErrors,
+        ...personalInfoErrors,
+        ...licenceInfoErrors,
+        ...bankDetailsErrors,
+      };
+
+      setHasErrors(Object.keys(allErrors).length > 0);
+    };
+
+    checkErrors();
+  }, [
+    generalInfo.values,
+    generalInfo.isValid,
+    balanceInfo.values,
+    contactsInfo.values,
+    gstData.values,
+    personalInfo.values,
+    licenceInfo.values,
+    bankDetails.values,
+  ]);
 
   return (
     <>
@@ -363,12 +392,7 @@ export const Ledger = () => {
                   />
                 )}
                 {showActiveElement.btn_2 && (
-                  <LicenceInfo
-                    formik={licenceInfo}
-                    receiveValidationSchemaLicenceInfo={
-                      receiveValidationSchemaLicenceInfo
-                    }
-                  />
+                  <LicenceInfo formik={licenceInfo} />
                 )}
                 {showActiveElement.btn_4 && (
                   <BankDetails
@@ -381,11 +405,13 @@ export const Ledger = () => {
               </div>
             </div>
           )}
-          <div className='submit_button'>
+          <div>
             <button
               type='button'
               id='submit_all'
               onClick={handleSubmit}
+              className='submit_button'
+              disabled={hasErrors}
               onKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
                 if (e.key === 'ArrowUp') {
                   document

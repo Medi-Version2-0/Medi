@@ -216,24 +216,43 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 .includes(value);
             }
           ),
-        country: Yup.string().required('Country is required'),
-        state: Yup.string().required('State is required'),
-        stationName: Yup.string()
-          .required('Station is required')
-          .transform((value) => (value ? value.toLowerCase() : ''))
-          .test('valid-station-name', 'Invalid Station name', function (value) {
-            return stationData
-              .map((station) => station.station_name.toLowerCase())
-              .includes(value);
-          }),
+        country:
+          accountInputValue === 'SUNDRY CREDITORS' ||
+          accountInputValue === 'SUNDRY DEBTORS'
+            ? Yup.string().required('Country is required')
+            : Yup.string(),
+        state:
+          accountInputValue === 'SUNDRY CREDITORS' ||
+          accountInputValue === 'SUNDRY DEBTORS'
+            ? Yup.string().required('State is required')
+            : Yup.string(),
+        stationName:
+          accountInputValue === 'SUNDRY CREDITORS' ||
+          accountInputValue === 'SUNDRY DEBTORS'
+            ? Yup.string()
+                .required('Station is required')
+                .transform((value) => (value ? value.toLowerCase() : ''))
+                .test(
+                  'valid-station-name',
+                  'Invalid Station name',
+                  function (value) {
+                    return stationData
+                      .map((station) => station.station_name.toLowerCase())
+                      .includes(value);
+                  }
+                )
+            : Yup.string(),
         mailTo: Yup.string().email('Invalid email'),
-        pinCode: Yup.string()
-          .required('PIN code is required')
-          .matches(/^[0-9]+$/, 'PIN code must be a number')
-          .matches(/^[1-9]/, 'PIN code must not start with zero')
-          .matches(/^[0-9]{6}$/, 'PIN code must be exactly 6 digits'),
+        pinCode:
+          accountInputValue === 'SUNDRY CREDITORS' ||
+          accountInputValue === 'SUNDRY DEBTORS'
+            ? Yup.string()
+                .matches(/^[0-9]+$/, 'PIN code must be a number')
+                .matches(/^[1-9]/, 'PIN code must not start with zero')
+                .matches(/^[0-9]{6}$/, 'PIN code must be exactly 6 digits')
+            : Yup.string(),
       }),
-    []
+    [groupData, stationData, accountInputValue]
   );
 
   useEffect(() => {

@@ -1,29 +1,10 @@
-import React, { useEffect, useMemo } from 'react';
-import * as Yup from 'yup';
+import React from 'react';
 
 interface LicenceInfoProps {
   formik?: any;
-  receiveValidationSchemaLicenceInfo: (schema: Yup.ObjectSchema<any>) => void;
 }
 
-export const LicenceInfo: React.FC<LicenceInfoProps> = ({
-  formik,
-  receiveValidationSchemaLicenceInfo,
-}) => {
-  const validationSchema = useMemo(
-    () =>
-      Yup.object({
-        partyName: Yup.string()
-          .max(100, 'Party Name must be 50 characters or less')
-          .required('Party Name is required'),
-      }),
-    []
-  );
-
-  useEffect(() => {
-    receiveValidationSchemaLicenceInfo(validationSchema);
-  }, [validationSchema, receiveValidationSchemaLicenceInfo]);
-
+export const LicenceInfo: React.FC<LicenceInfoProps> = ({ formik }) => {
   return (
     <div className='tax_details_page'>
       <div className='tax_ledger_inputs' key={`tax_ledger_inputs`}>

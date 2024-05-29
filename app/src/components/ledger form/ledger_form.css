@@ -1,12 +1,13 @@
-.ledger_content{
+.ledger_content {
   display: flex;
   width: 100vw;
 }
 
 
-.ledger_container{
+.ledger_container {
   width: 84%;
 }
+
 #ledger_main {
   margin: 2rem 1.6rem;
   display: flex;
@@ -16,11 +17,11 @@
 
 #ledger_header {
   margin: 0;
-    font-weight: 700;
-    color: #171A1FFF;
-} 
+  font-weight: 700;
+  color: #171A1FFF;
+}
 
- 
+
 .ledger_button {
   padding: 8px 20px;
   border: 2px solid #009196FF;
@@ -32,22 +33,26 @@
   background: #EAFBFCFF;
   opacity: 1;
 }
-.ledger_button:focus{
+
+.ledger_button:focus {
   border-color: rgb(208, 208, 30);
 }
+
 .ledger_button:hover {
   color: #171A1FFF;
   background: #EAFBFCFF;
-}  
+}
+
 .ledger_button:disabled {
   opacity: 0.4;
-}  
+}
+
 .ledger_button:hover:active {
   color: #171A1FFF;
   background: #EAFBFCFF;
-}  
+}
 
-.middle_form{
+.middle_form {
   display: flex;
   gap: 1rem;
   width: 97%;
@@ -56,50 +61,50 @@
   padding: 1rem;
 }
 
-.ledger_general_info{
-border: 1px solid gray;
+.ledger_general_info {
+  border: 1px solid gray;
   width: 60%;
   height: 100%;
   padding-top: 1rem;
 }
 
-.general_info_prefix{
-margin-left: -0.9rem;
-transform: translateY(-150%);
-color: black;
-width: 6rem;
-background-color: rgb(246, 238, 238);
+.general_info_prefix {
+  margin-left: -0.9rem;
+  transform: translateY(-150%);
+  color: black;
+  width: 6rem;
+  background-color: rgb(246, 238, 238);
 }
 
-.ledger_general_details{
+.ledger_general_details {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-width: 40%;
-height: 100%;
+  width: 40%;
+  height: 100%;
 }
 
-.ledger_balance_info{
+.ledger_balance_info {
   border: 1px solid gray;
   padding-top: 1rem;
   height: 50%;
 }
 
-.ledger_contacts_info{
+.ledger_contacts_info {
   border: 1px solid gray;
   padding-top: 1rem;
   height: 50%;
 }
 
-.general_info_inputs{
-display: flex;
-flex-direction: column;
-gap: 1rem;
-width: 100%;
-padding:0rem 1rem;
+.general_info_inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  padding: 0rem 1rem;
 }
 
-.ledger_inputs{
+.ledger_inputs {
   width: 100%;
   display: flex;
   margin-bottom: 0.5rem;
@@ -107,23 +112,23 @@ padding:0rem 1rem;
   position: relative;
 }
 
-.input_class{
+.input_class {
   width: 100%;
   height: 1.5rem;
-  padding-left: 0.8rem; 
+  padding-left: 0.8rem;
 }
 
-#pinCode{
+#pinCode {
   width: 25%;
   transform: translateX(-15%);
 }
 
-  #balancingMethod{
-    width: 100%;
+#balancingMethod {
+  width: 100%;
   height: 1.5rem;
-  }
+}
 
-.label_name{
+.label_name {
   width: 20%;
   margin-right: 1rem;
 }
@@ -132,17 +137,19 @@ padding:0rem 1rem;
   width: 17%;
 }
 
-.acc_group_input{
+.acc_group_input {
   margin-right: 4rem;
   width: 57%;
   position: relative;
 }
-#accountGroup{
+
+#accountGroup {
   width: 66%;
   height: 1.5rem;
   padding: 0.8rem;
 }
-.stations_input{
+
+.stations_input {
   display: flex;
   align-items: center;
 
@@ -154,17 +161,17 @@ padding:0rem 1rem;
   width: 60%;
 }
 
-#stationName{
+#stationName {
   width: 80%;
   height: 1.5rem;
 }
 
-.country_div{
+.country_div {
   display: flex;
   width: 100%;
 }
 
-.country{
+.country {
   width: 34%;
   gap: 20px;
   display: flex;
@@ -173,12 +180,13 @@ padding:0rem 1rem;
   align-items: center;
 }
 
-.state_input{
+.state_input {
   height: 1.5rem;
-  padding:0rem 0.8rem; 
+  padding: 0rem 0.8rem;
   width: 50%;
 }
-.country_input{
+
+.country_input {
   width: 42%;
   display: flex;
   justify-content: space-between;
@@ -190,18 +198,19 @@ padding:0rem 1rem;
   margin-right: 0;
 }
 
-.label_name_css{
+.label_name_css {
   font-size: 0.9rem;
   color: rgb(80, 77, 77);
   font-weight: bold;
 }
 
-.short_input_class{
-  width:38%; 
+.short_input_class {
+  width: 38%;
   transform: translateX(-8%);
 }
+
 /* Balance form */
-.balance_prefix{
+.balance_prefix {
   position: absolute;
   left: 66%;
   transform: translateY(-150%);
@@ -209,330 +218,399 @@ padding:0rem 1rem;
   width: 4rem;
   background-color: rgb(246, 238, 238);
 }
-.balance_inputs{
+
+.balance_inputs {
   display: flex;
   flex-direction: column;
   gap: 0.7rem;
   width: 100%;
-  padding:0rem 1rem;
-    }
+  padding: 0rem 1rem;
+}
 
-    .balance_label_name{
-      width: 48%;
-      margin-right: 1rem;
-    }
+.balance_label_name {
+  width: 48%;
+  margin-right: 1rem;
+}
 
-    .opening_bal_input{
-      position: relative;
-      width: 100%;
-    }
-    #openingBal{
-      margin-left: 1.7rem;
-      height: 1.5rem;
-      width: 35%;
-      text-align: right;
-    }
+.opening_bal_input {
+  position: relative;
+  width: 100%;
+}
 
-    #openingBalType{
-      height: 1.5rem;
-      width: 21.5%;
-    }
+#openingBal {
+  margin-left: 1.7rem;
+  height: 1.5rem;
+  width: 35%;
+  text-align: right;
+}
 
-    .opening_bal_prefix{
-      position: absolute;
+#openingBalType {
+  height: 1.5rem;
+  width: 21.5%;
+}
+
+.opening_bal_prefix {
+  position: absolute;
   left: 35%;
   top: 10%;
   color: black;
   width: 1rem;
-    }
+}
 
-    /* contacts form */
+/* contacts form */
 
-    .contacts_prefix{
-      position: absolute;
+.contacts_prefix {
+  position: absolute;
   left: 66%;
   transform: translateY(-150%);
   color: black;
   width: 9rem;
   background-color: rgb(246, 238, 238);
-    }
+}
 
-    .contacts_label_name{
-      width: 28%;
-      margin-right: 1.8rem;
-    }
+.contacts_label_name {
+  width: 28%;
+  margin-right: 1.8rem;
+}
 
-    .contact_inputs{
-      display: flex;
-      flex-direction: column;
-      gap: 0.7rem;
-      width: 100%;
-      padding:0rem 1rem;
-        }
+.contact_inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  width: 100%;
+  padding: 0rem 1rem;
+}
 
-        .mobile_prefix{
-          font-size: 0.7rem;
-          border: 1px solid gray;
-          border-right: none;
-          height: 1.9rem;
-          width: 12%;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
+.mobile_prefix {
+  font-size: 0.7rem;
+  border: 1px solid gray;
+  border-right: none;
+  height: 1.9rem;
+  width: 12%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
-        .contacts_input_class{
-          width: 40%;
-          height: 1.5rem;
-          padding: 0.8rem;
-        }
+.contacts_input_class {
+  width: 40%;
+  height: 1.5rem;
+  padding: 0.8rem;
+}
 
-        .contact_ledger_inputs{
-          width: 100%;
-          display: flex;
-          margin-bottom: 0.5rem;
-          align-items: center;
-          position: relative;
-        }
+.contact_ledger_inputs {
+  width: 100%;
+  display: flex;
+  margin-bottom: 0.5rem;
+  align-items: center;
+  position: relative;
+}
 
-        .add_contact_btn{
-          font-size: 1rem;
-          width: 10%;
-          border: 1px solid gray;
-          border-radius: 5px;
-          padding: 0.3rem 0.5rem;
-          margin-left: 1rem;
-        }
-        .add_contact_btn:hover{
-         background-color: #009196FF;
-         color: white;
-        }
+.add_contact_btn {
+  font-size: 1rem;
+  width: 10%;
+  border: 1px solid gray;
+  border-radius: 5px;
+  padding: 0.3rem 0.5rem;
+  margin-left: 1rem;
+}
 
-        .input_with_error {
-          position: relative;
-          display: flex;
-          align-items: center;
-          width: 100%;
-        }
-        
-        .error_icon {
-          color: red;
-          cursor: pointer;
-          position: absolute;
-          right: 10px;
-        }
-        .error_icon[data-tooltip-id='pinCodeError'] {
-          margin-left: 33px;
-        }
-        .error_icon[data-tooltip-id='emailId1Error'],
-        .error_icon[data-tooltip-id='emailId2Error'],
-        .error_icon[data-tooltip-id='website_inputError'] {
-          margin-left: 18.5rem;
-        }
+.add_contact_btn:hover {
+  background-color: #009196FF;
+  color: white;
+}
 
-        .error_icon[data-tooltip-id='phone1Error'],
-        .error_icon[data-tooltip-id='phone2Error'] {
-          right: 53px;
-        }
+.input_with_error {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
 
-        .error_icon[data-tooltip-id='phone3Error'] {
-          right: 60px;
-        }
-        .custom-tooltip {
-          background-color: #89050b !important;
-          color: white !important; 
-          border: 1px solid #d8000c !important;
-          padding: 8px !important;
-          border-radius: 4px !important;
-          font-size: 14px !important;
-          z-index: 10;
-        }
+.error_icon {
+  color: red;
+  cursor: pointer;
+  position: absolute;
+  right: 10px;
+}
 
-        .station_suggestion{
-          z-index: 3;
-          padding: 0.8rem 0rem;
-          position: absolute;
-          top: 110%;
-          left: 27%;
-          max-height: 7rem;
-          min-width: 11.5rem;
-          max-width: 17rem;
-          overflow: auto;
-          background-color: white;
-          border: 1px solid black;
-          border-radius: 5px; 
-          box-shadow: 3px 3px 3px gray; 
-          list-style-type: none;  
-          cursor: pointer;
-          font-size: 0.9rem;
-        }
+.error_icon[data-tooltip-id='pinCodeError'] {
+  margin-left: 33px;
+}
 
-        .station_suggestion_list{
-          height: 35px;
-            display: flex;
-            align-items: center;
-            padding-left: 1rem;
-            border-bottom: 1px solid gray;
-          }
-        .station_suggestion_list:hover{
-          background-color: rgb(183, 179, 179);    
-        } 
+.error_icon[data-tooltip-id='emailId1Error'],
+.error_icon[data-tooltip-id='emailId2Error'],
+.error_icon[data-tooltip-id='website_inputError'] {
+  margin-left: 18.5rem;
+}
 
-        .station_selected{
-          height: 35px;
-          display: flex;
-          align-items: center;
-          padding-left: 1rem;
-          background-color: rgb(183, 179, 179);
-        }
+.error_icon[data-tooltip-id='phone1Error'],
+.error_icon[data-tooltip-id='phone2Error'] {
+  right: 53px;
+}
 
-        .accountGroup_suggestion{
-          left: 33%;
-          max-height: 8rem;
-          width: 68%;
-        }
+.error_icon[data-tooltip-id='phone3Error'] {
+  right: 60px;
+}
 
-        #fixedAssets, #taxPercentageType, #itcAvail2{
-          width: 68%;
-          height: 1.5rem;
-        }
+.custom-tooltip {
+  background-color: #89050b !important;
+  color: white !important;
+  border: 1px solid #d8000c !important;
+  padding: 8px !important;
+  border-radius: 4px !important;
+  font-size: 14px !important;
+  z-index: 10;
+}
 
-        #hsnCode, #itcAvail{
-          width: 73%;
-          height: 1.5rem;
-          margin-left: 1rem;
-          z-index: 4;
-        }
+.station_suggestion {
+  z-index: 3;
+  padding: 0.8rem 0rem;
+  position: absolute;
+  top: 110%;
+  left: 27%;
+  max-height: 7rem;
+  min-width: 11.5rem;
+  max-width: 17rem;
+  overflow: auto;
+  background-color: white;
+  border: 1px solid black;
+  border-radius: 5px;
+  box-shadow: 3px 3px 3px gray;
+  list-style-type: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
 
-        .fixed_assets_input{
-          display: flex;
-          align-items: center;
-          gap: 1.8rem;
-          margin-right: 1rem;
-          width: 57%;
-          position: relative;
-        }
+.station_suggestion_list {
+  height: 35px;
+  display: flex;
+  align-items: center;
+  padding-left: 1rem;
+  border-bottom: 1px solid gray;
+}
 
-        .hsn_input{
-          display: flex;
-          align-items: center;
-          gap: 1.5rem;
-          width: 35%;
-          position: relative;
-        }
+.station_suggestion_list:hover {
+  background-color: rgb(183, 179, 179);
+}
+
+.station_selected {
+  height: 35px;
+  display: flex;
+  align-items: center;
+  padding-left: 1rem;
+  background-color: rgb(183, 179, 179);
+}
+
+.accountGroup_suggestion {
+  left: 33%;
+  max-height: 8rem;
+  width: 68%;
+}
+
+#fixedAssets,
+#taxPercentageType,
+#itcAvail2 {
+  width: 68%;
+  height: 1.5rem;
+}
+
+#hsnCode,
+#itcAvail {
+  width: 73%;
+  height: 1.5rem;
+  margin-left: 1rem;
+  z-index: 4;
+}
+
+.fixed_assets_input {
+  display: flex;
+  align-items: center;
+  gap: 1.8rem;
+  margin-right: 1rem;
+  width: 57%;
+  position: relative;
+}
+
+.hsn_input {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  width: 35%;
+  position: relative;
+}
 
 
-        /* middle Form 2 */
-        .middle_form_2{
-          width: 97%;
-          max-height: 50%;
-          margin: 1rem auto;
-          box-shadow: 5px 0px 8px gray;
-          padding: 1rem;
-        }
-        .middle_form_2_buttons{
-          display: flex;
-        }
-        .btn{
-          padding:0.6rem 1.2rem;
-          color: gray;
-          font-weight: bold;
-          background-color: white;
-          border: 1px solid gray;
-        }
+/* middle Form 2 */
+.middle_form_2 {
+  width: 97%;
+  max-height: 50%;
+  margin: 1rem auto;
+  box-shadow: 5px 0px 8px gray;
+  padding: 1rem;
+}
 
-        .active{
-          color: black;
-          border-bottom: 2px solid #009196FF;
-        }
+.middle_form_2_buttons {
+  display: flex;
+}
 
-        .btn_1, .btn_2, .btn_3{
-          border-right: none;
-        }
+.btn {
+  padding: 0.6rem 1.2rem;
+  color: gray;
+  font-weight: bold;
+  background-color: white;
+  border: 1px solid gray;
+}
 
-        /* tax details page */
+.active {
+  color: black;
+  border-bottom: 2px solid #009196FF;
+}
 
-        .tax_details_page{
-          width: 100%;
-          margin: 1rem 0rem;
-          padding: 1rem;
-        }
+.btn_1,
+.btn_2,
+.btn_3 {
+  border-right: none;
+}
 
-        .tax_ledger_inputs{
-          width: 100%;
-          display: flex;
-          margin-bottom: 0.5rem;
-          align-items: center;
-        }
-        .small_tax_ledger_inputs{
-          width: 50%;
-        }
+/* tax details page */
 
-        #gstIn, #registrationDate, #panCard, #drugLicenceNo_0, #drugLicenceNo_1, #drugLicenceNo_2, #expiryDate, #expiryDate_0, #expiryDate_1, #expiryDate_2, #firstName, #lastName, #gender, #maritalStatus, #website_input, #designation, #emailId1, #emailId2, #bankName, #accountNumber, #branchName, #accountType, #ifscCode, #accountHolderName{
-          width: 44%;
-          height: 1.5rem;
-          padding : 0.2rem 0.8rem;
-        }
-    
-        #ledgerType, #tdsApplicable, #payeeCategory {
-          width: 44%;
-          height: 1.5rem;
-        }
+.tax_details_page {
+  width: 100%;
+  margin: 1rem 0rem;
+  padding: 1rem;
+}
 
-        .gstIn_input, .drugLic_input, .name_input{
-          display: flex;
-          align-items: center;
-          width: 50%;
-          position: relative;
-        }
+.tax_ledger_inputs {
+  width: 100%;
+  display: flex;
+  margin-bottom: 0.5rem;
+  align-items: center;
+}
 
-        .drug_add_button{
-          padding: 0.3rem 1.9rem;
-          border-radius: 5px;
-          border: 1px solid gray;
-          font-size: 1rem;
-          margin-left: 2rem
-        }
+.small_tax_ledger_inputs {
+  width: 50%;
+}
 
-        .expiry_date_space{
-          margin-left: 2rem
-        }
+#gstIn,
+#registrationDate,
+#panCard,
+#drugLicenceNo_0,
+#drugLicenceNo_1,
+#drugLicenceNo_2,
+#expiryDate,
+#expiryDate_0,
+#expiryDate_1,
+#expiryDate_2,
+#firstName,
+#lastName,
+#gender,
+#maritalStatus,
+#website_input,
+#designation,
+#emailId1,
+#emailId2,
+#bankName,
+#accountNumber,
+#branchName,
+#accountType,
+#ifscCode,
+#accountHolderName {
+  width: 44%;
+  height: 1.5rem;
+  padding: 0.2rem 0.8rem;
+}
 
-        .drug_add_button:hover, .drug_add_button:focus, .drug_add_button:active{
-          color: white;
-          font-weight: bold;
-          background-color: #009196FF;
-          border: none;
-        }      
+#ledgerType,
+#tdsApplicable,
+#payeeCategory {
+  width: 44%;
+  height: 1.5rem;
+}
 
-        .starlabel label:after {
-          content:" *";
-          color: red;
-        }
+.gstIn_input,
+.drugLic_input,
+.name_input {
+  display: flex;
+  align-items: center;
+  width: 50%;
+  position: relative;
+}
 
-        ::-webkit-scrollbar {
-          display: none;
-      }
+.drug_add_button {
+  padding: 0.3rem 1.9rem;
+  border-radius: 5px;
+  border: 1px solid gray;
+  font-size: 1rem;
+  margin-left: 2rem
+}
 
-      #country {
-        margin-left: 10px;
-      }
+.expiry_date_space {
+  margin-left: 2rem
+}
 
-      .name_input .error_icon{
-          left: 8px;
-          right: 10px;
-      }
-      #creditDays {
-        text-align: right;
-      }
-      input[type=number]::-webkit-inner-spin-button,
-      input[type=number]::-webkit-outer-spin-button {
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      appearance: none;
-      margin: 0;
-      }
+.drug_add_button:hover,
+.drug_add_button:focus,
+.drug_add_button:active {
+  color: white;
+  font-weight: bold;
+  background-color: #009196FF;
+  border: none;
+}
 
-      .hidden {
-        display: none;
-      }
+.starlabel label:after {
+  content: " *";
+  color: red;
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+#country {
+  margin-left: 10px;
+}
+
+.name_input .error_icon {
+  left: 8px;
+  right: 10px;
+}
+
+#creditDays {
+  text-align: right;
+}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+
+.hidden {
+  display: none;
+}
+
+.submit_button {
+  padding: 8px 20px;
+  border: 2px solid rgb(158, 161, 161);
+  border-radius: 6px;
+  margin: 2rem 1.6rem;
+  font-size: 1rem;
+  cursor: pointer;
+  font-weight: 500;
+  color: #171A1FFF;
+  background: rgb(255, 255, 255);
+  opacity: 1;
+}
+
+.submit_button:hover {
+  color: #171A1FFF;
+  background: #EAFBFCFF;
+}
+
+.submit_button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
