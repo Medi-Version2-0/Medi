@@ -47,7 +47,6 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
   const handleInputChange = (e: { target: { value: any } }) => {
     const value = e.target.value;
     setInputValue(value);
-    // Filter suggestions based on input value
     const filteredSuggestions = groupData.filter((group: any) => {
       return (
         group.parent_code === null &&
@@ -133,7 +132,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
         });
         if (formikRef.current) {
           formikRef.current.setFieldValue('type', typeVal.current);
-        const id = typeVal.current === 'p&l' ? 'p_and_l' : 'balance_sheet';
+        const id = typeVal.current === 'P&L' ? 'p_and_l' : 'balance_sheet';
         document.getElementById(id)?.focus();
         }
       }
@@ -267,7 +266,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
               />
               {/* {inputValue && !!suggestions.length && ( */}
               {!!suggestions.length && (
-                <ul className={'suggestion'}>
+                <ul className={'suggestion'} style={{ top : "49%" }}>
                   {suggestions.map((group: any, index: number) => (
                     <li
                       key={group.group_code}
@@ -294,15 +293,17 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
             </div>
             <div
               style={{
-                marginBottom: '0.6rem',
+                width:'90%',
+                margin: '0rem auto',
+                marginTop:'0.6rem',
                 display: 'flex',
-                height: '2.2rem',
+                height: '2.8rem',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 gap: '0.8rem',
                 borderRadius: '0.4rem',
                 border: '1px solid #c1c1c1',
-                padding: '0.4rem',
+                // padding: '0.4rem',
               }}
             >
               <label
@@ -311,12 +312,10 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                 <Field
                   type='radio'
                   name='type'
-                  value='p&l'
+                  value='P&L'
                   // value={typeVal.current === 'p&l'}
                   id='p_and_l'
-                  checked={formik.values.type === 'p&l'}
-                  // checked={formik.values.type === 'p&l' || typeVal.current === 'p&l'}
-                  // checked={formik.values.type === 'p&l' ||formik.values.type === typeVal.current}
+                  checked={formik.values.type === 'P&L'}
                   disabled={group_code && isDelete}
                   data-next-field='submit_button'
                   data-side-field='parent_group'
@@ -332,10 +331,10 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                 <Field
                   type='radio'
                   name='type'
-                  value='balance sheet'
+                  value='Balance Sheet'
                   // value={typeVal.current === 'balance sheet'}
                   id='balance_sheet'
-                  checked={formik.values.type === 'balance sheet'}
+                  checked={formik.values.type === 'Balance Sheet'}
                   // checked={formik.values.type === 'balance sheet' || typeVal.current === 'balance sheet'}
                   // checked={formik.values.type === 'balance sheet' || formik.values.type === typeVal.current}
                   // checked={formik.values.type === 'balance sheet' || !!formik.values.parent_group && formik.values.type === typeVal.current}
@@ -382,6 +381,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                 <button
                   id='submit_button'
                   className='account_add_button'
+                  disabled={!formik.isValid || formik.isSubmitting || !!err}
                   type='submit'
                   autoFocus
                   onKeyDown={(e) => {

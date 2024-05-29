@@ -8,6 +8,7 @@ import 'ag-grid-community/styles/ag-theme-quartz.css';
 import './stations.css';
 import { StationFormData } from '../../interface/global';
 import Confirm_Alert_Popup from '../helpers/Confirm_Alert_Popup';
+import Sidebar from '../sidebar/sidebar';
 
 const initialValue = {
   station_id: '',
@@ -15,6 +16,7 @@ const initialValue = {
   cst_sale: '',
   station_state: '',
   station_pinCode: '',
+  station_headQuarter: ''
 };
 
 export const Stations = () => {
@@ -228,6 +230,30 @@ export const Stations = () => {
           }
         }
         break;
+        case 'station_headQuarter':
+          {
+            const stationNames = tableData.map((station: { station_name: string; }) => station.station_name.toLowerCase());
+            if (!newValue) {
+              setPopupState({
+                ...popupState,
+                isAlertOpen: true,
+                message: 'Headquarter is required'
+              });
+              node.setDataValue(field, oldValue);
+              return;
+            }
+            if (!stationNames.includes(newValue?.toLowerCase())) {
+              setPopupState({
+                ...popupState,
+                isAlertOpen: true,
+                message: 'Headquarter must match an existing station name',
+              });
+              node.setDataValue(field, oldValue);
+              return;
+            }
+            newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
+          }
+          break;
       default:
         break;
     }
@@ -333,6 +359,15 @@ export const Stations = () => {
       suppressMovable: true,
     },
     {
+      headerName: 'Headquarter',
+      field: 'station_headQuarter',
+      flex: 1,
+      filter: true,
+      editable: true,
+      headerClass: 'custom-header custom_header_class',
+      suppressMovable: true,
+    },
+    {
       headerName: 'Actions',
       headerClass: 'custom-header-class custom-header',
       sortable: false,
@@ -362,7 +397,12 @@ export const Stations = () => {
   ];
 
   return (
-    <div className='container'>
+    <>
+    <div className="stations_content">
+      <div className="stations_sidebar">
+        <Sidebar isGroup={true} isSubGroup={true}/>
+      </div>
+      <div className='stations_container'>
       <div id='account_main'>
         <h1 id='account_header'>Stations</h1>
         <button
@@ -407,5 +447,8 @@ export const Stations = () => {
         />
       )}
     </div>
+    </div>
+    </>
+    
   );
 };

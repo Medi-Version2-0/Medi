@@ -4,6 +4,7 @@ export interface StationFormData {
     cst_sale: string;
     station_state?: string;
     station_pinCode: string;
+    station_headQuarter: string;
     state_code?: Number;
   }
 
@@ -54,6 +55,7 @@ export interface StationFormData {
     cst_sale: string;
     station_state: string;
     station_pinCode: string;
+    station_headQuarter: string;
   }
 
   export interface GroupFormDataProps {
@@ -94,3 +96,9 @@ export interface StationFormData {
     onConfirm?: () => void;
     message: string;
   }
+
+  export interface State {
+    state_code: Number;
+    state_name: string;
+    union_territory: boolean;
+}

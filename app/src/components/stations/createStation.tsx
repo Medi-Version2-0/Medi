@@ -1,13 +1,14 @@
 import {KeyboardEvent, useEffect, useRef, useState } from 'react';
 import { Formik, Form, Field, ErrorMessage, FormikProps } from 'formik';
 import * as Yup from 'yup';
-import { CreateStationProps, FormDataProps } from '../../interface/global';
+import { CreateStationProps, FormDataProps, State, StationFormData } from '../../interface/global';
 import { Popup } from '../helpers/popup';
 import './stations.css';
 
 const errValue = {
   station_state: '', 
-  station_pinCode: ''
+  station_pinCode: '',
+  station_headQuarter: ''
 }
 
 export const CreateStation: React.FC<CreateStationProps> = ({
@@ -19,9 +20,25 @@ export const CreateStation: React.FC<CreateStationProps> = ({
 }) => {
   const { station_id } = data;
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const [inputValue, setInputValue] = useState('');
-  const [suggestions, setSuggestions] = useState<any>([]);
-  const [stateData, setStateData] = useState([]);
+  const [stationState, setStationState] = useState<{
+    inputValue: string,
+    data: State[],
+    suggestions: State[]
+  }>({
+    inputValue: '',
+    data: [],
+    suggestions: []
+  });
+  
+  const [headquarters, setHeadquarters] = useState<{
+    inputValue: string,
+    data: StationFormData[],
+    suggestions: StationFormData[]
+  }>({
+    inputValue: '',
+    data: [],
+    suggestions: []
+  });
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [err, setErr] = useState(errValue);
 
@@ -35,31 +52,70 @@ export const CreateStation: React.FC<CreateStationProps> = ({
   }, []);
 
   const getStates = () => {
-    setStateData(electronAPI.getAllStates('', 'state_name', '', '', ''));
+    setStationState((prevState) => ({
+      ...prevState,
+      data: electronAPI.getAllStates('', 'state_name', '', '', '')
+    }));
     //   setLoading(false);
   };
 
+  const getHq = () => {
+    setHeadquarters((prevState) => ({
+      ...prevState,
+      data: electronAPI.getAllStations('', 'station_name', '', '', '')
+    }));
+  }
+
   useEffect(() => {
     getStates();
-    setInputValue(data?.station_state ? data.station_state : "")
+    getHq();
+    setStationState((prevState) => ({
+      ...prevState,
+      inputValue: data?.station_state ? data.station_state : ""
+    }));
+    setHeadquarters((prevState) => ({
+      ...prevState,
+      inputValue: data?.station_headQuarter ? data.station_headQuarter : ""
+    }));
   }, []);
 
-  const handleInputChange = (e: { target: { value: any; }; }) => {
+  const handleInputChange = (e: { target: { value: any; }; }, isState: boolean) => {
     const value = e.target.value;
-    setInputValue(value);
-    // Filter suggestions based on input value
-    const filteredSuggestions = stateData.filter((state: any) =>
-      state.state_name.toLowerCase().includes(value.toLowerCase())
-    );
-    setSuggestions(filteredSuggestions);
+    isState ? setStationState((prevState) => ({
+      ...prevState,
+      inputValue: value
+    })) : setHeadquarters((prevState) => ({
+      ...prevState,
+      inputValue: value
+    }));
+    // Filter statesSuggestions based on input value
+      isState ? setStationState((prevState) => ({
+      ...prevState,
+      suggestions: stationState.data.filter((item: State) =>
+        item.state_name.toLowerCase().includes(value.toLowerCase())
+      )
+    })) : setHeadquarters((prevState) => ({
+      ...prevState,
+      suggestions: headquarters.data.filter((item: StationFormData) =>
+        item.station_name.toLowerCase().includes(value.toLowerCase())
+      )
+    }));
   };
 
-  const handleOnKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if(suggestions.length){
+  const handleOnKeyDown = (e: KeyboardEvent<HTMLInputElement>,isState: boolean) => {
+    const Suggestions = isState ? stationState.suggestions : headquarters.suggestions;
+    if(Suggestions.length){
       if(e.key === 'Enter'){
         e.preventDefault();
-        setInputValue(suggestions[selectedIndex].state_name); 
-        setSuggestions([]);
+        isState ? setStationState((prevState) => ({
+          ...prevState,
+          inputValue: stationState.suggestions[selectedIndex].state_name,
+          suggestions: []
+        })) : setHeadquarters((prevState) => ({
+          ...prevState,
+          inputValue: headquarters.suggestions[selectedIndex].station_name,
+          suggestions: []
+        }))
       }
       else if(e.key === 'ArrowUp'){
         e.preventDefault();
@@ -76,13 +132,14 @@ export const CreateStation: React.FC<CreateStationProps> = ({
       }
       }
       else if(e.key === 'ArrowDown'){
+        const reqSuggestion = isState ? stationState.suggestions : headquarters.suggestions;
         e.preventDefault();
         // setSelectedIndex(selectedIndex+1);
         setSelectedIndex((prevIndex) =>
-        prevIndex < suggestions.length - 1 ? prevIndex + 1 : prevIndex
+        prevIndex < reqSuggestion.length - 1 ? prevIndex + 1 : prevIndex
       );
       // Scroll the list down if the selected index goes beyond the viewable area
-      if (selectedIndex < suggestions.length - 1) {
+      if (selectedIndex < reqSuggestion.length - 1) {
         document.getElementById(`suggestion_${selectedIndex + 1}`)?.scrollIntoView({
           behavior: 'smooth',
           block: 'nearest',
@@ -117,7 +174,9 @@ export const CreateStation: React.FC<CreateStationProps> = ({
 
     setErr({...err, [id]: ''});
 
-    const isState = stateData.some((state: any) => state.state_name === value);
+    const isState = stationState.data.some((state: any) => state.state_name === value);
+    const isHeadQuarter = headquarters.data.some((hq: any) => hq.station_name === value);
+
 
     if(id === "station_state"){
       if(!value){
@@ -135,12 +194,19 @@ export const CreateStation: React.FC<CreateStationProps> = ({
         setErr({...err, [id]: "PIN code doesn't start from zero"});
       }
     }
+    else if(id === "station_headQuarter"){
+      if(!value){
+        setErr({...err, [id]: "State headquarter is required"});
+      }else if(value && isHeadQuarter === false){
+        setErr({...err, [id]: "Invalid State headquarter"});
+      }
+    }  
   }
 
   const handleSubmit = async (values: object) => {
     const formData = station_id
-    ? { ...values, station_id: station_id, station_state: inputValue }
-    : inputValue ? { ...values, station_state: inputValue } : values;
+    ? { ...values, station_id: station_id, station_state: stationState.inputValue, station_headQuarter: headquarters.inputValue }
+    : stationState.inputValue ? { ...values, station_state: stationState.inputValue, station_headQuarter: headquarters.inputValue } : values;
     !station_id && document.getElementById('account_button')?.focus();
     handelFormSubmit(formData);
   };
@@ -198,7 +264,8 @@ export const CreateStation: React.FC<CreateStationProps> = ({
           station_name: data?.station_name || '',
           cst_sale: data?.cst_sale || '',
           station_state: data?.station_state || '',
-          station_pinCode: data?.station_pinCode || ''
+          station_pinCode: data?.station_pinCode || '',
+          station_headQuarter: data?.station_headQuarter || '',
         }}
         enableReinitialize={true}
         validationSchema={validationSchema}
@@ -254,31 +321,34 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                 id='station_state'
                 name='station_state'
                 placeholder='Station state'
-                value={inputValue}  
+                value={stationState.inputValue}  
                 onBlur={validateInputs}
-                onChange={handleInputChange}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange(e, true)}
                 disabled={isDelete && station_id}
                 className={`input-field ${(formik.touched.station_state && formik.errors.station_state) || (!!err.station_state) ? 'error-field' : ''}`}
                 data-side-field='cst_yes'
                 data-next-field='cst_yes'
                 data-prev-field='station_name'
                 onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                  if (suggestions.length !== 0) {
-                    handleOnKeyDown(e);
+                  if (stationState.suggestions.length !== 0) {
+                    handleOnKeyDown(e,true);
                   }else{
                     handleKeyDown(e);
                   }
                 }}
               />
-              {/* {inputValue && !!suggestions.length && ( */}
-                {!!suggestions.length && (
+              {/* {inputValue && !!statesSuggestions.length && ( */}
+                {!!stationState.suggestions.length && (
                 <ul className={'suggestion'}>
-                  {suggestions.map((state:any, index: number) => (
+                  {stationState.suggestions.map((state:any, index: number) => (
                     <li
                       key={state.state_code}
                       onClick={() => {
-                        setInputValue(state.state_name);
-                        setSuggestions([]);
+                        setStationState((prevState) => ({
+                          ...prevState,
+                          inputValue: state.state_name,
+                          suggestions: []
+                        }))
                         document.getElementById('station_state')?.focus();
                       }}
                       // className='suggestion_list'
@@ -298,17 +368,14 @@ export const CreateStation: React.FC<CreateStationProps> = ({
               {!!err.station_state && <span className="err">{err.station_state}</span>}
             </div>
 
-            <div
+            <div className='inputs'
               style={{
-                marginBottom: '0.6rem',
                 display: 'flex',
-                height: '2.2rem',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 gap: '0.8rem',
                 borderRadius: '0.4rem',
                 border: '1px solid #c1c1c1',
-                padding: '0.4rem',
               }}
             >
               {/* <span className="prefix">CST Sale</span> */}
@@ -373,6 +440,57 @@ export const CreateStation: React.FC<CreateStationProps> = ({
               {!!err.station_pinCode && <span className="err">{err.station_pinCode}</span>}
             </div>
 
+            <div className='inputs'>
+              <Field
+                type='text'
+                id='station_headQuarter'
+                name='station_headQuarter'
+                placeholder='Station head quarter'
+                value={headquarters.inputValue}
+                onBlur={validateInputs}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange(e, false)}
+                disabled={isDelete && station_id}
+                className={`input-field ${(formik.touched.station_headQuarter && formik.errors.station_headQuarter) || (!!err.station_headQuarter) ? 'error-field' : ''}`}
+                data-side-field='cancel_button'
+                data-next-field='cancel_button'
+                data-prev-field='station_pinCode'
+                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                  if (headquarters.suggestions.length !== 0) {
+                    handleOnKeyDown(e,false);
+                  }else{
+                    handleKeyDown(e);
+                  }
+                }}
+              />
+                {!!headquarters.suggestions.length && (
+                <ul className={'suggestion'} style={{ top : "67%" }}>
+                  {headquarters.suggestions.map((hq:any, index: number) => (
+                    <li
+                      key={hq.station_id}
+                      onClick={() => {
+                        setHeadquarters((prevState) => ({
+                          ...prevState,
+                          inputValue: hq.station_name,
+                          suggestions: []
+                        }))
+                        document.getElementById('station_headQuarter')?.focus();
+                      }}
+                      className={`${index === selectedIndex ? 'selected' : 'suggestion_list'}`}
+                      id={`suggestion_${index}`}
+                    >
+                      {hq.station_name}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <ErrorMessage
+                name='station_headQuarter'
+                component='div'
+                className='error'
+              />
+              {!!err.station_headQuarter && <span className="err">{err.station_headQuarter}</span>}
+            </div>
+
             <div className='modal-actions'>
               <button
                 autoFocus
@@ -408,6 +526,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                   className='account_add_button'
                   type='submit'
                   autoFocus
+                  disabled={!formik.isValid || formik.isSubmitting || !!err.station_state || !!err.station_pinCode || !!err.station_headQuarter}
                   onKeyDown={(e) => {
                     if (e.key === 'Tab') {
                       document.getElementById('station_name')?.focus();
