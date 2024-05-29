@@ -10,20 +10,19 @@ export const BankDetails: React.FC<BankDetailsProps> = ({
   formik,
   receiveValidationSchemaBankDetails,
 }) => {
-
   const validationSchema = useMemo(
-    () => Yup.object({
-      accountHolderName: Yup.string()
-      .max(100, 'Account Holder Name must be 50 characters or less')
-      .required('Account Holder Name is required'),
-  }),
-  []
-);
+    () =>
+      Yup.object({
+        accountHolderName: Yup.string()
+          .max(100, 'Account Holder Name must be 50 characters or less')
+          .required('Account Holder Name is required'),
+      }),
+    []
+  );
 
-useEffect(() => {
-  receiveValidationSchemaBankDetails(validationSchema);
-}, [validationSchema, receiveValidationSchemaBankDetails]);  
-
+  useEffect(() => {
+    receiveValidationSchemaBankDetails(validationSchema);
+  }, [validationSchema, receiveValidationSchemaBankDetails]);
 
   return (
     <div className='tax_details_page'>
@@ -38,6 +37,14 @@ useEffect(() => {
             name='bankName'
             onChange={formik.handleChange}
             value={formik.values.bankName}
+            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+              if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                document.getElementById('accountNumber')?.focus();
+                e.preventDefault();
+              } else if (e.key === 'ArrowUp') {
+                document.getElementById('Bank_Details')?.focus();
+              }
+            }}
           />
         </div>
         <div className='name_input'>
@@ -50,6 +57,15 @@ useEffect(() => {
             name='accountNumber'
             onChange={formik.handleChange}
             value={formik.values.accountNumber}
+            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+              if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                document.getElementById('branchName')?.focus();
+                e.preventDefault();
+              } else if (e.key === 'ArrowUp') {
+                document.getElementById('bankName')?.focus();
+                e.preventDefault();
+              }
+            }}
           />
         </div>
       </div>
@@ -64,6 +80,14 @@ useEffect(() => {
             name='branchName'
             onChange={formik.handleChange}
             value={formik.values.branchName.toUpperCase()}
+            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+              if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                document.getElementById('accountType')?.focus();
+                e.preventDefault();
+              } else if (e.key === 'ArrowUp') {
+                document.getElementById('accountNumber')?.focus();
+              }
+            }}
           />
         </div>
         <div className='name_input'>
@@ -78,6 +102,15 @@ useEffect(() => {
               formik.handleChange(e);
             }}
             onBlur={formik.handleBlur}
+            onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+              if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                document.getElementById('ifscCode')?.focus();
+                e.preventDefault();
+              } else if (e.key === 'ArrowUp') {
+                document.getElementById('branchName')?.focus();
+                e.preventDefault();
+              }
+            }}
           >
             <option value='Select'>Select an Option</option>
             <option value='Saving Account'>Saving Account</option>
@@ -97,6 +130,14 @@ useEffect(() => {
             maxLength={11}
             onChange={formik.handleChange}
             value={formik.values.ifscCode.toUpperCase()}
+            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+              if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                document.getElementById('accountHolderName')?.focus();
+                e.preventDefault();
+              } else if (e.key === 'ArrowUp') {
+                document.getElementById('accountType')?.focus();
+              }
+            }}
           />
         </div>
         <div className='name_input'>
@@ -112,6 +153,14 @@ useEffect(() => {
             name='accountHolderName'
             onChange={formik.handleChange}
             value={formik.values.accountHolderName}
+            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+              if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                document.getElementById('submit_all')?.focus();
+                e.preventDefault();
+              } else if (e.key === 'ArrowUp') {
+                document.getElementById('ifscCode')?.focus();
+              }
+            }}
           />
         </div>
       </div>

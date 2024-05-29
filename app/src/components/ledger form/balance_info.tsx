@@ -1,14 +1,13 @@
 import React from 'react';
 interface BalanceInfoProps {
   accountInputValue?: string;
-  formik?:any;
+  formik?: any;
 }
 
 export const BalanceInfo: React.FC<BalanceInfoProps> = ({
   accountInputValue,
-  formik
+  formik,
 }) => {
-
   const balancing_method_input = [
     'CURRENT ASSETS',
     'CURRENT LIABILITIES',
@@ -34,7 +33,7 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
 
   const resetField = (e: React.MouseEvent<HTMLInputElement>) => {
     const { id } = e.currentTarget;
-    formik.setFieldValue(id,'');
+    formik.setFieldValue(id, '');
   };
 
   return (
@@ -43,7 +42,7 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
       <form onSubmit={formik.handleSubmit} className='balance_inputs'>
         {balancing_method_input.map((input: any, index: number) => {
           return (
-            input===accountInputValue && (
+            input === accountInputValue && (
               <div className='ledger_inputs' key={index}>
                 <label
                   htmlFor='balancingMethod'
@@ -59,6 +58,15 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
                     formik.handleChange(e);
                   }}
                   onBlur={formik.handleBlur}
+                  onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+                    if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                      document.getElementById('openingBal')?.focus();
+                      e.preventDefault();
+                    } else if (e.key === 'ArrowUp') {
+                      document.getElementById('parentLedger')?.focus();
+                      e.preventDefault();
+                    }
+                  }}
                 >
                   <option value='Bill By Bill'>Bill By Bill</option>
                   <option value='On Account'>On Account</option>
@@ -67,38 +75,74 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
             )
           );
         })}
-          <div className='ledger_inputs'>
-            <div className='opening_bal_input'>
-              <label
-                htmlFor='openingBal'
-                className='balance_label_name label_name_css openingBal'
-              >
-                Opening Balance
-              </label>
-              <span className='opening_bal_prefix'>₹</span>
-              <input
-                type='text'
-                id='openingBal'
-                name='openingBal'
-                placeholder='0.00'
-                className='opening_bal_inputs'
-                onChange={handleOpeningBalInput}
-                value={formik.values.openingBal}
-                onClick={resetField}
-              />
-              <select
-                  id='openingBalType'
-                  name='openingBalType'
-                  className='opening_bal_inputs'
-                  onChange={formik.handleChange}
-                value={formik.values.openingBalType}
-                  onBlur={formik.handleBlur}
-                >
-                  <option value='CR'>CR</option>
-                  <option value='DR'>DR</option>
-                </select>
-            </div>
+        <div className='ledger_inputs'>
+          <div className='opening_bal_input'>
+            <label
+              htmlFor='openingBal'
+              className='balance_label_name label_name_css openingBal'
+            >
+              Opening Balance
+            </label>
+            <span className='opening_bal_prefix'>₹</span>
+            <input
+              type='text'
+              id='openingBal'
+              name='openingBal'
+              placeholder='0.00'
+              className='opening_bal_inputs'
+              onChange={handleOpeningBalInput}
+              value={formik.values.openingBal}
+              onClick={resetField}
+              onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                  document.getElementById('openingBalType')?.focus();
+                  e.preventDefault();
+                } else if (e.key === 'ArrowUp') {
+                  document
+                    .getElementById(
+                      accountInputValue === 'CURRENT ASSETS' ||
+                        accountInputValue === 'CURRENT LIABILITIES' ||
+                        accountInputValue === 'PROVISIONS' ||
+                        accountInputValue === 'SECURED LOANS' ||
+                        accountInputValue === 'SUNDRY CREDITORS' ||
+                        accountInputValue === 'SUNDRY DEBTORS'
+                        ? 'balancingMethod'
+                        : 'parentLedger'
+                    )
+                    ?.focus();
+                  e.preventDefault();
+                }
+              }}
+            />
+            <select
+              id='openingBalType'
+              name='openingBalType'
+              className='opening_bal_inputs'
+              onChange={formik.handleChange}
+              value={formik.values.openingBalType}
+              onBlur={formik.handleBlur}
+              onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+                if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                  document
+                    .getElementById(
+                      accountInputValue === 'SUNDRY CREDITORS' ||
+                        accountInputValue === 'SUNDRY DEBTORS'
+                        ? 'creditDays'
+                        : 'submit_all'
+                    )
+                    ?.focus();
+                  e.preventDefault();
+                } else if (e.key === 'ArrowUp') {
+                  document.getElementById('openingBal')?.focus();
+                  e.preventDefault();
+                }
+              }}
+            >
+              <option value='CR'>CR</option>
+              <option value='DR'>DR</option>
+            </select>
           </div>
+        </div>
         {(accountInputValue === 'SUNDRY CREDITORS' ||
           accountInputValue === 'SUNDRY DEBTORS') && (
           <div className='ledger_inputs'>
@@ -117,6 +161,15 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
               onChange={handleCreditDaysInput}
               onClick={resetField}
               value={formik.values.creditDays}
+              onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                  document.getElementById('phone1')?.focus();
+                  e.preventDefault();
+                } else if (e.key === 'ArrowUp') {
+                  document.getElementById('openingBalType')?.focus();
+                  e.preventDefault();
+                }
+              }}
             />
           </div>
         )}

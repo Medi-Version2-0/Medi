@@ -60,6 +60,22 @@ export const TaxDetails: React.FC<TaxInfoProps> = ({
               handleInputChange(e);
             }}
             onBlur={formik.handleBlur}
+            onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+              if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                document
+                  .getElementById(
+                    selectedOption === 'Registered' ||
+                      selectedOption === 'Composition'
+                      ? 'gstIn'
+                      : 'tdsApplicable'
+                  )
+                  ?.focus();
+                e.preventDefault();
+              } else if (e.key === 'ArrowUp') {
+                document.getElementById('GST/Tax Details')?.focus();
+                e.preventDefault();
+              }
+            }}
           >
             <option value='Select'>Select an Option</option>
             <option value='Registered'>Registered</option>
@@ -75,30 +91,39 @@ export const TaxDetails: React.FC<TaxInfoProps> = ({
                 GSTIN
               </label>
               <input
-              type='text'
-              id='gstIn'
-              name='gstIn'
-              maxLength={15}
-              onChange={formik.handleChange}
-              value={formik.values.gstIn.toUpperCase()}
-              onBlur={formik.handleBlur}
-            />
-            {formik.touched.gstIn && formik.errors.gstIn && (
-              <>
-                <FaExclamationCircle
-                  data-tooltip-id='gstInError'
-                  className='error_icon'
-                  style={{ right: '150px' }}
-                />
-                <ReactTooltip
-                  id='gstInError'
-                  place='bottom'
-                  className='custom-tooltip'
-                >
-                  {formik.errors.gstIn}
-                </ReactTooltip>
-              </>
-            )}
+                type='text'
+                id='gstIn'
+                name='gstIn'
+                maxLength={15}
+                onChange={formik.handleChange}
+                value={formik.values.gstIn.toUpperCase()}
+                onBlur={formik.handleBlur}
+                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                  if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                    document.getElementById('registrationDate')?.focus();
+                    e.preventDefault();
+                  } else if (e.key === 'ArrowUp') {
+                    document.getElementById('ledgerType')?.focus();
+                    e.preventDefault();
+                  }
+                }}
+              />
+              {formik.touched.gstIn && formik.errors.gstIn && (
+                <>
+                  <FaExclamationCircle
+                    data-tooltip-id='gstInError'
+                    className='error_icon'
+                    style={{ right: '150px' }}
+                  />
+                  <ReactTooltip
+                    id='gstInError'
+                    place='bottom'
+                    className='custom-tooltip'
+                  >
+                    {formik.errors.gstIn}
+                  </ReactTooltip>
+                </>
+              )}
             </div>
             <div className='gstIn_input'>
               <label
@@ -113,6 +138,15 @@ export const TaxDetails: React.FC<TaxInfoProps> = ({
                 name='registrationDate'
                 onChange={formik.handleChange}
                 value={formik.values.registrationDate}
+                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                  if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                    document.getElementById('tdsApplicable')?.focus();
+                    e.preventDefault();
+                  } else if (e.key === 'ArrowUp') {
+                    document.getElementById('gstIn')?.focus();
+                    e.preventDefault();
+                  }
+                }}
               />
             </div>
           </div>
@@ -130,6 +164,26 @@ export const TaxDetails: React.FC<TaxInfoProps> = ({
               handleInputChange(e);
             }}
             onBlur={formik.handleBlur}
+            onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+              if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                document
+                  .getElementById(
+                    selectedTdsOption === 'Yes' ? 'payeeCategory' : 'panCard'
+                  )
+                  ?.focus();
+                e.preventDefault();
+              } else if (e.key === 'ArrowUp') {
+                document
+                  .getElementById(
+                    selectedOption === 'Registered' ||
+                      selectedOption === 'Composition'
+                      ? 'registrationDate'
+                      : 'ledgerType'
+                  )
+                  ?.focus();
+                e.preventDefault();
+              }
+            }}
           >
             <option value='Select'>Select an Option</option>
             <option value='Yes'>Yes</option>
@@ -153,6 +207,15 @@ export const TaxDetails: React.FC<TaxInfoProps> = ({
                 handleInputChange(e);
               }}
               onBlur={formik.handleBlur}
+              onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+                if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                  document.getElementById('panCard')?.focus();
+                  e.preventDefault();
+                } else if (e.key === 'ArrowUp') {
+                  document.getElementById('tdsApplicable')?.focus();
+                  e.preventDefault();
+                }
+              }}
             >
               <option value='Select'>Select an Option</option>
               <option value='Individual'>Individual</option>
@@ -189,6 +252,21 @@ export const TaxDetails: React.FC<TaxInfoProps> = ({
             maxLength={15}
             onChange={formik.handleChange}
             value={formik.values.panCard.toUpperCase()}
+            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+              if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                document.getElementById('Licence_Info')?.focus();
+                e.preventDefault();
+              } else if (e.key === 'ArrowUp') {
+                document
+                  .getElementById(
+                    selectedTdsOption === 'Yes'
+                      ? 'payeeCategory'
+                      : 'tdsApplicable'
+                  )
+                  ?.focus();
+                e.preventDefault();
+              }
+            }}
           />
         </div>
       </form>

@@ -4,7 +4,7 @@ import Sidebar from '../sidebar/sidebar';
 import './ledger_form.css';
 import { GeneralInfo } from './general_info';
 import { BalanceInfo } from './balance_info';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { ContactsInfo } from './contacts_info';
 import { BankDetails } from './bank_details';
 import { ContactDetails } from './contact_details';
@@ -41,8 +41,8 @@ export const Ledger = () => {
     initialValues: {
       partyName: '',
       accountGroup: '',
-      account_code:'',
-      station_id:'',
+      account_code: '',
+      station_id: '',
       stationName: '',
       mailTo: '',
       address: '',
@@ -66,7 +66,7 @@ export const Ledger = () => {
 
   const balanceInfo = useFormik({
     initialValues: {
-      party_id:'',
+      party_id: '',
       balancingMethod: '',
       openingBal: '',
       openingBalType: '',
@@ -112,8 +112,8 @@ export const Ledger = () => {
       website_input: '',
       emailId1: '',
       emailId2: '',
-      gender:'',
-      maritalStatus:'',
+      gender: '',
+      maritalStatus: '',
     },
     validationSchema: personalInfoValidationSchema,
     onSubmit: (values) => {
@@ -259,7 +259,22 @@ export const Ledger = () => {
                 <div className='buttons'>
                   <button
                     className='btn btn_1 active'
+                    id='GST/Tax Details'
                     onClick={() => handleClick('btn_1')}
+                    onKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
+                      if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                        handleClick('btn_1');
+                        document.getElementById('ledgerType')?.focus();
+                        e.preventDefault();
+                      } else if (e.key === 'ArrowRight') {
+                        document.getElementById('Licence_Info')?.focus();
+                        e.preventDefault();
+                      }
+                      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                        document.getElementById('phone3')?.focus();
+                        e.preventDefault();
+                      }
+                    }}
                   >
                     GST/Tax Details
                   </button>
@@ -267,7 +282,22 @@ export const Ledger = () => {
                 <div className='buttons'>
                   <button
                     className='btn btn_2'
+                    id='Licence_Info'
                     onClick={() => handleClick('btn_2')}
+                    onKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
+                      if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                        handleClick('btn_2');
+                        document.getElementById('drugLicenceNo')?.focus();
+                        e.preventDefault();
+                      } else if (e.key === 'ArrowRight') {
+                        document.getElementById('Contact_Info')?.focus();
+                        e.preventDefault();
+                      }
+                      if (e.key === 'ArrowLeft') {
+                        document.getElementById('GST/Tax Details')?.focus();
+                        e.preventDefault();
+                      }
+                    }}
                   >
                     Licence Info
                   </button>
@@ -275,7 +305,22 @@ export const Ledger = () => {
                 <div className='buttons'>
                   <button
                     className='btn btn_3'
+                    id='Contact_Info'
                     onClick={() => handleClick('btn_3')}
+                    onKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
+                      if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                        handleClick('btn_3');
+                        document.getElementById('firstName')?.focus();
+                        e.preventDefault();
+                      } else if (e.key === 'ArrowRight') {
+                        document.getElementById('Bank_Details')?.focus();
+                        e.preventDefault();
+                      }
+                      if (e.key === 'ArrowLeft') {
+                        document.getElementById('Licence_Info')?.focus();
+                        e.preventDefault();
+                      }
+                    }}
                   >
                     Contact Info
                   </button>
@@ -283,7 +328,18 @@ export const Ledger = () => {
                 <div className='buttons'>
                   <button
                     className='btn btn_4'
+                    id='Bank_Details'
                     onClick={() => handleClick('btn_4')}
+                    onKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
+                      if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                        handleClick('btn_4');
+                        document.getElementById('bankName')?.focus();
+                        e.preventDefault();
+                      } else if (e.key === 'ArrowLeft') {
+                        document.getElementById('Contact_Info')?.focus();
+                        e.preventDefault();
+                      }
+                    }}
                   >
                     Bank Details
                   </button>
@@ -326,7 +382,24 @@ export const Ledger = () => {
             </div>
           )}
           <div className='submit_button'>
-            <button type='button' onClick={handleSubmit}>
+            <button
+              type='button'
+              id='submit_all'
+              onClick={handleSubmit}
+              onKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
+                if (e.key === 'ArrowUp') {
+                  document
+                    .getElementById(
+                      valueFromGeneral === 'SUNDRY CREDITORS' ||
+                        valueFromGeneral === 'SUNDRY DEBTORS'
+                        ? 'accountHolderName'
+                        : 'openingBalType'
+                    )
+                    ?.focus();
+                  e.preventDefault();
+                }
+              }}
+            >
               Submit All
             </button>
           </div>

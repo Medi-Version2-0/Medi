@@ -22,6 +22,11 @@ const insertPartyAccountGroup = PartyList.map((party) => {
 
 module.exports = {
   up: [
+      `CREATE TABLE IF NOT EXISTS states (
+        state_code INTEGER PRIMARY KEY,
+        state_name TEXT NOT NULL,
+        union_territory boolean            
+      )`,
       `CREATE TABLE IF NOT EXISTS stations (
         station_id INTEGER PRIMARY KEY,
         station_name TEXT NOT NULL,
@@ -30,13 +35,7 @@ module.exports = {
         station_pinCode INTEGER,
         station_headQuarter TEXT NOT NULL,
         FOREIGN KEY (state_code) REFERENCES states(state_code)
-    )`,
-    `CREATE TABLE IF NOT EXISTS states (
-          state_id INTEGER PRIMARY KEY,
-          state_code INTEGER NOT NULL,
-          state_name TEXT NOT NULL,
-          union_territory boolean            
-        )`,
+      )`,
     `CREATE TABLE IF NOT EXISTS party (
           party_code INTEGER PRIMARY KEY,
           party_name TEXT NOT NULL,
