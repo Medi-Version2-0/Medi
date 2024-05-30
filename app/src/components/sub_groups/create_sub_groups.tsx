@@ -66,11 +66,9 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
         setSuggestions([]);
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
-        // setSelectedIndex(selectedIndex-1);
         setSelectedIndex((prevIndex) =>
           prevIndex > 0 ? prevIndex - 1 : prevIndex
         );
-        // Scroll the list up if the selected index goes beyond the viewable area
         if (selectedIndex > 0) {
           document
             .getElementById(`suggestion_${selectedIndex - 1}`)
@@ -81,11 +79,9 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
         }
       } else if (e.key === 'ArrowDown') {
         e.preventDefault();
-        // setSelectedIndex(selectedIndex+1);
         setSelectedIndex((prevIndex) =>
           prevIndex < suggestions.length - 1 ? prevIndex + 1 : prevIndex
         );
-        // Scroll the list down if the selected index goes beyond the viewable area
         if (selectedIndex < suggestions.length - 1) {
           document
             .getElementById(`suggestion_${selectedIndex + 1}`)
@@ -100,7 +96,6 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
 
   const validateInputs = (e: { target: { value: any; id: any } }) => {
     const { value, id } = e.target;
-    // setErr({...err, [id]: ''});
     setErr('');
 
     const isGroup = groupData.some((group: any) => group.group_name === value);
@@ -123,7 +118,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
         const filteredSuggestions = groupData.filter((group: any) => {
           return (
             group.parent_code === null &&
-            group.group_name.toLowerCase().includes(value.toLowerCase())
+            group.group_name?.toLowerCase().includes(value.toLowerCase())
           );
         });
         filteredSuggestions.map((suggestion: any) => {
@@ -167,6 +162,8 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
     formik?: FormikProps<SubGroupFormDataProps>
   ) => {
     const key = e.key;
+    const shiftPressed = e.shiftKey;
+
     switch (key) {
       case 'ArrowDown':
       case 'Enter':
@@ -187,11 +184,18 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
         break;
       case 'Tab':
         {
-          const sideField =
-            e.currentTarget.getAttribute('data-side-field') || '';
-          formik && formik.setFieldValue('type', sideField);
-          document.getElementById(sideField)?.focus();
-          e.preventDefault();
+          if (shiftPressed) {
+            const prevField =
+              e.currentTarget.getAttribute('data-prev-field') || '';
+            document.getElementById(prevField)?.focus();
+            e.preventDefault();
+          } else {
+            const sideField =
+              e.currentTarget.getAttribute('data-side-field') || '';
+            formik && formik.setFieldValue('type', sideField);
+            document.getElementById(sideField)?.focus();
+            e.preventDefault();
+          }
         }
         break;
       default:
@@ -260,7 +264,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                 type='text'
                 id='parent_group'
                 name='parent_group'
-                placeholder='Parent Group'
+                placeholder='Parent group'
                 value={inputValue}
                 onBlur={validateInputs}
                 onChange={handleInputChange}
@@ -277,7 +281,6 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                   }
                 }}
               />
-              {/* {inputValue && !!suggestions.length && ( */}
               {!!suggestions.length && (
                 <ul className={'suggestion'} style={{ top : "49%" }}>
                   {suggestions.map((group: any, index: number) => (
@@ -288,7 +291,6 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                         setSuggestions([]);
                         document.getElementById('parent_group')?.focus();
                       }}
-                      // className='suggestion_list'
                       className={`${index === selectedIndex ? 'selected' : 'suggestion_list'}`}
                       id={`suggestion_${index}`}
                     >
@@ -316,7 +318,6 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                 gap: '0.8rem',
                 borderRadius: '0.4rem',
                 border: '1px solid #c1c1c1',
-                // padding: '0.4rem',
               }}
             >
               <label
@@ -326,12 +327,12 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                   type='radio'
                   name='type'
                   value='P&L'
-                  // value={typeVal.current === 'p&l'}
                   id='p_and_l'
                   checked={formik.values.type === 'P&L'}
                   disabled={group_code && isDelete}
                   data-next-field='submit_button'
-                  data-side-field='parent_group'
+                  data-prev-field='parent_group'
+                  data-side-field='balance_sheet'
                   onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                     handleKeyDown(e, formik)
                   }
@@ -345,14 +346,11 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                   type='radio'
                   name='type'
                   value='Balance Sheet'
-                  // value={typeVal.current === 'balance sheet'}
                   id='balance_sheet'
                   checked={formik.values.type === 'Balance Sheet'}
-                  // checked={formik.values.type === 'balance sheet' || typeVal.current === 'balance sheet'}
-                  // checked={formik.values.type === 'balance sheet' || formik.values.type === typeVal.current}
-                  // checked={formik.values.type === 'balance sheet' || !!formik.values.parent_group && formik.values.type === typeVal.current}
                   disabled={group_code && isDelete}
                   data-next-field='submit_button'
+                  data-prev-field='parent_group'
                   data-side-field='p_and_l'
                   onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                     handleKeyDown(e, formik)

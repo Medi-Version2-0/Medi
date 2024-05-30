@@ -1,15 +1,15 @@
 import {KeyboardEvent, useEffect, useRef, useState } from 'react';
 import { Formik, Form, Field, ErrorMessage, FormikProps } from 'formik';
-import * as Yup from 'yup';
 import { CreateStationProps, FormDataProps, State, StationFormData } from '../../interface/global';
 import { Popup } from '../helpers/popup';
 import './stations.css';
 
 const errValue = {
-  station_state: '', 
+  station_name: '',
+  station_state: '',
   station_pinCode: '',
-  station_headQuarter: ''
-}
+  station_headQuarter: '',
+};
 
 export const CreateStation: React.FC<CreateStationProps> = ({
   togglePopup,
@@ -29,7 +29,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
     data: [],
     suggestions: []
   });
-  
+
   const [headquarters, setHeadquarters] = useState<{
     inputValue: string,
     data: StationFormData[],
@@ -69,13 +69,13 @@ export const CreateStation: React.FC<CreateStationProps> = ({
         }))
       }
     };
-  
+
     document.addEventListener('mousedown', handleClickOutside);
-  
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [hqRef, stateRef]); 
+  }, [hqRef, stateRef]);
 
   const getStates = () => {
     setStationState((prevState) => ({
@@ -89,136 +89,168 @@ export const CreateStation: React.FC<CreateStationProps> = ({
       ...prevState,
       data: electronAPI.getAllStations('', 'station_name', '', '', '')
     }));
-  }
+  };
 
   useEffect(() => {
     getStates();
     getHq();
     setStationState((prevState) => ({
       ...prevState,
-      inputValue: data?.station_state ? data.station_state : ""
+      inputValue: data?.station_state ? data.station_state : '',
     }));
     setHeadquarters((prevState) => ({
       ...prevState,
-      inputValue: data?.station_headQuarter ? data.station_headQuarter : ""
+      inputValue: data?.station_headQuarter ? data.station_headQuarter : '',
     }));
   }, []);
 
-  const handleInputChange = (e: { target: { value: any; }; }, isState: boolean) => {
+  const handleInputChange = (
+    e: { target: { value: any } },
+    isState: boolean
+  ) => {
     const value = e.target.value;
-    isState ? setStationState((prevState) => ({
-      ...prevState,
-      inputValue: value
-    })) : setHeadquarters((prevState) => ({
-      ...prevState,
-      inputValue: value
-    }));
+    isState
+      ? setStationState((prevState) => ({
+          ...prevState,
+          inputValue: value,
+        }))
+      : setHeadquarters((prevState) => ({
+          ...prevState,
+          inputValue: value,
+        }));
     // Filter statesSuggestions based on input value
-      isState ? setStationState((prevState) => ({
-      ...prevState,
-      suggestions: stationState.data.filter((item: State) =>
-        item.state_name.toLowerCase().includes(value.toLowerCase())
-      )
-    })) : setHeadquarters((prevState) => ({
-      ...prevState,
-      suggestions: headquarters.data.filter((item: StationFormData) =>
-        item.station_name.toLowerCase().includes(value.toLowerCase())
-      )
-    }));
+    isState
+      ? setStationState((prevState) => ({
+          ...prevState,
+          suggestions: stationState.data.filter((item: State) =>
+            item.state_name.toLowerCase().includes(value.toLowerCase())
+          ),
+        }))
+      : setHeadquarters((prevState) => ({
+          ...prevState,
+          suggestions: headquarters.data.filter((item: StationFormData) =>
+            item.station_name.toLowerCase().includes(value.toLowerCase())
+          ),
+        }));
   };
 
-  const handleOnKeyDown = (e: KeyboardEvent<HTMLInputElement>,isState: boolean) => {
-    const Suggestions = isState ? stationState.suggestions : headquarters.suggestions;
-    if(Suggestions.length){
-      if(e.key === 'Enter'){
+  const handleOnKeyDown = (
+    e: KeyboardEvent<HTMLInputElement>,
+    isState: boolean
+  ) => {
+    const Suggestions = isState
+      ? stationState.suggestions
+      : headquarters.suggestions;
+    if (Suggestions.length) {
+      if (e.key === 'Enter') {
         e.preventDefault();
-        isState ? setStationState((prevState) => ({
-          ...prevState,
-          inputValue: stationState.suggestions[selectedIndex].state_name,
-          suggestions: []
-        })) : setHeadquarters((prevState) => ({
-          ...prevState,
-          inputValue: headquarters.suggestions[selectedIndex].station_name,
-          suggestions: []
-        }))
-      }
-      else if(e.key === 'ArrowUp'){
-        e.preventDefault();
-        setSelectedIndex((prevIndex) =>
-        prevIndex > 0 ? prevIndex - 1 : prevIndex
-      );
-      if (selectedIndex > 0) {
-        document.getElementById(`suggestion_${selectedIndex - 1}`)?.scrollIntoView({
-          behavior: 'smooth',
-          block: 'nearest',
-        });
-      }
-      }
-      else if(e.key === 'ArrowDown'){
-        const reqSuggestion = isState ? stationState.suggestions : headquarters.suggestions;
+        isState
+          ? setStationState((prevState) => ({
+              ...prevState,
+              inputValue: stationState.suggestions[selectedIndex].state_name,
+              suggestions: [],
+            }))
+          : setHeadquarters((prevState) => ({
+              ...prevState,
+              inputValue: headquarters.suggestions[selectedIndex].station_name,
+              suggestions: [],
+            }));
+      } else if (e.key === 'ArrowUp') {
         e.preventDefault();
         setSelectedIndex((prevIndex) =>
-        prevIndex < reqSuggestion.length - 1 ? prevIndex + 1 : prevIndex
-      );
-      if (selectedIndex < reqSuggestion.length - 1) {
-        document.getElementById(`suggestion_${selectedIndex + 1}`)?.scrollIntoView({
-          behavior: 'smooth',
-          block: 'nearest',
+          prevIndex > 0 ? prevIndex - 1 : prevIndex
+        );
+        if (selectedIndex > 0) {
+          document
+            .getElementById(`suggestion_${selectedIndex - 1}`)
+            ?.scrollIntoView({
+              behavior: 'smooth',
+              block: 'nearest',
+            });
+        }
+      } else if (e.key === 'ArrowDown') {
+        const reqSuggestion = isState
+          ? stationState.suggestions
+          : headquarters.suggestions;
+        e.preventDefault();
+        setSelectedIndex((prevIndex) =>
+          prevIndex < reqSuggestion.length - 1 ? prevIndex + 1 : prevIndex
+        );
+        if (selectedIndex < reqSuggestion.length - 1) {
+          document
+            .getElementById(`suggestion_${selectedIndex + 1}`)
+            ?.scrollIntoView({
+              behavior: 'smooth',
+              block: 'nearest',
+            });
+        }
+      }
+    }
+  };
+
+  const validateInputs = (e: { target: { value: any; id: any } }) => {
+    const { value, id } = e.target;
+
+    setErr({ ...err, [id]: '' });
+
+    const isState = stationState.data.some(
+      (state: any) => state.state_name === value
+    );
+    const isHeadQuarter = headquarters.data.some(
+      (hq: any) => hq.station_name === value
+    );
+
+    if (id === 'station_name') {
+      if (!value) {
+        setErr({ ...err, [id]: 'Station name is required' });
+      } else if (!/[a-zA-Z]/.test(value)) {
+        setErr({ ...err, [id]: 'Only Numbers not allowed' });
+      } else if (!/^[a-zA-Z0-9\s_-]*$/.test(value)) {
+        setErr({
+          ...err,
+          [id]: `Station name can contain alphanumeric characters, "-", "_", and spaces only`,
         });
+      } else if (value.length > 100) {
+        setErr({ ...err, [id]: 'Station name cannot exceeds 100 characters' });
       }
+    } else if (id === 'station_state') {
+      if (!value) {
+        setErr({ ...err, [id]: 'State is required' });
+      } else if (value && isState === false) {
+        setErr({ ...err, [id]: 'Invalid State' });
       }
-    }
-  }
-
-  const validationSchema = Yup.object({
-    station_name: Yup.string()
-      .required('Station name is required')
-      .matches(/[a-zA-Z]/, 'Only Numbers not allowed')
-      .matches(
-        /^[a-zA-Z0-9\s_-]*$/,
-        'Station name can contain alphanumeric characters, "-", "_", and spaces only'
-      )
-      .max(100, 'Station name cannot exceeds 100 characters'),
-  });
-
-  const validateInputs = (e: { target: { value: any; id: any; }; }) => {
-    const { value, id } = e.target; 
-
-    setErr({...err, [id]: ''});
-
-    const isState = stationState.data.some((state: any) => state.state_name === value);
-    const isHeadQuarter = headquarters.data.some((hq: any) => hq.station_name === value);
-
-
-    if(id === "station_state"){
-      if(!value){
-        setErr({...err, [id]: "State is required"});
-      }else if(value && isState === false){
-        setErr({...err, [id]: "Invalid State"});
+    } else if (id === 'station_pinCode') {
+      if (!value) {
+        setErr({ ...err, [id]: 'PIN code is required' });
+      } else if (!!value && value.length !== 6) {
+        setErr({ ...err, [id]: 'Length of PIN code must be exactly 6 digits' });
+      } else if (!!value && value[0] === '0') {
+        setErr({ ...err, [id]: "PIN code doesn't start from zero" });
       }
-    }    
-    else if(id === 'station_pinCode'){
-      if(!value){
-        setErr({...err, [id]: "PIN code is required"});
-      }else if(!!value && value.length !== 6){
-        setErr({...err, [id]: "Length of PIN code must be exactly 6 digits"});
-      }else if(!!value && value[0] === '0'){
-        setErr({...err, [id]: "PIN code doesn't start from zero"});
+    } else if (id === 'station_headQuarter') {
+      if (!value) {
+        setErr({ ...err, [id]: 'State headquarter is required' });
+      } else if (value && isHeadQuarter === false) {
+        setErr({ ...err, [id]: 'Invalid State headquarter' });
       }
     }
-    else if(id === "station_headQuarter"){
-      if(!value){
-        setErr({...err, [id]: "State headquarter is required"});
-      }else if(value && isHeadQuarter === false){
-        setErr({...err, [id]: "Invalid State headquarter"});
-      }
-    }  
-  }
+  };
 
   const handleSubmit = async (values: object) => {
     const formData = station_id
-    ? { ...values, station_id: station_id, station_state: stationState.inputValue, station_headQuarter: headquarters.inputValue }
-    : stationState.inputValue ? { ...values, station_state: stationState.inputValue, station_headQuarter: headquarters.inputValue } : values;
+      ? {
+          ...values,
+          station_id: station_id,
+          station_state: stationState.inputValue,
+          station_headQuarter: headquarters.inputValue,
+        }
+      : stationState.inputValue
+        ? {
+            ...values,
+            station_state: stationState.inputValue,
+            station_headQuarter: headquarters.inputValue,
+          }
+        : values;
     !station_id && document.getElementById('account_button')?.focus();
     handelFormSubmit(formData);
   };
@@ -228,9 +260,11 @@ export const CreateStation: React.FC<CreateStationProps> = ({
     formik?: FormikProps<FormDataProps>
   ) => {
     const key = e.key;
+    const shiftPressed = e.shiftKey;
+
     switch (key) {
       case 'ArrowDown':
-      case 'Enter': 
+      case 'Enter':
         {
           const nextField =
             e.currentTarget.getAttribute('data-next-field') || '';
@@ -248,11 +282,18 @@ export const CreateStation: React.FC<CreateStationProps> = ({
         break;
       case 'Tab':
         {
-          const sideField =
-            e.currentTarget.getAttribute('data-side-field') || '';
-          formik && formik.setFieldValue('type', sideField);
-          document.getElementById(sideField)?.focus();
-          e.preventDefault();
+          if (shiftPressed) {
+            const prevField =
+              e.currentTarget.getAttribute('data-prev-field') || '';
+            document.getElementById(prevField)?.focus();
+            e.preventDefault();
+          } else {
+            const sideField =
+              e.currentTarget.getAttribute('data-side-field') || '';
+            formik && formik.setFieldValue('type', sideField);
+            document.getElementById(sideField)?.focus();
+            e.preventDefault();
+          }
         }
         break;
       default:
@@ -280,7 +321,6 @@ export const CreateStation: React.FC<CreateStationProps> = ({
           station_headQuarter: data?.station_headQuarter || '',
         }}
         enableReinitialize={true}
-        validationSchema={validationSchema}
         onSubmit={handleSubmit}
       >
         {(formik) => (
@@ -294,21 +334,26 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                 disabled={isDelete && station_id}
                 className={`input-field ${formik.touched.station_name && formik.errors.station_name ? 'error-field' : ''}`}
                 innerRef={inputRef}
+                // onBlur={validateInputs}
                 data-side-field='station_state'
                 data-next-field='station_state'
                 onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                   handleKeyDown(e)
                 }
-                onBlur={()=>{
+                onBlur={(e: any) => {
+                  validateInputs(e);
                   setHeadquarters((prevState) => ({
                     ...prevState,
-                    data: [...prevState.data, {
-                      station_name: formik.values.station_name,
-                      cst_sale: '',
-                      station_state: '',
-                      station_pinCode: '',
-                      station_headQuarter: '',
-                       }]
+                    data: [
+                      ...prevState.data,
+                      {
+                        station_name: formik.values.station_name,
+                        cst_sale: '',
+                        station_state: '',
+                        station_pinCode: '',
+                        station_headQuarter: '',
+                      },
+                    ],
                   }));
                 }}
               />
@@ -317,6 +362,9 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                 component='div'
                 className='error'
               />
+              {!!err.station_name && (
+                <span className='err'>{err.station_name}</span>
+              )}
             </div>
 
             <div className='inputs'>
@@ -325,33 +373,35 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                 id='station_state'
                 name='station_state'
                 placeholder='Station state'
-                value={stationState.inputValue}  
+                value={stationState.inputValue}
                 onBlur={validateInputs}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange(e, true)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  handleInputChange(e, true)
+                }
                 disabled={isDelete && station_id}
-                className={`input-field ${(formik.touched.station_state && formik.errors.station_state) || (!!err.station_state) ? 'error-field' : ''}`}
-                data-side-field='cst_yes'
-                data-next-field='cst_yes'
+                className={`input-field ${(formik.touched.station_state && formik.errors.station_state) || !!err.station_state ? 'error-field' : ''}`}
+                data-side-field='station_pinCode'
+                data-next-field='station_pinCode'
                 data-prev-field='station_name'
                 onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                   if (stationState.suggestions.length !== 0) {
-                    handleOnKeyDown(e,true);
-                  }else{
+                    handleOnKeyDown(e, true);
+                  } else {
                     handleKeyDown(e);
                   }
                 }}
               />
-                {!!stationState.suggestions.length && (
+              {!!stationState.suggestions.length && (
                 <ul className={'suggestion'}>
-                  {stationState.suggestions.map((state:any, index: number) => (
+                  {stationState.suggestions.map((state: any, index: number) => (
                     <li
                       key={state.state_code}
                       onClick={() => {
                         setStationState((prevState) => ({
                           ...prevState,
                           inputValue: state.state_name,
-                          suggestions: []
-                        }))
+                          suggestions: [],
+                        }));
                         document.getElementById('station_state')?.focus();
                       }}
                       className={`${index === selectedIndex ? 'selected' : 'suggestion_list'}`}
@@ -367,56 +417,11 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                 component='div'
                 className='error'
               />
-              {!!err.station_state && <span className="err">{err.station_state}</span>}
+              {!!err.station_state && (
+                <span className='err'>{err.station_state}</span>
+              )}
             </div>
 
-            <div className='inputs'
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: '0.8rem',
-                borderRadius: '0.4rem',
-                border: '1px solid #c1c1c1',
-              }}
-            >
-              <label
-                className={`credit-type ${station_id && isDelete ? 'disabled' : ''}`}
-              >
-                <Field
-                  type='radio'
-                  name='cst_sale'
-                  value='yes'
-                  id='cst_yes'
-                  checked={formik.values.cst_sale === 'yes'}
-                  disabled={station_id && isDelete}
-                  data-next-field='station_pinCode'
-                  data-side-field='cst_no'
-                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                    handleKeyDown(e, formik)
-                  }
-                />
-                Yes
-              </label>
-              <label
-                className={`credit-type ${station_id && isDelete ? 'disabled' : ''}`}
-              >
-                <Field
-                  type='radio'
-                  name='cst_sale'
-                  value='no'
-                  id='cst_no'
-                  checked={formik.values.cst_sale === 'no'}
-                  disabled={station_id && isDelete}
-                  data-next-field='station_pinCode'
-                  data-side-field='cst_yes'
-                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                    handleKeyDown(e, formik)
-                  }
-                />
-                No
-              </label>
-            </div>
             <div className='inputs'>
               <Field
                 type='text'
@@ -425,11 +430,11 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                 placeholder='Station pin code'
                 maxLength={6}
                 disabled={isDelete && station_id}
-                className={`input-field ${(formik.touched.station_pinCode && formik.errors.station_pinCode)  || (!!err.station_pinCode) ? 'error-field' : ''}`}
+                className={`input-field ${(formik.touched.station_pinCode && formik.errors.station_pinCode) || !!err.station_pinCode ? 'error-field' : ''}`}
                 onBlur={validateInputs}
-                data-side-field='submit_button'
-                data-next-field='submit_button'
-                data-prev-field='cst_yes'
+                data-side-field='station_headQuarter'
+                data-next-field='station_headQuarter'
+                data-prev-field='station_state'
                 onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                   handleKeyDown(e)
                 }
@@ -439,10 +444,12 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                 component='div'
                 className='error'
               />
-              {!!err.station_pinCode && <span className="err">{err.station_pinCode}</span>}
+              {!!err.station_pinCode && (
+                <span className='err'>{err.station_pinCode}</span>
+              )}
             </div>
 
-            <div className='inputs' ref={hqRef}>
+            <div className='inputs hq_suggestion_input' ref={hqRef}>
               <Field
                 type='text'
                 id='station_headQuarter'
@@ -452,9 +459,9 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                 onBlur={validateInputs}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange(e, false)}
                 disabled={isDelete && station_id}
-                className={`input-field ${(formik.touched.station_headQuarter && formik.errors.station_headQuarter) || (!!err.station_headQuarter) ? 'error-field' : ''}`}
-                data-side-field='submit_button'
-                data-next-field='submit_button'
+                className={`input-field ${(formik.touched.station_headQuarter && formik.errors.station_headQuarter) || !!err.station_headQuarter ? 'error-field' : ''}`}
+                data-side-field='cst_yes'
+                data-next-field='cst_yes'
                 data-prev-field='station_pinCode'
                 onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                   if (headquarters.suggestions.length !== 0) {
@@ -490,7 +497,60 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                 component='div'
                 className='error'
               />
-              {!!err.station_headQuarter && <span className="err">{err.station_headQuarter}</span>}
+              {!!err.station_headQuarter && (
+                <span className='err'>{err.station_headQuarter}</span>
+              )}
+            </div>
+
+            <div
+              className='inputs'
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '0.8rem',
+                borderRadius: '0.4rem',
+                border: '1px solid #c1c1c1',
+              }}
+            >
+              <label
+                className={`credit-type ${station_id && isDelete ? 'disabled' : ''}`}
+              >
+                <Field
+                  type='radio'
+                  name='cst_sale'
+                  value='yes'
+                  id='cst_yes'
+                  checked={formik.values.cst_sale === 'yes'}
+                  disabled={station_id && isDelete}
+                  data-prev-field='station_headQuarter'
+                  data-next-field='submit_button'
+                  data-side-field='cst_no'
+                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
+                    handleKeyDown(e, formik)
+                  }
+                />
+                Yes
+              </label>
+              <label
+                className={`credit-type ${station_id && isDelete ? 'disabled' : ''}`}
+              >
+                <Field
+                  type='radio'
+                  name='cst_sale'
+                  value='no'
+                  id='cst_no'
+                  checked={formik.values.cst_sale === 'no'}
+                  disabled={station_id && isDelete}
+                  data-prev-field='station_headQuarter'
+                  data-next-field='submit_button'
+                  data-side-field='cst_yes'
+                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
+                    handleKeyDown(e, formik)
+                  }
+                />
+                No
+              </label>
             </div>
 
             <div className='modal-actions'>
@@ -527,7 +587,13 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                   className='account_add_button'
                   type='submit'
                   autoFocus
-                  disabled={!formik.isValid || formik.isSubmitting || !!err.station_state || !!err.station_pinCode || !!err.station_headQuarter}
+                  disabled={
+                    !formik.isValid ||
+                    formik.isSubmitting ||
+                    !!err.station_state ||
+                    !!err.station_pinCode ||
+                    !!err.station_headQuarter
+                  }
                   onKeyDown={(e) => {
                     if (e.key === 'Tab') {
                       document.getElementById('station_name')?.focus();

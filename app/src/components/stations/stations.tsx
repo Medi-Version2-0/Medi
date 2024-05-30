@@ -16,7 +16,7 @@ const initialValue = {
   cst_sale: '',
   station_state: '',
   station_pinCode: '',
-  station_headQuarter: ''
+  station_headQuarter: '',
 };
 
 export const Stations = () => {
@@ -143,7 +143,12 @@ export const Stations = () => {
   };
 
   const stateCodeMap: { [key: number]: string } = {};
-  stateData.forEach((state: any) => {
+  const stationHeadquarterMap: { [key: number]: string } = {};
+
+  tableData?.forEach((data: any) => {
+    stationHeadquarterMap[data.station_id] = data.station_name;
+  });
+  stateData?.forEach((state: any) => {
     stateCodeMap[state.state_code] = state.state_name;
   });
 
@@ -157,6 +162,7 @@ export const Stations = () => {
 
   const types = extractKeys(typeMapping);
   const states = extractKeys(stateCodeMap);
+  const stationHeadquarters = extractKeys(stationHeadquarterMap);
 
   const lookupValue = (
     mappings: {
@@ -230,30 +236,11 @@ export const Stations = () => {
           }
         }
         break;
-        case 'station_headQuarter':
-          {
-            const stationNames = tableData.map((station: { station_name: string; }) => station.station_name.toLowerCase());
-            if (!newValue) {
-              setPopupState({
-                ...popupState,
-                isAlertOpen: true,
-                message: 'Headquarter is required'
-              });
-              node.setDataValue(field, oldValue);
-              return;
-            }
-            if (!stationNames.includes(newValue?.toLowerCase())) {
-              setPopupState({
-                ...popupState,
-                isAlertOpen: true,
-                message: 'Headquarter must match an existing station name',
-              });
-              node.setDataValue(field, oldValue);
-              return;
-            }
-            newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
-          }
-          break;
+      case 'station_headQuarter':
+        {
+          field = 'station_headQuarter';
+        }
+        break;
       default:
         break;
     }
@@ -341,7 +328,7 @@ export const Stations = () => {
       cellEditorParams: {
         values: states,
         valueListMaxHeight: 120,
-        valueListMaxWidth: 260,
+        valueListMaxWidth: 192,
         valueListGap: 8,
       },
       valueFormatter: (params: { value: string | number }) =>
@@ -364,6 +351,15 @@ export const Stations = () => {
       flex: 1,
       filter: true,
       editable: true,
+      cellEditor: 'agSelectCellEditor',
+      cellEditorParams: {
+        values: stationHeadquarters,
+        valueListMaxHeight: 120,
+        valueListMaxWidth: 192,
+        valueListGap: 8,
+      },
+      valueFormatter: (params: { value: string | number }) =>
+        lookupValue(stationHeadquarterMap, params.value),
       headerClass: 'custom-header custom_header_class',
       suppressMovable: true,
     },
@@ -398,57 +394,58 @@ export const Stations = () => {
 
   return (
     <>
-    <div className="stations_content">
-      <div className="stations_sidebar">
-        <Sidebar isGroup={true} isSubGroup={true}/>
+      <div className='stations_content'>
+        <div className='stations_sidebar'>
+          <Sidebar isGroup={true} isSubGroup={true} />
+        </div>
+        <div className='stations_container'>
+          <div id='account_main'>
+            <h1 id='account_header'>Stations</h1>
+            <button
+              id='account_button'
+              className='account_button'
+              onClick={() => togglePopup(true)}
+            >
+              Add Station
+            </button>
+          </div>
+          <div id='account_table' className='ag-theme-quartz'>
+            {
+              <AgGridReact
+                rowData={tableData}
+                columnDefs={colDefs}
+                defaultColDef={{
+                  floatingFilter: true,
+                }}
+                onCellClicked={onCellClicked}
+                onCellEditingStarted={cellEditingStarted}
+                onCellEditingStopped={handleCellEditingStopped}
+              />
+            }
+          </div>
+          {(popupState.isModalOpen || popupState.isAlertOpen) && (
+            <Confirm_Alert_Popup
+              onClose={handleClosePopup}
+              onConfirm={
+                popupState.isAlertOpen
+                  ? handleAlertCloseModal
+                  : handleConfirmPopup
+              }
+              message={popupState.message}
+              isAlert={popupState.isAlertOpen}
+            />
+          )}
+          {open && (
+            <CreateStation
+              togglePopup={togglePopup}
+              data={formData}
+              handelFormSubmit={handelFormSubmit}
+              isDelete={isDelete.current}
+              deleteAcc={deleteAcc}
+            />
+          )}
+        </div>
       </div>
-      <div className='stations_container'>
-      <div id='account_main'>
-        <h1 id='account_header'>Stations</h1>
-        <button
-          id='account_button'
-          className='account_button'
-          onClick={() => togglePopup(true)}
-        >
-          Add Station
-        </button>
-      </div>
-      <div id='account_table' className='ag-theme-quartz'>
-        {
-          <AgGridReact
-            rowData={tableData}
-            columnDefs={colDefs}
-            defaultColDef={{
-              floatingFilter: true,
-            }}
-            onCellClicked={onCellClicked}
-            onCellEditingStarted={cellEditingStarted}
-            onCellEditingStopped={handleCellEditingStopped}
-          />
-        }
-      </div>
-      {(popupState.isModalOpen || popupState.isAlertOpen) && (
-        <Confirm_Alert_Popup
-          onClose={handleClosePopup}
-          onConfirm={
-            popupState.isAlertOpen ? handleAlertCloseModal : handleConfirmPopup
-          }
-          message={popupState.message}
-          isAlert={popupState.isAlertOpen}
-        />
-      )}
-      {open && (
-        <CreateStation
-          togglePopup={togglePopup}
-          data={formData}
-          handelFormSubmit={handelFormSubmit}
-          isDelete={isDelete.current}
-          deleteAcc={deleteAcc}
-        />
-      )}
-    </div>
-    </div>
     </>
-    
   );
 };

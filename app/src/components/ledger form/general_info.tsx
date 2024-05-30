@@ -55,6 +55,9 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
       electronAPI.addSuggestionList('', 'partyName', '', '', '')
     );
   };
+  useEffect(() => {
+    document.getElementById('partyName')?.focus();
+  }, []);
 
   useEffect(() => {
     getStates();
@@ -99,7 +102,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
     if (e.target.id === 'stationName') {
       formik.setFieldValue(e.target.id, value);
       const filteredSuggestions = stationData.filter((station: any) => {
-        return station.station_name.toLowerCase().includes(value.toLowerCase());
+        return station.station_name?.toLowerCase().includes(value?.toLowerCase());
       });
 
       setStationSuggestions(filteredSuggestions);
@@ -108,12 +111,12 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
       formik.setFieldValue(e.target.id, value);
       formik.setFieldValue('parentLedger', '');
       const filteredSuggestions = groupData.filter((group: any) => {
-        return group.group_name.toLowerCase().includes(value.toLowerCase());
+        return group.group_name?.toLowerCase().includes(value?.toLowerCase());
       });
       setGroupSuggestions(filteredSuggestions);
     } else if (e.target.id === 'state') {
       const filteredSuggestions = stateData.filter((state: any) => {
-        return state.state_name.toLowerCase().includes(value.toLowerCase());
+        return state.state_name?.toLowerCase().includes(value?.toLowerCase());
       });
       setStatesSuggestions(filteredSuggestions);
     } else if (
@@ -123,8 +126,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
       setPartySuggestions('');
       const filteredSuggestions = partySuggestionsData.filter((party: any) => {
         return (
-          party.account_group.toUpperCase() === accountInputValue.toUpperCase() &&
-          party.party_name.toLowerCase().includes(value.toLowerCase())
+          party.account_group.toUpperCase() === accountInputValue.toUpperCase()
         );
       });
       setPartySuggestions(filteredSuggestions);
@@ -238,13 +240,13 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
           .required('Party Name is required'),
         accountGroup: Yup.string()
           .required('Account group is required')
-          .transform((value) => (value ? value.toLowerCase() : ''))
+          .transform((value) => (value ? value?.toLowerCase() : ''))
           .test(
             'valid-account-group',
             'Invalid Account Group',
             function (value) {
               return groupData
-                .map((group) => group.group_name.toLowerCase())
+                .map((group) => group.group_name?.toLowerCase())
                 .includes(value);
             }
           ),
@@ -258,13 +260,13 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
           accountInputValue === 'SUNDRY DEBTORS'
             ? Yup.string()
                 .required('State is required')
-                .transform((value) => (value ? value.toLowerCase() : ''))
+                .transform((value) => (value ? value?.toLowerCase() : ''))
                 .test(
                   'valid-state',
                   'Invalid State',
                   function (value) {
                     return stateData
-                      .map((state:State) => state.state_name.toLowerCase())
+                      .map((state:State) => state.state_name?.toLowerCase())
                       .includes(value);
                   }
                 )
@@ -274,13 +276,13 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
           accountInputValue === 'SUNDRY DEBTORS'
             ? Yup.string()
                 .required('Station is required')
-                .transform((value) => (value ? value.toLowerCase() : ''))
+                .transform((value) => (value ? value?.toLowerCase() : ''))
                 .test(
                   'valid-station-name',
                   'Invalid Station name',
                   function (value) {
                     return stationData
-                      .map((station) => station.station_name.toLowerCase())
+                      .map((station) => station.station_name?.toLowerCase())
                       .includes(value);
                   }
                 )
@@ -294,13 +296,6 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 .matches(/^[1-9]/, 'PIN code must not start with zero')
                 .matches(/^[0-9]{6}$/, 'PIN code must be exactly 6 digits')
             : Yup.string(),
-        parentLedger: Yup.string()
-          .transform((value) => (value ? value.toLowerCase() : ''))
-          .test('valid-parentLedger', 'Invalid Parent ledger', function (value) {
-            return partySuggestionsData
-              .map((party:any) => party.party_name.toLowerCase())
-              .includes(value);
-          }),
       }),
     [groupData, stationData, accountInputValue,stateData,partySuggestionsData]
   );
@@ -1107,8 +1102,8 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                     <li
                       key={party.party_code}
                       onClick={() => {
-                        formik.setFieldValue('parentLedger', party.party_name);
-                        setPartySuggestions([]);
+                        formik.setFieldValue('parentLedger', party.partyName);
+                        setPartySuggestions('');
                         document.getElementById('parentLedger')?.focus();
                       }}
                       className={`${
@@ -1118,7 +1113,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                       }`}
                       id={`suggestion_${index}`}
                     >
-                      {party.party_name}
+                      {party.partyName}
                     </li>
                   ))}
                 </ul>

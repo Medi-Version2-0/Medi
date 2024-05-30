@@ -13,6 +13,7 @@ import { TaxDetails } from './tax_details';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useLocation, useNavigate } from 'react-router-dom';
+import Confirm_Alert_Popup from '../helpers/Confirm_Alert_Popup';
 
 const initialValue = {
   btn_1: false,
@@ -36,6 +37,20 @@ export const Ledger = () => {
   const [bankDetailsValidationSchema, setBankDetailsValidationSchema] =
     useState(Yup.object().shape({}));
   const [hasErrors, setHasErrors] = useState(true);
+  const [popupState, setPopupState] = useState({
+    isModalOpen: false,
+    isAlertOpen: false,
+    message: '',
+  });
+
+  const handleAlertCloseModal = () => {
+    setPopupState({ ...popupState, isAlertOpen: false });
+    return navigate('/ledger_table');
+  };
+
+  const handleClosePopup = () => {
+    setPopupState({ ...popupState, isModalOpen: false });
+  };
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -45,23 +60,23 @@ export const Ledger = () => {
     initialValues: {
       partyName: data?.partyName ||'',
       accountGroup: data?.accountGroup ||'',
-      account_code: '',
-      isPredefinedParty: true,
-      station_id: '',
-      stationName: '',
-      mailTo: '',
-      address: '',
-      country: '',
-      state: '',
-      city: '',
-      pinCode: '',
-      parentLedger: '',
-      taxType: '',
-      fixedAssets: '',
-      hsnCode: '',
-      taxPercentageType: '',
-      itcAvail: '',
-      itcAvail2: '',
+      account_code: data?.account_code ||'',
+      isPredefinedParty: data?.isPredefinedParty ||true,
+      station_id: data?.station_id ||'',
+      stationName: data?.stationName ||'',
+      mailTo: data?.mailTo ||'',
+      address: data?.address ||'',
+      country: data?.country ||'',
+      state: data?.state ||'',
+      city: data?.city ||'',
+      pinCode: data?.pinCode ||'',
+      parentLedger: data?.parentLedger ||'',
+      taxType: data?.taxType ||'',
+      fixedAssets: data?.fixedAssets ||'',
+      hsnCode: data?.hsnCode ||'',
+      taxPercentageType: data?.taxPercentageType ||'',
+      itcAvail: data?.itcAvail ||'',
+      itcAvail2: data?.itcAvail2 ||'',
     },
     validationSchema: generalInfovalidationSchema,
     onSubmit: (values) => {
@@ -71,11 +86,11 @@ export const Ledger = () => {
 
   const balanceInfo = useFormik({
     initialValues: {
-      party_id: '',
-      balancingMethod: '',
-      openingBal: '',
-      openingBalType: '',
-      creditDays: '',
+      party_id:  data?.party_id ||'',
+      balancingMethod:  data?.balancingMethod ||'',
+      openingBal:  data?.openingBal ||'',
+      openingBalType:  data?.openingBalType ||'',
+      creditDays:  data?.creditDays ||'',
     },
     onSubmit: (values) => {
       console.log('balance info ', values);
@@ -84,9 +99,9 @@ export const Ledger = () => {
 
   const contactsInfo = useFormik({
     initialValues: {
-      phone1: '',
-      phone2: '',
-      phone3: '',
+      phone1:  data?.phone1 ||'',
+      phone2:  data?.phone2 ||'',
+      phone3:  data?.phone3 ||'',
     },
     validationSchema: contactInfoValidationSchema,
     onSubmit: (values) => {
@@ -96,12 +111,12 @@ export const Ledger = () => {
 
   const gstData = useFormik({
     initialValues: {
-      ledgerType: '',
-      gstIn: '',
-      registrationDate: '',
-      tdsApplicable: '',
-      payeeCategory: '',
-      panCard: '',
+      ledgerType:  data?.ledgerType ||'',
+      gstIn:  data?.gstIn ||'',
+      registrationDate:  data?.registrationDate ||'',
+      tdsApplicable:  data?.tdsApplicable ||'',
+      payeeCategory:  data?.payeeCategory ||'',
+      panCard:  data?.panCard ||'',
     },
     validationSchema: gstDataValidationSchema,
     onSubmit: (values) => {
@@ -111,14 +126,14 @@ export const Ledger = () => {
 
   const personalInfo = useFormik({
     initialValues: {
-      firstName: '',
-      lastName: '',
-      designation: '',
-      website_input: '',
-      emailId1: '',
-      emailId2: '',
-      gender: '',
-      maritalStatus: '',
+      firstName:  data?.firstName ||'',
+      lastName:  data?.lastName ||'',
+      designation:  data?.designation ||'',
+      website_input:  data?.website_input ||'',
+      emailId1:  data?.emailId1 ||'',
+      emailId2:  data?.emailId2 ||'',
+      gender:  data?.gender ||'',
+      maritalStatus:  data?.maritalStatus ||'',
     },
     validationSchema: personalInfoValidationSchema,
     onSubmit: (values) => {
@@ -128,8 +143,8 @@ export const Ledger = () => {
 
   const licenceInfo = useFormik({
     initialValues: {
-      drugLicenceNo: '',
-      expiryDate: '',
+      drugLicenceNo:  data?.drugLicenceNo ||'',
+      expiryDate:  data?.expiryDate ||'',
     },
     onSubmit: (values) => {
       console.log('licenceInfo data', values);
@@ -138,12 +153,12 @@ export const Ledger = () => {
 
   const bankDetails = useFormik({
     initialValues: {
-      accountHolderName: '',
-      accountNumber: '',
-      bankName: '',
-      ifscCode: '',
-      accountType: '',
-      branchName: '',
+      accountHolderName:  data?.accountHolderName ||'',
+      accountNumber:  data?.accountNumber ||'',
+      bankName:  data?.bankName ||'',
+      ifscCode:  data?.ifscCode ||'',
+      accountType:  data?.accountType ||'',
+      branchName:  data?.branchName ||'',
     },
     validationSchema: bankDetailsValidationSchema,
     onSubmit: (values) => {
@@ -211,7 +226,7 @@ export const Ledger = () => {
         bank_details: bankDetails.values,
       },
     };
-    electronAPI.addParty(allData);
+    electronAPI.addParty(allData);    
   };
 
   useEffect(() => {
@@ -420,7 +435,14 @@ export const Ledger = () => {
             <button
               type='button'
               id='submit_all'
-              onClick={handleSubmit}
+              onClick={() => {
+                handleSubmit();
+                setPopupState({
+                  ...popupState,
+                  isAlertOpen: true,
+                  message: 'Ledger created successfully',
+                });
+              }}
               className='submit_button'
               disabled={hasErrors}
               onKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
@@ -437,9 +459,17 @@ export const Ledger = () => {
                 }
               }}
             >
-              Submit All
+              Submit
             </button>
           </div>
+          {(popupState.isModalOpen || popupState.isAlertOpen) && (
+            <Confirm_Alert_Popup
+              onClose={handleClosePopup}
+              onConfirm={handleAlertCloseModal}
+              message={popupState.message}
+              isAlert={popupState.isAlertOpen}
+            />
+          )}
         </div>
       </div>
     </>

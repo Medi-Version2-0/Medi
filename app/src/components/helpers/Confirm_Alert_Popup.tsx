@@ -19,7 +19,7 @@ const Confirm_Alert_Popup: React.FC<Confirm_Alert_PopupProps> = ({ isAlert, onCl
   return (
     <div className={`modal1${isAlert ? ' alert-modal' : ''}`} onKeyPress={handleKeyPress}>
       <div className="modal-content1">
-        {!isAlert && <h1>Medi</h1>}
+        {!isAlert && <h1 className='modal-content1-header'>Medi</h1>}
         <p>{message}</p>
         <div className="modal-buttons1">
           <button id='ok_button' className='ok_button' onClick={onConfirm}>OK</button>

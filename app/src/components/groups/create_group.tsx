@@ -44,6 +44,8 @@ export const CreateGroup: React.FC<CreateGroupProps> = ({
     formik?: FormikProps<GroupFormDataProps>
   ) => {
     const key = e.key;
+    const shiftPressed = e.shiftKey;
+
     switch (key) {
       case 'ArrowDown':
       case 'Enter':
@@ -64,11 +66,18 @@ export const CreateGroup: React.FC<CreateGroupProps> = ({
         break;
       case 'Tab':
         {
-          const sideField =
-            e.currentTarget.getAttribute('data-side-field') || '';
-          formik && formik.setFieldValue('type', sideField);
-          document.getElementById(sideField)?.focus();
-          e.preventDefault();
+          if (shiftPressed) {
+            const prevField =
+              e.currentTarget.getAttribute('data-prev-field') || '';
+            document.getElementById(prevField)?.focus();
+            e.preventDefault();
+          } else {
+            const sideField =
+              e.currentTarget.getAttribute('data-side-field') || '';
+            formik && formik.setFieldValue('type', sideField);
+            document.getElementById(sideField)?.focus();
+            e.preventDefault();
+          }
         }
         break;
       default:
@@ -138,6 +147,7 @@ export const CreateGroup: React.FC<CreateGroupProps> = ({
                   id='p_and_l'
                   checked={formik.values.type === 'P&L'}
                   disabled={group_code && isDelete}
+                  data-prev-field='group_name'
                   data-next-field='submit_button'
                   data-side-field='balance_sheet'
                   onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
@@ -156,6 +166,7 @@ export const CreateGroup: React.FC<CreateGroupProps> = ({
                   id='balance_sheet'
                   checked={formik.values.type === 'Balance Sheet'}
                   disabled={group_code && isDelete}
+                  data-prev-field='group_name'
                   data-next-field='submit_button'
                   data-side-field='p_and_l'
                   onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>

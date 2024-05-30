@@ -220,3 +220,11 @@
     padding-left: 1rem;
     background-color: rgb(183, 179, 179);
   }
+
+  .ag-ltr .ag-cell {
+    border-right: 1px solid #ccc !important; 
+  }
+
+  .ag-ltr .ag-cell:last-child {
+    border-right: none !important; 
+  }

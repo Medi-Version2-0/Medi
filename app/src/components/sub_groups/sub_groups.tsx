@@ -291,7 +291,7 @@ export const SubGroups = () => {
         suppressMovable: true,
       },
       {
-        headerName: 'PL/Balance Sheet',
+        headerName: 'P&L / BL. Sheet',
         field: 'type',
         filter: true,
         editable: true,

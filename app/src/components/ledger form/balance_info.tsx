@@ -158,6 +158,7 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
               name='creditDays'
               placeholder='0'
               className='input_class'
+              maxLength={3}
               onChange={handleCreditDaysInput}
               onClick={resetField}
               value={formik.values.creditDays}

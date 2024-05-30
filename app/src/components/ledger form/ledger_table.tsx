@@ -89,7 +89,7 @@ export const Ledger_Table = () => {
   const handleCellEditingStopped = (e: any) => {
     if (e?.data?.isPredefinedParty === false) {
       editing.current = false;
-      const { data, column, oldValue, valueChanged, node } = e;
+      const { column, oldValue, valueChanged, node } = e;
       let { newValue } = e;
       if (!valueChanged) return;
       const field = column.colId;
@@ -241,6 +241,7 @@ export const Ledger_Table = () => {
       flex: 2,
       menuTabs: ['filterMenuTab'],
       filter: true,
+      editable: true,
       suppressMovable: true,
       headerClass: 'custom-header',
     },
