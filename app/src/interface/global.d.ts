@@ -8,6 +8,14 @@ export interface StationFormData {
     state_code?: Number;
   }
 
+  export interface LedgerFormData {
+    party_id?: string;
+    partyName: string;
+    station_name: string;
+    openingBal: string;
+    isPredefinedParty?: boolean, 
+  }
+
   export interface AccountGroupFormData {
     head_code?: string;
     head_name: string;

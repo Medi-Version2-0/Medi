@@ -12,6 +12,7 @@ import { LicenceInfo } from './licence_info';
 import { TaxDetails } from './tax_details';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const initialValue = {
   btn_1: false,
@@ -36,11 +37,16 @@ export const Ledger = () => {
     useState(Yup.object().shape({}));
   const [hasErrors, setHasErrors] = useState(true);
 
+  const navigate = useNavigate();
+  const location = useLocation();
+  const data = location.state || {};
+
   const generalInfo = useFormik({
     initialValues: {
-      partyName: '',
-      accountGroup: '',
+      partyName: data?.partyName ||'',
+      accountGroup: data?.accountGroup ||'',
       account_code: '',
+      isPredefinedParty: true,
       station_id: '',
       stationName: '',
       mailTo: '',
@@ -205,7 +211,6 @@ export const Ledger = () => {
         bank_details: bankDetails.values,
       },
     };
-    console.log('all data, ', allData);
     electronAPI.addParty(allData);
   };
 
@@ -253,7 +258,13 @@ export const Ledger = () => {
         <div className='ledger_container'>
           <div id='ledger_main'>
             <h1 id='ledger_header'>Create Party</h1>
-            <button id='ledger_button' className='ledger_button'>
+            <button
+              id='ledger_button'
+              className='ledger_button'
+              onClick={() => {
+                return navigate(`/ledger_table`);
+              }}
+            >
               Back
             </button>
           </div>

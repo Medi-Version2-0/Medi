@@ -16,8 +16,15 @@ const insertGroups = groups.map((group) => {
 });
 
 const insertPartyAccountGroup = PartyList.map((party) => {
-  const { party_name, account_group } = party;
-  return `('${party_name}', '${account_group}')`;
+  let { party_name, account_group, isPredefinedParty, account_code } = party;
+  groups.map((group) => {
+    const {group_code, group_name} = group;
+    if(account_group === group_name){
+      account_code = group_code;
+    }
+  })
+  const isPredefinedPartyValue = isPredefinedParty ? 1 : 0;
+  return `('${party_name}', ${account_code},${isPredefinedPartyValue} )`;
 });
 
 module.exports = {
@@ -35,12 +42,7 @@ module.exports = {
         station_pinCode INTEGER,
         station_headQuarter TEXT NOT NULL,
         FOREIGN KEY (state_code) REFERENCES states(state_code)
-      )`,
-    `CREATE TABLE IF NOT EXISTS party (
-          party_code INTEGER PRIMARY KEY,
-          party_name TEXT NOT NULL,
-          account_group TEXT NOT NULL            
-      )`,
+    )`,
     `CREATE TABLE IF NOT EXISTS groups (
             group_code INTEGER PRIMARY KEY,
             group_name TEXT NOT NULL,
@@ -60,11 +62,12 @@ module.exports = {
             party_id INTEGER PRIMARY KEY,
             partyName TEXT NOT NULL,
             account_code INTEGER NOT NULL,
-            station_id INTEGER NOT NULL,
+            isPredefinedParty BOOLEAN NOT NULL,
+            station_id INTEGER,
             mailTo TEXT,
             address TEXT,
-            country TEXT NOT NULL,
-            state TEXT NOT NULL,
+            country TEXT,
+            state TEXT,
             city TEXT,
             pinCode INTEGER,
             parentLedger Text,
@@ -136,14 +139,13 @@ module.exports = {
     `INSERT INTO groups (group_code, group_name, parent_code, type, isPredefinedGroup) VALUES ${insertGroups.join(
       ", "
     )};`,
-    `INSERT INTO party (party_name, account_group) VALUES ${insertPartyAccountGroup.join(
+    `INSERT INTO ledger_party (partyName, account_code, isPredefinedParty) VALUES ${insertPartyAccountGroup.join(
       ", "
     )};`,
   ],
   down: [
     "DROP TABLE IF EXISTS account_group",
     "DROP TABLE IF EXISTS stations",
-    "DROP TABLE IF EXISTS party",
     "DROP TABLE IF EXISTS states",
     "DROP TABLE IF EXISTS groups",
     "DROP TABLE IF EXISTS ledger_party",

@@ -15,7 +15,10 @@ interface SidebarProps {
   isSubGroup?: boolean;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isGroup = false, isSubGroup = false }) => {
+const Sidebar: React.FC<SidebarProps> = ({
+  isGroup = false,
+  isSubGroup = false,
+}) => {
   const [showSubElements, setShowSubElements] = useState({
     master: false,
     setup: false,
@@ -34,7 +37,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isGroup = false, isSubGroup = false }
   }, [isGroup, isSubGroup]);
 
   const toggleSubElements = (element: SubElementKey) => {
-    setShowSubElements(prevState => ({
+    setShowSubElements((prevState) => ({
       ...prevState,
       [element]: !prevState[element],
     }));
@@ -73,40 +76,30 @@ const Sidebar: React.FC<SidebarProps> = ({ isGroup = false, isSubGroup = false }
             )}
           </span>
         </div>
-        {/* {(showSubElements.master || (isGroup || isSubGroup)) && ( */}
         {showSubElements.master && (
           <>
-            {/* <span className='arrow_icon'>&#8614;</span> */}
             <div
               className='sidebar_sub_element'
               onClick={() => toggleSubElements('setup')}
             >
               <span>Setup</span>
               <span className='sub_menu_arrow'>
-                {(showSubElements.setup )? (
+                {showSubElements.setup ? (
                   <IoChevronDownSharp />
                 ) : (
                   <MdNavigateNext />
                 )}
               </span>
             </div>
-            {/* {(showSubElements.setup || ( isGroup || isSubGroup)) && ( */}
             {showSubElements.setup && (
               <>
-                {/* <span className='arrow_icon'>&#8614;</span> */}
                 <div
                   className='sidebar_sub_3_element'
-                  // onClick={() => {
-                  //   // handleClick(event);
-                  //   return navigate(`/ledger`);
-                  // }}
                 >
                   <span onClick={() => {
-                    // handleClick(event);
-                    return navigate(`/ledger_page`);
+                    return navigate(`/ledger_table`);
                   }}>Ledger</span>
                   <span className='sub_menu_arrow' onClick={() => {
-                    // handleClick(event);
                     return navigate(`/ledger`);
                   }}>
                     <GoPlus />
@@ -115,7 +108,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isGroup = false, isSubGroup = false }
                 <div
                   className='sidebar_sub_2_element'
                   onClick={() => {
-                    // handleClick(event);
                     return navigate(`/groups`);
                   }}
                 >
@@ -124,21 +116,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isGroup = false, isSubGroup = false }
                 <div
                   className='sidebar_sub_2_element'
                   onClick={() => {
-                    // handleClick(event);
                     return navigate(`/subgroups`);
                   }}
                 >
                   Sub Groups
-                </div>    
+                </div>
                 <div
                   className='sidebar_sub_2_element'
                   onClick={() => {
-                    // handleClick(event);
                     return navigate(`/stations`);
                   }}
                 >
                   Stations
-                </div>                
+                </div>
               </>
             )}
             <div className='sidebar_sub_element'>Sub-element 2</div>
@@ -150,7 +140,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isGroup = false, isSubGroup = false }
             {'  '}Sales
           </span>
           <span className='sub_menu_arrow'>
-            {/* {showSubElements.master ? <IoChevronDownSharp /> : <MdNavigateNext />} */}
             {<MdNavigateNext />}
           </span>
         </div>
@@ -160,7 +149,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isGroup = false, isSubGroup = false }
             {'  '}Purchase
           </span>
           <span className='sub_menu_arrow'>
-            {/* {showSubElements.master ? <IoChevronDownSharp /> : <MdNavigateNext />} */}
             {<MdNavigateNext />}
           </span>
         </div>

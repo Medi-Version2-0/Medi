@@ -82,7 +82,6 @@ export const CreateStation: React.FC<CreateStationProps> = ({
       ...prevState,
       data: electronAPI.getAllStates('', 'state_name', '', '', '')
     }));
-    //   setLoading(false);
   };
 
   const getHq = () => {
@@ -145,11 +144,9 @@ export const CreateStation: React.FC<CreateStationProps> = ({
       }
       else if(e.key === 'ArrowUp'){
         e.preventDefault();
-        // setSelectedIndex(selectedIndex-1);
         setSelectedIndex((prevIndex) =>
         prevIndex > 0 ? prevIndex - 1 : prevIndex
       );
-      // Scroll the list up if the selected index goes beyond the viewable area
       if (selectedIndex > 0) {
         document.getElementById(`suggestion_${selectedIndex - 1}`)?.scrollIntoView({
           behavior: 'smooth',
@@ -160,11 +157,9 @@ export const CreateStation: React.FC<CreateStationProps> = ({
       else if(e.key === 'ArrowDown'){
         const reqSuggestion = isState ? stationState.suggestions : headquarters.suggestions;
         e.preventDefault();
-        // setSelectedIndex(selectedIndex+1);
         setSelectedIndex((prevIndex) =>
         prevIndex < reqSuggestion.length - 1 ? prevIndex + 1 : prevIndex
       );
-      // Scroll the list down if the selected index goes beyond the viewable area
       if (selectedIndex < reqSuggestion.length - 1) {
         document.getElementById(`suggestion_${selectedIndex + 1}`)?.scrollIntoView({
           behavior: 'smooth',
@@ -174,15 +169,6 @@ export const CreateStation: React.FC<CreateStationProps> = ({
       }
     }
   }
-
-  // const handleInputChange = (e: any) => {
-  //   const value = e.target.value;
-  //   setInputValue(value);
-  // };
-
-  // const handleSuggestionClick = (stateName: string) => {
-  //   setInputValue(stateName);
-  // };
 
   const validationSchema = Yup.object({
     station_name: Yup.string()
@@ -313,6 +299,18 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                 onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                   handleKeyDown(e)
                 }
+                onBlur={()=>{
+                  setHeadquarters((prevState) => ({
+                    ...prevState,
+                    data: [...prevState.data, {
+                      station_name: formik.values.station_name,
+                      cst_sale: '',
+                      station_state: '',
+                      station_pinCode: '',
+                      station_headQuarter: '',
+                       }]
+                  }));
+                }}
               />
               <ErrorMessage
                 name='station_name'
@@ -321,27 +319,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
               />
             </div>
 
-            {/* <div className='inputs'>
-              <Field
-                type='text'
-                id='cst_sale'
-                name='cst_sale'
-                // step='100'
-                placeholder='CST Sale'
-                disabled={isDelete && station_id}
-                className={`input-field ${formik.touched.cst_sale && formik.errors.cst_sale ? 'error-field' : ''}`}
-                data-side-field='station_state'
-                data-next-field='station_state'
-                data-prev-field='station_name'
-                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => handleKeyDown(e)}
-              />
-              <ErrorMessage
-                name='cst_sale'
-                component='div'
-                className='error'
-              />
-            </div> */}
-            <div className='inputs' ref={stateRef}>
+            <div className='inputs'>
               <Field
                 type='text'
                 id='station_state'
@@ -363,7 +341,6 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                   }
                 }}
               />
-              {/* {inputValue && !!statesSuggestions.length && ( */}
                 {!!stationState.suggestions.length && (
                 <ul className={'suggestion'}>
                   {stationState.suggestions.map((state:any, index: number) => (
@@ -377,7 +354,6 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                         }))
                         document.getElementById('station_state')?.focus();
                       }}
-                      // className='suggestion_list'
                       className={`${index === selectedIndex ? 'selected' : 'suggestion_list'}`}
                       id={`suggestion_${index}`}
                     >
@@ -404,7 +380,6 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                 border: '1px solid #c1c1c1',
               }}
             >
-              {/* <span className="prefix">CST Sale</span> */}
               <label
                 className={`credit-type ${station_id && isDelete ? 'disabled' : ''}`}
               >
@@ -448,6 +423,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                 id='station_pinCode'
                 name='station_pinCode'
                 placeholder='Station pin code'
+                maxLength={6}
                 disabled={isDelete && station_id}
                 className={`input-field ${(formik.touched.station_pinCode && formik.errors.station_pinCode)  || (!!err.station_pinCode) ? 'error-field' : ''}`}
                 onBlur={validateInputs}
@@ -477,8 +453,8 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange(e, false)}
                 disabled={isDelete && station_id}
                 className={`input-field ${(formik.touched.station_headQuarter && formik.errors.station_headQuarter) || (!!err.station_headQuarter) ? 'error-field' : ''}`}
-                data-side-field='cancel_button'
-                data-next-field='cancel_button'
+                data-side-field='submit_button'
+                data-next-field='submit_button'
                 data-prev-field='station_pinCode'
                 onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                   if (headquarters.suggestions.length !== 0) {
@@ -492,7 +468,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                 <ul className={'suggestion'} style={{ top : "67%" }}>
                   {headquarters.suggestions.map((hq:any, index: number) => (
                     <li
-                      key={hq.station_id}
+                      key={index}
                       onClick={() => {
                         setHeadquarters((prevState) => ({
                           ...prevState,
@@ -537,7 +513,6 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                   id='del_button'
                   className='account_add_button'
                   onClick={() => station_id && deleteAcc(station_id)}
-                  //   onClick={() => station_id}
                   onKeyDown={(e) => {
                     if (e.key === 'Tab') {
                       e.preventDefault();

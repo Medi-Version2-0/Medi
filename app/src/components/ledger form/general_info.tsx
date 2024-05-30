@@ -52,7 +52,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
 
   const getPartySuggestions = () => {
     setPartySuggestionsData(
-      electronAPI.addSuggestionList('', 'party_name', '', '', '')
+      electronAPI.addSuggestionList('', 'partyName', '', '', '')
     );
   };
 
@@ -157,7 +157,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
       setInputValue(suggestions[selectedIndex].state_name);
       setSuggestions([]);
     } else if (suggestions === partySuggestions) {
-      setInputValue(suggestions[selectedIndex].party_name);
+      setInputValue(suggestions[selectedIndex].partyName);
       setSuggestions([]);
     }
   };
