@@ -1,7 +1,8 @@
-import React, { KeyboardEvent, useEffect, useState, useMemo } from 'react';
+import React, { KeyboardEvent, useEffect, useState, useMemo, useRef } from 'react';
 import * as Yup from 'yup';
 import { Tooltip as ReactTooltip } from 'react-tooltip';
 import { FaExclamationCircle } from 'react-icons/fa';
+import { State } from '../../interface/global';
 
 interface GeneralInfoProps {
   onValueChange?: any;
@@ -32,6 +33,11 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
   const [partySuggestionsData, setPartySuggestionsData] = useState([]);
   const [selectedOption, setSelectedOption] = useState();
 
+  const stationRef = useRef<HTMLDivElement>(null);
+  const groupRef = useRef<HTMLDivElement>(null);
+  const stateRef = useRef<HTMLDivElement>(null);
+  const partyRef = useRef<HTMLDivElement>(null);
+
   const getStations = () => {
     setStationData(electronAPI.getAllStations('', 'station_name', '', '', ''));
   };
@@ -55,7 +61,31 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
     getStations();
     getAllGroups();
     getPartySuggestions();
-  }, []);
+  }, []); 
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (stationRef.current && !stationRef.current.contains(event.target as Node)) {
+        setStationSuggestions([]);
+      }
+      if (groupRef.current && !groupRef.current.contains(event.target as Node)) {
+        setGroupSuggestions([]);
+      }
+      if (stateRef.current && !stateRef.current.contains(event.target as Node)) {
+        setStatesSuggestions([]);
+      }
+      if (partyRef.current && !partyRef.current.contains(event.target as Node)) {
+        setPartySuggestions('');
+      }
+    };
+  
+    document.addEventListener('mousedown', handleClickOutside);
+  
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [stationRef, groupRef, stateRef, partyRef]); 
+  
 
   const handleInputChange = (e: { target: { value: any; id: any } }) => {
     const value = e.target.value;
@@ -76,6 +106,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
     } else if (e.target.id === 'accountGroup') {
       setAccountInputValue(value);
       formik.setFieldValue(e.target.id, value);
+      formik.setFieldValue('parentLedger', '');
       const filteredSuggestions = groupData.filter((group: any) => {
         return group.group_name.toLowerCase().includes(value.toLowerCase());
       });
@@ -87,12 +118,12 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
       setStatesSuggestions(filteredSuggestions);
     } else if (
       e.target.id === 'parentLedger' &&
-      accountValuesForParentLedger.includes(accountInputValue)
+      accountValuesForParentLedger.includes(accountInputValue.toUpperCase())
     ) {
       setPartySuggestions('');
       const filteredSuggestions = partySuggestionsData.filter((party: any) => {
         return (
-          party.account_group === accountInputValue &&
+          party.account_group.toUpperCase() === accountInputValue.toUpperCase() &&
           party.party_name.toLowerCase().includes(value.toLowerCase())
         );
       });
@@ -119,6 +150,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
     } else if (suggestions === groupSuggestions) {
       setInputValue(suggestions[selectedIndex].group_name);
       formik.setFieldValue(target.id, suggestions[selectedIndex].group_name);
+      formik.setFieldValue('parentLedger', '');
       onValueChange(suggestions[selectedIndex].group_name);
       setSuggestions([]);
     } else if (suggestions === statesSuggestions) {
@@ -224,7 +256,18 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
         state:
           accountInputValue === 'SUNDRY CREDITORS' ||
           accountInputValue === 'SUNDRY DEBTORS'
-            ? Yup.string().required('State is required')
+            ? Yup.string()
+                .required('State is required')
+                .transform((value) => (value ? value.toLowerCase() : ''))
+                .test(
+                  'valid-state',
+                  'Invalid State',
+                  function (value) {
+                    return stateData
+                      .map((state:State) => state.state_name.toLowerCase())
+                      .includes(value);
+                  }
+                )
             : Yup.string(),
         stationName:
           accountInputValue === 'SUNDRY CREDITORS' ||
@@ -251,8 +294,15 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 .matches(/^[1-9]/, 'PIN code must not start with zero')
                 .matches(/^[0-9]{6}$/, 'PIN code must be exactly 6 digits')
             : Yup.string(),
+        parentLedger: Yup.string()
+          .transform((value) => (value ? value.toLowerCase() : ''))
+          .test('valid-parentLedger', 'Invalid Parent ledger', function (value) {
+            return partySuggestionsData
+              .map((party:any) => party.party_name.toLowerCase())
+              .includes(value);
+          }),
       }),
-    [groupData, stationData, accountInputValue]
+    [groupData, stationData, accountInputValue,stateData,partySuggestionsData]
   );
 
   useEffect(() => {
@@ -302,7 +352,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
           </div>
         </div>
         <div className='ledger_inputs'>
-          <div className='fixed_assets_input starlabel'>
+          <div className='fixed_assets_input starlabel' ref={groupRef}>
             <label
               htmlFor='accountGroup'
               className='label_name label_name_css starlabel'
@@ -313,7 +363,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
               type='text'
               id='accountGroup'
               name='accountGroup'
-              value={formik.values.accountGroup}
+              value={formik.values.accountGroup.toUpperCase()}
               onChange={(e) => {
                 formik.handleChange(e);
                 handleInputChange(e);
@@ -337,12 +387,12 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 ) {
                   document
                     .getElementById(
-                      accountInputValue === 'SUNDRY CREDITORS' ||
-                        accountInputValue === 'SUNDRY DEBTORS'
+                      accountInputValue?.toUpperCase() === 'SUNDRY CREDITORS' ||
+                        accountInputValue?.toUpperCase() === 'SUNDRY DEBTORS'
                         ? 'stationName'
-                        : accountInputValue === 'DUTIES & TAXES'
+                        : accountInputValue?.toUpperCase() === 'DUTIES & TAXES'
                           ? 'taxType'
-                          : accountInputValue === 'FIXED ASSETS'
+                          : accountInputValue?.toUpperCase() === 'FIXED ASSETS'
                             ? 'fixedAssets'
                             : 'parentLedger'
                     )
@@ -378,6 +428,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                     onClick={() => {
                       setAccountInputValue(group.group_name);
                       formik.setFieldValue('accountGroup', group.group_name);
+                      formik.setFieldValue('parentLedger', '');
                       onValueChange(group.group_name);
                       setGroupSuggestions([]);
                       document.getElementById('accountGroup')?.focus();
@@ -391,9 +442,9 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
               </ul>
             )}
           </div>
-          {(accountInputValue === 'SUNDRY CREDITORS' ||
-            accountInputValue === 'SUNDRY DEBTORS') && (
-            <div className='stations_input starlabel'>
+          {(accountInputValue?.toUpperCase() === 'SUNDRY CREDITORS' ||
+            accountInputValue?.toUpperCase() === 'SUNDRY DEBTORS') && (
+            <div className='stations_input starlabel' ref={stationRef}>
               <label htmlFor='stationName' className='label_name_css'>
                 Station
               </label>
@@ -470,8 +521,8 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
             </div>
           )}
         </div>
-        {(accountInputValue === 'SUNDRY CREDITORS' ||
-          accountInputValue === 'SUNDRY DEBTORS') && (
+        {(accountInputValue?.toUpperCase() === 'SUNDRY CREDITORS' ||
+          accountInputValue?.toUpperCase() === 'SUNDRY DEBTORS') && (
           <div className='ledger_inputs'>
             <label htmlFor='mailTo' className='label_name label_name_css'>
               Mail to
@@ -510,8 +561,8 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
             )}
           </div>
         )}
-        {(accountInputValue === 'SUNDRY CREDITORS' ||
-          accountInputValue === 'SUNDRY DEBTORS') && (
+        {(accountInputValue?.toUpperCase() === 'SUNDRY CREDITORS' ||
+          accountInputValue?.toUpperCase() === 'SUNDRY DEBTORS') && (
           <div className='ledger_inputs'>
             <label htmlFor='address' className='label_name label_name_css'>
               Address
@@ -534,8 +585,8 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
             />
           </div>
         )}
-        {(accountInputValue === 'SUNDRY CREDITORS' ||
-          accountInputValue === 'SUNDRY DEBTORS') && (
+        {(accountInputValue?.toUpperCase() === 'SUNDRY CREDITORS' ||
+          accountInputValue?.toUpperCase() === 'SUNDRY DEBTORS') && (
           <div className='ledger_inputs country_div'>
             <div className='country_input starlabel'>
               <label
@@ -556,7 +607,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 disabled={true}
               />
             </div>
-            <div className='country starlabel'>
+            <div className='country starlabel' ref={stateRef}>
               <label htmlFor='state' className='label_name_css'>
                 State
               </label>
@@ -653,8 +704,8 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
             </div>
           </div>
         )}
-        {(accountInputValue === 'SUNDRY CREDITORS' ||
-          accountInputValue === 'SUNDRY DEBTORS') && (
+        {(accountInputValue?.toUpperCase() === 'SUNDRY CREDITORS' ||
+          accountInputValue?.toUpperCase() === 'SUNDRY DEBTORS') && (
           <div className='ledger_inputs'>
             <label htmlFor='pinCode' className='label_name label_name_css'>
               Pincode
@@ -695,7 +746,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
             )}
           </div>
         )}
-        {accountInputValue === 'DUTIES & TAXES' && (
+        {accountInputValue?.toUpperCase() === 'DUTIES & TAXES' && (
           <div className='ledger_inputs'>
             <label htmlFor='taxType' className='label_name label_name_css'>
               Tax Type
@@ -718,7 +769,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
             />
           </div>
         )}
-        {accountInputValue === 'FIXED ASSETS' && (
+        {accountInputValue?.toUpperCase() === 'FIXED ASSETS' && (
           <div className='ledger_inputs'>
             <div className='fixed_assets_input'>
               <label
@@ -758,7 +809,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
               </select>
             </div>
 
-            {accountInputValue === 'FIXED ASSETS' &&
+            {accountInputValue?.toUpperCase() === 'FIXED ASSETS' &&
               selectedOption === 'Applicable' && (
                 <div className='hsn_input'>
                   <label htmlFor='hsnCode' className='label_name_css'>
@@ -784,7 +835,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
               )}
           </div>
         )}
-        {accountInputValue === 'FIXED ASSETS' &&
+        {accountInputValue?.toUpperCase() === 'FIXED ASSETS' &&
           selectedOption === 'Applicable' && (
             <div className='ledger_inputs'>
               <div className='fixed_assets_input'>
@@ -841,7 +892,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
               </div>
             </div>
           )}
-        {accountInputValue === 'FIXED ASSETS' &&
+        {accountInputValue?.toUpperCase() === 'FIXED ASSETS' &&
           selectedOption === 'Applicable' && (
             <div className='ledger_inputs'>
               <div className='fixed_assets_input'>
@@ -877,12 +928,12 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
             </div>
           )}
         <div className='ledger_inputs'>
-          {accountInputValue !== 'CURRENT LIABILITIES' &&
-            accountInputValue !== 'CURRENT ASSETS' &&
-            accountInputValue !== 'PURCHASE A/C' &&
-            accountInputValue !== 'SUNDRY DEBTORS' &&
-            accountInputValue !== 'SALE A/C' &&
-            accountInputValue !== 'DUTIES & TAXES' && (
+          {accountInputValue?.toUpperCase() !== 'CURRENT LIABILITIES' &&
+            accountInputValue?.toUpperCase() !== 'CURRENT ASSETS' &&
+            accountInputValue?.toUpperCase() !== 'PURCHASE A/C' &&
+            accountInputValue?.toUpperCase() !== 'SUNDRY DEBTORS' &&
+            accountInputValue?.toUpperCase() !== 'SALE A/C' &&
+            accountInputValue?.toUpperCase() !== 'DUTIES & TAXES' && (
               <div className='fixed_assets_input'>
                 <label
                   htmlFor='parentLedger'
@@ -904,9 +955,9 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                     ) {
                       document
                         .getElementById(
-                          accountInputValue === 'SUNDRY CREDITORS' ||
-                            accountInputValue === 'PROVISIONS' ||
-                            accountInputValue === 'SECURED LOANS'
+                          accountInputValue?.toUpperCase() === 'SUNDRY CREDITORS' ||
+                            accountInputValue?.toUpperCase() === 'PROVISIONS' ||
+                            accountInputValue?.toUpperCase() === 'SECURED LOANS'
                             ? 'balancingMethod'
                             : 'openingBal'
                         )
@@ -918,12 +969,12 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                     ) {
                       document
                         .getElementById(
-                          accountInputValue === 'SUNDRY CREDITORS'
+                          accountInputValue?.toUpperCase() === 'SUNDRY CREDITORS'
                             ? 'pinCode'
-                            : accountInputValue === 'FIXED ASSETS' &&
+                            : accountInputValue?.toUpperCase() === 'FIXED ASSETS' &&
                                 selectedOption === 'Applicable'
                               ? 'itcAvail2'
-                              : accountInputValue === 'FIXED ASSETS'
+                              : accountInputValue?.toUpperCase() === 'FIXED ASSETS'
                                 ? 'fixedAssets'
                                 : 'accountGroup'
                         )
@@ -933,7 +984,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 />
               </div>
             )}
-          {accountInputValue === 'CURRENT LIABILITIES' && (
+          {accountInputValue?.toUpperCase() === 'CURRENT LIABILITIES' && (
             <div className='fixed_assets_input'>
               <label
                 htmlFor='parentLedger'
@@ -967,12 +1018,12 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
               </select>
             </div>
           )}
-          {(accountInputValue === 'CURRENT ASSETS' ||
-            accountInputValue === 'PURCHASE A/C' ||
-            accountInputValue === 'SUNDRY DEBTORS' ||
-            accountInputValue === 'SALE A/C' ||
-            accountInputValue === 'DUTIES & TAXES') && (
-            <div className='fixed_assets_input'>
+          {(accountInputValue?.toUpperCase() === 'CURRENT ASSETS' ||
+            accountInputValue?.toUpperCase() === 'PURCHASE A/C' ||
+            accountInputValue?.toUpperCase() === 'SUNDRY DEBTORS' ||
+            accountInputValue?.toUpperCase() === 'SALE A/C' ||
+            accountInputValue?.toUpperCase() === 'DUTIES & TAXES') && (
+            <div className='fixed_assets_input' ref={partyRef}>
               <label
                 htmlFor='parentLedger'
                 className='label_name label_name_css'
@@ -985,6 +1036,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 name='parentLedger'
                 className='input_class'
                 value={formik.values.parentLedger}
+                onBlur={formik.handleBlur}
                 onChange={(e) => {
                   formik.handleChange(e);
                   handleInputChange(e);
@@ -1007,9 +1059,9 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                   ) {
                     document
                       .getElementById(
-                        accountInputValue === 'DUTIES & TAXES' ||
-                          accountInputValue === 'PURCHASE A/C' ||
-                          accountInputValue === 'SALE A/C'
+                        accountInputValue?.toUpperCase() === 'DUTIES & TAXES' ||
+                          accountInputValue?.toUpperCase() === 'PURCHASE A/C' ||
+                          accountInputValue?.toUpperCase() === 'SALE A/C'
                           ? 'openingBal'
                           : 'balancingMethod'
                       )
@@ -1021,12 +1073,12 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                   ) {
                     document
                       .getElementById(
-                        accountInputValue === 'SUNDRY DEBTORS'
+                        accountInputValue?.toUpperCase() === 'SUNDRY DEBTORS'
                           ? 'pinCode'
-                          : accountInputValue === 'DUTIES & TAXES'
+                          : accountInputValue?.toUpperCase() === 'DUTIES & TAXES'
                             ? 'taxType'
-                            : accountInputValue === 'PURCHASE A/C' ||
-                                accountInputValue === 'SALE A/C'
+                            : accountInputValue?.toUpperCase() === 'PURCHASE A/C' ||
+                                accountInputValue?.toUpperCase() === 'SALE A/C'
                               ? 'accountGroup'
                               : ''
                       )
@@ -1034,6 +1086,21 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                   }
                 }}
               />
+              {formik.touched.parentLedger && formik.errors.parentLedger && (
+                <>
+                  <FaExclamationCircle
+                    data-tooltip-id='parentLedgerError'
+                    className='error_icon'
+                  />
+                  <ReactTooltip
+                    id='parentLedgerError'
+                    place='bottom'
+                    className='custom-tooltip'
+                  >
+                    {formik.errors.parentLedger}
+                  </ReactTooltip>
+                </>
+              )}
               {!!partySuggestions.length && (
                 <ul className='party_suggestion station_suggestion'>
                   {partySuggestions.map((party: any, index: number) => (

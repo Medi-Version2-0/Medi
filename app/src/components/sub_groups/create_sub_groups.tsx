@@ -25,7 +25,8 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
   const parentGroupVal = useRef('');
   const typeVal = useRef('');
   const electronAPI = (window as any).electronAPI;
-  const formikRef = useRef<FormikProps<SubGroupFormDataProps>>(null)
+  const formikRef = useRef<FormikProps<SubGroupFormDataProps>>(null);
+  const parentGrpRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const focusTarget =
@@ -198,6 +199,18 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
     }
   };
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (parentGrpRef.current && !parentGrpRef.current.contains(event.target as Node)) {
+        setSuggestions([]);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [parentGrpRef]);
+
   return (
     <Popup
       togglePopup={togglePopup}
@@ -242,7 +255,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                 className='error'
               />
             </div>
-            <div className='inputs'>
+            <div className='inputs' ref={parentGrpRef}>
               <Field
                 type='text'
                 id='parent_group'

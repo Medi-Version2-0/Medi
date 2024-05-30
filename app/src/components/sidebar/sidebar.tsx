@@ -4,6 +4,9 @@ import './sidebar.css';
 import { CiSearch } from 'react-icons/ci';
 import { MdLibraryBooks, MdNavigateNext } from 'react-icons/md';
 import { IoChevronDownSharp } from 'react-icons/io5';
+import { GoPlus } from "react-icons/go";
+import { FaCircleArrowRight } from "react-icons/fa6";
+import { FaCircleArrowLeft } from "react-icons/fa6";
 
 type SubElementKey = 'master' | 'setup';
 
@@ -17,6 +20,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isGroup = false, isSubGroup = false }
     master: false,
     setup: false,
   });
+  const [isSidebar, setIsSidebar] = useState<boolean>(true);
 
   const navigate = useNavigate();
 
@@ -37,9 +41,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isGroup = false, isSubGroup = false }
   };
 
   return (
-    <div className='sidebar'>
+    isSidebar ? 
+    (<div className='sidebar'>
       <div className='sidebar_header_content'>
         <div className='sidebar_header'>Medi App</div>
+        <span className='left' onClick={()=>{
+          setIsSidebar(false);
+        }}><FaCircleArrowLeft /></span>
         <div className='sidebar_search'>
           <input type='text' className='searchbar' placeholder='Search...' />
           <span className='search_icon'>
@@ -87,13 +95,22 @@ const Sidebar: React.FC<SidebarProps> = ({ isGroup = false, isSubGroup = false }
               <>
                 {/* <span className='arrow_icon'>&#8614;</span> */}
                 <div
-                  className='sidebar_sub_2_element'
-                  onClick={() => {
+                  className='sidebar_sub_3_element'
+                  // onClick={() => {
+                  //   // handleClick(event);
+                  //   return navigate(`/ledger`);
+                  // }}
+                >
+                  <span onClick={() => {
+                    // handleClick(event);
+                    return navigate(`/ledger_page`);
+                  }}>Ledger</span>
+                  <span className='sub_menu_arrow' onClick={() => {
                     // handleClick(event);
                     return navigate(`/ledger`);
-                  }}
-                >
-                  Ledger
+                  }}>
+                    <GoPlus />
+                  </span>
                 </div>
                 <div
                   className='sidebar_sub_2_element'
@@ -148,6 +165,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isGroup = false, isSubGroup = false }
           </span>
         </div>
       </div>
+    </div>)
+    : <div className='empty-div'>
+        <span className='left right' onClick={()=>{
+          setIsSidebar(true);
+        }}><FaCircleArrowRight /></span>
     </div>
   );
 };

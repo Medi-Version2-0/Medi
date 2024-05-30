@@ -36,8 +36,8 @@ export const ContactsInfo: React.FC<ContactsInfoProps> = ({
 
   return (
     <>
-      {(accountInputValue === 'SUNDRY CREDITORS' ||
-        accountInputValue === 'SUNDRY DEBTORS') && (
+      {(accountInputValue?.toUpperCase() === 'SUNDRY CREDITORS' ||
+        accountInputValue?.toUpperCase() === 'SUNDRY DEBTORS') && (
         <div className='ledger_contacts_info'>
           <div className='contacts_prefix'>Contact Numbers</div>
           <form onSubmit={formik.handleSubmit} className='contact_inputs'>
@@ -148,8 +148,8 @@ export const ContactsInfo: React.FC<ContactsInfoProps> = ({
                   if (e.key === 'ArrowDown' || e.key === 'Enter') {
                     document
                       .getElementById(
-                        accountInputValue === 'SUNDRY CREDITORS' ||
-                          accountInputValue === 'SUNDRY DEBTORS'
+                        accountInputValue?.toUpperCase() === 'SUNDRY CREDITORS' ||
+                          accountInputValue?.toUpperCase() === 'SUNDRY DEBTORS'
                           ? 'GST/Tax Details'
                           : ''
                       )

@@ -42,7 +42,7 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
       <form onSubmit={formik.handleSubmit} className='balance_inputs'>
         {balancing_method_input.map((input: any, index: number) => {
           return (
-            input === accountInputValue && (
+            input.toUpperCase() === accountInputValue?.toUpperCase() && (
               <div className='ledger_inputs' key={index}>
                 <label
                   htmlFor='balancingMethod'
@@ -100,12 +100,12 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
                 } else if (e.key === 'ArrowUp') {
                   document
                     .getElementById(
-                      accountInputValue === 'CURRENT ASSETS' ||
-                        accountInputValue === 'CURRENT LIABILITIES' ||
-                        accountInputValue === 'PROVISIONS' ||
-                        accountInputValue === 'SECURED LOANS' ||
-                        accountInputValue === 'SUNDRY CREDITORS' ||
-                        accountInputValue === 'SUNDRY DEBTORS'
+                      accountInputValue?.toUpperCase() === 'CURRENT ASSETS' ||
+                        accountInputValue?.toUpperCase() === 'CURRENT LIABILITIES' ||
+                        accountInputValue?.toUpperCase() === 'PROVISIONS' ||
+                        accountInputValue?.toUpperCase() === 'SECURED LOANS' ||
+                        accountInputValue?.toUpperCase() === 'SUNDRY CREDITORS' ||
+                        accountInputValue?.toUpperCase() === 'SUNDRY DEBTORS'
                         ? 'balancingMethod'
                         : 'parentLedger'
                     )
@@ -125,8 +125,8 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
                 if (e.key === 'ArrowDown' || e.key === 'Enter') {
                   document
                     .getElementById(
-                      accountInputValue === 'SUNDRY CREDITORS' ||
-                        accountInputValue === 'SUNDRY DEBTORS'
+                      accountInputValue?.toUpperCase() === 'SUNDRY CREDITORS' ||
+                        accountInputValue?.toUpperCase() === 'SUNDRY DEBTORS'
                         ? 'creditDays'
                         : 'submit_all'
                     )
@@ -143,8 +143,8 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
             </select>
           </div>
         </div>
-        {(accountInputValue === 'SUNDRY CREDITORS' ||
-          accountInputValue === 'SUNDRY DEBTORS') && (
+        {(accountInputValue?.toUpperCase() === 'SUNDRY CREDITORS' ||
+          accountInputValue?.toUpperCase() === 'SUNDRY DEBTORS') && (
           <div className='ledger_inputs'>
             <label
               htmlFor='creditDays'

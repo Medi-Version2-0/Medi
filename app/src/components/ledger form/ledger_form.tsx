@@ -416,8 +416,8 @@ export const Ledger = () => {
                 if (e.key === 'ArrowUp') {
                   document
                     .getElementById(
-                      valueFromGeneral === 'SUNDRY CREDITORS' ||
-                        valueFromGeneral === 'SUNDRY DEBTORS'
+                      valueFromGeneral.toUpperCase() === 'SUNDRY CREDITORS' ||
+                        valueFromGeneral.toUpperCase() === 'SUNDRY DEBTORS'
                         ? 'accountHolderName'
                         : 'openingBalType'
                     )

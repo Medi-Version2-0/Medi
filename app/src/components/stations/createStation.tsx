@@ -42,6 +42,9 @@ export const CreateStation: React.FC<CreateStationProps> = ({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [err, setErr] = useState(errValue);
 
+  const stateRef = useRef<HTMLDivElement>(null);
+  const hqRef = useRef<HTMLDivElement>(null);
+
   const electronAPI = (window as any).electronAPI;
 
   useEffect(() => {
@@ -50,6 +53,29 @@ export const CreateStation: React.FC<CreateStationProps> = ({
         : document.getElementById('cancel_button');
     focusTarget?.focus();
   }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (hqRef.current && !hqRef.current.contains(event.target as Node)) {
+        setHeadquarters((prevState) => ({
+          ...prevState,
+          suggestions: []
+        }))
+      }
+      if (stateRef.current && !stateRef.current.contains(event.target as Node)) {
+        setStationState((prevState) => ({
+          ...prevState,
+          suggestions: []
+        }))
+      }
+    };
+  
+    document.addEventListener('mousedown', handleClickOutside);
+  
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [hqRef, stateRef]); 
 
   const getStates = () => {
     setStationState((prevState) => ({
@@ -315,7 +341,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                 className='error'
               />
             </div> */}
-            <div className='inputs'>
+            <div className='inputs' ref={stateRef}>
               <Field
                 type='text'
                 id='station_state'
@@ -440,7 +466,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
               {!!err.station_pinCode && <span className="err">{err.station_pinCode}</span>}
             </div>
 
-            <div className='inputs'>
+            <div className='inputs' ref={hqRef}>
               <Field
                 type='text'
                 id='station_headQuarter'
