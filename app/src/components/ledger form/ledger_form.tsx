@@ -186,6 +186,8 @@ export const Ledger = () => {
 
   const handleValueChange = (value: any) => {
     setValueFromGeneral(value);
+    setGstDataValidationSchema(Yup.object().shape({}));
+    setContactInfoValidationSchema(Yup.object().shape({}));
   };
 
   const prevClass = useRef('');
@@ -258,7 +260,9 @@ export const Ledger = () => {
     generalInfo.isValid,
     balanceInfo.values,
     contactsInfo.values,
+    contactsInfo.isValid,
     gstData.values,
+    gstData.isValid,
     personalInfo.values,
     licenceInfo.values,
     bankDetails.values,

@@ -34,13 +34,14 @@ export const LicenceInfo: React.FC<LicenceInfoProps> = ({ formik }) => {
             htmlFor={`expiryDate`}
             className='label_name label_name_css expiry_date_space'
           >
-            Reg. Date
+            Exp. Date
           </label>
           <input
             type='date'
             id={`expiryDate`}
             name='expiryDate'
             onChange={formik.handleChange}
+            min={new Date().toISOString().split("T")[0]}
             value={formik.values.expiryDate}
             onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
               if (e.key === 'ArrowDown' || e.key === 'Enter') {

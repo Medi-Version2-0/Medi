@@ -12,21 +12,22 @@ export const TaxDetails: React.FC<TaxInfoProps> = ({
   formik,
   receiveValidationSchemaGstData,
 }) => {
-  const [selectedOption, setSelectedOption] = useState('');
-  const [selectedTdsOption, setSelectedTdsOption] = useState('');
+  const [selectedOption, setSelectedOption] = useState(formik.values.ledgerType || '');
+  const [selectedTdsOption, setSelectedTdsOption] = useState(formik.values.tdsApplicable || '');
 
   const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
 
   const validationSchema = useMemo(
     () =>
       Yup.object({
-        gstIn: Yup.string()
+        gstIn: (selectedOption === 'Registered' ||
+        selectedOption === 'Composition') ? Yup.string()
           .required('GST number is required')
           .max(15, 'Not a valid GSTIN, Required 15 character')
           .matches(gstRegex, 'GST number is not valid')
-          .required('GST number is required'),
+          .required('GST number is required') : Yup.string()
       }),
-    []
+    [selectedOption]
   );
 
   useEffect(() => {
@@ -138,6 +139,7 @@ export const TaxDetails: React.FC<TaxInfoProps> = ({
                 name='registrationDate'
                 onChange={formik.handleChange}
                 value={formik.values.registrationDate}
+                max={new Date().toISOString().split("T")[0]}
                 onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                   if (e.key === 'ArrowDown' || e.key === 'Enter') {
                     document.getElementById('tdsApplicable')?.focus();
@@ -151,7 +153,8 @@ export const TaxDetails: React.FC<TaxInfoProps> = ({
             </div>
           </div>
         )}
-        <div className='tax_ledger_inputs small_tax_ledger_inputs'>
+        {(selectedOption === 'Registered' ||
+          selectedOption === 'Composition') && (<div className='tax_ledger_inputs small_tax_ledger_inputs'>
           <label htmlFor='tdsApplicable' className='label_name label_name_css'>
             TDS Applicable
           </label>
@@ -189,8 +192,9 @@ export const TaxDetails: React.FC<TaxInfoProps> = ({
             <option value='Yes'>Yes</option>
             <option value='No'>No</option>
           </select>
-        </div>
-        {selectedTdsOption === 'Yes' && (
+        </div>)}
+        {(selectedOption === 'Registered' ||
+          selectedOption === 'Composition') && selectedTdsOption === 'Yes' && (
           <div className='tax_ledger_inputs small_tax_ledger_inputs'>
             <label
               htmlFor='payeeCategory'
