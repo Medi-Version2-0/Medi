@@ -27,11 +27,8 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [selectedIndex2, setSelectedIndex2] = useState(0);
   const [selectedStateIndex, setSelectedStateIndex] = useState(0);
-  const [selectedPartySuggestionIndex, setSelectedPartySuggestionIndex] =
-    useState(0);
   const [partySuggestions, setPartySuggestions] = useState<any>('');
   const [partySuggestionsData, setPartySuggestionsData] = useState([]);
-  const [selectedOption, setSelectedOption] = useState();
 
   const stationRef = useRef<HTMLDivElement>(null);
   const groupRef = useRef<HTMLDivElement>(null);
@@ -55,6 +52,10 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
       electronAPI.addSuggestionList('', 'partyName', '', '', '')
     );
   };
+  useEffect(() => {
+    document.getElementById('partyName')?.focus();
+  }, []);
+
   useEffect(() => {
     document.getElementById('partyName')?.focus();
   }, []);
@@ -130,10 +131,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
         );
       });
       setPartySuggestions(filteredSuggestions);
-    } else if (e.target.id === 'fixedAssets') {
-      setSelectedOption(e.target.value);
-      formik.setFieldValue(e.target.id, value);
-    }
+    } 
   };
 
   const handleEnterKey = (
@@ -296,6 +294,13 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 .matches(/^[1-9]/, 'PIN code must not start with zero')
                 .matches(/^[0-9]{6}$/, 'PIN code must be exactly 6 digits')
             : Yup.string(),
+        // parentLedger: Yup.string()
+        //   .transform((value) => (value ? value?.toLowerCase() : ''))
+        //   .test('valid-parentLedger', 'Invalid Parent ledger', function (value) {
+        //     return partySuggestionsData
+        //       .map((party:any) => party.party_name?.toLowerCase())
+        //       .includes(value);
+        //   }),
       }),
     [groupData, stationData, accountInputValue,stateData,partySuggestionsData]
   );
@@ -447,6 +452,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 type='text'
                 id='stationName'
                 name='stationName'
+                className='state_input'
                 onBlur={formik.handleBlur}
                 value={formik.values.stationName}
                 onChange={(e) => {
@@ -516,6 +522,175 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
             </div>
           )}
         </div>
+        {(accountInputValue?.toUpperCase() === 'SUNDRY DEBTORS') && (
+          <>
+          
+          <div className='ledger_inputs'>
+            <label htmlFor='vatNumber' className='label_name label_name_css'>
+              VAT Number
+            </label>
+            <input
+              type='text'
+              id='vatNumber'
+              name='vatNumber'
+              className='input_class'
+              onBlur={formik.handleBlur}
+              onChange={formik.handleChange}
+              value={formik.values.vatNumber}
+            />
+          </div>
+          <div className='ledger_inputs'>
+            <label htmlFor='excessRate' className='label_name label_name_css'>
+              Excess Rate
+            </label>
+            <input
+              type='text'
+              id='excessRate'
+              name='excessRate'
+              className='input_class'
+              onBlur={formik.handleBlur}
+              onChange={formik.handleChange}
+              value={formik.values.excessRate}
+            />
+          </div>
+          <div className='ledger_inputs'>
+              <label htmlFor='routeNo' className='label_name label_name_css'>
+                Route No.
+              </label>
+              <input
+                type='text'
+                id='routeNo'
+                name='routeNo'
+                className='input_class'
+                onBlur={formik.handleBlur}
+                onChange={formik.handleChange}
+                value={formik.values.routeNo}
+              />
+          </div>
+          <div className='ledger_inputs'>
+              <label htmlFor='partyCacr' className='label_name label_name_css'>
+                Party CACR
+              </label>
+              <select
+                id='partyCacr'
+                name='partyCacr'
+                value={formik.values.partyCacr}
+                onChange={(e) => {
+                  formik.handleChange(e);
+                  handleInputChange(e);
+                }}
+                onBlur={formik.handleBlur}
+              >
+                <option value='Select'>Select an Option</option>
+                <option value='Cash Invoice'>Cash Invoice</option>
+                <option value='Credit Invoice'>Credit Invoice</option>
+              </select>
+          </div>
+          <div className='ledger_inputs'>
+              <label htmlFor='deductDiscount' className='label_name label_name_css'>
+                Deduct Discount
+              </label>
+              <select
+                id='deductDiscount'
+                name='deductDiscount'
+                value={formik.values.deductDiscount}
+                onChange={(e) => {
+                  formik.handleChange(e);
+                  handleInputChange(e);
+                }}
+                onBlur={formik.handleBlur}
+              >
+                <option value='Select'>Select an Option</option>
+                <option value='Yes'>Yes</option>
+                <option value='No'>No</option>
+              </select>
+          </div>
+          <div className='ledger_inputs'>
+              <label htmlFor='stopNrx' className='label_name label_name_css'>
+                STOP NRX
+              </label>
+              <select
+                id='stopNrx'
+                name='stopNrx'
+                value={formik.values.stopNrx}
+                onChange={(e) => {
+                  formik.handleChange(e);
+                  handleInputChange(e);
+                }}
+                onBlur={formik.handleBlur}
+              >
+                <option value='Select'>Select an Option</option>
+                <option value='Yes'>Yes</option>
+                <option value='No'>No</option>
+              </select>
+          </div>
+          <div className='ledger_inputs'>
+              <label htmlFor='stopHi' className='label_name label_name_css'>
+                STOP HI
+              </label>
+              <select
+                id='stopHi'
+                name='stopHi'
+                value={formik.values.stopHi}
+                onChange={(e) => {
+                  formik.handleChange(e);
+                  handleInputChange(e);
+                }}
+                onBlur={formik.handleBlur}
+              >
+                <option value='Select'>Select an Option</option>
+                <option value='Yes'>Yes</option>
+                <option value='No'>No</option>
+              </select>
+          </div>
+          <div className='ledger_inputs'>
+              <label htmlFor='notPrinpba' className='label_name label_name_css'>
+                Not PRINPBA
+              </label>
+              <input
+                type='text'
+                id='notPrinpba'
+                name='notPrinpba'
+                className='input_class'
+                onBlur={formik.handleBlur}
+                onChange={formik.handleChange}
+                value={formik.values.notPrinpba}
+              />
+          </div>
+        </>
+        )}
+        {accountInputValue?.toUpperCase() === 'SUNDRY CREDITORS' && (
+          <>
+          <div className='ledger_inputs'>
+            <label htmlFor='creditPrivilege' className='label_name label_name_css'>
+            Credit Privilege
+            </label>
+            <input
+              type='text'
+              id='creditPrivilege'
+              name='creditPrivilege'
+              className='input_class'
+              onBlur={formik.handleBlur}
+              onChange={formik.handleChange}
+              value={formik.values.creditPrivilege}
+            />
+          </div>
+          <div className='ledger_inputs'>
+            <label htmlFor='transport' className='label_name label_name_css'>
+              Transport
+            </label>
+            <input
+              type='text'
+              id='transport'
+              name='transport'
+              className='input_class'
+              onBlur={formik.handleBlur}
+              onChange={formik.handleChange}
+              value={formik.values.transport}
+            />
+          </div>
+          </>
+        )}
         {(accountInputValue?.toUpperCase() === 'SUNDRY CREDITORS' ||
           accountInputValue?.toUpperCase() === 'SUNDRY DEBTORS') && (
           <div className='ledger_inputs'>
@@ -559,16 +734,17 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
         {(accountInputValue?.toUpperCase() === 'SUNDRY CREDITORS' ||
           accountInputValue?.toUpperCase() === 'SUNDRY DEBTORS') && (
           <div className='ledger_inputs'>
-            <label htmlFor='address' className='label_name label_name_css'>
+            <label htmlFor='address1' className='address_label_name label_name_css'>
               Address
             </label>
+            <div className='address_input'>
             <input
               type='text'
-              id='address'
-              name='address'
+              id='address1'
+              name='address1'
               className='input_class'
               onChange={formik.handleChange}
-              value={formik.values.address}
+              value={formik.values.address1}
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                 if (e.key === 'ArrowDown' || e.key === 'Enter') {
                   document.getElementById('state')?.focus();
@@ -578,16 +754,48 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 }
               }}
             />
+            <input
+              type='text'
+              id='address2'
+              name='address2'
+              className='input_class'
+              onChange={formik.handleChange}
+              value={formik.values.address2}
+              onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                  document.getElementById('state')?.focus();
+                  e.preventDefault();
+                } else if (e.key === 'ArrowUp') {
+                  document.getElementById('mailTo')?.focus();
+                }
+              }}
+            />
+            <input
+              type='text'
+              id='address3'
+              name='address3'
+              className='input_class'
+              onChange={formik.handleChange}
+              value={formik.values.address3}
+              onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                  document.getElementById('state')?.focus();
+                  e.preventDefault();
+                } else if (e.key === 'ArrowUp') {
+                  document.getElementById('mailTo')?.focus();
+                }
+              }}
+            />
+            </div>
           </div>
         )}
         {(accountInputValue?.toUpperCase() === 'SUNDRY CREDITORS' ||
           accountInputValue?.toUpperCase() === 'SUNDRY DEBTORS') && (
-          <div className='ledger_inputs country_div'>
-            <div className='country_input starlabel'>
+          <div className='ledger_inputs'>
+            <div className='country starlabel'>
               <label
                 htmlFor='country'
-                className='label_name label_name_css'
-                style={{ width: '39%' }}
+                className='country_label_name label_name_css'
               >
                 Country
               </label>
@@ -602,7 +810,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 disabled={true}
               />
             </div>
-            <div className='country starlabel' ref={stateRef}>
+            <div className='country_div starlabel' ref={stateRef}>
               <label htmlFor='state' className='label_name_css'>
                 State
               </label>
@@ -676,8 +884,13 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 </>
               )}
             </div>
+          </div>
+        )}
+        {(accountInputValue?.toUpperCase() === 'SUNDRY CREDITORS' ||
+          accountInputValue?.toUpperCase() === 'SUNDRY DEBTORS') && (
+            <div  className='ledger_inputs'>
             <div className='country'>
-              <label htmlFor='city' className='label_name_css'>
+              <label htmlFor='city' className='country_label_name label_name_css'>
                 City
               </label>
               <input
@@ -697,11 +910,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 }}
               />
             </div>
-          </div>
-        )}
-        {(accountInputValue?.toUpperCase() === 'SUNDRY CREDITORS' ||
-          accountInputValue?.toUpperCase() === 'SUNDRY DEBTORS') && (
-          <div className='ledger_inputs'>
+          <div className='country_div'>
             <label htmlFor='pinCode' className='label_name label_name_css'>
               Pincode
             </label>
@@ -709,7 +918,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
               type='text'
               id='pinCode'
               name='pinCode'
-              className='input_class'
+              className='state_input'
               maxLength={6}
               onBlur={formik.handleBlur}
               onChange={formik.handleChange}
@@ -740,386 +949,23 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
               </>
             )}
           </div>
+            </div>
         )}
-        {accountInputValue?.toUpperCase() === 'DUTIES & TAXES' && (
-          <div className='ledger_inputs'>
-            <label htmlFor='taxType' className='label_name label_name_css'>
-              Tax Type
-            </label>
+        <div className='ledger_inputs'>
+          <label htmlFor='stateInout' className='label_name label_name_css'>
+            State In Out
+          </label>
+          <div className='input_with_error'>
             <input
               type='text'
-              id='taxType'
-              name='taxType'
-              className='input_class short_input_class'
+              id='stateInout'
+              name='stateInout'
+              className='input_class'
               onChange={formik.handleChange}
-              value={formik.values.taxType}
-              onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                  document.getElementById('parentLedger')?.focus();
-                  e.preventDefault();
-                } else if (e.key === 'ArrowUp') {
-                  document.getElementById('accountGroup')?.focus();
-                }
-              }}
+              onBlur={formik.handleBlur}
+              value={formik.values.stateInout}
             />
           </div>
-        )}
-        {accountInputValue?.toUpperCase() === 'FIXED ASSETS' && (
-          <div className='ledger_inputs'>
-            <div className='fixed_assets_input'>
-              <label
-                htmlFor='fixedAssets'
-                className='label_name label_name_css'
-              >
-                GST Applicable
-              </label>
-              <select
-                id='fixedAssets'
-                name='fixedAssets'
-                value={formik.values.fixedAssets}
-                onChange={(e) => {
-                  formik.handleChange(e);
-                  handleInputChange(e);
-                }}
-                onBlur={formik.handleBlur}
-                onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-                  if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                    document
-                      .getElementById(
-                        selectedOption === 'Applicable'
-                          ? 'hsnCode'
-                          : 'parentLedger'
-                      )
-                      ?.focus();
-                    e.preventDefault();
-                  } else if (e.key === 'ArrowUp') {
-                    document.getElementById('accountGroup')?.focus();
-                    e.preventDefault();
-                  }
-                }}
-              >
-                <option value='Select'>Select an Option</option>
-                <option value='Applicable'>Applicable</option>
-                <option value='Not Applicable'>Not Applicable</option>
-              </select>
-            </div>
-
-            {accountInputValue?.toUpperCase() === 'FIXED ASSETS' &&
-              selectedOption === 'Applicable' && (
-                <div className='hsn_input'>
-                  <label htmlFor='hsnCode' className='label_name_css'>
-                    HSN/SAC. Code
-                  </label>
-                  <input
-                    type='text'
-                    id='hsnCode'
-                    name='hsnCode'
-                    onChange={formik.handleChange}
-                    value={formik.values.hsnCode}
-                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                      if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                        document.getElementById('taxPercentageType')?.focus();
-                        e.preventDefault();
-                      } else if (e.key === 'ArrowUp') {
-                        document.getElementById('fixedAssets')?.focus();
-                        e.preventDefault();
-                      }
-                    }}
-                  />
-                </div>
-              )}
-          </div>
-        )}
-        {accountInputValue?.toUpperCase() === 'FIXED ASSETS' &&
-          selectedOption === 'Applicable' && (
-            <div className='ledger_inputs'>
-              <div className='fixed_assets_input'>
-                <label
-                  htmlFor='taxPercentageType'
-                  className='label_name label_name_css'
-                >
-                  Tax % Type
-                </label>
-                <input
-                  type='text'
-                  id='taxPercentageType'
-                  name='taxPercentageType'
-                  onChange={formik.handleChange}
-                  value={formik.values.taxPercentageType}
-                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                    if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                      document.getElementById('itcAvail')?.focus();
-                      e.preventDefault();
-                    } else if (e.key === 'ArrowUp') {
-                      document.getElementById('hsnCode')?.focus();
-                    }
-                  }}
-                />
-              </div>
-              <div className='hsn_input'>
-                <label htmlFor='itcAvail' className='label_name_css'>
-                  ITC Availability
-                </label>
-                <select
-                  id='itcAvail'
-                  name='itcAvail'
-                  value={formik.values.itcAvail}
-                  onChange={(e) => {
-                    formik.handleChange(e);
-                    handleInputChange(e);
-                  }}
-                  onBlur={formik.handleBlur}
-                  onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-                    if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                      document.getElementById('itcAvail2')?.focus();
-                      e.preventDefault();
-                    } else if (e.key === 'ArrowUp') {
-                      document.getElementById('taxPercentageType')?.focus();
-                      e.preventDefault();
-                    }
-                  }}
-                >
-                  <option value='Input Goods'>Input Goods</option>
-                  <option value='Input Services'>Input Services</option>
-                  <option value='Capital Goods'>Capital Goods</option>
-                  <option value='None'>None</option>
-                </select>
-              </div>
-            </div>
-          )}
-        {accountInputValue?.toUpperCase() === 'FIXED ASSETS' &&
-          selectedOption === 'Applicable' && (
-            <div className='ledger_inputs'>
-              <div className='fixed_assets_input'>
-                <label
-                  htmlFor='itcAvail2'
-                  className='label_name label_name_css'
-                >
-                  ITC Availability
-                </label>
-                <select
-                  id='itcAvail2'
-                  name='itcAvail2'
-                  value={formik.values.itcAvail2}
-                  onChange={(e) => {
-                    formik.handleChange(e);
-                    handleInputChange(e);
-                  }}
-                  onBlur={formik.handleBlur}
-                  onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-                    if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                      document.getElementById('parentLedger')?.focus();
-                      e.preventDefault();
-                    } else if (e.key === 'ArrowUp') {
-                      document.getElementById('itcAvail')?.focus();
-                    }
-                  }}
-                >
-                  <option value='Compulsory'>Compulsory</option>
-                  <option value='Service Imports'>Service Imports</option>
-                  <option value='Goods'>Goods</option>
-                </select>
-              </div>
-            </div>
-          )}
-        <div className='ledger_inputs'>
-          {accountInputValue?.toUpperCase() !== 'CURRENT LIABILITIES' &&
-            accountInputValue?.toUpperCase() !== 'CURRENT ASSETS' &&
-            accountInputValue?.toUpperCase() !== 'PURCHASE A/C' &&
-            accountInputValue?.toUpperCase() !== 'SUNDRY DEBTORS' &&
-            accountInputValue?.toUpperCase() !== 'SALE A/C' &&
-            accountInputValue?.toUpperCase() !== 'DUTIES & TAXES' && (
-              <div className='fixed_assets_input'>
-                <label
-                  htmlFor='parentLedger'
-                  className='label_name label_name_css'
-                >
-                  Parent Ledger
-                </label>
-                <input
-                  type='text'
-                  id='parentLedger'
-                  name='parentLedger'
-                  className='input_class'
-                  onChange={formik.handleChange}
-                  value={formik.values.parentLedger}
-                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                    if (
-                      partySuggestions.length === 0 &&
-                      (e.key === 'ArrowDown' || e.key === 'Enter')
-                    ) {
-                      document
-                        .getElementById(
-                          accountInputValue?.toUpperCase() === 'SUNDRY CREDITORS' ||
-                            accountInputValue?.toUpperCase() === 'PROVISIONS' ||
-                            accountInputValue?.toUpperCase() === 'SECURED LOANS'
-                            ? 'balancingMethod'
-                            : 'openingBal'
-                        )
-                        ?.focus();
-                      e.preventDefault();
-                    } else if (
-                      partySuggestions.length === 0 &&
-                      e.key === 'ArrowUp'
-                    ) {
-                      document
-                        .getElementById(
-                          accountInputValue?.toUpperCase() === 'SUNDRY CREDITORS'
-                            ? 'pinCode'
-                            : accountInputValue?.toUpperCase() === 'FIXED ASSETS' &&
-                                selectedOption === 'Applicable'
-                              ? 'itcAvail2'
-                              : accountInputValue?.toUpperCase() === 'FIXED ASSETS'
-                                ? 'fixedAssets'
-                                : 'accountGroup'
-                        )
-                        ?.focus();
-                    }
-                  }}
-                />
-              </div>
-            )}
-          {accountInputValue?.toUpperCase() === 'CURRENT LIABILITIES' && (
-            <div className='fixed_assets_input'>
-              <label
-                htmlFor='parentLedger'
-                className='label_name label_name_css'
-              >
-                Parent Ledger
-              </label>
-              <select
-                id='parentLedger'
-                name='parentLedger'
-                value={formik.values.parentLedger}
-                onChange={(e) => {
-                  formik.handleChange(e);
-                  handleInputChange(e);
-                }}
-                onBlur={formik.handleBlur}
-                className='input_class'
-                onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-                  if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                    document.getElementById('balancingMethod')?.focus();
-                    e.preventDefault();
-                  } else if (e.key === 'ArrowUp') {
-                    document.getElementById('accountGroup')?.focus();
-                  }
-                }}
-              >
-                <option value='Google Pay'>Google Pay</option>
-                <option value='Marg Pay'>Marg Pay</option>
-                <option value='Paytm'>Paytm</option>
-                <option value='PhonePe'>PhonePe</option>
-              </select>
-            </div>
-          )}
-          {(accountInputValue?.toUpperCase() === 'CURRENT ASSETS' ||
-            accountInputValue?.toUpperCase() === 'PURCHASE A/C' ||
-            accountInputValue?.toUpperCase() === 'SUNDRY DEBTORS' ||
-            accountInputValue?.toUpperCase() === 'SALE A/C' ||
-            accountInputValue?.toUpperCase() === 'DUTIES & TAXES') && (
-            <div className='fixed_assets_input' ref={partyRef}>
-              <label
-                htmlFor='parentLedger'
-                className='label_name label_name_css'
-              >
-                Parent Ledger
-              </label>
-              <input
-                type='text'
-                id='parentLedger'
-                name='parentLedger'
-                className='input_class'
-                value={formik.values.parentLedger}
-                onBlur={formik.handleBlur}
-                onChange={(e) => {
-                  formik.handleChange(e);
-                  handleInputChange(e);
-                }}
-                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                  handleOnKeyDown(
-                    e,
-                    partySuggestions,
-                    (value) => {
-                      formik.setFieldValue('parentLedger', value);
-                      setAccountInputValue(value);
-                    },
-                    setPartySuggestions,
-                    selectedPartySuggestionIndex,
-                    setSelectedPartySuggestionIndex
-                  );
-                  if (
-                    partySuggestions.length === 0 &&
-                    (e.key === 'ArrowDown' || e.key === 'Enter')
-                  ) {
-                    document
-                      .getElementById(
-                        accountInputValue?.toUpperCase() === 'DUTIES & TAXES' ||
-                          accountInputValue?.toUpperCase() === 'PURCHASE A/C' ||
-                          accountInputValue?.toUpperCase() === 'SALE A/C'
-                          ? 'openingBal'
-                          : 'balancingMethod'
-                      )
-                      ?.focus();
-                    e.preventDefault();
-                  } else if (
-                    partySuggestions.length === 0 &&
-                    e.key === 'ArrowUp'
-                  ) {
-                    document
-                      .getElementById(
-                        accountInputValue?.toUpperCase() === 'SUNDRY DEBTORS'
-                          ? 'pinCode'
-                          : accountInputValue?.toUpperCase() === 'DUTIES & TAXES'
-                            ? 'taxType'
-                            : accountInputValue?.toUpperCase() === 'PURCHASE A/C' ||
-                                accountInputValue?.toUpperCase() === 'SALE A/C'
-                              ? 'accountGroup'
-                              : ''
-                      )
-                      ?.focus();
-                  }
-                }}
-              />
-              {formik.touched.parentLedger && formik.errors.parentLedger && (
-                <>
-                  <FaExclamationCircle
-                    data-tooltip-id='parentLedgerError'
-                    className='error_icon'
-                  />
-                  <ReactTooltip
-                    id='parentLedgerError'
-                    place='bottom'
-                    className='custom-tooltip'
-                  >
-                    {formik.errors.parentLedger}
-                  </ReactTooltip>
-                </>
-              )}
-              {!!partySuggestions.length && (
-                <ul className='party_suggestion station_suggestion'>
-                  {partySuggestions.map((party: any, index: number) => (
-                    <li
-                      key={party.party_code}
-                      onClick={() => {
-                        formik.setFieldValue('parentLedger', party.partyName);
-                        setPartySuggestions('');
-                        document.getElementById('parentLedger')?.focus();
-                      }}
-                      className={`${
-                        index === selectedPartySuggestionIndex
-                          ? 'station_selected'
-                          : 'station_suggestion_list'
-                      }`}
-                      id={`suggestion_${index}`}
-                    >
-                      {party.partyName}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
         </div>
       </form>
     </div>

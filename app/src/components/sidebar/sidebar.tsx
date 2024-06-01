@@ -78,7 +78,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
         {showSubElements.master && (
           <>
-            <div
+            {/* <div
               className='sidebar_sub_element'
               onClick={() => toggleSubElements('setup')}
             >
@@ -90,10 +90,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                   <MdNavigateNext />
                 )}
               </span>
-            </div>
-            {showSubElements.setup && (
-              <>
-                <div
+            </div> */}
+            <div
                   className='sidebar_sub_3_element'
                 >
                   <span onClick={() => {
@@ -129,6 +127,52 @@ const Sidebar: React.FC<SidebarProps> = ({
                 >
                   Stations
                 </div>
+                <div
+                  className='sidebar_sub_2_element'
+                  onClick={() => {
+                    return navigate(`/headquarters`);
+                  }}
+                >
+                  Headquarters
+                </div>
+            {showSubElements.setup && (
+              <>
+                {/* <div
+                  className='sidebar_sub_3_element'
+                >
+                  <span onClick={() => {
+                    return navigate(`/ledger_table`);
+                  }}>Ledger</span>
+                  <span className='sub_menu_arrow' onClick={() => {
+                    return navigate(`/ledger`);
+                  }}>
+                    <GoPlus />
+                  </span>
+                </div>
+                <div
+                  className='sidebar_sub_2_element'
+                  onClick={() => {
+                    return navigate(`/groups`);
+                  }}
+                >
+                  Groups
+                </div>
+                <div
+                  className='sidebar_sub_2_element'
+                  onClick={() => {
+                    return navigate(`/subgroups`);
+                  }}
+                >
+                  Sub Groups
+                </div>
+                <div
+                  className='sidebar_sub_2_element'
+                  onClick={() => {
+                    return navigate(`/stations`);
+                  }}
+                >
+                  Stations
+                </div> */}
               </>
             )}
             <div className='sidebar_sub_element'>Sub-element 2</div>

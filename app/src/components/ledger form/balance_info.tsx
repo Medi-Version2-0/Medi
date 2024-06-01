@@ -8,15 +8,6 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
   accountInputValue,
   formik,
 }) => {
-  const balancing_method_input = [
-    'CURRENT ASSETS',
-    'CURRENT LIABILITIES',
-    'PROVISIONS',
-    'SECURED LOANS',
-    'SUNDRY CREDITORS',
-    'SUNDRY DEBTORS',
-  ];
-
   const handleOpeningBalInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
     if (/^\d*\.?\d{0,2}$/.test(value)) {
@@ -40,41 +31,6 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
     <div className='ledger_balance_info'>
       <div className='balance_prefix'>Balance</div>
       <form onSubmit={formik.handleSubmit} className='balance_inputs'>
-        {balancing_method_input.map((input: any, index: number) => {
-          return (
-            input.toUpperCase() === accountInputValue?.toUpperCase() && (
-              <div className='ledger_inputs' key={index}>
-                <label
-                  htmlFor='balancingMethod'
-                  className='balance_label_name label_name_css'
-                >
-                  Balancing Method
-                </label>
-                <select
-                  id='balancingMethod'
-                  name='balancingMethod'
-                  value={formik.values.balancingMethod}
-                  onChange={(e) => {
-                    formik.handleChange(e);
-                  }}
-                  onBlur={formik.handleBlur}
-                  onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-                    if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                      document.getElementById('openingBal')?.focus();
-                      e.preventDefault();
-                    } else if (e.key === 'ArrowUp') {
-                      document.getElementById('parentLedger')?.focus();
-                      e.preventDefault();
-                    }
-                  }}
-                >
-                  <option value='Bill By Bill'>Bill By Bill</option>
-                  <option value='On Account'>On Account</option>
-                </select>
-              </div>
-            )
-          );
-        })}
         <div className='ledger_inputs'>
           <div className='opening_bal_input'>
             <label
@@ -82,8 +38,7 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
               className='balance_label_name label_name_css openingBal'
             >
               Opening Balance
-            </label>
-            <span className='opening_bal_prefix'>₹</span>
+            </label>{'  '}₹
             <input
               type='text'
               id='openingBal'
@@ -145,6 +100,24 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
         </div>
         {(accountInputValue?.toUpperCase() === 'SUNDRY CREDITORS' ||
           accountInputValue?.toUpperCase() === 'SUNDRY DEBTORS') && (
+          <>
+          <div className='ledger_inputs'>
+            <label
+              htmlFor='creditLimit'
+              className='balance_label_name label_name_css'
+            >
+              Credit Limit
+            </label>
+            <input
+              type='text'
+              id='creditLimit'
+              name='creditLimit'
+              placeholder='0'
+              className='input_class'
+              onChange={formik.handleChange}
+              value={formik.values.creditLimit}
+            />
+          </div>
           <div className='ledger_inputs'>
             <label
               htmlFor='creditDays'
@@ -173,6 +146,7 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
               }}
             />
           </div>
+          </>
         )}
       </form>
     </div>

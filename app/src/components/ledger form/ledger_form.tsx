@@ -65,18 +65,24 @@ export const Ledger = () => {
       station_id: data?.station_id ||'',
       stationName: data?.stationName ||'',
       mailTo: data?.mailTo ||'',
-      address: data?.address ||'',
+      address1: data?.address1 ||'',
+      address2: data?.address2 ||'',
+      address3: data?.address3 ||'',
       country: data?.country ||'',
       state: data?.state ||'',
       city: data?.city ||'',
       pinCode: data?.pinCode ||'',
-      parentLedger: data?.parentLedger ||'',
-      taxType: data?.taxType ||'',
-      fixedAssets: data?.fixedAssets ||'',
-      hsnCode: data?.hsnCode ||'',
-      taxPercentageType: data?.taxPercentageType ||'',
-      itcAvail: data?.itcAvail ||'',
-      itcAvail2: data?.itcAvail2 ||'',
+      stateInout: data?.stateInout ||'',
+      transport: data?.transport || '',
+      creditPrivilege: data?.creditPrivilege || '',
+      vatNumber: data?.vatNumber || '',
+      excessRate: data?.excessRate || '',
+      routeNo: data?.routeNo || '',
+      partyCacr: data?.partyCacr || '',
+      deductDiscount: data?.deductDiscount || '',
+      stopNrx: data?.stopNrx || '',
+      stopHi: data?.stopHi || '',
+      notPrinpba: data?.notPrinpba || ''
     },
     validationSchema: generalInfovalidationSchema,
     onSubmit: (values) => {
@@ -87,10 +93,10 @@ export const Ledger = () => {
   const balanceInfo = useFormik({
     initialValues: {
       party_id:  data?.party_id ||'',
-      balancingMethod:  data?.balancingMethod ||'',
       openingBal:  data?.openingBal ||'',
       openingBalType:  data?.openingBalType ||'',
       creditDays:  data?.creditDays ||'',
+      creditLimit: data?.creditLimit || ''
     },
     onSubmit: (values) => {
       console.log('balance info ', values);
@@ -99,9 +105,7 @@ export const Ledger = () => {
 
   const contactsInfo = useFormik({
     initialValues: {
-      phone1:  data?.phone1 ||'',
-      phone2:  data?.phone2 ||'',
-      phone3:  data?.phone3 ||'',
+      phoneNumber:  data?.phoneNumber ||'',
     },
     validationSchema: contactInfoValidationSchema,
     onSubmit: (values) => {
@@ -111,11 +115,7 @@ export const Ledger = () => {
 
   const gstData = useFormik({
     initialValues: {
-      ledgerType:  data?.ledgerType ||'',
       gstIn:  data?.gstIn ||'',
-      registrationDate:  data?.registrationDate ||'',
-      tdsApplicable:  data?.tdsApplicable ||'',
-      payeeCategory:  data?.payeeCategory ||'',
       panCard:  data?.panCard ||'',
     },
     validationSchema: gstDataValidationSchema,
@@ -128,12 +128,8 @@ export const Ledger = () => {
     initialValues: {
       firstName:  data?.firstName ||'',
       lastName:  data?.lastName ||'',
-      designation:  data?.designation ||'',
-      website_input:  data?.website_input ||'',
       emailId1:  data?.emailId1 ||'',
       emailId2:  data?.emailId2 ||'',
-      gender:  data?.gender ||'',
-      maritalStatus:  data?.maritalStatus ||'',
     },
     validationSchema: personalInfoValidationSchema,
     onSubmit: (values) => {
@@ -144,7 +140,6 @@ export const Ledger = () => {
   const licenceInfo = useFormik({
     initialValues: {
       drugLicenceNo:  data?.drugLicenceNo ||'',
-      expiryDate:  data?.expiryDate ||'',
     },
     onSubmit: (values) => {
       console.log('licenceInfo data', values);
@@ -166,7 +161,7 @@ export const Ledger = () => {
     },
   });
 
-  const electronAPI = (window as any).electronAPI;
+  // const electronAPI = (window as any).electronAPI;
 
   const receiveValidationSchemaGeneralInfo = useCallback((schema: any) => {
     setGeneralInfovalidationSchema(schema);
@@ -216,19 +211,16 @@ export const Ledger = () => {
     licenceInfo.handleSubmit();
     bankDetails.handleSubmit();
     const allData = {
-      general_info: generalInfo.values,
-      balance_contact_info: {
-        balance_info: balanceInfo.values,
-        contacts_info: contactsInfo.values,
-      },
-      tax_personal_details: {
-        gst_data: gstData.values,
-        personal_info: personalInfo.values,
-        licence_info: licenceInfo.values,
-        bank_details: bankDetails.values,
-      },
+      ...generalInfo.values,
+        ...balanceInfo.values,
+        ...contactsInfo.values,
+      ...gstData.values,...personalInfo.values,
+        ...licenceInfo.values,
+        ...bankDetails.values,
     };
-    electronAPI.addParty(allData);    
+    console.log(">>>>>all Data : ",allData);
+
+    // electronAPI.addParty(allData);    
   };
 
   useEffect(() => {

@@ -7,6 +7,7 @@ import { Groups } from './components/groups/groups';
 import Sidebar from './components/sidebar/sidebar';
 import { Ledger } from './components/ledger form/ledger_form';
 import { Ledger_Table } from './components/ledger form/ledger_table';
+import { Headquarters } from './components/headquarters/headquarters';
 
 export const App = () => {
   return (
@@ -18,6 +19,7 @@ export const App = () => {
           <Route path='/subgroups' element={<SubGroups />} />
           <Route path='/ledger' element={<Ledger />} />
           <Route path='/stations' element={<Stations />} />
+          <Route path='/headquarters' element={<Headquarters />} />
           <Route path='/ledger_table' element={<Ledger_Table />} />
         </Routes>
       </HashRouter>

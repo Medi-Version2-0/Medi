@@ -1,16 +1,15 @@
 import {KeyboardEvent, useEffect, useRef, useState } from 'react';
 import { Formik, Form, Field, ErrorMessage, FormikProps } from 'formik';
-import { CreateStationProps, FormDataProps, State } from '../../interface/global';
+import { CreateStationProps, FormDataProps, StationFormData } from '../../interface/global';
 import { Popup } from '../helpers/popup';
-import './stations.css';
+// import './stations/stations.css';
 
 const errValue = {
   station_name: '',
-  station_state: '',
-  station_pinCode: '',
+  station_headQuarter: '',
 };
 
-export const CreateStation: React.FC<CreateStationProps> = ({
+export const CreateHeadquarters: React.FC<CreateStationProps> = ({
   togglePopup,
   data,
   handelFormSubmit,
@@ -19,20 +18,19 @@ export const CreateStation: React.FC<CreateStationProps> = ({
 }) => {
   const { station_id } = data;
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const [stationState, setStationState] = useState<{
+
+  const [headquarters, setHeadquarters] = useState<{
     inputValue: string,
-    data: State[],
-    suggestions: State[]
+    data: StationFormData[],
+    suggestions: StationFormData[]
   }>({
     inputValue: '',
     data: [],
     suggestions: []
   });
-
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [err, setErr] = useState(errValue);
 
-  const stateRef = useRef<HTMLDivElement>(null);
   const hqRef = useRef<HTMLDivElement>(null);
 
   const electronAPI = (window as any).electronAPI;
@@ -46,8 +44,8 @@ export const CreateStation: React.FC<CreateStationProps> = ({
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (stateRef.current && !stateRef.current.contains(event.target as Node)) {
-        setStationState((prevState) => ({
+      if (hqRef.current && !hqRef.current.contains(event.target as Node)) {
+        setHeadquarters((prevState) => ({
           ...prevState,
           suggestions: []
         }))
@@ -59,50 +57,50 @@ export const CreateStation: React.FC<CreateStationProps> = ({
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [hqRef, stateRef]);
+  }, [hqRef]);
 
-  const getStates = () => {
-    setStationState((prevState) => ({
+  const getHq = () => {
+    setHeadquarters((prevState) => ({
       ...prevState,
-      data: electronAPI.getAllStates('', 'state_name', '', '', '')
+      data: electronAPI.getAllStations('', 'station_name', '', '', '')
     }));
   };
 
   useEffect(() => {
-    getStates();
-    setStationState((prevState) => ({
+    getHq();
+    setHeadquarters((prevState) => ({
       ...prevState,
-      inputValue: data?.station_state ? data.station_state : '',
+      inputValue: data?.station_headQuarter ? data.station_headQuarter : '',
     }));
   }, []);
 
   const handleInputChange = (
-    e: { target: { value: any } },
+    e: { target: { value: any } }
   ) => {
     const value = e.target.value;
-    setStationState((prevState) => ({
+    setHeadquarters((prevState) => ({
           ...prevState,
           inputValue: value,
-        }))
-    // Filter statesSuggestions based on input value
-    setStationState((prevState) => ({
+        }));
+    setHeadquarters((prevState) => ({
           ...prevState,
-          suggestions: stationState.data.filter((item: State) =>
-            item.state_name.toLowerCase().includes(value.toLowerCase())
+          suggestions: headquarters.data.filter((item: StationFormData) =>
+            item.station_name.toLowerCase().includes(value.toLowerCase())
           ),
-        }))
+        }));
   };
 
   const handleOnKeyDown = (
-    e: KeyboardEvent<HTMLInputElement>,
-  ) => {
-    const Suggestions = stationState.suggestions;
+e: KeyboardEvent<HTMLInputElement>, formik: FormikProps<{ station_name: string; station_headQuarter: string; }>) => {
+    const Suggestions = headquarters.suggestions;
     if (Suggestions.length) {
       if (e.key === 'Enter') {
         e.preventDefault();
-        setStationState((prevState) => ({
+        const target = e.target as HTMLInputElement;
+        formik.setFieldValue(target.id,headquarters.suggestions[selectedIndex].station_name)
+        setHeadquarters((prevState) => ({
               ...prevState,
-              inputValue: stationState.suggestions[selectedIndex].state_name,
+              inputValue: headquarters.suggestions[selectedIndex].station_name,
               suggestions: [],
             }));
       } else if (e.key === 'ArrowUp') {
@@ -119,7 +117,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
             });
         }
       } else if (e.key === 'ArrowDown') {
-        const reqSuggestion = stationState.suggestions;
+        const reqSuggestion = headquarters.suggestions;
         e.preventDefault();
         setSelectedIndex((prevIndex) =>
           prevIndex < reqSuggestion.length - 1 ? prevIndex + 1 : prevIndex
@@ -140,10 +138,10 @@ export const CreateStation: React.FC<CreateStationProps> = ({
     const { value, id } = e.target;
 
     setErr({ ...err, [id]: '' });
-
-    const isState = stationState.data.some(
-      (state: any) => state.state_name === value
+    const isHeadQuarter = headquarters.data.some(
+      (hq: any) => hq.station_name === value
     );
+
     if (id === 'station_name') {
       if (!value) {
         setErr({ ...err, [id]: 'Station name is required' });
@@ -157,36 +155,24 @@ export const CreateStation: React.FC<CreateStationProps> = ({
       } else if (value.length > 100) {
         setErr({ ...err, [id]: 'Station name cannot exceeds 100 characters' });
       }
-    } else if (id === 'station_state') {
+    } else if (id === 'station_headQuarter') {
       if (!value) {
-        setErr({ ...err, [id]: 'State is required' });
-      } else if (value && isState === false) {
-        setErr({ ...err, [id]: 'Invalid State' });
+        setErr({ ...err, [id]: 'State headquarter is required' });
+      } else if (value && isHeadQuarter === false) {
+        setErr({ ...err, [id]: 'Invalid State headquarter' });
       }
-    } else if (id === 'station_pinCode') {
-      if (!value) {
-        setErr({ ...err, [id]: 'PIN code is required' });
-      } else if (!!value && value.length !== 6) {
-        setErr({ ...err, [id]: 'Length of PIN code must be exactly 6 digits' });
-      } else if (!!value && value[0] === '0') {
-        setErr({ ...err, [id]: "PIN code doesn't start from zero" });
-      }
-    } 
+    }
   };
 
   const handleSubmit = async (values: object) => {
+    console.log(">>>>>>>.vlaues hq : ",values);
     const formData = station_id
       ? {
           ...values,
           station_id: station_id,
-          station_state: stationState.inputValue,
+          station_headQuarter: headquarters.inputValue,
         }
-      : stationState.inputValue
-        ? {
-            ...values,
-            station_state: stationState.inputValue,
-          }
-        : values;
+      : values;
     !station_id && document.getElementById('account_button')?.focus();
     handelFormSubmit(formData);
   };
@@ -251,9 +237,6 @@ export const CreateStation: React.FC<CreateStationProps> = ({
       <Formik
         initialValues={{
           station_name: data?.station_name || '',
-          cst_sale: data?.cst_sale || '',
-          station_state: data?.station_state || '',
-          station_pinCode: data?.station_pinCode || '',
           station_headQuarter: data?.station_headQuarter || '',
         }}
         enableReinitialize={true}
@@ -276,6 +259,19 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                 onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                   handleKeyDown(e)
                 }
+                onBlur={(e: any) => {
+                  validateInputs(e);
+                  setHeadquarters((prevState) => ({
+                    ...prevState,
+                    data: [
+                      ...prevState.data,
+                      {
+                        station_name: formik.values.station_name,
+                        station_headQuarter: '',
+                      },
+                    ],
+                  }));
+                }}
               />
               <ErrorMessage
                 name='station_name'
@@ -287,137 +283,60 @@ export const CreateStation: React.FC<CreateStationProps> = ({
               )}
             </div>
 
-            <div className='inputs'>
+            <div className='inputs hq_suggestion_input' ref={hqRef}>
               <Field
                 type='text'
-                id='station_state'
-                name='station_state'
-                placeholder='Station state'
-                value={stationState.inputValue}
+                id='station_headQuarter'
+                name='station_headQuarter'
+                placeholder='Station headquarter'
+                value={headquarters.inputValue}
                 onBlur={validateInputs}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  handleInputChange(e)
-                }
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange(e)}
                 disabled={isDelete && station_id}
-                className={`input-field ${(formik.touched.station_state && formik.errors.station_state) || !!err.station_state ? 'error-field' : ''}`}
-                data-side-field='station_pinCode'
-                data-next-field='station_pinCode'
-                data-prev-field='station_name'
+                className={`input-field ${(formik.touched.station_headQuarter && formik.errors.station_headQuarter) || !!err.station_headQuarter ? 'error-field' : ''}`}
+                data-side-field='cst_yes'
+                data-next-field='cst_yes'
+                data-prev-field='station_pinCode'
                 onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                  if (stationState.suggestions.length !== 0) {
-                    handleOnKeyDown(e);
-                  } else {
+                  if (headquarters.suggestions.length !== 0) {
+                    handleOnKeyDown(e,formik);
+                  }else{
                     handleKeyDown(e);
                   }
                 }}
               />
-              {!!stationState.suggestions.length && (
-                <ul className={'suggestion'}>
-                  {stationState.suggestions.map((state: any, index: number) => (
+                {!!headquarters.suggestions.length && (
+                <ul className={'suggestion'} style={{ top : "58%" }}>
+                  {headquarters.suggestions.map((hq:any, index: number) => (
                     <li
-                      key={state.state_code}
+                      key={index}
                       onClick={() => {
-                        setStationState((prevState) => ({
+                        // extra added 
+                        formik.setFieldValue('station_headQuarter',hq.station_name);
+                        // extra added
+                        setHeadquarters((prevState) => ({
                           ...prevState,
-                          inputValue: state.state_name,
-                          suggestions: [],
-                        }));
-                        document.getElementById('station_state')?.focus();
+                          inputValue: hq.station_name,
+                          suggestions: []
+                        }))
+                        document.getElementById('station_headQuarter')?.focus();
                       }}
                       className={`${index === selectedIndex ? 'selected' : 'suggestion_list'}`}
                       id={`suggestion_${index}`}
                     >
-                      {state.state_name}
+                      {hq.station_name}
                     </li>
                   ))}
                 </ul>
               )}
               <ErrorMessage
-                name='station_state'
+                name='station_headQuarter'
                 component='div'
                 className='error'
               />
-              {!!err.station_state && (
-                <span className='err'>{err.station_state}</span>
+              {!!err.station_headQuarter && (
+                <span className='err'>{err.station_headQuarter}</span>
               )}
-            </div>
-
-            <div className='inputs'>
-              <Field
-                type='text'
-                id='station_pinCode'
-                name='station_pinCode'
-                placeholder='Station pin code'
-                maxLength={6}
-                disabled={isDelete && station_id}
-                className={`input-field ${(formik.touched.station_pinCode && formik.errors.station_pinCode) || !!err.station_pinCode ? 'error-field' : ''}`}
-                onBlur={validateInputs}
-                data-side-field='cst_yes'
-                data-next-field='cst_yes'
-                data-prev-field='station_state'
-                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                  handleKeyDown(e)
-                }
-              />
-              <ErrorMessage
-                name='station_pinCode'
-                component='div'
-                className='error'
-              />
-              {!!err.station_pinCode && (
-                <span className='err'>{err.station_pinCode}</span>
-              )}
-            </div>
-
-            <div
-              className='inputs'
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: '0.8rem',
-                borderRadius: '0.4rem',
-                border: '1px solid #c1c1c1',
-              }}
-            >
-              <label
-                className={`credit-type ${station_id && isDelete ? 'disabled' : ''}`}
-              >
-                <Field
-                  type='radio'
-                  name='cst_sale'
-                  value='yes'
-                  id='cst_yes'
-                  checked={formik.values.cst_sale === 'yes'}
-                  disabled={station_id && isDelete}
-                  data-prev-field='cst_yes'
-                  data-next-field='submit_button'
-                  data-side-field='cst_no'
-                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                    handleKeyDown(e, formik)
-                  }
-                />
-                Yes
-              </label>
-              <label
-                className={`credit-type ${station_id && isDelete ? 'disabled' : ''}`}
-              >
-                <Field
-                  type='radio'
-                  name='cst_sale'
-                  value='no'
-                  id='cst_no'
-                  checked={formik.values.cst_sale === 'no'}
-                  disabled={station_id && isDelete}
-                  data-prev-field='station_pinCode'
-                  data-next-field='submit_button'
-                  data-side-field='cst_yes'
-                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                    handleKeyDown(e, formik)
-                  }
-                />
-                No
-              </label>
             </div>
 
             <div className='modal-actions'>
@@ -457,8 +376,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                   disabled={
                     !formik.isValid ||
                     formik.isSubmitting ||
-                    !!err.station_state ||
-                    !!err.station_pinCode
+                    !!err.station_headQuarter
                   }
                   onKeyDown={(e) => {
                     if (e.key === 'Tab') {

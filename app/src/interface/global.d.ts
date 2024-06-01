@@ -1,9 +1,9 @@
 export interface StationFormData {
     station_id?: string;
     station_name: string;
-    cst_sale: string;
+    cst_sale?: string;
     station_state?: string;
-    station_pinCode: string;
+    station_pinCode?: string;
     station_headQuarter: string;
     state_code?: Number;
   }

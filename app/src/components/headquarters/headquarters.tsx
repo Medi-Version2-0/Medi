@@ -2,28 +2,26 @@ import React, { useEffect, useState, useRef } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { FaEdit } from 'react-icons/fa';
 import { MdDeleteForever } from 'react-icons/md';
-import { CreateStation } from './createStation';
+// import { CreateStation } from './createStation';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
-import './stations.css';
+// import '..stations/stations.css';
 import { StationFormData } from '../../interface/global';
 import Confirm_Alert_Popup from '../helpers/Confirm_Alert_Popup';
 import Sidebar from '../sidebar/sidebar';
+import { CreateHeadquarters } from './createHeadquarters';
 
 const initialValue = {
   station_id: '',
   station_name: '',
-  cst_sale: '',
-  station_state: '',
-  station_pinCode: '',
+  station_headQuarter: '',
 };
 
-export const Stations = () => {
+export const Headquarters = () => {
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<StationFormData | any>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<StationFormData | any>(null);
-  const [stateData, setStateData] = useState([]);
   const editing = useRef(false);
   const isDelete = useRef(false);
 
@@ -36,7 +34,6 @@ export const Stations = () => {
   });
 
   useEffect(() => {
-    getStates();
     getStations();
   }, []);
 
@@ -46,10 +43,6 @@ export const Stations = () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [selectedRow]);
-
-  const getStates = () => {
-    setStateData(electronAPI.getAllStates('', 'state_name', '', '', ''));
-  };
 
   const getStations = () => {
     setTableData(electronAPI.getAllStations('', 'station_name', '', '', ''));
@@ -91,18 +84,11 @@ export const Stations = () => {
 
   const handelFormSubmit = (values: StationFormData) => {
     const mode = values.station_id ? 'update' : 'create';
+    console.log("Values >>>>>>>>>>",values);
     if (values.station_name) {
       values.station_name =
         values.station_name.charAt(0).toUpperCase() +
         values.station_name.slice(1);
-    }
-    if (values.station_state) {
-      stateData.map((state: any) => {
-        if (values.station_state === state.state_name) {
-          values.state_code = Number(`${state.state_code}`);
-          delete values.station_state;
-        }
-      });
     }
     if (values !== initialValue) {
       setPopupState({
@@ -136,15 +122,10 @@ export const Stations = () => {
     setSelectedRow(null);
   };
 
-  const typeMapping = {
-    yes: 'Yes',
-    no: 'No',
-  };
+  const stationHeadquarterMap: { [key: number]: string } = {};
 
-  const stateCodeMap: { [key: number]: string } = {};
-
-  stateData?.forEach((state: any) => {
-    stateCodeMap[state.state_code] = state.state_name;
+  tableData?.forEach((data: any) => {
+    stationHeadquarterMap[data.station_id] = data.station_name;
   });
 
   const extractKeys = (mappings: {
@@ -155,8 +136,7 @@ export const Stations = () => {
     return Object.keys(mappings);
   };
 
-  const types = extractKeys(typeMapping);
-  const states = extractKeys(stateCodeMap);
+  const stationHeadquarters = extractKeys(stationHeadquarterMap);
 
   const lookupValue = (
     mappings: {
@@ -195,39 +175,14 @@ export const Stations = () => {
           newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
         }
         break;
-      case 'cst_sale':
-        {
-          if (newValue) newValue = newValue.toLowerCase();
-          if (!['yes', 'no'].includes(newValue)) {
-            return node.setDataValue(field, oldValue);
-          }
-        }
-        break;
       case 'station_state':
         {
           field = 'state_code';
         }
         break;
-      case 'station_pinCode':
+      case 'station_headQuarter':
         {
-          const value = `${newValue}`;
-          if (
-            !value ||
-            (!!value && value.length !== 6) ||
-            (!!value && value[0] === '0')
-          ) {
-            setPopupState({
-              ...popupState,
-              isAlertOpen: true,
-              message: !newValue
-                ? 'PIN code is required'
-                : value.length !== 6
-                  ? `Length of PIN code must be exactly 6 digits`
-                  : `PIN code doesn't start from zero`,
-            });
-            node.setDataValue(field, oldValue);
-            return;
-          }
+          field = 'station_headQuarter';
         }
         break;
       default:
@@ -293,44 +248,21 @@ export const Stations = () => {
       suppressMovable: true,
     },
     {
-      headerName: 'IGST Sale',
-      field: 'cst_sale',
+      headerName: 'Headquarter',
+      field: 'station_headQuarter',
       flex: 1,
       filter: true,
       editable: true,
       cellEditor: 'agSelectCellEditor',
       cellEditorParams: {
-        values: types,
-      },
-      valueFormatter: (params: { value: string | number }) =>
-        lookupValue(typeMapping, params.value),
-      headerClass: 'custom-header custom_header_class',
-      suppressMovable: true,
-    },
-    {
-      headerName: 'Station State',
-      field: 'station_state',
-      flex: 1,
-      filter: true,
-      editable: true,
-      cellEditor: 'agSelectCellEditor',
-      cellEditorParams: {
-        values: states,
+        values: stationHeadquarters,
         valueListMaxHeight: 120,
         valueListMaxWidth: 192,
         valueListGap: 8,
       },
       valueFormatter: (params: { value: string | number }) =>
-        lookupValue(stateCodeMap, params.value),
-      headerClass: 'custom-header custom_header_class',
-      suppressMovable: true,
-    },
-    {
-      headerName: 'Pin Code',
-      field: 'station_pinCode',
-      flex: 1,
-      filter: true,
-      editable: true,
+        lookupValue(stationHeadquarterMap, params.value),
+      valueGetter: (params:any) => params.data.station_headQuarter,
       headerClass: 'custom-header custom_header_class',
       suppressMovable: true,
     },
@@ -371,13 +303,13 @@ export const Stations = () => {
         </div>
         <div className='stations_container'>
           <div id='account_main'>
-            <h1 id='account_header'>Stations</h1>
+            <h1 id='account_header'>Headquarters</h1>
             <button
               id='account_button'
               className='account_button'
               onClick={() => togglePopup(true)}
             >
-              Add Station
+              Add Headquarter
             </button>
           </div>
           <div id='account_table' className='ag-theme-quartz'>
@@ -407,7 +339,7 @@ export const Stations = () => {
             />
           )}
           {open && (
-            <CreateStation
+            <CreateHeadquarters
               togglePopup={togglePopup}
               data={formData}
               handelFormSubmit={handelFormSubmit}
