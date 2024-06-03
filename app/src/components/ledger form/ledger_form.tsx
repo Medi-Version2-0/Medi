@@ -78,7 +78,7 @@ export const Ledger = () => {
       vatNumber: data?.vatNumber || '',
       excessRate: data?.excessRate || '',
       routeNo: data?.routeNo || '',
-      partyCacr: data?.partyCacr || '',
+      party_cash_credit_invoice: data?.party_cash_credit_invoice || '',
       deductDiscount: data?.deductDiscount || '',
       stopNrx: data?.stopNrx || '',
       stopHi: data?.stopHi || '',
@@ -92,7 +92,6 @@ export const Ledger = () => {
 
   const balanceInfo = useFormik({
     initialValues: {
-      party_id:  data?.party_id ||'',
       openingBal:  data?.openingBal ||'',
       openingBalType:  data?.openingBalType ||'',
       creditDays:  data?.creditDays ||'',
@@ -139,7 +138,8 @@ export const Ledger = () => {
 
   const licenceInfo = useFormik({
     initialValues: {
-      drugLicenceNo:  data?.drugLicenceNo ||'',
+      drugLicenceNo1:  data?.drugLicenceNo1 ||'',
+      // drugLicenceNo2: data?.drugLicenceNo2 ||'',
     },
     onSubmit: (values) => {
       console.log('licenceInfo data', values);
@@ -161,7 +161,7 @@ export const Ledger = () => {
     },
   });
 
-  // const electronAPI = (window as any).electronAPI;
+  const electronAPI = (window as any).electronAPI;
 
   const receiveValidationSchemaGeneralInfo = useCallback((schema: any) => {
     setGeneralInfovalidationSchema(schema);
@@ -220,7 +220,12 @@ export const Ledger = () => {
     };
     console.log(">>>>>all Data : ",allData);
 
-    // electronAPI.addParty(allData);    
+    if(data.party_id){
+      electronAPI.updateParty(data.party_id, allData);
+    }
+    else{
+      electronAPI.addParty(allData);  
+    }
   };
 
   useEffect(() => {
@@ -268,7 +273,7 @@ export const Ledger = () => {
         </div>
         <div className='ledger_container'>
           <div id='ledger_main'>
-            <h1 id='ledger_header'>Create Party</h1>
+            <h1 id='ledger_header'>{ !!data.party_id ? "Update Party" : "Create Party"}</h1>
             <button
               id='ledger_button'
               className='ledger_button'
@@ -338,7 +343,7 @@ export const Ledger = () => {
                     onKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
                       if (e.key === 'ArrowDown' || e.key === 'Enter') {
                         handleClick('btn_2');
-                        document.getElementById('drugLicenceNo')?.focus();
+                        document.getElementById('drugLicenceNo1')?.focus();
                         e.preventDefault();
                       } else if (e.key === 'ArrowRight') {
                         document.getElementById('Contact_Info')?.focus();
@@ -455,7 +460,7 @@ export const Ledger = () => {
                 }
               }}
             >
-              Submit
+              {!!data.party_id ? "Update" : "Submit"}
             </button>
           </div>
           {(popupState.isModalOpen || popupState.isAlertOpen) && (

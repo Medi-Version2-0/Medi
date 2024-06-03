@@ -51,6 +51,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   // ledger party
   addParty:(partyData)=> partyService.addParty(partyData),
   getAllLedgerData: (where = "", sort = "", limit = "") => partyService.getAllLedgerData(where, sort, limit),
+  updateParty: (party_id, partyData) => partyService.updateParty(party_id, partyData),
   deleteLedger: (party_id) => partyService.deleteLedger(party_id),
 
   // suggestion List for different inputs 

@@ -93,13 +93,13 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
 
   const handleInputChange = (e: { target: { value: any; id: any } }) => {
     const value = e.target.value;
-    const accountValuesForParentLedger = [
-      'CURRENT ASSETS',
-      'PURCHASE A/C',
-      'SUNDRY DEBTORS',
-      'SALE A/C',
-      'DUTIES & TAXES',
-    ];
+    // const accountValuesForParentLedger = [
+    //   'CURRENT ASSETS',
+    //   'PURCHASE A/C',
+    //   'SUNDRY DEBTORS',
+    //   'SALE A/C',
+    //   'DUTIES & TAXES',
+    // ];
     if (e.target.id === 'stationName') {
       formik.setFieldValue(e.target.id, value);
       const filteredSuggestions = stationData.filter((station: any) => {
@@ -110,7 +110,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
     } else if (e.target.id === 'accountGroup') {
       setAccountInputValue(value);
       formik.setFieldValue(e.target.id, value);
-      formik.setFieldValue('parentLedger', '');
+      // formik.setFieldValue('parentLedger', '');
       const filteredSuggestions = groupData.filter((group: any) => {
         return group.group_name?.toLowerCase().includes(value?.toLowerCase());
       });
@@ -120,18 +120,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
         return state.state_name?.toLowerCase().includes(value?.toLowerCase());
       });
       setStatesSuggestions(filteredSuggestions);
-    } else if (
-      e.target.id === 'parentLedger' &&
-      accountValuesForParentLedger.includes(accountInputValue.toUpperCase())
-    ) {
-      setPartySuggestions('');
-      const filteredSuggestions = partySuggestionsData.filter((party: any) => {
-        return (
-          party.account_group.toUpperCase() === accountInputValue.toUpperCase()
-        );
-      });
-      setPartySuggestions(filteredSuggestions);
-    } 
+    }
   };
 
   const handleEnterKey = (
@@ -149,8 +138,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
       setSuggestions([]);
     } else if (suggestions === groupSuggestions) {
       setInputValue(suggestions[selectedIndex].group_name);
-      formik.setFieldValue(target.id, suggestions[selectedIndex].group_name);
-      formik.setFieldValue('parentLedger', '');
+      formik.setFieldValue(target.id, suggestions[selectedIndex].group_name);      
       onValueChange(suggestions[selectedIndex].group_name);
       setSuggestions([]);
     } else if (suggestions === statesSuggestions) {
@@ -428,7 +416,6 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                     onClick={() => {
                       setAccountInputValue(group.group_name);
                       formik.setFieldValue('accountGroup', group.group_name);
-                      formik.setFieldValue('parentLedger', '');
                       onValueChange(group.group_name);
                       setGroupSuggestions([]);
                       document.getElementById('accountGroup')?.focus();
@@ -568,13 +555,13 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
               />
           </div>
           <div className='ledger_inputs'>
-              <label htmlFor='partyCacr' className='label_name label_name_css'>
+              <label htmlFor='party_cash_credit_invoice' className='label_name label_name_css'>
                 Party CACR
               </label>
               <select
-                id='partyCacr'
-                name='partyCacr'
-                value={formik.values.partyCacr}
+                id='party_cash_credit_invoice'
+                name='party_cash_credit_invoice'
+                value={formik.values.party_cash_credit_invoice}
                 onChange={(e) => {
                   formik.handleChange(e);
                   handleInputChange(e);
@@ -925,7 +912,6 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
               value={formik.values.pinCode}
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                 if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                  document.getElementById('parentLedger')?.focus();
                   e.preventDefault();
                 } else if (e.key === 'ArrowUp') {
                   document.getElementById('city')?.focus();

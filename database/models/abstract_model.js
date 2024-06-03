@@ -35,28 +35,6 @@ class AbstractModel {
         }
     }
 
-    getAllLedgerDataQuery(where = '', sort = '', limit = '') {  
-    let sql = `SELECT 
-                 lp.*, 
-                 lb.openingBal, 
-                 lb.openingBalType 
-               FROM ledger_party lp
-               LEFT JOIN ledger_party_balance lb
-               ON lp.party_id = lb.party_id`;
-
-    if (where) sql += ` WHERE ${where}`;
-    if (sort) sql += ` ORDER BY ${sort}`;
-    if (limit) sql += ` LIMIT ${limit}`;
-
-    try {
-        const res = db.prepare(sql).all();
-        return res;
-    } catch (error) {
-        console.error("Error executing getAll query:", error);
-        return [];
-    }
-}
-
     getByField(field, value) {
         const sql = `SELECT * FROM ${this.tableName} WHERE ${field} = ?`;
     
