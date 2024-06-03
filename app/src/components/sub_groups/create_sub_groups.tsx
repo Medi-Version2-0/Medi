@@ -48,6 +48,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
   const handleInputChange = (e: { target: { value: any } }) => {
     const value = e.target.value;
     setInputValue(value);
+    formikRef.current?.setFieldValue('parent_group', value);
     const filteredSuggestions = groupData.filter((group: any) => {
       return (
         group.parent_code === null &&
@@ -90,12 +91,14 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
               block: 'nearest',
             });
         }
+      } else if (e.key === 'Tab') {
+        setSuggestions([]);
       }
     }
   };
 
-  const validateInputs = (e: { target: { value: any; id: any } }) => {
-    const { value, id } = e.target;
+  const validateInputs = () => {
+    const { value, id } = (document.getElementById('parent_group') as HTMLInputElement);
     setErr('');
 
     const isGroup = groupData.some((group: any) => group.group_name === value);
@@ -128,8 +131,8 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
         });
         if (formikRef.current) {
           formikRef.current.setFieldValue('type', typeVal.current);
-        const id = typeVal.current === 'P&L' ? 'p_and_l' : 'balance_sheet';
-        document.getElementById(id)?.focus();
+          const id = typeVal.current === 'P&L' ? 'p_and_l' : 'balance_sheet';
+          document.getElementById(id)?.focus();
         }
       }
     },
@@ -145,9 +148,16 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
         'Group name can contain alphanumeric characters, "-", "_", and spaces only'
       )
       .max(100, 'Group name cannot exceeds 100 characters'),
+    parent_group: Yup.string().required('Parent Group is required'),
+    type: Yup.string().required("Type is required")
+
   });
 
   const handleSubmit = async (values: object) => {
+    validateInputs();
+    if (err) {
+      return;
+    }
     const formData = group_code
       ? { ...values, group_code: group_code, parent_group: inputValue }
       : inputValue
@@ -171,6 +181,10 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
           const nextField =
             e.currentTarget.getAttribute('data-next-field') || '';
           document.getElementById(nextField)?.focus();
+          if (e.currentTarget.type == 'radio') {
+            const value = e.currentTarget.value;
+            formik && formik.setFieldValue('type', value);
+          }
           e.preventDefault();
         }
         break;
@@ -192,8 +206,9 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
           } else {
             const sideField =
               e.currentTarget.getAttribute('data-side-field') || '';
-            formik && formik.setFieldValue('type', sideField);
+            const value = (document.getElementById(sideField) as HTMLInputElement)?.value;
             document.getElementById(sideField)?.focus();
+            formik && formik.setFieldValue('type', value);
             e.preventDefault();
           }
         }
@@ -227,7 +242,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
       }
     >
       <Formik
-      innerRef={formikRef}
+        innerRef={formikRef}
         initialValues={{
           group_name: data?.group_name || '',
           parent_group: data?.parent_group || '',
@@ -265,7 +280,6 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                 id='parent_group'
                 name='parent_group'
                 placeholder='Parent group'
-                value={inputValue}
                 onBlur={validateInputs}
                 onChange={handleInputChange}
                 disabled={isDelete && group_code}
@@ -282,13 +296,15 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                 }}
               />
               {!!suggestions.length && (
-                <ul className={'suggestion'} style={{ top : "49%" }}>
+                <ul className={'suggestion'} style={{ top: "49%" }}>
                   {suggestions.map((group: any, index: number) => (
                     <li
                       key={group.group_code}
                       onClick={() => {
                         setInputValue(group.group_name);
                         setSuggestions([]);
+                        formikRef.current?.setFieldValue('parent_group', group.group_name);
+                        setErr('');
                         document.getElementById('parent_group')?.focus();
                       }}
                       className={`${index === selectedIndex ? 'selected' : 'suggestion_list'}`}
@@ -304,62 +320,69 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                 component='div'
                 className='error'
               />
-              {!!err && <span className='err'>{err}</span>}
+              {(!formik.errors.parent_group && err) && <span className='err'>{err}</span>}
             </div>
-            <div
-              style={{
-                width:'90%',
-                margin: '0rem auto',
-                marginTop:'0.6rem',
-                display: 'flex',
-                height: '2.8rem',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: '0.8rem',
-                borderRadius: '0.4rem',
-                border: '1px solid #c1c1c1',
-              }}
-            >
-              <label
-                className={`credit-type ${group_code && isDelete ? 'disabled' : ''}`}
+            <div style={{
+              width: '90%',
+              margin: '0rem auto',
+              marginTop: '0.6rem',
+            }}>
+              <div
+                style={{
+                  display: 'flex',
+                  height: '2.8rem',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '0.8rem',
+                  borderRadius: '0.4rem',
+                  border: '1px solid #c1c1c1',
+                }}
               >
-                <Field
-                  type='radio'
-                  name='type'
-                  value='P&L'
-                  id='p_and_l'
-                  checked={formik.values.type === 'P&L'}
-                  disabled={group_code && isDelete}
-                  data-next-field='submit_button'
-                  data-prev-field='parent_group'
-                  data-side-field='balance_sheet'
-                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                    handleKeyDown(e, formik)
-                  }
-                />
-                P & L
-              </label>
-              <label
-                className={`credit-type ${group_code && isDelete ? 'disabled' : ''}`}
-              >
-                <Field
-                  type='radio'
-                  name='type'
-                  value='Balance Sheet'
-                  id='balance_sheet'
-                  checked={formik.values.type === 'Balance Sheet'}
-                  disabled={group_code && isDelete}
-                  data-next-field='submit_button'
-                  data-prev-field='parent_group'
-                  data-side-field='p_and_l'
-                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                    handleKeyDown(e, formik)
-                  }
-                />
-                Bl. Sheet
-              </label>
+                <label
+                  className={`credit-type ${group_code && isDelete ? 'disabled' : ''}`}
+                >
+                  <Field
+                    type='radio'
+                    name='type'
+                    value='P&L'
+                    id='p_and_l'
+                    checked={formik.values.type === 'P&L'}
+                    disabled={group_code && isDelete}
+                    data-next-field='submit_button'
+                    data-prev-field='parent_group'
+                    data-side-field='balance_sheet'
+                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
+                      handleKeyDown(e, formik)
+                    }
+                  />
+                  P & L
+                </label>
+                <label
+                  className={`credit-type ${group_code && isDelete ? 'disabled' : ''}`}
+                >
+                  <Field
+                    type='radio'
+                    name='type'
+                    value='Balance Sheet'
+                    id='balance_sheet'
+                    checked={formik.values.type === 'Balance Sheet'}
+                    disabled={group_code && isDelete}
+                    data-next-field='submit_button'
+                    data-prev-field='parent_group'
+                    data-side-field='p_and_l'
+                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
+                      handleKeyDown(e, formik)
+                    }
+                  />
+                  Bl. Sheet
+                </label>
+              </div>
+              <ErrorMessage
+                name='type'
+                component='div'
+                className='error'
+              />
             </div>
-
             <div className='modal-actions'>
               <button
                 autoFocus
@@ -390,10 +413,9 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                 </button>
               ) : (
                 <button
+                  type='submit'
                   id='submit_button'
                   className='account_add_button'
-                  disabled={!formik.isValid || formik.isSubmitting || !!err}
-                  type='submit'
                   autoFocus
                   onKeyDown={(e) => {
                     if (e.key === 'Tab') {

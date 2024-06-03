@@ -269,7 +269,7 @@ export const Groups = () => {
         field: 'group_name',
         flex: 1,
         filter: true,
-        editable: true,
+        editable: (params) => !params.data.isPredefinedGroup,
         headerClass: 'custom-header',
         suppressMovable: true,
       },
@@ -277,7 +277,7 @@ export const Groups = () => {
         headerName: 'P&L / BL. Sheet',
         field: 'type',
         filter: true,
-        editable: true,
+        editable: (params) => !params.data.isPredefinedGroup,
         cellEditor: 'agSelectCellEditor',
         cellEditorParams: {
           values: types,

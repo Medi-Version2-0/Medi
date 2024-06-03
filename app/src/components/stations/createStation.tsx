@@ -1,14 +1,9 @@
-import {KeyboardEvent, useEffect, useRef, useState } from 'react';
+import { KeyboardEvent, useEffect, useRef, useState } from 'react';
 import { Formik, Form, Field, ErrorMessage, FormikProps } from 'formik';
 import { CreateStationProps, FormDataProps, State } from '../../interface/global';
 import { Popup } from '../helpers/popup';
+import * as Yup from 'yup';
 import './stations.css';
-
-const errValue = {
-  station_name: '',
-  station_state: '',
-  station_pinCode: '',
-};
 
 export const CreateStation: React.FC<CreateStationProps> = ({
   togglePopup,
@@ -30,17 +25,35 @@ export const CreateStation: React.FC<CreateStationProps> = ({
   });
 
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [err, setErr] = useState(errValue);
-
+  const [err, setErr] = useState("");
   const stateRef = useRef<HTMLDivElement>(null);
   const hqRef = useRef<HTMLDivElement>(null);
-
   const electronAPI = (window as any).electronAPI;
+  const formikRef = useRef<FormikProps<FormDataProps>>(null);
+
+  const validationSchema = Yup.object({
+    station_name: Yup.string()
+      .required('Station name is required')
+      .matches(/[a-zA-Z]/, 'Only Numbers not allowed')
+      .matches(
+        /^[a-zA-Z0-9\s_.-]*$/,
+        'Station name can contain alphanumeric characters, "-", "_", and spaces only'
+      )
+      .max(100, 'Station name cannot exceeds 100 characters'),
+    station_state: Yup.string().required("Station state is required"),
+    station_pinCode: Yup.string()
+      .required("Station pincode is required")
+      .matches(/^[0-9]+$/, "Station pincode must contain only numbers")
+      .min(6, "Station pincode must be at least 6 characters long")
+      .max(6, "Station pincode cannot exceed 6 characters"),
+    cst_sale: Yup.string().required("CST sale is required"),
+  });
+
 
   useEffect(() => {
     const focusTarget = inputRef.current && !isDelete
-        ? inputRef.current
-        : document.getElementById('cancel_button');
+      ? inputRef.current
+      : document.getElementById('cancel_button');
     focusTarget?.focus();
   }, []);
 
@@ -80,17 +93,18 @@ export const CreateStation: React.FC<CreateStationProps> = ({
     e: { target: { value: any } },
   ) => {
     const value = e.target.value;
+    formikRef.current?.setFieldValue('station_state', value);
     setStationState((prevState) => ({
-          ...prevState,
-          inputValue: value,
-        }))
+      ...prevState,
+      inputValue: value,
+    }))
     // Filter statesSuggestions based on input value
     setStationState((prevState) => ({
-          ...prevState,
-          suggestions: stationState.data.filter((item: State) =>
-            item.state_name.toLowerCase().includes(value.toLowerCase())
-          ),
-        }))
+      ...prevState,
+      suggestions: stationState.data.filter((item: State) =>
+        item.state_name.toLowerCase().includes(value.toLowerCase())
+      ),
+    }))
   };
 
   const handleOnKeyDown = (
@@ -101,10 +115,10 @@ export const CreateStation: React.FC<CreateStationProps> = ({
       if (e.key === 'Enter') {
         e.preventDefault();
         setStationState((prevState) => ({
-              ...prevState,
-              inputValue: stationState.suggestions[selectedIndex].state_name,
-              suggestions: [],
-            }));
+          ...prevState,
+          inputValue: stationState.suggestions[selectedIndex].state_name,
+          suggestions: [],
+        }));
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
         setSelectedIndex((prevIndex) =>
@@ -132,60 +146,49 @@ export const CreateStation: React.FC<CreateStationProps> = ({
               block: 'nearest',
             });
         }
+      } else if (e.key === 'Tab') {
+        setStationState((prevState) => ({
+          ...prevState,
+          suggestions: [],
+        }));
       }
     }
   };
 
-  const validateInputs = (e: { target: { value: any; id: any } }) => {
-    const { value, id } = e.target;
+  const validateInputs = () => {
+    const { value, id } = (document.getElementById('station_state') as HTMLInputElement);
 
-    setErr({ ...err, [id]: '' });
+    setErr("");
 
     const isState = stationState.data.some(
       (state: any) => state.state_name === value
     );
-    if (id === 'station_name') {
+    if (id === 'station_state') {
       if (!value) {
-        setErr({ ...err, [id]: 'Station name is required' });
-      } else if (!/[a-zA-Z]/.test(value)) {
-        setErr({ ...err, [id]: 'Only Numbers not allowed' });
-      } else if (!/^[a-zA-Z0-9\s_-]*$/.test(value)) {
-        setErr({
-          ...err,
-          [id]: `Station name can contain alphanumeric characters, "-", "_", and spaces only`,
-        });
-      } else if (value.length > 100) {
-        setErr({ ...err, [id]: 'Station name cannot exceeds 100 characters' });
-      }
-    } else if (id === 'station_state') {
-      if (!value) {
-        setErr({ ...err, [id]: 'State is required' });
+        setErr('State is required');
       } else if (value && isState === false) {
-        setErr({ ...err, [id]: 'Invalid State' });
+        setErr('Invalid State');
       }
-    } else if (id === 'station_pinCode') {
-      if (!value) {
-        setErr({ ...err, [id]: 'PIN code is required' });
-      } else if (!!value && value.length !== 6) {
-        setErr({ ...err, [id]: 'Length of PIN code must be exactly 6 digits' });
-      } else if (!!value && value[0] === '0') {
-        setErr({ ...err, [id]: "PIN code doesn't start from zero" });
-      }
-    } 
+    }
   };
 
   const handleSubmit = async (values: object) => {
+    validateInputs();
+    if(err){
+      return;
+    }
+
     const formData = station_id
       ? {
-          ...values,
-          station_id: station_id,
-          station_state: stationState.inputValue,
-        }
+        ...values,
+        station_id: station_id,
+        station_state: stationState.inputValue,
+      }
       : stationState.inputValue
         ? {
-            ...values,
-            station_state: stationState.inputValue,
-          }
+          ...values,
+          station_state: stationState.inputValue,
+        }
         : values;
     !station_id && document.getElementById('account_button')?.focus();
     handelFormSubmit(formData);
@@ -224,9 +227,9 @@ export const CreateStation: React.FC<CreateStationProps> = ({
             document.getElementById(prevField)?.focus();
             e.preventDefault();
           } else {
-            const sideField =
-              e.currentTarget.getAttribute('data-side-field') || '';
-            formik && formik.setFieldValue('type', sideField);
+            const sideField = e.currentTarget.getAttribute('data-side-field') || '';
+            const value = (document.getElementById(sideField) as HTMLInputElement)?.value;
+            formik && formik.setFieldValue('cst_sale', value);
             document.getElementById(sideField)?.focus();
             e.preventDefault();
           }
@@ -249,14 +252,16 @@ export const CreateStation: React.FC<CreateStationProps> = ({
       }
     >
       <Formik
+        innerRef={formikRef}
         initialValues={{
           station_name: data?.station_name || '',
           cst_sale: data?.cst_sale || '',
           station_state: data?.station_state || '',
           station_pinCode: data?.station_pinCode || '',
-          station_headQuarter: data?.station_headQuarter || '',
+          station_headQuarter: data?.station_headQuarter || "",
         }}
         enableReinitialize={true}
+        validationSchema={validationSchema}
         onSubmit={handleSubmit}
       >
         {(formik) => (
@@ -270,7 +275,6 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                 disabled={isDelete && station_id}
                 className={`input-field ${formik.touched.station_name && formik.errors.station_name ? 'error-field' : ''}`}
                 innerRef={inputRef}
-                // onBlur={validateInputs}
                 data-side-field='station_state'
                 data-next-field='station_state'
                 onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
@@ -282,12 +286,8 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                 component='div'
                 className='error'
               />
-              {!!err.station_name && (
-                <span className='err'>{err.station_name}</span>
-              )}
             </div>
-
-            <div className='inputs'>
+            <div className='inputs' ref={stateRef}>
               <Field
                 type='text'
                 id='station_state'
@@ -299,7 +299,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                   handleInputChange(e)
                 }
                 disabled={isDelete && station_id}
-                className={`input-field ${(formik.touched.station_state && formik.errors.station_state) || !!err.station_state ? 'error-field' : ''}`}
+                className={`input-field ${(formik.touched.station_state && formik.errors.station_state) ? 'error-field' : ''}`}
                 data-side-field='station_pinCode'
                 data-next-field='station_pinCode'
                 data-prev-field='station_name'
@@ -322,6 +322,8 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                           inputValue: state.state_name,
                           suggestions: [],
                         }));
+                        formikRef.current?.setFieldValue('station_state', state.state_name);
+                        setErr("");
                         document.getElementById('station_state')?.focus();
                       }}
                       className={`${index === selectedIndex ? 'selected' : 'suggestion_list'}`}
@@ -337,21 +339,19 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                 component='div'
                 className='error'
               />
-              {!!err.station_state && (
-                <span className='err'>{err.station_state}</span>
+              {(err && !formik.errors.station_state) && (
+                <span className='err'>{err}</span>
               )}
             </div>
 
             <div className='inputs'>
               <Field
-                type='text'
+                type='number'
                 id='station_pinCode'
                 name='station_pinCode'
                 placeholder='Station pin code'
-                maxLength={6}
                 disabled={isDelete && station_id}
-                className={`input-field ${(formik.touched.station_pinCode && formik.errors.station_pinCode) || !!err.station_pinCode ? 'error-field' : ''}`}
-                onBlur={validateInputs}
+                className={`input-field ${(formik.touched.station_pinCode && formik.errors.station_pinCode) ? 'error-field' : ''}`}
                 data-side-field='cst_yes'
                 data-next-field='cst_yes'
                 data-prev-field='station_state'
@@ -364,62 +364,63 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                 component='div'
                 className='error'
               />
-              {!!err.station_pinCode && (
-                <span className='err'>{err.station_pinCode}</span>
-              )}
             </div>
-
-            <div
-              className='inputs'
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: '0.8rem',
-                borderRadius: '0.4rem',
-                border: '1px solid #c1c1c1',
-              }}
-            >
-              <label
-                className={`credit-type ${station_id && isDelete ? 'disabled' : ''}`}
+            <div className='inputs'>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '0.8rem',
+                  borderRadius: '0.4rem',
+                  border: '1px solid #c1c1c1',
+                }}
               >
-                <Field
-                  type='radio'
-                  name='cst_sale'
-                  value='yes'
-                  id='cst_yes'
-                  checked={formik.values.cst_sale === 'yes'}
-                  disabled={station_id && isDelete}
-                  data-prev-field='cst_yes'
-                  data-next-field='submit_button'
-                  data-side-field='cst_no'
-                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                    handleKeyDown(e, formik)
-                  }
-                />
-                Yes
-              </label>
-              <label
-                className={`credit-type ${station_id && isDelete ? 'disabled' : ''}`}
-              >
-                <Field
-                  type='radio'
-                  name='cst_sale'
-                  value='no'
-                  id='cst_no'
-                  checked={formik.values.cst_sale === 'no'}
-                  disabled={station_id && isDelete}
-                  data-prev-field='station_pinCode'
-                  data-next-field='submit_button'
-                  data-side-field='cst_yes'
-                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                    handleKeyDown(e, formik)
-                  }
-                />
-                No
-              </label>
+                <label
+                  className={`credit-type ${station_id && isDelete ? 'disabled' : ''}`}
+                >
+                  <Field
+                    type='radio'
+                    name='cst_sale'
+                    value='yes'
+                    id='cst_yes'
+                    checked={formik.values.cst_sale === 'yes'}
+                    disabled={station_id && isDelete}
+                    data-prev-field='cst_yes'
+                    data-next-field='submit_button'
+                    data-side-field='cst_no'
+                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
+                      handleKeyDown(e, formik)
+                    }
+                  />
+                  Yes
+                </label>
+                <label
+                  className={`credit-type ${station_id && isDelete ? 'disabled' : ''}`}
+                >
+                  <Field
+                    type='radio'
+                    name='cst_sale'
+                    value='no'
+                    id='cst_no'
+                    checked={formik.values.cst_sale === 'no'}
+                    disabled={station_id && isDelete}
+                    data-prev-field='station_pinCode'
+                    data-next-field='submit_button'
+                    data-side-field='cst_yes'
+                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
+                      handleKeyDown(e, formik)
+                    }
+                  />
+                  No
+                </label>
+              </div>
+              <ErrorMessage
+                name='cst_sale'
+                component='div'
+                className='error'
+              />
             </div>
-
             <div className='modal-actions'>
               <button
                 autoFocus
@@ -450,16 +451,10 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                 </button>
               ) : (
                 <button
+                  type='submit'
                   id='submit_button'
                   className='account_add_button'
-                  type='submit'
                   autoFocus
-                  disabled={
-                    !formik.isValid ||
-                    formik.isSubmitting ||
-                    !!err.station_state ||
-                    !!err.station_pinCode
-                  }
                   onKeyDown={(e) => {
                     if (e.key === 'Tab') {
                       document.getElementById('station_name')?.focus();

@@ -17,8 +17,8 @@ export const CreateGroup: React.FC<CreateGroupProps> = ({
 
   useEffect(() => {
     const focusTarget = inputRef.current && !isDelete
-        ? inputRef.current
-        : document.getElementById('cancel_button');
+      ? inputRef.current
+      : document.getElementById('cancel_button');
     focusTarget?.focus();
   }, []);
 
@@ -31,6 +31,7 @@ export const CreateGroup: React.FC<CreateGroupProps> = ({
         'Group name can contain alphanumeric characters, "-", "_", and spaces only'
       )
       .max(100, 'Group name cannot exceeds 100 characters'),
+    type: Yup.string().required("Type is required")
   });
 
   const handleSubmit = async (values: object) => {
@@ -50,9 +51,12 @@ export const CreateGroup: React.FC<CreateGroupProps> = ({
       case 'ArrowDown':
       case 'Enter':
         {
-          const nextField =
-            e.currentTarget.getAttribute('data-next-field') || '';
+          const nextField = e.currentTarget.getAttribute('data-next-field') || '';
           document.getElementById(nextField)?.focus();
+          if (e.currentTarget.type == 'radio') {
+            const value = e.currentTarget.value;
+            formik && formik.setFieldValue('type', value);
+          }
           e.preventDefault();
         }
         break;
@@ -67,15 +71,14 @@ export const CreateGroup: React.FC<CreateGroupProps> = ({
       case 'Tab':
         {
           if (shiftPressed) {
-            const prevField =
-              e.currentTarget.getAttribute('data-prev-field') || '';
+            const prevField = e.currentTarget.getAttribute('data-prev-field') || '';
             document.getElementById(prevField)?.focus();
             e.preventDefault();
           } else {
-            const sideField =
-              e.currentTarget.getAttribute('data-side-field') || '';
-            formik && formik.setFieldValue('type', sideField);
+            const sideField = e.currentTarget.getAttribute('data-side-field') || '';
+            const value = (document.getElementById(sideField) as HTMLInputElement)?.value;
             document.getElementById(sideField)?.focus();
+            formik && formik.setFieldValue('type', value);
             e.preventDefault();
           }
         }
@@ -128,55 +131,61 @@ export const CreateGroup: React.FC<CreateGroupProps> = ({
               />
             </div>
             <div className='inputs'
-              style={{
+            >
+              <div style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 gap: '0.8rem',
                 borderRadius: '0.4rem',
                 border: '1px solid #c1c1c1',
-              }}
-            >
-              <label
-                className={`credit-type ${group_code && isDelete ? 'disabled' : ''}`}
-              >
-                <Field
-                  type='radio'
-                  name='type'
-                  value='P&L'
-                  id='p_and_l'
-                  checked={formik.values.type === 'P&L'}
-                  disabled={group_code && isDelete}
-                  data-prev-field='group_name'
-                  data-next-field='submit_button'
-                  data-side-field='balance_sheet'
-                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                    handleKeyDown(e, formik)
-                  }
-                />
-                P & L
-              </label>
-              <label
-                className={`credit-type ${group_code && isDelete ? 'disabled' : ''}`}
-              >
-                <Field
-                  type='radio'
-                  name='type'
-                  value='Balance Sheet'
-                  id='balance_sheet'
-                  checked={formik.values.type === 'Balance Sheet'}
-                  disabled={group_code && isDelete}
-                  data-prev-field='group_name'
-                  data-next-field='submit_button'
-                  data-side-field='p_and_l'
-                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                    handleKeyDown(e, formik)
-                  }
-                />
-                Bl. Sheet
-              </label>
+              }}>
+                <label
+                  className={`credit-type ${group_code && isDelete ? 'disabled' : ''}`}
+                >
+                  <Field
+                    type='radio'
+                    name='type'
+                    value='P&L'
+                    id='p_and_l'
+                    required={true}
+                    checked={formik.values.type === 'P&L'}
+                    disabled={group_code && isDelete}
+                    data-prev-field='group_name'
+                    data-next-field='submit_button'
+                    data-side-field='balance_sheet'
+                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
+                      handleKeyDown(e, formik)
+                    }
+                  />
+                  P & L
+                </label>
+                <label
+                  className={`credit-type ${group_code && isDelete ? 'disabled' : ''}`}
+                >
+                  <Field
+                    type='radio'
+                    name='type'
+                    value='Balance Sheet'
+                    id='balance_sheet'
+                    checked={formik.values.type === 'Balance Sheet'}
+                    disabled={group_code && isDelete}
+                    data-prev-field='group_name'
+                    data-next-field='submit_button'
+                    data-side-field='p_and_l'
+                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
+                      handleKeyDown(e, formik)
+                    }
+                  />
+                  Bl. Sheet
+                </label>
+              </div>
+              <ErrorMessage
+                name='type'
+                component='div'
+                className='error'
+              />
             </div>
-            
             <div className='modal-actions'>
               <button
                 autoFocus
