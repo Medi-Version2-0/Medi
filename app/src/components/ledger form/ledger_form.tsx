@@ -1,6 +1,5 @@
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
-import Sidebar from '../sidebar/sidebar';
 import './ledger_form.css';
 import { GeneralInfo } from './general_info';
 import { BalanceInfo } from './balance_info';
@@ -267,10 +266,6 @@ export const Ledger = () => {
 
   return (
     <>
-      <div className='ledger_content'>
-        <div className='ledger_sidebar'>
-          <Sidebar isGroup={true} isSubGroup={false} />
-        </div>
         <div className='ledger_container'>
           <div id='ledger_main'>
             <h1 id='ledger_header'>{ !!data.party_id ? "Update Party" : "Create Party"}</h1>
@@ -472,7 +467,6 @@ export const Ledger = () => {
             />
           )}
         </div>
-      </div>
     </>
   );
 };

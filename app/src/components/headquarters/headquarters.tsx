@@ -2,13 +2,10 @@ import React, { useEffect, useState, useRef } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { FaEdit } from 'react-icons/fa';
 import { MdDeleteForever } from 'react-icons/md';
-// import { CreateStation } from './createStation';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
-// import '..stations/stations.css';
 import { StationFormData } from '../../interface/global';
 import Confirm_Alert_Popup from '../helpers/Confirm_Alert_Popup';
-import Sidebar from '../sidebar/sidebar';
 import { CreateHeadquarters } from './createHeadquarters';
 
 const initialValue = {
@@ -297,10 +294,6 @@ export const Headquarters = () => {
 
   return (
     <>
-      <div className='stations_content'>
-        <div className='stations_sidebar'>
-          <Sidebar isGroup={true} isSubGroup={true} />
-        </div>
         <div className='stations_container'>
           <div id='account_main'>
             <h1 id='account_header'>Headquarters</h1>
@@ -348,7 +341,6 @@ export const Headquarters = () => {
             />
           )}
         </div>
-      </div>
     </>
   );
 };

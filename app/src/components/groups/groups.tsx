@@ -9,7 +9,6 @@ import { GroupFormData } from '../../interface/global';
 import Confirm_Alert_Popup from '../helpers/Confirm_Alert_Popup';
 import { ColDef, ColGroupDef } from 'ag-grid-community';
 import { CreateGroup } from './create_group';
-import Sidebar from '../sidebar/sidebar';
 import './groups.css';
 
 const initialValue = {
@@ -336,10 +335,6 @@ export const Groups = () => {
     ];
   return (
     <>
-      <div className='groups_content'>
-        <div className='groups_page_sidebar'>
-          <Sidebar isGroup={true} isSubGroup={false}/>
-        </div>
         <div className='container'>
           <div id='account_main'>
             <h1 id='account_header'>Groups</h1>
@@ -387,7 +382,6 @@ export const Groups = () => {
             />
           )}
         </div>
-      </div>
     </>
   );
 };

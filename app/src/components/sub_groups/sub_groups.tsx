@@ -9,7 +9,6 @@ import { SubGroupFormData } from '../../interface/global';
 import Confirm_Alert_Popup from '../helpers/Confirm_Alert_Popup';
 import { ColDef, ColGroupDef } from 'ag-grid-community';
 import { CreateSubGroup } from './create_sub_groups';
-import Sidebar from '../sidebar/sidebar';
 import './sub_groups.css'
 
 const initialValue = {
@@ -353,10 +352,6 @@ export const SubGroups = () => {
     ];
   return (
     <>
-      <div className='subgroups_content'>
-        <div className='subgroups_page_sidebar'>
-          <Sidebar isGroup={false} isSubGroup={true}/>
-        </div>
         <div className='container'>
         <div id='account_main'>
           <h1 id='account_header'>Sub Groups</h1>
@@ -403,7 +398,6 @@ export const SubGroups = () => {
             deleteAcc={deleteAcc}
           />
         )}
-      </div>
       </div>
       
     </>

@@ -78,19 +78,6 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
         {showSubElements.master && (
           <>
-            {/* <div
-              className='sidebar_sub_element'
-              onClick={() => toggleSubElements('setup')}
-            >
-              <span>Setup</span>
-              <span className='sub_menu_arrow'>
-                {showSubElements.setup ? (
-                  <IoChevronDownSharp />
-                ) : (
-                  <MdNavigateNext />
-                )}
-              </span>
-            </div> */}
             <div
                   className='sidebar_sub_3_element'
                 >
@@ -137,42 +124,6 @@ const Sidebar: React.FC<SidebarProps> = ({
                 </div>
             {showSubElements.setup && (
               <>
-                {/* <div
-                  className='sidebar_sub_3_element'
-                >
-                  <span onClick={() => {
-                    return navigate(`/ledger_table`);
-                  }}>Ledger</span>
-                  <span className='sub_menu_arrow' onClick={() => {
-                    return navigate(`/ledger`);
-                  }}>
-                    <GoPlus />
-                  </span>
-                </div>
-                <div
-                  className='sidebar_sub_2_element'
-                  onClick={() => {
-                    return navigate(`/groups`);
-                  }}
-                >
-                  Groups
-                </div>
-                <div
-                  className='sidebar_sub_2_element'
-                  onClick={() => {
-                    return navigate(`/subgroups`);
-                  }}
-                >
-                  Sub Groups
-                </div>
-                <div
-                  className='sidebar_sub_2_element'
-                  onClick={() => {
-                    return navigate(`/stations`);
-                  }}
-                >
-                  Stations
-                </div> */}
               </>
             )}
             <div className='sidebar_sub_element'>Sub-element 2</div>
@@ -198,11 +149,13 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </div>
     </div>)
-    : <div className='empty-div'>
-        <span className='left right' onClick={()=>{
+    : <div className="close_sidebar">
+      <div className='empty-div'>
+        <span className='right' onClick={()=>{
           setIsSidebar(true);
         }}><FaCircleArrowRight /></span>
     </div>
+      </div>
   );
 };
 
