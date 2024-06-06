@@ -1,8 +1,9 @@
-import {KeyboardEvent, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Formik, Form, Field, ErrorMessage, FormikProps } from 'formik';
-import { CreateStationProps, FormDataProps, StationFormData } from '../../interface/global';
+import { CreateStationProps, Option, StationFormData } from '../../interface/global';
 import { Popup } from '../helpers/popup';
-// import './stations/stations.css';
+import CustomSelect from '../custom_select/CustomSelect';
+// import '../stations/stations.css';
 
 const errValue = {
   station_name: '',
@@ -19,19 +20,20 @@ export const CreateHeadquarters: React.FC<CreateStationProps> = ({
   const { station_id } = data;
   const inputRef = useRef<HTMLInputElement | null>(null);
 
+  const [hqOptions, setHqOptions] =  useState<Option[]>([]);
+  const formikRef = useRef<FormikProps<StationFormData>>(null);
+
   const [headquarters, setHeadquarters] = useState<{
     inputValue: string,
     data: StationFormData[],
-    suggestions: StationFormData[]
+    suggestions: StationFormData[] | undefined
   }>({
     inputValue: '',
     data: [],
     suggestions: []
   });
-  const [selectedIndex, setSelectedIndex] = useState(0);
   const [err, setErr] = useState(errValue);
 
-  const hqRef = useRef<HTMLDivElement>(null);
 
   const electronAPI = (window as any).electronAPI;
 
@@ -42,28 +44,17 @@ export const CreateHeadquarters: React.FC<CreateStationProps> = ({
     focusTarget?.focus();
   }, []);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (hqRef.current && !hqRef.current.contains(event.target as Node)) {
-        setHeadquarters((prevState) => ({
-          ...prevState,
-          suggestions: []
-        }))
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [hqRef]);
-
   const getHq = () => {
+    const hqList=electronAPI.getAllStations('', 'station_name', '', '', '')
     setHeadquarters((prevState) => ({
       ...prevState,
-      data: electronAPI.getAllStations('', 'station_name', '', '', '')
+      data: hqList,
     }));
+    setHqOptions(
+      hqList.map((hq: StationFormData) => ({
+      value: hq.station_name,
+      label: hq.station_name.toLowerCase(),
+    })))
   };
 
   useEffect(() => {
@@ -74,64 +65,18 @@ export const CreateHeadquarters: React.FC<CreateStationProps> = ({
     }));
   }, []);
 
-  const handleInputChange = (
-    e: { target: { value: any } }
-  ) => {
-    const value = e.target.value;
+  const handleHqChange = (option: Option | null) => {
     setHeadquarters((prevState) => ({
-          ...prevState,
-          inputValue: value,
-        }));
+      ...prevState,
+      inputValue: option?.value || '',
+    }));
     setHeadquarters((prevState) => ({
-          ...prevState,
-          suggestions: headquarters.data.filter((item: StationFormData) =>
-            item.station_name.toLowerCase().includes(value.toLowerCase())
-          ),
-        }));
-  };
-
-  const handleOnKeyDown = (
-e: KeyboardEvent<HTMLInputElement>, formik: FormikProps<{ station_name: string; station_headQuarter: string; }>) => {
-    const Suggestions = headquarters.suggestions;
-    if (Suggestions.length) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        const target = e.target as HTMLInputElement;
-        formik.setFieldValue(target.id,headquarters.suggestions[selectedIndex].station_name)
-        setHeadquarters((prevState) => ({
-              ...prevState,
-              inputValue: headquarters.suggestions[selectedIndex].station_name,
-              suggestions: [],
-            }));
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setSelectedIndex((prevIndex) =>
-          prevIndex > 0 ? prevIndex - 1 : prevIndex
-        );
-        if (selectedIndex > 0) {
-          document
-            .getElementById(`suggestion_${selectedIndex - 1}`)
-            ?.scrollIntoView({
-              behavior: 'smooth',
-              block: 'nearest',
-            });
-        }
-      } else if (e.key === 'ArrowDown') {
-        const reqSuggestion = headquarters.suggestions;
-        e.preventDefault();
-        setSelectedIndex((prevIndex) =>
-          prevIndex < reqSuggestion.length - 1 ? prevIndex + 1 : prevIndex
-        );
-        if (selectedIndex < reqSuggestion.length - 1) {
-          document
-            .getElementById(`suggestion_${selectedIndex + 1}`)
-            ?.scrollIntoView({
-              behavior: 'smooth',
-              block: 'nearest',
-            });
-        }
-      }
-    }
+      ...prevState,
+      suggestions: headquarters.data.filter((item: StationFormData) =>
+        item.station_name.toLowerCase().includes(option?.value?.toLowerCase() || '')
+      ),
+    }));
+    formikRef.current?.setFieldValue('station_headQuarter',option?.value);
   };
 
   const validateInputs = (e: { target: { value: any; id: any } }) => {
@@ -179,7 +124,7 @@ e: KeyboardEvent<HTMLInputElement>, formik: FormikProps<{ station_name: string; 
 
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
-    formik?: FormikProps<FormDataProps>
+    formik?: FormikProps<StationFormData>
   ) => {
     const key = e.key;
     const shiftPressed = e.shiftKey;
@@ -235,6 +180,7 @@ e: KeyboardEvent<HTMLInputElement>, formik: FormikProps<{ station_name: string; 
       }
     >
       <Formik
+        innerRef={formikRef}
         initialValues={{
           station_name: data?.station_name || '',
           station_headQuarter: data?.station_headQuarter || '',
@@ -271,6 +217,10 @@ e: KeyboardEvent<HTMLInputElement>, formik: FormikProps<{ station_name: string; 
                       },
                     ],
                   }));
+                  setHqOptions((prevState) => [...prevState, {
+                    value: formik.values.station_name,
+                    label: formik.values.station_name.toLowerCase(),
+                  }]);
                 }}
               />
               <ErrorMessage
@@ -283,59 +233,18 @@ e: KeyboardEvent<HTMLInputElement>, formik: FormikProps<{ station_name: string; 
               )}
             </div>
 
-            <div className='inputs hq_suggestion_input' ref={hqRef}>
-              <Field
-                type='text'
-                id='station_headQuarter'
-                name='station_headQuarter'
-                placeholder='Station headquarter'
-                value={headquarters.inputValue}
-                onBlur={validateInputs}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange(e)}
-                disabled={isDelete && station_id}
-                className={`input-field ${(formik.touched.station_headQuarter && formik.errors.station_headQuarter) || !!err.station_headQuarter ? 'error-field' : ''}`}
-                data-side-field='cst_yes'
-                data-next-field='cst_yes'
-                data-prev-field='station_pinCode'
-                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                  if (headquarters.suggestions.length !== 0) {
-                    handleOnKeyDown(e,formik);
-                  }else{
-                    handleKeyDown(e);
-                  }
-                }}
+            <div className='inputs'>
+              {hqOptions.length >0 && (
+                <CustomSelect
+                value={formik.values.station_headQuarter==='' ? null : { label: formik.values.station_headQuarter, value: formik.values.station_headQuarter }}
+                onChange={handleHqChange}
+                options={hqOptions}
+                isSearchable={true}
+                placeholder="Station headquarter"
+                disableArrow={true}
+                hidePlaceholder={false}
+                className={`${(formik.touched.station_headQuarter && formik.errors.station_headQuarter) ? 'error-field' : ''}`}
               />
-                {!!headquarters.suggestions.length && (
-                <ul className={'suggestion'} style={{ top : "58%" }}>
-                  {headquarters.suggestions.map((hq:any, index: number) => (
-                    <li
-                      key={index}
-                      onClick={() => {
-                        // extra added 
-                        formik.setFieldValue('station_headQuarter',hq.station_name);
-                        // extra added
-                        setHeadquarters((prevState) => ({
-                          ...prevState,
-                          inputValue: hq.station_name,
-                          suggestions: []
-                        }))
-                        document.getElementById('station_headQuarter')?.focus();
-                      }}
-                      className={`${index === selectedIndex ? 'selected' : 'suggestion_list'}`}
-                      id={`suggestion_${index}`}
-                    >
-                      {hq.station_name}
-                    </li>
-                  ))}
-                </ul>
-              )}
-              <ErrorMessage
-                name='station_headQuarter'
-                component='div'
-                className='error'
-              />
-              {!!err.station_headQuarter && (
-                <span className='err'>{err.station_headQuarter}</span>
               )}
             </div>
 

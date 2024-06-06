@@ -1,9 +1,12 @@
-import { KeyboardEvent, useEffect, useRef, useState } from 'react';
+import { 
+  // KeyboardEvent, 
+  useEffect, useRef, useState } from 'react';
 import { Formik, Form, Field, ErrorMessage, FormikProps } from 'formik';
-import { CreateStationProps, FormDataProps, State } from '../../interface/global';
+import { CreateStationProps, FormDataProps, Option, State } from '../../interface/global';
 import { Popup } from '../helpers/popup';
 import * as Yup from 'yup';
 import './stations.css';
+import CustomSelect from '../custom_select/CustomSelect';
 
 export const CreateStation: React.FC<CreateStationProps> = ({
   togglePopup,
@@ -24,12 +27,11 @@ export const CreateStation: React.FC<CreateStationProps> = ({
     suggestions: []
   });
 
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [err, setErr] = useState("");
-  const stateRef = useRef<HTMLDivElement>(null);
-  const hqRef = useRef<HTMLDivElement>(null);
+  // const [selectedIndex, setSelectedIndex] = useState(0);
+  const [, setErr] = useState("");
   const electronAPI = (window as any).electronAPI;
   const formikRef = useRef<FormikProps<FormDataProps>>(null);
+  const [stateOptions, setStateOptions] = useState<Option[]>([]);
 
   const validationSchema = Yup.object({
     station_name: Yup.string()
@@ -57,28 +59,28 @@ export const CreateStation: React.FC<CreateStationProps> = ({
     focusTarget?.focus();
   }, []);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (stateRef.current && !stateRef.current.contains(event.target as Node)) {
-        setStationState((prevState) => ({
-          ...prevState,
-          suggestions: []
-        }))
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [hqRef, stateRef]);
-
   const getStates = () => {
+    const statesList = electronAPI.getAllStates('', 'state_name', '', '', '');
     setStationState((prevState) => ({
       ...prevState,
-      data: electronAPI.getAllStates('', 'state_name', '', '', '')
+      data: statesList
     }));
+    setStateOptions(
+      statesList.map((state: State) => ({
+        value: state.state_name,
+        label: state.state_name.toLowerCase(),
+      }))
+    );
+  };
+
+  const handleStateChange = (option: Option | null) => {
+    setStationState((prevState) => ({
+      ...prevState,
+      inputValue: option?.value || "",
+      suggestions: [],
+    }));
+    formikRef.current?.setFieldValue('station_state', option?.value);
+    setErr("");
   };
 
   useEffect(() => {
@@ -89,94 +91,28 @@ export const CreateStation: React.FC<CreateStationProps> = ({
     }));
   }, []);
 
-  const handleInputChange = (
-    e: { target: { value: any } },
-  ) => {
-    const value = e.target.value;
-    formikRef.current?.setFieldValue('station_state', value);
-    setStationState((prevState) => ({
-      ...prevState,
-      inputValue: value,
-    }))
-    // Filter statesSuggestions based on input value
-    setStationState((prevState) => ({
-      ...prevState,
-      suggestions: stationState.data.filter((item: State) =>
-        item.state_name.toLowerCase().includes(value.toLowerCase())
-      ),
-    }))
-  };
+  // const validateInputs = () => {
+  //   const { value, id } = (document.getElementById('station_state') as HTMLInputElement);
 
-  const handleOnKeyDown = (
-    e: KeyboardEvent<HTMLInputElement>,
-  ) => {
-    const Suggestions = stationState.suggestions;
-    if (Suggestions.length) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        setStationState((prevState) => ({
-          ...prevState,
-          inputValue: stationState.suggestions[selectedIndex].state_name,
-          suggestions: [],
-        }));
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setSelectedIndex((prevIndex) =>
-          prevIndex > 0 ? prevIndex - 1 : prevIndex
-        );
-        if (selectedIndex > 0) {
-          document
-            .getElementById(`suggestion_${selectedIndex - 1}`)
-            ?.scrollIntoView({
-              behavior: 'smooth',
-              block: 'nearest',
-            });
-        }
-      } else if (e.key === 'ArrowDown') {
-        const reqSuggestion = stationState.suggestions;
-        e.preventDefault();
-        setSelectedIndex((prevIndex) =>
-          prevIndex < reqSuggestion.length - 1 ? prevIndex + 1 : prevIndex
-        );
-        if (selectedIndex < reqSuggestion.length - 1) {
-          document
-            .getElementById(`suggestion_${selectedIndex + 1}`)
-            ?.scrollIntoView({
-              behavior: 'smooth',
-              block: 'nearest',
-            });
-        }
-      } else if (e.key === 'Tab') {
-        setStationState((prevState) => ({
-          ...prevState,
-          suggestions: [],
-        }));
-      }
-    }
-  };
+  //   setErr("");
 
-  const validateInputs = () => {
-    const { value, id } = (document.getElementById('station_state') as HTMLInputElement);
-
-    setErr("");
-
-    const isState = stationState.data.some(
-      (state: any) => state.state_name === value
-    );
-    if (id === 'station_state') {
-      if (!value) {
-        setErr('State is required');
-      } else if (value && isState === false) {
-        setErr('Invalid State');
-      }
-    }
-  };
+  //   const isState = stationState.data.some(
+  //     (state: any) => state.state_name === value
+  //   );
+  //   if (id === 'station_state') {
+  //     if (!value) {
+  //       setErr('State is required');
+  //     } else if (value && isState === false) {
+  //       setErr('Invalid State');
+  //     }
+  //   }
+  // };
 
   const handleSubmit = async (values: object) => {
-    validateInputs();
-    if(err){
-      return;
-    }
+    // validateInputs();
+    // if(err){
+    //   return;
+    // }
 
     const formData = station_id
       ? {
@@ -287,60 +223,18 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                 className='error'
               />
             </div>
-            <div className='inputs' ref={stateRef}>
-              <Field
-                type='text'
-                id='station_state'
-                name='station_state'
-                placeholder='Station state'
-                value={stationState.inputValue}
-                onBlur={validateInputs}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  handleInputChange(e)
-                }
-                disabled={isDelete && station_id}
-                className={`input-field ${(formik.touched.station_state && formik.errors.station_state) ? 'error-field' : ''}`}
-                data-side-field='station_pinCode'
-                data-next-field='station_pinCode'
-                data-prev-field='station_name'
-                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                  if (stationState.suggestions.length !== 0) {
-                    handleOnKeyDown(e);
-                  } else {
-                    handleKeyDown(e);
-                  }
-                }}
+            <div className='inputs'>
+              {stateOptions.length >0 && (
+                <CustomSelect
+                value={formik.values.station_state==='' ? null : { label: formik.values.station_state, value: formik.values.station_state }}
+                onChange={handleStateChange}
+                options={stateOptions}
+                isSearchable={true}
+                placeholder="Station state"
+                disableArrow={true}
+                hidePlaceholder={false}
+                className={`${(formik.touched.station_state && formik.errors.station_state) ? 'error-field' : ''}`}
               />
-              {!!stationState.suggestions.length && (
-                <ul className={'suggestion'}>
-                  {stationState.suggestions.map((state: any, index: number) => (
-                    <li
-                      key={state.state_code}
-                      onClick={() => {
-                        setStationState((prevState) => ({
-                          ...prevState,
-                          inputValue: state.state_name,
-                          suggestions: [],
-                        }));
-                        formikRef.current?.setFieldValue('station_state', state.state_name);
-                        setErr("");
-                        document.getElementById('station_state')?.focus();
-                      }}
-                      className={`${index === selectedIndex ? 'selected' : 'suggestion_list'}`}
-                      id={`suggestion_${index}`}
-                    >
-                      {state.state_name}
-                    </li>
-                  ))}
-                </ul>
-              )}
-              <ErrorMessage
-                name='station_state'
-                component='div'
-                className='error'
-              />
-              {(err && !formik.errors.station_state) && (
-                <span className='err'>{err}</span>
               )}
             </div>
 

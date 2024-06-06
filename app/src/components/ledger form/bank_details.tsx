@@ -1,5 +1,8 @@
 import React, { useEffect, useMemo } from 'react';
 import * as Yup from 'yup';
+import FormikInputField from '../common/FormikInputField';
+import CustomSelect from '../custom_select/CustomSelect';
+import { Option } from '../../interface/global';
 
 interface BankDetailsProps {
   formik?: any;
@@ -21,6 +24,10 @@ export const BankDetails: React.FC<BankDetailsProps> = ({
     []
   );
 
+  const handleFieldChange = (option: Option | null, id: string) => {
+    formik.setFieldValue(id, option?.value);
+  };
+
   useEffect(() => {
     receiveValidationSchemaBankDetails(validationSchema);
   }, [validationSchema, receiveValidationSchemaBankDetails]);
@@ -28,100 +35,97 @@ export const BankDetails: React.FC<BankDetailsProps> = ({
   return (
     <div className='tax_details_page'>
       <div className='tax_ledger_inputs'>
+
+      <div className='name_input'>
+            <FormikInputField
+              label='Bank Name'
+              id='bankName'
+              name='bankName'
+              formik={formik}
+              onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                  document.getElementById('accountNumber')?.focus();
+                  e.preventDefault();
+                } else if (e.key === 'ArrowUp') {
+                  document.getElementById('Bank_Details')?.focus();
+                }
+              }}
+            />
+          </div>
+
         <div className='name_input'>
-          <label htmlFor='bankName' className='label_name label_name_css'>
-            Bank Name
-          </label>
-          <input
-            type='text'
-            id='bankName'
-            name='bankName'
-            onChange={formik.handleChange}
-            value={formik.values.bankName}
-            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-              if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                document.getElementById('accountNumber')?.focus();
-                e.preventDefault();
-              } else if (e.key === 'ArrowUp') {
-                document.getElementById('Bank_Details')?.focus();
-              }
-            }}
-          />
-        </div>
-        <div className='name_input'>
-          <label htmlFor='accountNumber' className='label_name label_name_css'>
-            A/C No.
-          </label>
-          <input
-            type='number'
-            id='accountNumber'
-            name='accountNumber'
-            onChange={formik.handleChange}
-            value={formik.values.accountNumber}
-            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-              if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                document.getElementById('branchName')?.focus();
-                e.preventDefault();
-              } else if (e.key === 'ArrowUp') {
-                document.getElementById('bankName')?.focus();
-                e.preventDefault();
-              }
-            }}
-          />
+
+        <FormikInputField
+              label='A/C No.'
+              id='accountNumber'
+              name='accountNumber'
+              formik={formik}
+              onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                  document.getElementById('branchName')?.focus();
+                  e.preventDefault();
+                } else if (e.key === 'ArrowUp') {
+                  document.getElementById('bankName')?.focus();
+                  e.preventDefault();
+                }
+              }}
+            />
         </div>
       </div>
       <div className='tax_ledger_inputs'>
         <div className='name_input'>
-          <label htmlFor='branchName' className='label_name label_name_css'>
-            Branch
-          </label>
-          <input
-            type='text'
-            id='branchName'
-            name='branchName'
-            onChange={formik.handleChange}
-            value={formik.values.branchName.toUpperCase()}
-            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-              if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                document.getElementById('accountType')?.focus();
-                e.preventDefault();
-              } else if (e.key === 'ArrowUp') {
-                document.getElementById('accountNumber')?.focus();
-              }
-            }}
-          />
+
+        <FormikInputField
+              label='Branch'
+              id='branchName'
+              name='branchName'
+              formik={formik}
+              onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                  document.getElementById('accountType')?.focus();
+                  e.preventDefault();
+                } else if (e.key === 'ArrowUp') {
+                  document.getElementById('accountNumber')?.focus();
+                }
+              }}
+            />
         </div>
         <div className='name_input'>
-          <label htmlFor='accountType' className='label_name label_name_css'>
-            A/C Type
-          </label>
-          <select
-            id='accountType'
-            name='accountType'
-            value={formik.values.accountType}
-            onChange={(e) => {
-              formik.handleChange(e);
-            }}
-            onBlur={formik.handleBlur}
-            onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-              if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                document.getElementById('ifscCode')?.focus();
-                e.preventDefault();
-              } else if (e.key === 'ArrowUp') {
-                document.getElementById('branchName')?.focus();
-                e.preventDefault();
-              }
-            }}
-          >
-            <option value='Select'>Select an Option</option>
-            <option value='Saving Account'>Saving Account</option>
-            <option value='Current Account'>Current Account</option>
-          </select>
+
+        <CustomSelect
+          label='A/C Type'
+          id='accountType'
+          labelClass='label_name label_name_css'
+          value={formik.values.accountType==='' ? null : { label: formik.values.accountType, value: formik.values.accountType }}
+          onChange={handleFieldChange}
+          options={[
+            { value: 'Saving Account', label: 'Saving Account' },
+            { value: 'Current Account', label: 'Current Account' },
+          ]}
+          isSearchable={false}
+          placeholder="Select an option"
+          disableArrow={false}
+          hidePlaceholder={false}
+          className="custom-select-field"
+          onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+            if (e.key === 'ArrowDown' || e.key === 'Enter') {
+              document.getElementById('ifscCode')?.focus();
+              e.preventDefault();
+            } else if (e.key === 'ArrowUp') {
+              document.getElementById('branchName')?.focus();
+              e.preventDefault();
+            }
+          }}
+        />
+
         </div>
       </div>
       <div className='tax_ledger_inputs'>
         <div className='name_input'>
-          <label htmlFor='ifscCode' className='label_name label_name_css'>
+
+          
+
+          {/* <label htmlFor='ifscCode' className='label_name label_name_css'>
             IFSC
           </label>
           <input
@@ -139,7 +143,7 @@ export const BankDetails: React.FC<BankDetailsProps> = ({
                 document.getElementById('accountType')?.focus();
               }
             }}
-          />
+          /> */}
         </div>
         <div className='name_input'>
           <label

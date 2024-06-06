@@ -127,8 +127,6 @@ export const Headquarters = () => {
 
   const extractKeys = (mappings: {
     [x: number]: string;
-    yes?: string;
-    no?: string;
   }) => {
     return Object.keys(mappings);
   };
@@ -139,8 +137,6 @@ export const Headquarters = () => {
     mappings: {
       [x: string]: any;
       [x: number]: string;
-      yes?: string;
-      no?: string;
     },
     key: string | number
   ) => {
@@ -257,9 +253,7 @@ export const Headquarters = () => {
         valueListMaxWidth: 192,
         valueListGap: 8,
       },
-      valueFormatter: (params: { value: string | number }) =>
-        lookupValue(stationHeadquarterMap, params.value),
-      valueGetter: (params:any) => params.data.station_headQuarter,
+      valueFormatter: (params: { value: string | number }) => lookupValue(stationHeadquarterMap, params.value),
       headerClass: 'custom-header custom_header_class',
       suppressMovable: true,
     },

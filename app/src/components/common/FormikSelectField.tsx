@@ -28,6 +28,7 @@ const FormikSelectField: React.FC<FormikSelectFieldProps> = ({
   options,
 }) => {
   return (
+    <>
     <div className='ledger_inputs'>
       <label htmlFor={id} className='label_name label_name_css'>
         {label}
@@ -47,6 +48,32 @@ const FormikSelectField: React.FC<FormikSelectFieldProps> = ({
         ))}
       </select>
     </div>
+
+
+    {/* <div className='ledger_inputs'>
+    <label
+      htmlFor='State In Out'
+      className='label_name label_name_css starlabel'
+    >
+      State In Out
+    </label>
+    <CustomSelect
+      value={formik.values.stateInout==='' ? null : { label: formik.values.stateInout, value: formik.values.stateInout }}
+      onChange={handleStateInOutChange}
+      options={[
+        { value: 'Within state', label: 'Within state' },
+        { value: 'Out of state', label: 'Out of state' },
+      ]}
+      isSearchable={false}
+      placeholder="Select an option"
+      disableArrow={false}
+      hidePlaceholder={false}
+      className="custom-select-field"
+    />
+  </div> */}
+
+
+    </>
   );
 };
 

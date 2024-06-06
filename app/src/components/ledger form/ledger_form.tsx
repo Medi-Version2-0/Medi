@@ -91,10 +91,10 @@ export const Ledger = () => {
 
   const balanceInfo = useFormik({
     initialValues: {
-      openingBal:  data?.openingBal ||'',
+      openingBal:  data?.openingBal ||'0.00',
       openingBalType:  data?.openingBalType ||'',
-      creditDays:  data?.creditDays ||'',
-      creditLimit: data?.creditLimit || ''
+      creditDays:  data?.creditDays ||'0',
+      creditLimit: data?.creditLimit || '0'
     },
     onSubmit: (values) => {
       console.log('balance info ', values);

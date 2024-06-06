@@ -14,21 +14,12 @@
   padding: 0 !important;
 }
 
-.custom-select__input {
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
 .custom-select__indicator-separator {
   display: none !important;
 }
 
-.custom-select__dropdown-indicator {
-  display: none !important;
-}
-
 .custom-select__placeholder {
-  display: none !important;
+  color:#A9A9A9 !important;
 }
 
 .custom-select__single-value {
@@ -45,7 +36,9 @@
 }
 
 .custom-select__control {
-  border: 1px solid gray !important;
+  padding : 7px 10px;
+  border: 1px solid #ccc !important;
+  /* border: 1px solid gray !important; */
 }
 
 .custom-select__option--is-selected {

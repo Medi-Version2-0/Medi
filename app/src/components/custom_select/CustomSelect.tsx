@@ -1,50 +1,68 @@
 import React from 'react';
-import Select, { Props as SelectProps, ActionMeta } from 'react-select';
+import Select, { Props as SelectProps } from 'react-select';
 import './CustomSelect.css';
-
-interface Option {
-  value: string;
-  label: string;
-}
+import { Option } from '../../interface/global';
 
 interface CustomSelectProps extends Omit<SelectProps<Option>, 'onChange'> {
+  label?: string;
+  id?: string;
+  labelClass?: string;
   options: Option[];
   value: Option | null;
-  onChange: (option: Option | null, actionMeta: ActionMeta<Option>) => void;
+  onChange: (option: Option | null,id: string) => void;
   placeholder?: string;
   isSearchable?: boolean;
   disableArrow?: boolean;
   hidePlaceholder?: boolean;
   className?: string;
+  onKeyDown?: any;
 }
 
 const CustomSelect: React.FC<CustomSelectProps> = ({
+  label,
+  id,
+  labelClass,
   options,
   value,
   onChange,
-  placeholder = "",
+  placeholder = '',
   isSearchable = true,
   disableArrow = true,
   hidePlaceholder = true,
   className = '',
+  onKeyDown,
   ...props
-}) => (
-  <Select
-    classNamePrefix="custom-select"
-    components={{
-      DropdownIndicator: disableArrow ? () => null : undefined,
-      IndicatorSeparator: disableArrow ? () => null : undefined
-    }}
-    options={options}
-    value={value}
-    onChange={(selectedOption, actionMeta) =>
-      onChange(selectedOption as Option | null, actionMeta)
-    }
-    placeholder={hidePlaceholder ? "" : placeholder}
-    isSearchable={isSearchable}
-    className={className}
-    {...props}
-  />
-);
+}) => {
+  const customComponents = disableArrow
+    ? {
+        DropdownIndicator: () => null,
+        IndicatorSeparator: () => null,
+      }
+    : {};
+
+  return (
+    <>
+      {label && (
+        <label htmlFor={id} className={labelClass} >
+          {label}
+        </label>
+      )}
+      <Select
+        classNamePrefix='custom-select'
+        components={customComponents}
+        options={options}
+        value={value}
+        onChange={(selectedOption) =>
+          onChange(selectedOption as Option | null,id!)
+        }
+        placeholder={hidePlaceholder ? '' : placeholder}
+        isSearchable={isSearchable}
+        className={className}
+        {...props}
+        onKeyDown={onKeyDown}
+      />
+    </>
+  );
+};
 
 export default CustomSelect;

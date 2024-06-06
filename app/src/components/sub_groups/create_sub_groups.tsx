@@ -1,12 +1,16 @@
-import { KeyboardEvent, useEffect, useRef, useState } from 'react';
+import { 
+  // KeyboardEvent, 
+  useEffect, useRef, useState } from 'react';
 import { Formik, Form, Field, ErrorMessage, FormikProps } from 'formik';
 import * as Yup from 'yup';
 import {
   CreateSubGroupProps,
+  Option,
   SubGroupFormDataProps,
 } from '../../interface/global';
 import { Popup } from '../helpers/popup';
 import '../stations/stations.css';
+import CustomSelect from '../custom_select/CustomSelect';
 
 export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
   togglePopup,
@@ -19,14 +23,12 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [inputValue, setInputValue] = useState('');
   const [groupData, setGroupData] = useState([]);
-  const [suggestions, setSuggestions] = useState<any>([]);
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [err, setErr] = useState('');
+  const [, setErr] = useState('');
   const parentGroupVal = useRef('');
   const typeVal = useRef('');
   const electronAPI = (window as any).electronAPI;
   const formikRef = useRef<FormikProps<SubGroupFormDataProps>>(null);
-  const parentGrpRef = useRef<HTMLDivElement>(null);
+  const [parentGrpOptions, setParentGrpOptions]=useState<Option[]>([]);
 
   useEffect(() => {
     const focusTarget =
@@ -37,7 +39,21 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
   }, []);
 
   const getGroups = () => {
+    const grpList=electronAPI.getAllGroups('', '', '', '', '');
     setGroupData(electronAPI.getAllGroups('', '', '', '', ''));
+    setParentGrpOptions(
+      grpList.map((grp: any) => ({
+        value: grp.group_name,
+        label: grp.group_name.toLowerCase(),
+      }))
+    );
+  };
+
+
+  const handleParentChange = (option: Option | null) => {
+    setInputValue(option?.value || '');
+    formikRef.current?.setFieldValue('parent_group', option?.value);
+    setErr("");
   };
 
   useEffect(() => {
@@ -45,74 +61,22 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
     setInputValue(data?.parent_group ? data.parent_group : '');
   }, []);
 
-  const handleInputChange = (e: { target: { value: any } }) => {
-    const value = e.target.value;
-    setInputValue(value);
-    formikRef.current?.setFieldValue('parent_group', value);
-    const filteredSuggestions = groupData.filter((group: any) => {
-      return (
-        group.parent_code === null &&
-        group.group_name.toLowerCase().includes(value.toLowerCase())
-      );
-    });
-    setSuggestions(filteredSuggestions);
-  };
+  // const validateInputs = () => {
+  //   const { value, id } = (document.getElementById('parent_group') as HTMLInputElement);
+  //   setErr('');
 
-  const handleOnKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (suggestions.length) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        setInputValue(suggestions[selectedIndex]?.group_name);
-        parentGroupVal.current = suggestions[selectedIndex]?.group_name;
-        setSuggestions([]);
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setSelectedIndex((prevIndex) =>
-          prevIndex > 0 ? prevIndex - 1 : prevIndex
-        );
-        if (selectedIndex > 0) {
-          document
-            .getElementById(`suggestion_${selectedIndex - 1}`)
-            ?.scrollIntoView({
-              behavior: 'smooth',
-              block: 'nearest',
-            });
-        }
-      } else if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        setSelectedIndex((prevIndex) =>
-          prevIndex < suggestions.length - 1 ? prevIndex + 1 : prevIndex
-        );
-        if (selectedIndex < suggestions.length - 1) {
-          document
-            .getElementById(`suggestion_${selectedIndex + 1}`)
-            ?.scrollIntoView({
-              behavior: 'smooth',
-              block: 'nearest',
-            });
-        }
-      } else if (e.key === 'Tab') {
-        setSuggestions([]);
-      }
-    }
-  };
+  //   const isGroup = groupData.some((group: any) => group.group_name === value);
 
-  const validateInputs = () => {
-    const { value, id } = (document.getElementById('parent_group') as HTMLInputElement);
-    setErr('');
-
-    const isGroup = groupData.some((group: any) => group.group_name === value);
-
-    if (id === 'parent_group') {
-      if (!value) {
-        setErr('Parent Group is required');
-      } else if (value && isGroup === false) {
-        setErr('Invalid Parent group');
-      } else if (value && isGroup === true) {
-        parentGroupVal.current = value;
-      }
-    }
-  };
+  //   if (id === 'parent_group') {
+  //     if (!value) {
+  //       setErr('Parent Group is required');
+  //     } else if (value && isGroup === false) {
+  //       setErr('Invalid Parent group');
+  //     } else if (value && isGroup === true) {
+  //       parentGroupVal.current = value;
+  //     }
+  //   }
+  // };
 
   useEffect(
     () => {
@@ -153,11 +117,13 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
 
   });
 
+  
+
   const handleSubmit = async (values: object) => {
-    validateInputs();
-    if (err) {
-      return;
-    }
+    // validateInputs();
+    // if (err) {
+    //   return;
+    // }
     const formData = group_code
       ? { ...values, group_code: group_code, parent_group: inputValue }
       : inputValue
@@ -218,18 +184,6 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
     }
   };
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (parentGrpRef.current && !parentGrpRef.current.contains(event.target as Node)) {
-        setSuggestions([]);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [parentGrpRef]);
-
   return (
     <Popup
       togglePopup={togglePopup}
@@ -274,53 +228,19 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                 className='error'
               />
             </div>
-            <div className='inputs' ref={parentGrpRef}>
-              <Field
-                type='text'
-                id='parent_group'
-                name='parent_group'
-                placeholder='Parent group'
-                onBlur={validateInputs}
-                onChange={handleInputChange}
-                disabled={isDelete && group_code}
-                className={`input-field ${(formik.touched.parent_group && formik.errors.parent_group) || !!err ? 'error-field' : ''}`}
-                data-side-field='p_and_l'
-                data-next-field='p_and_l'
-                data-prev-field='group_name'
-                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                  if (suggestions.length !== 0) {
-                    handleOnKeyDown(e);
-                  } else {
-                    handleKeyDown(e);
-                  }
-                }}
+            <div className='inputs'>
+              {parentGrpOptions.length >0 && (
+                <CustomSelect
+                value={formik.values.parent_group==='' ? null : { label: formik.values.parent_group, value: formik.values.parent_group }}
+                onChange={handleParentChange}
+                options={parentGrpOptions}
+                isSearchable={true}
+                placeholder="Station state"
+                disableArrow={true}
+                hidePlaceholder={false}
+                className={`${(formik.touched.parent_group && formik.errors.parent_group) ? 'error-field' : ''}`}
               />
-              {!!suggestions.length && (
-                <ul className={'suggestion'} style={{ top: "49%" }}>
-                  {suggestions.map((group: any, index: number) => (
-                    <li
-                      key={group.group_code}
-                      onClick={() => {
-                        setInputValue(group.group_name);
-                        setSuggestions([]);
-                        formikRef.current?.setFieldValue('parent_group', group.group_name);
-                        setErr('');
-                        document.getElementById('parent_group')?.focus();
-                      }}
-                      className={`${index === selectedIndex ? 'selected' : 'suggestion_list'}`}
-                      id={`suggestion_${index}`}
-                    >
-                      {group.group_name}
-                    </li>
-                  ))}
-                </ul>
               )}
-              <ErrorMessage
-                name='parent_group'
-                component='div'
-                className='error'
-              />
-              {(!formik.errors.parent_group && err) && <span className='err'>{err}</span>}
             </div>
             <div style={{
               width: '90%',

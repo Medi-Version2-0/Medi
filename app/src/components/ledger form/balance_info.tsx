@@ -1,4 +1,7 @@
 import React from 'react';
+import FormikInputField from '../common/FormikInputField';
+import CustomSelect from '../custom_select/CustomSelect';
+import { Option } from '../../interface/global';
 interface BalanceInfoProps {
   accountInputValue?: string;
   formik?: any;
@@ -15,16 +18,20 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
     }
   };
 
-  const handleCreditDaysInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = e.target;
+  const handleCreditInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
     if (/^\d*$/.test(value)) {
-      formik.setFieldValue('creditDays', value);
+      formik.setFieldValue(id, value);
     }
   };
 
+  const handleFieldChange = (option: Option | null, id: string) => {
+    formik.setFieldValue(id, option?.value);
+  };
+
   const resetField = (e: React.MouseEvent<HTMLInputElement>) => {
-    const { id } = e.currentTarget;
-    formik.setFieldValue(id, '');
+    const inputElement = e.currentTarget;
+    inputElement.setSelectionRange(0, inputElement.value.length);
   };
 
   return (
@@ -32,109 +39,82 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
       <div className='balance_prefix'>Balance</div>
       <form onSubmit={formik.handleSubmit} className='balance_inputs'>
         <div className='ledger_inputs'>
-          <div className='opening_bal_input'>
-            <label
-              htmlFor='openingBal'
-              className='balance_label_name label_name_css openingBal'
-            >
-              Opening Balance
-            </label>{'  '}₹
-            <input
-              type='text'
-              id='openingBal'
-              name='openingBal'
-              placeholder='0.00'
-              className='opening_bal_inputs'
-              onChange={handleOpeningBalInput}
-              value={formik.values.openingBal}
-              onClick={resetField}
-              onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                  document.getElementById('openingBalType')?.focus();
-                  e.preventDefault();
-                } else if (e.key === 'ArrowUp') {
-                  document
-                    .getElementById(
-                      accountInputValue?.toUpperCase() === 'CURRENT ASSETS' ||
-                        accountInputValue?.toUpperCase() === 'CURRENT LIABILITIES' ||
-                        accountInputValue?.toUpperCase() === 'PROVISIONS' ||
-                        accountInputValue?.toUpperCase() === 'SECURED LOANS' ||
-                        accountInputValue?.toUpperCase() === 'SUNDRY CREDITORS' ||
-                        accountInputValue?.toUpperCase() === 'SUNDRY DEBTORS'
-                        ? 'balancingMethod'
-                        : 'parentLedger'
-                    )
-                    ?.focus();
-                  e.preventDefault();
-                }
-              }}
-            />
-            <select
-              id='openingBalType'
-              name='openingBalType'
-              className='opening_bal_inputs'
-              onChange={formik.handleChange}
-              value={formik.values.openingBalType}
-              onBlur={formik.handleBlur}
-              onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-                if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                  document
-                    .getElementById(
+          <FormikInputField
+            label={`Opening Balance ${'  '}₹`}
+            id='openingBal'
+            name='openingBal'
+            formik={formik}
+            onChange={handleOpeningBalInput}
+            placeholder='0.00'
+            onClick={resetField}
+            className='balance_label_name label_name_css openingBal'
+            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+              if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                document.getElementById('openingBalType')?.focus();
+                e.preventDefault();
+              } else if (e.key === 'ArrowUp') {
+                document
+                  .getElementById(
+                    accountInputValue?.toUpperCase() === 'CURRENT ASSETS' ||
+                      accountInputValue?.toUpperCase() ===
+                        'CURRENT LIABILITIES' ||
+                      accountInputValue?.toUpperCase() === 'PROVISIONS' ||
+                      accountInputValue?.toUpperCase() === 'SECURED LOANS' ||
                       accountInputValue?.toUpperCase() === 'SUNDRY CREDITORS' ||
-                        accountInputValue?.toUpperCase() === 'SUNDRY DEBTORS'
-                        ? 'creditDays'
-                        : 'submit_all'
-                    )
-                    ?.focus();
-                  e.preventDefault();
-                } else if (e.key === 'ArrowUp') {
-                  document.getElementById('openingBal')?.focus();
-                  e.preventDefault();
-                }
-              }}
-            >
-              <option value='CR'>CR</option>
-              <option value='DR'>DR</option>
-            </select>
-          </div>
+                      accountInputValue?.toUpperCase() === 'SUNDRY DEBTORS'
+                      ? 'balancingMethod'
+                      : 'parentLedger'
+                  )
+                  ?.focus();
+                e.preventDefault();
+              }
+            }}
+          />
+          <CustomSelect
+            value={
+              formik.values.openingBal === '' || formik.initialValues.openingBal
+                ? null
+                : {
+                    label: formik.values.openingBal,
+                    value: formik.values.openingBal,
+                  }
+            }
+            onChange={handleFieldChange}
+            options={[
+              { value: 'CR', label: 'CR' },
+              { value: 'DR', label: 'DR' },
+            ]}
+            isSearchable={false}
+            placeholder='Select an option'
+            disableArrow={false}
+            hidePlaceholder={false}
+            className='custom-select-field'
+          />
         </div>
         {(accountInputValue?.toUpperCase() === 'SUNDRY CREDITORS' ||
           accountInputValue?.toUpperCase() === 'SUNDRY DEBTORS') && (
           <>
-          <div className='ledger_inputs'>
-            <label
-              htmlFor='creditLimit'
-              className='balance_label_name label_name_css'
-            >
-              Credit Limit
-            </label>
-            <input
-              type='text'
+            <FormikInputField
+              label='Credit Limit'
               id='creditLimit'
               name='creditLimit'
+              formik={formik}
               placeholder='0'
               className='input_class'
-              onChange={formik.handleChange}
-              value={formik.values.creditLimit}
+              onChange={handleCreditInput}
+              onClick={resetField}
             />
-          </div>
-          <div className='ledger_inputs'>
-            <label
-              htmlFor='creditDays'
-              className='balance_label_name label_name_css'
-            >
-              Credit Days
-            </label>
-            <input
-              type='text'
+
+            <FormikInputField
+              label='Credit Days'
               id='creditDays'
               name='creditDays'
+              formik={formik}
               placeholder='0'
-              className='input_class'
               maxLength={3}
-              onChange={handleCreditDaysInput}
+              className='input_class'
+              onChange={handleCreditInput}
               onClick={resetField}
-              value={formik.values.creditDays}
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                 if (e.key === 'ArrowDown' || e.key === 'Enter') {
                   document.getElementById('phone1')?.focus();
@@ -145,7 +125,6 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
                 }
               }}
             />
-          </div>
           </>
         )}
       </form>
