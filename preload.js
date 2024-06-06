@@ -10,6 +10,7 @@ const stationService = require('./helpers/stationService.js');
 const groupService = require('./helpers/groupService.js');
 const accountGroupService = require('./helpers/accountGroupService.js');
 const partyService =require('./helpers/partyService.js');
+const salesPurchaseService = require('./helpers/salesPurchaseService.js');
 
 const station = new Station()
 const account_groups = new Account_groups()
@@ -53,6 +54,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
   getAllLedgerData: (where = "", sort = "", limit = "") => partyService.getAllLedgerData(where, sort, limit),
   updateParty: (party_id, partyData) => partyService.updateParty(party_id, partyData),
   deleteLedger: (party_id) => partyService.deleteLedger(party_id),
+
+  // Sales Purchase
+  addSalesPurchase:(spData)=> salesPurchaseService.addSalesPurchase(spData),
 
   // suggestion List for different inputs 
   addSuggestionList:(where = "", sort = "", limit = "")=> partyService.getAllSuggestions(where, sort, limit),

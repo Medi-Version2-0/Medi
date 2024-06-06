@@ -106,3 +106,7 @@
   }
 
 /* popup.css */
+
+.popup-heading {
+  text-align : center;
+}

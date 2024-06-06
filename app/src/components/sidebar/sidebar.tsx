@@ -122,6 +122,15 @@ const Sidebar: React.FC<SidebarProps> = ({
                 >
                   Headquarters
                 </div>
+                <div
+                  id="sales_purchase_link"
+                  className='sidebar_sub_2_element'
+                  onClick={() => {
+                    return navigate(`/sales_purchase`);
+                  }}
+                >
+                  Sales/Purchase
+                </div>
             {showSubElements.setup && (
               <>
               </>

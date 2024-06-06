@@ -7,6 +7,7 @@ import { Ledger } from './components/ledger form/ledger_form';
 import { Ledger_Table } from './components/ledger form/ledger_table';
 import { Headquarters } from './components/headquarters/headquarters';
 import Layout from './components/sidebar/layout';
+import { Sales_Purchase } from './components/sales_purchase/sales_purchase';
 
 export const App = () => {
   return (
@@ -20,6 +21,7 @@ export const App = () => {
             <Route path='/ledger' element={<Ledger />} />
             <Route path='/headquarters' element={<Headquarters />} />
             <Route path='/ledger_table' element={<Ledger_Table />} />
+            <Route path='/sales_purchase' element={<Sales_Purchase /> } />
           </Route>
         </Routes>
       </HashRouter>

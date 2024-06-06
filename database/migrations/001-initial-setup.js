@@ -38,9 +38,9 @@ module.exports = {
         station_id INTEGER PRIMARY KEY,
         station_name TEXT NOT NULL,
         cst_sale BOOLEAN DEFAULT FALSE,
-        state_code INTEGER NOT NULL,
+        state_code INTEGER,
         station_pinCode INTEGER,
-        station_headQuarter TEXT NOT NULL,
+        station_headQuarter TEXT,
         FOREIGN KEY (state_code) REFERENCES states(state_code)
     )`,
     `CREATE TABLE IF NOT EXISTS groups (
@@ -101,6 +101,19 @@ module.exports = {
           accountType TEXT,
           accountHolderName TEXT
         )`,
+    `CREATE TABLE IF NOT EXISTS sales_purchase (
+          sp_id INTEGER PRIMARY KEY,
+          spType TEXT NOT NULL,
+          igst INTEGER,
+          cgst INTEGER,
+          sgst INTEGER,
+          stPer INTEGER,
+          surCharge INTEGER,
+          spNo INTEGER,
+          column INTEGER,
+          shortName TEXT,
+          shortName2 TEXT
+        )`,
     `INSERT INTO states (state_code, state_name, union_territory) VALUES ${insertStatements.join(
       ", "
     )};`,
@@ -117,5 +130,6 @@ module.exports = {
     "DROP TABLE IF EXISTS states",
     "DROP TABLE IF EXISTS groups",
     "DROP TABLE IF EXISTS party_table",
+    "DROP TABLE IF EXISTS sales_purchase",
   ],
 };

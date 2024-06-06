@@ -93,9 +93,10 @@ export interface StationFormData {
 
 
   export interface PopupProps {
-    togglePopup: Function;
+    togglePopup?: Function;
     headding: string;
     children: any;
+    className?: string;
   }
 
   export interface Confirm_Alert_PopupProps {
@@ -109,4 +110,18 @@ export interface StationFormData {
     state_code: Number;
     state_name: string;
     union_territory: boolean;
+}
+
+interface Option {
+  value: string;
+  label: string;
+}
+interface SalesPurchaseProps {
+  type?: any;
+  formik?: any;
+  receiveValidationSchemaSalesPurchase: (schema: Yup.ObjectSchema<any>) => void;
+}
+interface SpSubSectionProps {
+  type?: any;
+  formik: any;
 }

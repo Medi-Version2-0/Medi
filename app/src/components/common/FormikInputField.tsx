@@ -7,6 +7,8 @@ interface FormikInputFieldProps {
   id: string;
   name: string;
   type?: string;
+  placeholder?: string;
+  maxLength?: number;
   formik: {
     handleBlur: (e: React.FocusEvent<any>) => void;
     handleChange: (e: React.ChangeEvent<any>) => void;
@@ -25,6 +27,8 @@ interface FormikInputFieldProps {
   children?: React.ReactNode;
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   className?: string;
+  onClick?: (e: React.MouseEvent<HTMLInputElement>) => void;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 const FormikInputField: React.FC<FormikInputFieldProps> = ({
@@ -36,8 +40,11 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
   isRequired = false,
   children,
   name,
+  onChange = formik.handleChange,
   onKeyDown,
   className,
+  onClick,
+  placeholder
 }) => {
   return (
     <div className={`ledger_inputs${isRequired ? ' starlabel' : ''} ${className || ''}`}>
@@ -51,9 +58,11 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
         name={name}
         className='input_class'
         onBlur={formik.handleBlur}
-        onChange={formik.handleChange}
+        onChange={onChange}
         value={formik.values[id]}
         onKeyDown={onKeyDown}
+        onClick={onClick}
+        placeholder={placeholder}
       />
       {showErrorTooltip && formik.touched[id] && formik.errors[id] && (
         <>
