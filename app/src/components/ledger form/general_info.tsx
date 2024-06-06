@@ -146,7 +146,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
           id='partyName'
           name='partyName'
           formik={formik}
-          className='starlabel'
+          className=''
           onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
             if (e.key === 'ArrowDown' || e.key === 'Enter') {
               e.preventDefault();
@@ -250,12 +250,13 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
           </div>
         )}
         {(isSUNDRY) && (
-          <div className='ledger_inputs'>
+          <div className='flex'>
             <FormikInputField
               label='City'
               id='city'
               name='city'
               formik={formik}
+              className='max-w-1/2'
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                 if (e.key === 'ArrowDown' || e.key === 'Enter') {
                   document.getElementById('pinCode')?.focus();
@@ -272,6 +273,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
               formik={formik}
               isRequired={true}
               showErrorTooltip={true}
+              className='max-w-1/2'
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                 if (e.key === 'ArrowDown' || e.key === 'Enter') {
                   e.preventDefault();

@@ -2,11 +2,11 @@ import React from 'react';
 import { Stations } from './components/stations/stations';
 import { HashRouter, Route, Routes } from 'react-router-dom';
 import { SubGroups } from './components/sub_groups/sub_groups';
-import { Groups } from './components/groups/groups';
+import { Groups } from './views/groups/Groups';
 import { Ledger } from './components/ledger form/ledger_form';
 import { Ledger_Table } from './components/ledger form/ledger_table';
 import { Headquarters } from './components/headquarters/headquarters';
-import Layout from './components/sidebar/layout';
+import Home from './views/home';
 import { Sales_Purchase } from './components/sales_purchase/sales_purchase';
 
 export const App = () => {
@@ -14,7 +14,7 @@ export const App = () => {
     <React.StrictMode>
       <HashRouter>
         <Routes>
-          <Route path='/' element={<Layout />}>
+          <Route path='/' element={<Home />}>
             <Route path='/stations' element={<Stations />} />
             <Route path='/groups' element={<Groups />} />
             <Route path='/subgroups' element={<SubGroups />} />

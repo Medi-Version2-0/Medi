@@ -27,6 +27,7 @@ interface FormikInputFieldProps {
   children?: React.ReactNode;
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   className?: string;
+  labelClassName?: string;
   onClick?: (e: React.MouseEvent<HTMLInputElement>) => void;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
@@ -43,12 +44,13 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
   onChange = formik.handleChange,
   onKeyDown,
   className,
+  labelClassName,
   onClick,
   placeholder
 }) => {
   return (
-    <div className={`ledger_inputs${isRequired ? ' starlabel' : ''} ${className || ''}`}>
-      <label htmlFor={id} className={`label_name_css`}>
+    <div className={`flex flex-row gap-2 items-center mb-2 relative w-full  ${!isRequired ? ' starlabel' : ''} ${className || ''}`}>
+      <label htmlFor={id} className={`text-[0.9rem] font-bold text-gray-600 min-w-fit ${labelClassName}`}>
         {label}
       </label>
       {children}
@@ -56,7 +58,7 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
         type={type}
         id={id}
         name={name}
-        className='input_class'
+        className='w-full ml-1 h-6'
         onBlur={formik.handleBlur}
         onChange={onChange}
         value={formik.values[id]}
@@ -66,8 +68,8 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
       />
       {showErrorTooltip && formik.touched[id] && formik.errors[id] && (
         <>
-          <FaExclamationCircle data-tooltip-id={`${id}-error-tooltip`} className='error_icon' />
-          <ReactTooltip id={`${id}-error-tooltip`} place='bottom' className='custom-tooltip'>
+          <FaExclamationCircle data-tooltip-id={`${id}-error-tooltip`} className='absolute right-0 text-red-600' />
+          <ReactTooltip id={`${id}-error-tooltip`} place='bottom' className='bg-[#89050b] text-[white] border rounded text-sm z-10 p-2 border-solid border-[#d8000c]'>
             {formik.errors[id]}
           </ReactTooltip>
         </>

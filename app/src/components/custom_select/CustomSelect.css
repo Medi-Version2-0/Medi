@@ -8,6 +8,7 @@
   box-shadow: none !important;
   cursor: text !important;
   width: 100%;
+  min-height: 1.5rem !important;
 }
 
 .custom-select__value-container {
@@ -43,5 +44,4 @@
 
 .custom-select__option--is-selected {
   background-color: rgb(183, 179, 179) !important;
-  /* Change background color of selected option */
 }

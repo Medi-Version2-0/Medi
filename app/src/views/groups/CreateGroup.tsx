@@ -1,9 +1,10 @@
+import React from 'react';
 import { useEffect, useRef } from 'react';
 import { Formik, Form, Field, ErrorMessage, FormikProps } from 'formik';
 import * as Yup from 'yup';
 import { CreateGroupProps, GroupFormDataProps } from '../../interface/global';
-import { Popup } from '../helpers/popup';
-import '../stations/stations.css';
+import { Popup } from '../../components/helpers/popup';
+import '../../components/stations/stations.css';
 
 export const CreateGroup: React.FC<CreateGroupProps> = ({
   togglePopup,
