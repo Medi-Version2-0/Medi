@@ -214,7 +214,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                 name='group_name'
                 placeholder='Group name'
                 disabled={isDelete && group_code}
-                className={`input-field ${formik.touched.group_name && formik.errors.group_name ? 'error-field' : ''}`}
+                className={`input-field ${formik.touched.group_name && formik.errors.group_name ? 'border-red-600 ' : ''}`}
                 innerRef={inputRef}
                 data-side-field='parent_group'
                 data-next-field='parent_group'
@@ -225,7 +225,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
               <ErrorMessage
                 name='group_name'
                 component='div'
-                className='error'
+                className="text-red-600 font-xs ml-[1px]  "
               />
             </div>
             <div className='inputs'>
@@ -238,7 +238,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                 placeholder="Station state"
                 disableArrow={true}
                 hidePlaceholder={false}
-                className={`${(formik.touched.parent_group && formik.errors.parent_group) ? 'error-field' : ''}`}
+                className={`${(formik.touched.parent_group && formik.errors.parent_group) ? 'border-red-600 ' : ''}`}
               />
               )}
             </div>
@@ -300,10 +300,10 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
               <ErrorMessage
                 name='type'
                 component='div'
-                className='error'
+                className="text-red-600 font-xs ml-[1px]  "
               />
             </div>
-            <div className='modal-actions'>
+            <div className='flex justify-between p-4 w-full'>
               <button
                 autoFocus
                 id='cancel_button'

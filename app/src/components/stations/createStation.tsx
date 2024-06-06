@@ -209,7 +209,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                 name='station_name'
                 placeholder='Station name'
                 disabled={isDelete && station_id}
-                className={`input-field ${formik.touched.station_name && formik.errors.station_name ? 'error-field' : ''}`}
+                className={`input-field ${formik.touched.station_name && formik.errors.station_name ? 'border-red-600 ' : ''}`}
                 innerRef={inputRef}
                 data-side-field='station_state'
                 data-next-field='station_state'
@@ -220,7 +220,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
               <ErrorMessage
                 name='station_name'
                 component='div'
-                className='error'
+                className="text-red-600 font-xs ml-[1px]  "
               />
             </div>
             <div className='inputs'>
@@ -233,7 +233,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                 placeholder="Station state"
                 disableArrow={true}
                 hidePlaceholder={false}
-                className={`${(formik.touched.station_state && formik.errors.station_state) ? 'error-field' : ''}`}
+                className={`${(formik.touched.station_state && formik.errors.station_state) ? 'border-red-600 ' : ''}`}
               />
               )}
             </div>
@@ -245,7 +245,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                 name='station_pinCode'
                 placeholder='Station pin code'
                 disabled={isDelete && station_id}
-                className={`input-field ${(formik.touched.station_pinCode && formik.errors.station_pinCode) ? 'error-field' : ''}`}
+                className={`input-field ${(formik.touched.station_pinCode && formik.errors.station_pinCode) ? 'border-red-600 ' : ''}`}
                 data-side-field='cst_yes'
                 data-next-field='cst_yes'
                 data-prev-field='station_state'
@@ -256,7 +256,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
               <ErrorMessage
                 name='station_pinCode'
                 component='div'
-                className='error'
+                className="text-red-600 font-xs ml-[1px]  "
               />
             </div>
             <div className='inputs'>
@@ -312,10 +312,10 @@ export const CreateStation: React.FC<CreateStationProps> = ({
               <ErrorMessage
                 name='cst_sale'
                 component='div'
-                className='error'
+                className="text-red-600 font-xs ml-[1px]  "
               />
             </div>
-            <div className='modal-actions'>
+            <div className='flex justify-between p-4 w-full'>
               <button
                 autoFocus
                 id='cancel_button'

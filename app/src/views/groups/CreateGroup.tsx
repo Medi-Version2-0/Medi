@@ -5,6 +5,7 @@ import * as Yup from 'yup';
 import { CreateGroupProps, GroupFormDataProps } from '../../interface/global';
 import { Popup } from '../../components/helpers/popup';
 import '../../components/stations/stations.css';
+import Button from '../../components/common/button/Button';
 
 export const CreateGroup: React.FC<CreateGroupProps> = ({
   togglePopup,
@@ -109,15 +110,15 @@ export const CreateGroup: React.FC<CreateGroupProps> = ({
         onSubmit={handleSubmit}
       >
         {(formik) => (
-          <Form className='account-form'>
-            <div className='inputs'>
+          <Form className='flex flex-col gap-2 min-w-[18rem] items-center px-4'>
+            <div className='flex flex-col w-full'>
               <Field
                 type='text'
                 id='group_name'
                 name='group_name'
                 placeholder='Group name'
                 disabled={isDelete && group_code}
-                className={`input-field ${formik.touched.group_name && formik.errors.group_name ? 'error-field' : ''}`}
+                className={`w-full p-3 rounded-md text-3  border border-solid ${formik.touched.group_name && formik.errors.group_name ? ' border-red-600 ' : ''}`}
                 innerRef={inputRef}
                 data-side-field='p_and_l'
                 data-next-field='p_and_l'
@@ -128,22 +129,12 @@ export const CreateGroup: React.FC<CreateGroupProps> = ({
               <ErrorMessage
                 name='group_name'
                 component='div'
-                className='error'
+                className="text-red-600 font-xs ml-[1px]"
               />
             </div>
-            <div className='inputs'
-            >
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: '0.8rem',
-                borderRadius: '0.4rem',
-                border: '1px solid #c1c1c1',
-              }}>
-                <label
-                  className={`credit-type ${group_code && isDelete ? 'disabled' : ''}`}
-                >
+            <div className='flex justify-center w-full'>
+              <div className='flex items-center justify-between w-full gap-2 rounded-md border border-solid border-[#c1c1c1]'>
+                <label className={`w-1/2 text-base cursor-pointer text-center p-3 font-bold ${group_code && isDelete ? 'disabled' : ''}`}                >
                   <Field
                     type='radio'
                     name='type'
@@ -162,7 +153,7 @@ export const CreateGroup: React.FC<CreateGroupProps> = ({
                   P & L
                 </label>
                 <label
-                  className={`credit-type ${group_code && isDelete ? 'disabled' : ''}`}
+                  className={`w-1/2 text-base cursor-pointer text-center p-3 font-bold ${group_code && isDelete ? 'disabled' : ''}`}
                 >
                   <Field
                     type='radio'
@@ -184,16 +175,16 @@ export const CreateGroup: React.FC<CreateGroupProps> = ({
               <ErrorMessage
                 name='type'
                 component='div'
-                className='error'
+                className="text-red-600 font-xs ml-[1px]  "
               />
             </div>
-            <div className='modal-actions'>
-              <button
-                autoFocus
+            <div className='flex justify-between p-4 w-full'>
+              <Button
+                autoFocus={true}
+                type='fog'
                 id='cancel_button'
-                className='acc_button'
-                onMouseDown={() => togglePopup(false)}
-                onKeyDown={(e) => {
+                handleOnClick={() => togglePopup(false)}
+                handleOnKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
                     togglePopup(false);
@@ -201,27 +192,26 @@ export const CreateGroup: React.FC<CreateGroupProps> = ({
                 }}
               >
                 Cancel
-              </button>
+              </Button>
               {isDelete ? (
-                <button
+                <Button
                   id='del_button'
-                  className='account_add_button'
-                  onClick={() => group_code && deleteAcc(group_code)}
-                  onKeyDown={(e) => {
+                  type='fill'
+                  handleOnClick={() => group_code && deleteAcc(group_code)}
+                  handleOnKeyDown={(e) => {
                     if (e.key === 'Tab') {
                       e.preventDefault();
                     }
                   }}
                 >
                   Delete
-                </button>
+                </Button>
               ) : (
-                <button
-                  id='submit_button'
-                  className='account_add_button'
-                  type='submit'
+                <Button
+                  id="submit_button"
+                  type="fill"
                   autoFocus
-                  onKeyDown={(e) => {
+                  handleOnKeyDown={(e) => {
                     if (e.key === 'Tab') {
                       document.getElementById('station_name')?.focus();
                       e.preventDefault();
@@ -229,7 +219,7 @@ export const CreateGroup: React.FC<CreateGroupProps> = ({
                   }}
                 >
                   {group_code ? 'Update' : 'Add'}
-                </button>
+                </Button>
               )}
             </div>
           </Form>

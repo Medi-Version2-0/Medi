@@ -9,7 +9,7 @@ import { GroupFormData } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/helpers/Confirm_Alert_Popup';
 import { ColDef, ColGroupDef } from 'ag-grid-community';
 import { CreateGroup } from './CreateGroup';
-import './groups.css';
+import Button from '../../components/common/button/Button';
 
 const initialValue = {
   group_code: '',
@@ -335,53 +335,47 @@ export const Groups = () => {
     ];
   return (
     <>
-        <div className='container'>
-          <div id='account_main'>
-            <h1 id='account_header'>Groups</h1>
-            <button
-              id='account_button'
-              className='account_button'
-              onClick={() => togglePopup(true)}
-            >
-              Add Group
-            </button>
-          </div>
-          <div id='account_table' className='ag-theme-quartz'>
-            {
-              <AgGridReact
-                rowData={tableData}
-                columnDefs={colDefs}
-                defaultColDef={{
-                  floatingFilter: true,
-                }}
-                onCellClicked={onCellClicked}
-                onCellEditingStarted={cellEditingStarted}
-                onCellEditingStopped={handleCellEditingStopped}
-              />
-            }
-          </div>
-          {(popupState.isModalOpen || popupState.isAlertOpen) && (
-            <Confirm_Alert_Popup
-              onClose={handleClosePopup}
-              onConfirm={
-                popupState.isAlertOpen
-                  ? handleAlertCloseModal
-                  : handleConfirmPopup
-              }
-              message={popupState.message}
-              isAlert={popupState.isAlertOpen}
-            />
-          )}
-          {open && (
-            <CreateGroup
-              togglePopup={togglePopup}
-              data={formData}
-              handelFormSubmit={handelFormSubmit}
-              isDelete={isDelete.current}
-              deleteAcc={deleteAcc}
-            />
-          )}
+      <div className='w-full'>
+        <div className="flex justify-between mx-[1.6rem] my-8 bg-[#f3f3f3] ">
+          <h1 className="font-bold text-[#171A1FFF] m-0 ">Groups</h1>
+          <Button type='highlight' className='' handleOnClick={() => togglePopup(true)}>Add Group</Button>
         </div>
+        <div id='account_table' className='ag-theme-quartz'>
+          {
+            <AgGridReact
+              rowData={tableData}
+              columnDefs={colDefs}
+              defaultColDef={{
+                floatingFilter: true,
+              }}
+              onCellClicked={onCellClicked}
+              onCellEditingStarted={cellEditingStarted}
+              onCellEditingStopped={handleCellEditingStopped}
+            />
+          }
+        </div>
+        {(popupState.isModalOpen || popupState.isAlertOpen) && (
+          <Confirm_Alert_Popup
+            onClose={handleClosePopup}
+            onConfirm={
+              popupState.isAlertOpen
+                ? handleAlertCloseModal
+                : handleConfirmPopup
+            }
+            message={popupState.message}
+            isAlert={popupState.isAlertOpen}
+          />
+        )}
+        {open && (
+          <CreateGroup
+            togglePopup={togglePopup}
+            data={formData}
+            handelFormSubmit={handelFormSubmit}
+            isDelete={isDelete.current}
+            deleteAcc={deleteAcc}
+          />
+        )}
+      </div>
     </>
   );
 };

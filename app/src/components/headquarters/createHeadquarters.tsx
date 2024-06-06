@@ -197,7 +197,7 @@ export const CreateHeadquarters: React.FC<CreateStationProps> = ({
                 name='station_name'
                 placeholder='Station name'
                 disabled={isDelete && station_id}
-                className={`input-field ${formik.touched.station_name && formik.errors.station_name ? 'error-field' : ''}`}
+                className={`input-field ${formik.touched.station_name && formik.errors.station_name ? 'border-red-600 ' : ''}`}
                 innerRef={inputRef}
                 // onBlur={validateInputs}
                 data-side-field='station_state'
@@ -226,7 +226,7 @@ export const CreateHeadquarters: React.FC<CreateStationProps> = ({
               <ErrorMessage
                 name='station_name'
                 component='div'
-                className='error'
+                className="text-red-600 font-xs ml-[1px]  "
               />
               {!!err.station_name && (
                 <span className='err'>{err.station_name}</span>
@@ -243,12 +243,12 @@ export const CreateHeadquarters: React.FC<CreateStationProps> = ({
                 placeholder="Station headquarter"
                 disableArrow={true}
                 hidePlaceholder={false}
-                className={`${(formik.touched.station_headQuarter && formik.errors.station_headQuarter) ? 'error-field' : ''}`}
+                className={`${(formik.touched.station_headQuarter && formik.errors.station_headQuarter) ? 'border-red-600 ' : ''}`}
               />
               )}
             </div>
 
-            <div className='modal-actions'>
+            <div className='flex justify-between p-4 w-full'>
               <button
                 autoFocus
                 id='cancel_button'

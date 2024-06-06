@@ -147,7 +147,7 @@ export const CreateGroup: React.FC<CreateAccountGroupProps> = ({
                 name='head_name'
                 placeholder='Head name'
                 disabled={isDelete && head_code}
-                className={`input-field ${formik.touched.head_name && formik.errors.head_name ? 'error-field' : ''}`}
+                className={`input-field ${formik.touched.head_name && formik.errors.head_name ? 'border-red-600 ' : ''}`}
                 innerRef={inputRef}
                 data-side-field='parent_code'
                 data-next-field='parent_code'
@@ -158,7 +158,7 @@ export const CreateGroup: React.FC<CreateAccountGroupProps> = ({
               <ErrorMessage
                 name='head_name'
                 component='div'
-                className='error'
+                className="text-red-600 font-xs ml-[1px]  "
               />
             </div>
 
@@ -171,7 +171,7 @@ export const CreateGroup: React.FC<CreateAccountGroupProps> = ({
                 value={inputValue}
                 onChange={handleInputChange}
                 disabled={isDelete && head_code}
-                className={`input-field ${formik.touched.parent_code && formik.errors.parent_code ? 'error-field' : ''}`}
+                className={`input-field ${formik.touched.parent_code && formik.errors.parent_code ? 'border-red-600 ' : ''}`}
                 data-side-field='submit_button'
                 data-next-field='submit_button'
                 data-prev-field='head_name'
@@ -202,11 +202,11 @@ export const CreateGroup: React.FC<CreateAccountGroupProps> = ({
               <ErrorMessage
                 name='parent_code'
                 component='div'
-                className='error'
+                className="text-red-600 font-xs ml-[1px]  "
               />
             </div>
 
-            <div className='modal-actions'>
+            <div className='flex justify-between p-4 w-full'>
               <button
                 autoFocus
                 id='cancel_button'

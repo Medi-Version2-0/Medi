@@ -353,8 +353,8 @@ export const SubGroups = () => {
   return (
     <>
         <div className='container'>
-        <div id='account_main'>
-          <h1 id='account_header'>Sub Groups</h1>
+        <div className="flex justify-between mx-[1.6rem] my-8  bg-[#f3f3f3]  ">
+          <h1 className="font-bold text-[#171A1FFF] m-0 ">Sub Groups</h1>
           <button
             id='account_button'
             className='account_button'
