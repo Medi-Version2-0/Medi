@@ -1,6 +1,4 @@
-import { 
-  // KeyboardEvent, 
-  useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Formik, Form, Field, ErrorMessage, FormikProps } from 'formik';
 import * as Yup from 'yup';
 import {
@@ -8,9 +6,9 @@ import {
   Option,
   SubGroupFormDataProps,
 } from '../../interface/global';
-import { Popup } from '../helpers/popup';
-import '../stations/stations.css';
-import CustomSelect from '../custom_select/CustomSelect';
+import { Popup } from '../../components/helpers/popup';
+import CustomSelect from '../../components/custom_select/CustomSelect';
+import Button from '../../components/common/button/Button';
 
 export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
   togglePopup,
@@ -28,7 +26,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
   const typeVal = useRef('');
   const electronAPI = (window as any).electronAPI;
   const formikRef = useRef<FormikProps<SubGroupFormDataProps>>(null);
-  const [parentGrpOptions, setParentGrpOptions]=useState<Option[]>([]);
+  const [parentGrpOptions, setParentGrpOptions] = useState<Option[]>([]);
 
   useEffect(() => {
     const focusTarget =
@@ -39,7 +37,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
   }, []);
 
   const getGroups = () => {
-    const grpList=electronAPI.getAllGroups('', '', '', '', '');
+    const grpList = electronAPI.getAllGroups('', '', '', '', '');
     setGroupData(electronAPI.getAllGroups('', '', '', '', ''));
     setParentGrpOptions(
       grpList.map((grp: any) => ({
@@ -60,23 +58,6 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
     getGroups();
     setInputValue(data?.parent_group ? data.parent_group : '');
   }, []);
-
-  // const validateInputs = () => {
-  //   const { value, id } = (document.getElementById('parent_group') as HTMLInputElement);
-  //   setErr('');
-
-  //   const isGroup = groupData.some((group: any) => group.group_name === value);
-
-  //   if (id === 'parent_group') {
-  //     if (!value) {
-  //       setErr('Parent Group is required');
-  //     } else if (value && isGroup === false) {
-  //       setErr('Invalid Parent group');
-  //     } else if (value && isGroup === true) {
-  //       parentGroupVal.current = value;
-  //     }
-  //   }
-  // };
 
   useEffect(
     () => {
@@ -117,13 +98,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
 
   });
 
-  
-
   const handleSubmit = async (values: object) => {
-    // validateInputs();
-    // if (err) {
-    //   return;
-    // }
     const formData = group_code
       ? { ...values, group_code: group_code, parent_group: inputValue }
       : inputValue
@@ -170,8 +145,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
             document.getElementById(prevField)?.focus();
             e.preventDefault();
           } else {
-            const sideField =
-              e.currentTarget.getAttribute('data-side-field') || '';
+            const sideField = e.currentTarget.getAttribute('data-side-field') || '';
             const value = (document.getElementById(sideField) as HTMLInputElement)?.value;
             document.getElementById(sideField)?.focus();
             formik && formik.setFieldValue('type', value);
@@ -206,15 +180,15 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
         onSubmit={handleSubmit}
       >
         {(formik) => (
-          <Form className='account-form'>
-            <div className='inputs'>
+          <Form className='flex flex-col gap-2 min-w-[18rem] items-center px-4 '>
+            <div className="flex flex-col w-full " >
               <Field
                 type='text'
                 id='group_name'
                 name='group_name'
                 placeholder='Group name'
                 disabled={isDelete && group_code}
-                className={`input-field ${formik.touched.group_name && formik.errors.group_name ? 'border-red-600 ' : ''}`}
+                className={`w-full p-3 rounded-md text-3  border border-solid  ${formik.touched.group_name && formik.errors.group_name ? 'border-red-600 ' : ''}`}
                 innerRef={inputRef}
                 data-side-field='parent_group'
                 data-next-field='parent_group'
@@ -228,39 +202,28 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                 className="text-red-600 font-xs ml-[1px]  "
               />
             </div>
-            <div className='inputs'>
-              {parentGrpOptions.length >0 && (
+            <div className="flex flex-col w-full " id='parent_group'>
+              {parentGrpOptions.length > 0 && (
                 <CustomSelect
-                value={formik.values.parent_group==='' ? null : { label: formik.values.parent_group, value: formik.values.parent_group }}
-                onChange={handleParentChange}
-                options={parentGrpOptions}
-                isSearchable={true}
-                placeholder="Station state"
-                disableArrow={true}
-                hidePlaceholder={false}
-                className={`${(formik.touched.parent_group && formik.errors.parent_group) ? 'border-red-600 ' : ''}`}
-              />
+                  value={formik.values.parent_group === '' ? null : { label: formik.values.parent_group, value: formik.values.parent_group }}
+                  onChange={handleParentChange}
+                  options={parentGrpOptions}
+                  isSearchable={true}
+                  placeholder="Parent group"
+                  disableArrow={true}
+                  hidePlaceholder={false}
+                  className={`${(formik.touched.parent_group && formik.errors.parent_group) ? 'border-red-600 ' : ''}`}
+                />
               )}
+              <ErrorMessage
+                name='parent_group'
+                component='div'
+                className="text-red-600 font-xs ml-[1px]  "
+              />
             </div>
-            <div style={{
-              width: '90%',
-              margin: '0rem auto',
-              marginTop: '0.6rem',
-            }}>
-              <div
-                style={{
-                  display: 'flex',
-                  height: '2.8rem',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '0.8rem',
-                  borderRadius: '0.4rem',
-                  border: '1px solid #c1c1c1',
-                }}
-              >
-                <label
-                  className={`credit-type ${group_code && isDelete ? 'disabled' : ''}`}
-                >
+            <div className='flex flex-col justify-center w-full'>
+              <div className='flex items-center justify-between w-full gap-2 rounded-md border border-solid border-[#c1c1c1]' >
+                <label className={`w-1/2 text-base cursor-pointer text-center p-3 font-bold  ${group_code && isDelete ? 'disabled' : ''}`}>
                   <Field
                     type='radio'
                     name='type'
@@ -277,9 +240,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                   />
                   P & L
                 </label>
-                <label
-                  className={`credit-type ${group_code && isDelete ? 'disabled' : ''}`}
-                >
+                <label className={`w-1/2 text-base cursor-pointer text-center p-3 font-bold  ${group_code && isDelete ? 'disabled' : ''}`}>
                   <Field
                     type='radio'
                     name='type'
@@ -304,12 +265,12 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
               />
             </div>
             <div className='flex justify-between p-4 w-full'>
-              <button
-                autoFocus
+              <Button
+                autoFocus={true}
+                type='fog'
                 id='cancel_button'
-                className='acc_button'
-                onMouseDown={() => togglePopup(false)}
-                onKeyDown={(e) => {
+                handleOnClick={() => togglePopup(false)}
+                handleOnKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
                     togglePopup(false);
@@ -317,27 +278,26 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                 }}
               >
                 Cancel
-              </button>
+              </Button>
               {isDelete ? (
-                <button
+                <Button
                   id='del_button'
-                  className='account_add_button'
-                  onClick={() => group_code && deleteAcc(group_code)}
-                  onKeyDown={(e) => {
+                  type='fill'
+                  handleOnClick={() => group_code && deleteAcc(group_code)}
+                  handleOnKeyDown={(e) => {
                     if (e.key === 'Tab') {
                       e.preventDefault();
                     }
                   }}
                 >
                   Delete
-                </button>
+                </Button>
               ) : (
-                <button
-                  type='submit'
-                  id='submit_button'
-                  className='account_add_button'
+                <Button
+                  id="submit_button"
+                  type="fill"
                   autoFocus
-                  onKeyDown={(e) => {
+                  handleOnKeyDown={(e) => {
                     if (e.key === 'Tab') {
                       document.getElementById('group_name')?.focus();
                       e.preventDefault();
@@ -345,7 +305,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                   }}
                 >
                   {group_code ? 'Update' : 'Add'}
-                </button>
+                </Button>
               )}
             </div>
           </Form>

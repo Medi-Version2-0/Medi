@@ -30,7 +30,7 @@ const Button: FC<ButtonProps> = ({
   className = "",
   icon: IconComponent,
   iconClass,
-  padding = "px-5 py-2",
+  padding = "px-6 py-2",
   btnType = "button",
   children,
   disable,
@@ -44,7 +44,7 @@ const Button: FC<ButtonProps> = ({
       case "highlight":
         return "bg-[#EAFBFCFF] border-2 border-solid border-[#009196FF] focus:border-yellow-500 focus-visible:border-yellow-500";
       case "fill":
-        return "bg-[#009196FF] hover:bg-[#009196FF] font-medium text-white rounded-xl border-none focus:border-yellow-500 focus-visible:border-yellow-500";
+        return "bg-[#009196FF] hover:bg-[#009196FF] font-medium text-white rounded-md border-none focus:border-yellow-500 focus-visible:border-yellow-500";
       case "fog":
         return "bg-white hover:bg-gray-100 font-medium text-[#171A1FFF] border-2 border-solid border-[#ccc]";
       default:
