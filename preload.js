@@ -4,7 +4,7 @@ const Station = require('./database/models/stations.js');
 const States = require('./database/models/statesData.js');
 const Account_groups = require('./database/models/account_group.js');
 const Groups = require('./database/models/groupsData.js');
-const PartySuggestions = require('./database/models/partySuggestionData.js');
+const SalesPurchase = require("./database/models/sales_purchase.js");
 
 const stationService = require('./helpers/stationService.js');
 const groupService = require('./helpers/groupService.js');
@@ -16,7 +16,7 @@ const station = new Station()
 const account_groups = new Account_groups()
 const states = new States()
 const groups = new Groups()
-const partySuggestions = new PartySuggestions()
+const salesPurchase = new SalesPurchase()
 
 contextBridge.exposeInMainWorld("electronAPI", {
   // STATIONS SERVICE
@@ -57,6 +57,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
   // Sales Purchase
   addSalesPurchase:(spData)=> salesPurchaseService.addSalesPurchase(spData),
+  getSalesPurchase: (where = "", sort = "", limit = "", type="") => salesPurchaseService.getSalesPurchase(where, sort, limit, type),
+  deleteSalesPurchase: (sp_id) => salesPurchase.delete(sp_id, 'sp_id'),
+  updateSalesPurchase: (sp_id, spData) => salesPurchase.update(sp_id, spData, 'sp_id'),
 
   // suggestion List for different inputs 
   addSuggestionList:(where = "", sort = "", limit = "")=> partyService.getAllSuggestions(where, sort, limit),

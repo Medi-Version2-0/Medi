@@ -3,14 +3,11 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Sales_Purchase_Section } from './sales_puchase_section';
 import * as Yup from 'yup';
-import { Popup } from '../helpers/popup';
 import Confirm_Alert_Popup from '../helpers/Confirm_Alert_Popup';
 
 export const Sales_Purchase: React.FC<any> = () => {
-  const [selection, setSelection] = useState<'Sales' | 'Purchase'>('Sales');
   const [salesPurchaseValidationSchema, setSalesPurchaseValidationSchema] =
     useState(Yup.object().shape({}));
-  const [open, setOpen] = useState<boolean>(true);
   const [hasErrors, setHasErrors] = useState(true);
   const location = useLocation();
   const data = location.state || {};
@@ -24,30 +21,8 @@ export const Sales_Purchase: React.FC<any> = () => {
 
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
-    return navigate('/sales_purchase');
+    return navigate('/sales_purchase_table', {state: typeof data === 'string' ? data : data.salesPurchaseType})
   };
-
-  const handleSelection = (value: 'Sales' | 'Purchase') => {
-    setSelection(value);
-  };
-
-  const togglePopup = () => {
-    setOpen(!open);
-  };
-
-  useEffect(() => {
-    const handleSidebarClick = (event: any) => {
-      if (event.target.id === 'sales_purchase_link') {
-        setOpen(true);
-      }
-    };
-
-    window.addEventListener('click', handleSidebarClick);
-
-    return () => {
-      window.removeEventListener('click', handleSidebarClick);
-    };
-  }, []);
 
   const sales_purchase_config = useFormik({
     initialValues: {
@@ -74,12 +49,19 @@ export const Sales_Purchase: React.FC<any> = () => {
 
   const handleSubmit = () => {
     sales_purchase_config.handleSubmit();
-    const allData = {
-      ...sales_purchase_config.values,
-    };
-    console.log('>>>>>all Data : ', allData);
-
-    electronAPI.addSalesPurchase(allData);
+    
+    if(data.sp_id){
+      const allData = {
+        ...sales_purchase_config.values,
+      };
+      electronAPI.updateSalesPurchase(data.sp_id, allData);
+    }else{
+      const allData = {
+        ...sales_purchase_config.values,
+        salesPurchaseType: data,
+      };
+      electronAPI.addSalesPurchase(allData);
+    }
   };
 
   useEffect(() => {
@@ -99,34 +81,9 @@ export const Sales_Purchase: React.FC<any> = () => {
 
   return (
     <div>
-      {open && (
-        <Popup headding='Choose the type' className='popup-heading'>
-          <div className='main-div'>
-            <button
-              id='sales_button'
-              className='sales_purchase_button'
-              onClick={() => {
-                handleSelection('Sales');
-                togglePopup();
-              }}
-            >
-              Sales
-            </button>
-            <button
-              id='purchase_button'
-              className='sales_purchase_button'
-              onClick={() => {
-                handleSelection('Purchase');
-                togglePopup();
-              }}
-            >
-              Purchase
-            </button>
-          </div>
-        </Popup>
-      )}
       <Sales_Purchase_Section
-        type={selection}
+        data={data}
+        type={typeof data === 'string' ? data : data.salesPurchaseType}
         formik={sales_purchase_config}
         receiveValidationSchemaSalesPurchase={
           receiveValidationSchemaSalesPurchase
@@ -140,7 +97,7 @@ export const Sales_Purchase: React.FC<any> = () => {
           setPopupState({
             ...popupState,
             isAlertOpen: true,
-            message: `${selection} account created successfully`,
+            message: `${typeof data === 'string' ? data : data.salesPurchaseType} account ${!!data.sp_id ? 'Update' : 'Submit'} successfully`,
           });
         }}
         className='submit_button'
@@ -152,7 +109,7 @@ export const Sales_Purchase: React.FC<any> = () => {
           }
         }}
       >
-        {!!data.party_id ? 'Update' : 'Submit'}
+        {!!data.sp_id ? 'Update' : 'Submit'}
       </button>
       {popupState.isAlertOpen && (
         <Confirm_Alert_Popup

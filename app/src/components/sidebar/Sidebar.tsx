@@ -82,7 +82,8 @@ const Sidebar: React.FC<SidebarProps> = ({
               <MenuItem url="/subgroups" label='Sub Groups'/>
               <MenuItem url="/stations" label='Stations'/>
               <MenuItem url="/headquarters" label='Headquarters'/>
-              <MenuItem url="/sales_purchase" label='Sales/Purchase'/>
+              <MenuItem url="/sales_purchase_table" label='Sales' icon={<GoPlus />} onClickIcon={() => navigate('/sales_purchase', {state: "Sales"})}/>
+              <MenuItem url="/sales_purchase_table" label='Purchase' icon={<GoPlus />} onClickIcon={() => navigate('/sales_purchase', {state: "Purchase"})}/>
               {showSubElements.setup && (
                 <>
                 </>

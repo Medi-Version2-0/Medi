@@ -14,7 +14,11 @@ const MenuItem: React.FC<MenuItemProps> = ({ label, url, className, icon, iconCl
     const navigate = useNavigate();
 
     const handleClick = () => {
-        navigate(url);
+        if(label === 'Sales' || label === 'Purchase'){
+            navigate(url, {state: label});
+        } else{
+            navigate(url);
+        }
     };
 
     const handleIconClick = (e: React.MouseEvent<HTMLSpanElement>) => {

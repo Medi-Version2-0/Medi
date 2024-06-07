@@ -8,6 +8,7 @@ import { Sp_Header_Section } from './sp_header_section';
 import { SalesPurchaseProps } from '../../interface/global';
 
 export const Sales_Purchase_Section: React.FC<SalesPurchaseProps> = ({
+  data,
   type,
   formik,
   receiveValidationSchemaSalesPurchase,
@@ -36,16 +37,16 @@ export const Sales_Purchase_Section: React.FC<SalesPurchaseProps> = ({
     receiveValidationSchemaSalesPurchase(validationSchema);
   }, [validationSchema, receiveValidationSchemaSalesPurchase]);
 
-  return (
+  return (  
     <>
       <div className='sp-container'>
         <div id='sp_main'>
-          <h1 id='sp_header'>Create {type} Master</h1>
+          <h1 id='sp_header'>{!!data.sp_id ? 'Update' : 'Create'} {type} Master</h1>
           <button
             id='sp_button'
             className='sp_button'
             onClick={() => {
-              return navigate(`/sales_purchase`);
+              return navigate(`/sales_purchase_table`, {state: type === 'Sales' ? 'Sales' : 'Purchase'});
             }}
           >
             Back

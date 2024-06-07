@@ -1,6 +1,7 @@
 const { statesList } = require("../models/states");
 const { groups } = require("../models/groups");
 const { PartyList } = require("../models/party");
+const { SalesPurchasePred } = require("../models/sales_purchase_pred");
 
 const insertStatements = (statesList.sort((a, b) => a.state_code - b.state_code)).map((state) => {
   const { state_code, state_name, union_territory } = state;
@@ -26,6 +27,12 @@ const insertPartyAccountGroup = PartyList.map((party) => {
   const isPredefinedPartyValue = isPredefinedParty ? 1 : 0;
   return `('${party_name}', ${account_code},${isPredefinedPartyValue} )`;
 });
+
+const insertSalesPurchase = SalesPurchasePred.map((sp) => {
+  let {spType, igst, cgst, sgst, salesPurchaseType} = sp;
+  console.log("inside insert sales purchase =====> ", sp); 
+  return `('${spType}', ${igst}, ${cgst}, ${sgst}, '${salesPurchaseType}')`; 
+})
 
 module.exports = {
   up: [
@@ -104,6 +111,7 @@ module.exports = {
     `CREATE TABLE IF NOT EXISTS sales_purchase (
           sp_id INTEGER PRIMARY KEY,
           spType TEXT NOT NULL,
+          salesPurchaseType TEXT NOT NULL,
           igst INTEGER,
           cgst INTEGER,
           sgst INTEGER,
@@ -121,6 +129,9 @@ module.exports = {
       ", "
     )};`,
     `INSERT INTO party_table (partyName, account_code, isPredefinedParty) VALUES ${insertPartyAccountGroup.join(
+      ", "
+    )};`,
+    `INSERT INTO sales_purchase (spType, igst, cgst, sgst, salesPurchaseType) VALUES ${insertSalesPurchase.join(
       ", "
     )};`,
   ],

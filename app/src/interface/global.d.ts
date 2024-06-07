@@ -21,7 +21,6 @@ export interface StationFormData {
     head_name: string;
     parent_code: string;
     group_details: any;
-    // station_pinCode: Number | undefined;
   }
 
 
@@ -31,7 +30,6 @@ export interface StationFormData {
     parent_code: string | null;
     type: string;
     isPredefinedGroup?: boolean,    
-    // station_pinCode: Number | undefined;
   }
   export interface SubGroupFormData {
     group_code?: string;
@@ -40,7 +38,6 @@ export interface StationFormData {
     parent_code?: Number;
     type: string;
     isPredefinedGroup?: boolean,    
-    // station_pinCode: Number | undefined;
   }
 
   export interface CreateStationProps {
@@ -116,10 +113,28 @@ interface Option {
   value: string;
   label: string;
 }
+
+export interface SalesPurchaseFormData {
+  spType?: string;
+  salesPurchaseType?: string;
+  igst?: Number | null;
+  cgst?: Number;
+  sgst?: Number,    
+  stper?: Number,    
+  surCharge?: Number,    
+  spNo?: Number,    
+  column?: Number,    
+  shortName?: string,    
+  shortName2?: string,    
+}
 interface SalesPurchaseProps {
+  data?:any;
   type?: any;
   formik?: any;
   receiveValidationSchemaSalesPurchase: (schema: Yup.ObjectSchema<any>) => void;
+}
+interface SalesPurchaseTableProps {
+  type?: any;
 }
 interface SpSubSectionProps {
   type?: any;
