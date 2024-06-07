@@ -1,24 +1,21 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import * as Yup from 'yup';
-import { Option, State } from '../../interface/global';
+import React, { useEffect, useState } from 'react';
+import { Option } from '../../interface/global';
 import CustomSelect from '../custom_select/CustomSelect';
 import FormikInputField from "../common/FormikInputField";
 
 interface GeneralInfoProps {
   onValueChange?: any;
   formik?: any;
-  receiveValidationSchemaGeneralInfo: (schema: Yup.ObjectSchema<any>) => void;
 }
 
 export const GeneralInfo: React.FC<GeneralInfoProps> = ({
   onValueChange,
   formik,
-  receiveValidationSchemaGeneralInfo,
 }) => {
   const [accountInputValue, setAccountInputValue] = useState<string>(formik.values.accountGroup || "");
-  const [stationData, setStationData] = useState<any[]>([]);
-  const [groupData, setGroupData] = useState<any[]>([]);
-  const [stateData, setStateData] = useState<any[]>([]);
+  const [, setStationData] = useState<any[]>([]);
+  const [, setGroupData] = useState<any[]>([]);
+  const [, setStateData] = useState<any[]>([]);
   const [groupOptions, setGroupOptions] = useState<Option[]>([]);
   const [stationOptions, setStationOptions] = useState<Option[]>([]);
   const [stateOptions, setStateOptions] = useState<Option[]>([]);
@@ -69,65 +66,6 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
     formik.setFieldValue(id, option?.value);
   };
 
-  const validationSchema = useMemo(
-    () =>
-      Yup.object({
-        partyName: Yup.string()
-          .max(100, 'Party Name must be 100 characters or less')
-          .required('Party Name is required'),
-        accountGroup: Yup.string()
-          .required('Account group is required')
-          .transform((value) => (value ? value?.toLowerCase() : ''))
-          .test(
-            'valid-account-group',
-            'Invalid Account Group',
-            function (value) {
-              return groupData
-                .map((group) => group.group_name?.toLowerCase())
-                .includes(value);
-            }
-          ),
-        country: isSUNDRY ? Yup.string().required('Country is required') : Yup.string(),
-        state: isSUNDRY ? Yup.string()
-          .required('State is required')
-          .transform((value) => (value ? value?.toLowerCase() : ''))
-          .test(
-            'valid-state',
-            'Invalid State',
-            function (value) {
-              return stateData
-                .map((state: State) => state.state_name?.toLowerCase())
-                .includes(value);
-            }
-          )
-          : Yup.string(),
-        stationName: isSUNDRY ? Yup.string()
-          .required('Station is required')
-          .transform((value) => (value ? value?.toLowerCase() : ''))
-          .test(
-            'valid-station-name',
-            'Invalid Station name',
-            function (value) {
-              return stationData
-                .map((station) => station.station_name?.toLowerCase())
-                .includes(value);
-            }
-          )
-          : Yup.string(),
-        mailTo: Yup.string().email('Invalid email'),
-        pinCode: isSUNDRY ? Yup.string()
-          .matches(/^[0-9]+$/, 'PIN code must be a number')
-          .matches(/^[1-9]/, 'PIN code must not start with zero')
-          .matches(/^[0-9]{6}$/, 'PIN code must be exactly 6 digits')
-          : Yup.string(),
-      }),
-    [groupData, stationData, accountInputValue, stateData]
-  );
-
-  useEffect(() => {
-    receiveValidationSchemaGeneralInfo(validationSchema);
-  }, [validationSchema, receiveValidationSchemaGeneralInfo]);
-
   const handleAddressInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'ArrowDown' || e.key === 'Enter') {
       document.getElementById('state')?.focus();
@@ -140,7 +78,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
   return (
     <div className='ledger_general_info'>
       <div className='general_info_prefix'>General Info</div>
-      <form onSubmit={formik.handleSubmit} className='general_info_inputs'>
+      <div className='general_info_inputs'>
         <FormikInputField
           label='Party Name'
           id='partyName'
@@ -409,7 +347,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
               className="custom-select-field"
             />
           </div>
-      </form>
+      </div>
     </div>
   );
 };

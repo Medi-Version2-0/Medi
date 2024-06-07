@@ -234,6 +234,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                 value={formik.values.parent_group==='' ? null : { label: formik.values.parent_group, value: formik.values.parent_group }}
                 onChange={handleParentChange}
                 options={parentGrpOptions}
+                isDisabled={isDelete && group_code}
                 isSearchable={true}
                 placeholder="Station state"
                 disableArrow={true}

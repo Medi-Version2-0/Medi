@@ -3,7 +3,7 @@ import 'ag-grid-community/styles/ag-theme-quartz.css';
 import './ledger_form.css';
 import { GeneralInfo } from './general_info';
 import { BalanceInfo } from './balance_info';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ContactsInfo } from './contacts_info';
 import { BankDetails } from './bank_details';
 import { ContactDetails } from './contact_details';
@@ -24,23 +24,16 @@ const initialValue = {
 export const Ledger = () => {
   const [valueFromGeneral, setValueFromGeneral] = useState('');
   const [showActiveElement, setShowActiveElement] = useState(initialValue);
-  const [generalInfovalidationSchema, setGeneralInfovalidationSchema] =
-    useState(Yup.object().shape({}));
-  const [contactInfoValidationSchema, setContactInfoValidationSchema] =
-    useState(Yup.object().shape({}));
-  const [gstDataValidationSchema, setGstDataValidationSchema] = useState(
-    Yup.object().shape({})
-  );
-  const [personalInfoValidationSchema, setPersonalInfoValidationSchema] =
-    useState(Yup.object().shape({}));
-  const [bankDetailsValidationSchema, setBankDetailsValidationSchema] =
-    useState(Yup.object().shape({}));
-  const [hasErrors, setHasErrors] = useState(true);
+  // const [hasErrors, setHasErrors] = useState(true);
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
     message: '',
   });
+
+  const isSUNDRY = (valueFromGeneral === 'SUNDRY CREDITORS' || valueFromGeneral === 'SUNDRY DEBTORS');
+  const phoneRegex = /^[6-9][0-9]{9}$/;
+  const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
 
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
@@ -55,23 +48,82 @@ export const Ledger = () => {
   const location = useLocation();
   const data = location.state || {};
 
-  const generalInfo = useFormik({
+  useEffect(() => {
+    ledgerFormInfo.validateForm();
+  }, [valueFromGeneral]);
+
+  const ledgerFormValidationSchema = Yup.object({
+      // general info VS
+      partyName: Yup.string()
+        .max(100, 'Party Name must be 100 characters or less')
+        .required('Party Name is required'),
+      accountGroup: Yup.string().required('Account group is required'),
+      country: isSUNDRY
+        ? Yup.string().required('Country is required')
+        : Yup.string(),
+      state: isSUNDRY
+        ? Yup.string().required('State is required')
+        : Yup.string(),
+      stationName: isSUNDRY
+        ? Yup.string().required('Station is required')
+        : Yup.string(),
+      mailTo: Yup.string().email('Invalid email'),
+      pinCode: isSUNDRY
+        ? Yup.string()
+            .matches(/^[0-9]+$/, 'PIN code must be a number')
+            .matches(/^[1-9]/, 'PIN code must not start with zero')
+            .matches(/^[0-9]{6}$/, 'PIN code must be exactly 6 digits')
+        : Yup.string(),
+
+      // contacts info VS
+      phoneNumber: isSUNDRY
+        ? Yup.string()
+            .matches(phoneRegex, 'Invalid phone number')
+            .required('Phone number is required')
+        : Yup.string(),
+
+      // gst data VS
+      gstIn: isSUNDRY
+        ? Yup.string()
+          .required('GST number is required')
+          .max(15, 'Not a valid GSTIN, Required 15 character')
+          .matches(gstRegex, 'GST number is not valid')
+          .required('GST number is required')
+        : Yup.string(),
+
+      // personal info VS
+      emailId1: Yup.string().email('Invalid email'),
+      emailId2: Yup.string().email('Invalid email'),
+      website_input: Yup.string().matches(
+        /((https?):\/\/)?(www.)?[a-z0-9]+(\.[a-z]{2,}){1,3}(#?\/?[a-zA-Z0-9#]+)*\/?(\?[a-zA-Z0-9-_]+=[a-zA-Z0-9-%]+&?)?$/,
+        'Enter correct url!'
+      ),
+
+      // bank details VS
+      accountHolderName: Yup.string().max(
+        100,
+        'Account Holder Name must be 50 characters or less'
+      ),
+    });
+
+  const ledgerFormInfo = useFormik({
     initialValues: {
-      partyName: data?.partyName ||'',
-      accountGroup: data?.accountGroup ||'',
-      account_code: data?.account_code ||'',
-      isPredefinedParty: data?.isPredefinedParty ||true,
-      station_id: data?.station_id ||'',
-      stationName: data?.stationName ||'',
-      mailTo: data?.mailTo ||'',
-      address1: data?.address1 ||'',
-      address2: data?.address2 ||'',
-      address3: data?.address3 ||'',
-      country: data?.country ||'',
-      state: data?.state ||'',
-      city: data?.city ||'',
-      pinCode: data?.pinCode ||'',
-      stateInout: data?.stateInout ||'',
+      // general info
+      partyName: data?.partyName || '',
+      accountGroup: data?.accountGroup || '',
+      account_code: data?.account_code || '',
+      isPredefinedParty: data?.isPredefinedParty || true,
+      station_id: data?.station_id || '',
+      stationName: data?.stationName || '',
+      mailTo: data?.mailTo || '',
+      address1: data?.address1 || '',
+      address2: data?.address2 || '',
+      address3: data?.address3 || '',
+      country: data?.country || '',
+      state: data?.state || '',
+      city: data?.city || '',
+      pinCode: data?.pinCode || '',
+      stateInout: data?.stateInout || '',
       transport: data?.transport || '',
       creditPrivilege: data?.creditPrivilege || '',
       vatNumber: data?.vatNumber || '',
@@ -81,107 +133,57 @@ export const Ledger = () => {
       deductDiscount: data?.deductDiscount || '',
       stopNrx: data?.stopNrx || '',
       stopHi: data?.stopHi || '',
-      notPrinpba: data?.notPrinpba || ''
-    },
-    validationSchema: generalInfovalidationSchema,
-    onSubmit: (values) => {
-      console.log('Form data', values);
-    },
-  });
+      notPrinpba: data?.notPrinpba || '',
 
-  const balanceInfo = useFormik({
-    initialValues: {
-      openingBal:  data?.openingBal ||'0.00',
-      openingBalType:  data?.openingBalType ||'',
-      creditDays:  data?.creditDays ||'0',
-      creditLimit: data?.creditLimit || '0'
-    },
-    onSubmit: (values) => {
-      console.log('balance info ', values);
-    },
-  });
+      // balance info
+      openingBal: data?.openingBal || '0.00',
+      openingBalType: data?.openingBalType || '',
+      creditDays: data?.creditDays || '0',
+      creditLimit: data?.creditLimit || '0',
 
-  const contactsInfo = useFormik({
-    initialValues: {
-      phoneNumber:  data?.phoneNumber ||'',
-    },
-    validationSchema: contactInfoValidationSchema,
-    onSubmit: (values) => {
-      console.log('contact info data', values);
-    },
-  });
+      // contact info
+      phoneNumber: data?.phoneNumber || '',
 
-  const gstData = useFormik({
-    initialValues: {
-      gstIn:  data?.gstIn ||'',
-      panCard:  data?.panCard ||'',
-    },
-    validationSchema: gstDataValidationSchema,
-    onSubmit: (values) => {
-      console.log('gstData data', values);
-    },
-  });
+      // gst data
+      gstIn: data?.gstIn || '',
+      panCard: data?.panCard || '',
 
-  const personalInfo = useFormik({
-    initialValues: {
-      firstName:  data?.firstName ||'',
-      lastName:  data?.lastName ||'',
-      emailId1:  data?.emailId1 ||'',
-      emailId2:  data?.emailId2 ||'',
-    },
-    validationSchema: personalInfoValidationSchema,
-    onSubmit: (values) => {
-      console.log('personalInfo data', values);
-    },
-  });
+      // personal info
+      firstName: data?.firstName || '',
+      lastName: data?.lastName || '',
+      emailId1: data?.emailId1 || '',
+      emailId2: data?.emailId2 || '',
 
-  const licenceInfo = useFormik({
-    initialValues: {
-      drugLicenceNo1:  data?.drugLicenceNo1 ||'',
-      // drugLicenceNo2: data?.drugLicenceNo2 ||'',
-    },
-    onSubmit: (values) => {
-      console.log('licenceInfo data', values);
-    },
-  });
+      // licence info
+      drugLicenceNo1: data?.drugLicenceNo1 || '',
 
-  const bankDetails = useFormik({
-    initialValues: {
-      accountHolderName:  data?.accountHolderName ||'',
-      accountNumber:  data?.accountNumber ||'',
-      bankName:  data?.bankName ||'',
-      ifscCode:  data?.ifscCode ||'',
-      accountType:  data?.accountType ||'',
-      branchName:  data?.branchName ||'',
+      // bank details
+      accountHolderName: data?.accountHolderName || '',
+      accountNumber: data?.accountNumber || '',
+      bankName: data?.bankName || '',
+      ifscCode: data?.ifscCode || '',
+      accountType: data?.accountType || '',
+      branchName: data?.branchName || '',
     },
-    validationSchema: bankDetailsValidationSchema,
+    validationSchema: ledgerFormValidationSchema,
     onSubmit: (values) => {
-      console.log('bankDetails data', values);
+      const allData = {
+        ...values
+      };  
+      console.log(">>>>>>> all data > ",allData)
+      if (data.party_id) {
+        electronAPI.updateParty(data.party_id, allData);
+      } else {
+        electronAPI.addParty(allData);
+      }
+      console.log('inserted Form data', values);
     },
   });
 
   const electronAPI = (window as any).electronAPI;
 
-  const receiveValidationSchemaGeneralInfo = useCallback((schema: any) => {
-    setGeneralInfovalidationSchema(schema);
-  }, []);
-  const receiveValidationSchemaContactInfo = useCallback((schema: any) => {
-    setContactInfoValidationSchema(schema);
-  }, []);
-  const receiveValidationSchemaGstData = useCallback((schema: any) => {
-    setGstDataValidationSchema(schema);
-  }, []);
-  const receiveValidationSchemaPersonalInfo = useCallback((schema: any) => {
-    setPersonalInfoValidationSchema(schema);
-  }, []);
-  const receiveValidationSchemaBankDetails = useCallback((schema: any) => {
-    setBankDetailsValidationSchema(schema);
-  }, []);
-
   const handleValueChange = (value: any) => {
     setValueFromGeneral(value);
-    setGstDataValidationSchema(Yup.object().shape({}));
-    setContactInfoValidationSchema(Yup.object().shape({}));
   };
 
   const prevClass = useRef('');
@@ -201,272 +203,191 @@ export const Ledger = () => {
     prevClass.current = clickedClass;
   };
 
-  const handleSubmit = () => {
-    generalInfo.handleSubmit();
-    balanceInfo.handleSubmit();
-    contactsInfo.handleSubmit();
-    gstData.handleSubmit();
-    personalInfo.handleSubmit();
-    licenceInfo.handleSubmit();
-    bankDetails.handleSubmit();
-    const allData = {
-      ...generalInfo.values,
-        ...balanceInfo.values,
-        ...contactsInfo.values,
-      ...gstData.values,...personalInfo.values,
-        ...licenceInfo.values,
-        ...bankDetails.values,
-    };
-    console.log(">>>>>all Data : ",allData);
-
-    if(data.party_id){
-      electronAPI.updateParty(data.party_id, allData);
-    }
-    else{
-      electronAPI.addParty(allData);  
-    }
-  };
-
-  useEffect(() => {
-    const checkErrors = async () => {
-      const generalInfoErrors = await generalInfo.validateForm();
-      const balanceInfoErrors = await balanceInfo.validateForm();
-      const contactsInfoErrors = await contactsInfo.validateForm();
-      const gstDataErrors = await gstData.validateForm();
-      const personalInfoErrors = await personalInfo.validateForm();
-      const licenceInfoErrors = await licenceInfo.validateForm();
-      const bankDetailsErrors = await bankDetails.validateForm();
-
-      const allErrors = {
-        ...generalInfoErrors,
-        ...balanceInfoErrors,
-        ...contactsInfoErrors,
-        ...gstDataErrors,
-        ...personalInfoErrors,
-        ...licenceInfoErrors,
-        ...bankDetailsErrors,
-      };
-
-      setHasErrors(Object.keys(allErrors).length > 0);
-    };
-
-    checkErrors();
-  }, [
-    generalInfo.values,
-    generalInfo.isValid,
-    balanceInfo.values,
-    contactsInfo.values,
-    contactsInfo.isValid,
-    gstData.values,
-    gstData.isValid,
-    personalInfo.values,
-    licenceInfo.values,
-    bankDetails.values,
-  ]);
-
   return (
     <>
-        <div className='ledger_container'>
-          <div id='ledger_main'>
-            <h1 id='ledger_header'>{ !!data.party_id ? "Update Party" : "Create Party"}</h1>
-            <button
-              id='ledger_button'
-              className='ledger_button'
-              onClick={() => {
-                return navigate(`/ledger_table`);
-              }}
-            >
-              Back
-            </button>
-          </div>
-
-          <div className='middle_form'>
-            <GeneralInfo
-              onValueChange={handleValueChange}
-              formik={generalInfo}
-              receiveValidationSchemaGeneralInfo={
-                receiveValidationSchemaGeneralInfo
-              }
-            />
-            <div className='ledger_general_details'>
-              <BalanceInfo
-                accountInputValue={valueFromGeneral}
-                formik={balanceInfo}
-              />
-              <ContactsInfo
-                accountInputValue={valueFromGeneral}
-                formik={contactsInfo}
-                receiveValidationSchemaContactInfo={
-                  receiveValidationSchemaContactInfo
-                }
-              />
-            </div>
-          </div>
-
-          {(valueFromGeneral === 'SUNDRY CREDITORS' ||
-            valueFromGeneral === 'SUNDRY DEBTORS') && (
-            <div className='middle_form_2'>
-              <div className='middle_form_2_buttons'>
-                <div className='buttons'>
-                  <button
-                    className='btn btn_1 active'
-                    id='GST/Tax Details'
-                    onClick={() => handleClick('btn_1')}
-                    onKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
-                      if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                        handleClick('btn_1');
-                        document.getElementById('ledgerType')?.focus();
-                        e.preventDefault();
-                      } else if (e.key === 'ArrowRight') {
-                        document.getElementById('Licence_Info')?.focus();
-                        e.preventDefault();
-                      }
-                      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-                        document.getElementById('phone3')?.focus();
-                        e.preventDefault();
-                      }
-                    }}
-                  >
-                    GST/Tax Details
-                  </button>
-                </div>
-                <div className='buttons'>
-                  <button
-                    className='btn btn_2'
-                    id='Licence_Info'
-                    onClick={() => handleClick('btn_2')}
-                    onKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
-                      if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                        handleClick('btn_2');
-                        document.getElementById('drugLicenceNo1')?.focus();
-                        e.preventDefault();
-                      } else if (e.key === 'ArrowRight') {
-                        document.getElementById('Contact_Info')?.focus();
-                        e.preventDefault();
-                      }
-                      if (e.key === 'ArrowLeft') {
-                        document.getElementById('GST/Tax Details')?.focus();
-                        e.preventDefault();
-                      }
-                    }}
-                  >
-                    Licence Info
-                  </button>
-                </div>
-                <div className='buttons'>
-                  <button
-                    className='btn btn_3'
-                    id='Contact_Info'
-                    onClick={() => handleClick('btn_3')}
-                    onKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
-                      if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                        handleClick('btn_3');
-                        document.getElementById('firstName')?.focus();
-                        e.preventDefault();
-                      } else if (e.key === 'ArrowRight') {
-                        document.getElementById('Bank_Details')?.focus();
-                        e.preventDefault();
-                      }
-                      if (e.key === 'ArrowLeft') {
-                        document.getElementById('Licence_Info')?.focus();
-                        e.preventDefault();
-                      }
-                    }}
-                  >
-                    Contact Info
-                  </button>
-                </div>
-                <div className='buttons'>
-                  <button
-                    className='btn btn_4'
-                    id='Bank_Details'
-                    onClick={() => handleClick('btn_4')}
-                    onKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
-                      if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                        handleClick('btn_4');
-                        document.getElementById('bankName')?.focus();
-                        e.preventDefault();
-                      } else if (e.key === 'ArrowLeft') {
-                        document.getElementById('Contact_Info')?.focus();
-                        e.preventDefault();
-                      }
-                    }}
-                  >
-                    Bank Details
-                  </button>
-                </div>
-              </div>
-              <div className='middle_form_2_content'>
-                {showActiveElement.btn_1 && (
-                  <TaxDetails
-                    formik={gstData}
-                    receiveValidationSchemaGstData={
-                      receiveValidationSchemaGstData
-                    }
-                  />
-                )}
-                {showActiveElement.btn_3 && (
-                  <ContactDetails
-                    formik={personalInfo}
-                    receiveValidationSchemaPersonalInfo={
-                      receiveValidationSchemaPersonalInfo
-                    }
-                  />
-                )}
-                {showActiveElement.btn_2 && (
-                  <LicenceInfo formik={licenceInfo} />
-                )}
-                {showActiveElement.btn_4 && (
-                  <BankDetails
-                    formik={bankDetails}
-                    receiveValidationSchemaBankDetails={
-                      receiveValidationSchemaBankDetails
-                    }
-                  />
-                )}
-              </div>
-            </div>
-          )}
-          <div>
-            <button
-              type='button'
-              id='submit_all'
-              onClick={() => {
-                handleSubmit();
-                setPopupState({
-                  ...popupState,
-                  isAlertOpen: true,
-                  message: 'Ledger created successfully',
-                });
-              }}
-              className='submit_button'
-              disabled={hasErrors}
-              onKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
-                if (e.key === 'ArrowUp') {
-                  document
-                    .getElementById(
-                      valueFromGeneral.toUpperCase() === 'SUNDRY CREDITORS' ||
-                        valueFromGeneral.toUpperCase() === 'SUNDRY DEBTORS'
-                        ? 'accountHolderName'
-                        : 'openingBalType'
-                    )
-                    ?.focus();
-                  e.preventDefault();
-                }
-              }}
-            >
-              {!!data.party_id ? "Update" : "Submit"}
-            </button>
-          </div>
-          {(popupState.isModalOpen || popupState.isAlertOpen) && (
-            <Confirm_Alert_Popup
-              onClose={handleClosePopup}
-              onConfirm={handleAlertCloseModal}
-              message={popupState.message}
-              isAlert={popupState.isAlertOpen}
-            />
-          )}
+      <div className='ledger_container'>
+        <div id='ledger_main'>
+          <h1 id='ledger_header'>
+            {!!data.party_id ? 'Update Party' : 'Create Party'}
+          </h1>
+          <button
+            id='ledger_button'
+            className='ledger_button'
+            onClick={() => {
+              return navigate(`/ledger_table`);
+            }}
+          >
+            Back
+          </button>
         </div>
+
+        <form onSubmit={ledgerFormInfo.handleSubmit} className='responsive-form'>
+        <div className='middle_form'>
+          <GeneralInfo
+            onValueChange={handleValueChange}
+            formik={ledgerFormInfo}
+          />
+          <div className='ledger_general_details'>
+            <BalanceInfo
+              accountInputValue={valueFromGeneral}
+              formik={ledgerFormInfo}
+            />
+            <ContactsInfo
+              accountInputValue={valueFromGeneral}
+              formik={ledgerFormInfo}
+            />
+          </div>
+        </div>
+
+        {(valueFromGeneral === 'SUNDRY CREDITORS' ||
+          valueFromGeneral === 'SUNDRY DEBTORS') && (
+          <div className='middle_form_2'>
+            <div className='middle_form_2_buttons'>
+              <div className='buttons'>
+                <button
+                  className='btn btn_1 active'
+                  id='GST/Tax Details'
+                  onClick={() => handleClick('btn_1')}
+                  onKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
+                    if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                      handleClick('btn_1');
+                      document.getElementById('ledgerType')?.focus();
+                      e.preventDefault();
+                    } else if (e.key === 'ArrowRight') {
+                      document.getElementById('Licence_Info')?.focus();
+                      e.preventDefault();
+                    }
+                    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                      document.getElementById('phone3')?.focus();
+                      e.preventDefault();
+                    }
+                  }}
+                >
+                  GST/Tax Details
+                </button>
+              </div>
+              <div className='buttons'>
+                <button
+                  className='btn btn_2'
+                  id='Licence_Info'
+                  onClick={() => handleClick('btn_2')}
+                  onKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
+                    if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                      handleClick('btn_2');
+                      document.getElementById('drugLicenceNo1')?.focus();
+                      e.preventDefault();
+                    } else if (e.key === 'ArrowRight') {
+                      document.getElementById('Contact_Info')?.focus();
+                      e.preventDefault();
+                    }
+                    if (e.key === 'ArrowLeft') {
+                      document.getElementById('GST/Tax Details')?.focus();
+                      e.preventDefault();
+                    }
+                  }}
+                >
+                  Licence Info
+                </button>
+              </div>
+              <div className='buttons'>
+                <button
+                  className='btn btn_3'
+                  id='Contact_Info'
+                  onClick={() => handleClick('btn_3')}
+                  onKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
+                    if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                      handleClick('btn_3');
+                      document.getElementById('firstName')?.focus();
+                      e.preventDefault();
+                    } else if (e.key === 'ArrowRight') {
+                      document.getElementById('Bank_Details')?.focus();
+                      e.preventDefault();
+                    }
+                    if (e.key === 'ArrowLeft') {
+                      document.getElementById('Licence_Info')?.focus();
+                      e.preventDefault();
+                    }
+                  }}
+                >
+                  Contact Info
+                </button>
+              </div>
+              <div className='buttons'>
+                <button
+                  className='btn btn_4'
+                  id='Bank_Details'
+                  onClick={() => handleClick('btn_4')}
+                  onKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
+                    if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                      handleClick('btn_4');
+                      document.getElementById('bankName')?.focus();
+                      e.preventDefault();
+                    } else if (e.key === 'ArrowLeft') {
+                      document.getElementById('Contact_Info')?.focus();
+                      e.preventDefault();
+                    }
+                  }}
+                >
+                  Bank Details
+                </button>
+              </div>
+            </div>
+            <div className='middle_form_2_content'>
+              {showActiveElement.btn_1 && (
+                <TaxDetails formik={ledgerFormInfo} />
+              )}
+              {showActiveElement.btn_3 && (
+                <ContactDetails formik={ledgerFormInfo} />
+              )}
+              {showActiveElement.btn_2 && (
+                <LicenceInfo formik={ledgerFormInfo} />
+              )}
+              {showActiveElement.btn_4 && (
+                <BankDetails formik={ledgerFormInfo} />
+              )}
+            </div>
+          </div>
+        )}
+        <div>
+          <button
+            type='submit'
+            id='submit_all'
+            disabled={!(ledgerFormInfo.isValid && ledgerFormInfo.dirty)}
+            onClick={() => {
+              setPopupState({
+                ...popupState,
+                isAlertOpen: true,
+                message: 'Ledger created successfully',
+              });
+            }}
+            className='submit_button'
+            onKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
+              if (e.key === 'ArrowUp') {
+                document
+                  .getElementById(
+                    valueFromGeneral.toUpperCase() === 'SUNDRY CREDITORS' ||
+                      valueFromGeneral.toUpperCase() === 'SUNDRY DEBTORS'
+                      ? 'accountHolderName'
+                      : 'openingBalType'
+                  )
+                  ?.focus();
+                e.preventDefault();
+              }
+            }}
+          >
+            {!!data.party_id ? 'Update' : 'Submit'}
+          </button>
+        </div>
+        </form>
+        {(popupState.isModalOpen || popupState.isAlertOpen) && (
+          <Confirm_Alert_Popup
+            onClose={handleClosePopup}
+            onConfirm={handleAlertCloseModal}
+            message={popupState.message}
+            isAlert={popupState.isAlertOpen}
+          />
+        )}
+      </div>
     </>
   );
 };

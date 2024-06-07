@@ -19,6 +19,7 @@ interface CustomSelectProps extends Omit<SelectProps<Option>, 'onChange'> {
 }
 
 const CustomSelect: React.FC<CustomSelectProps> = ({
+  isDisabled = false,
   label,
   id,
   labelClass,
@@ -60,6 +61,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
         className={className}
         {...props}
         onKeyDown={onKeyDown}
+        isDisabled={isDisabled}
       />
     </>
   );

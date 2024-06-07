@@ -234,6 +234,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                 disableArrow={true}
                 hidePlaceholder={false}
                 className={`${(formik.touched.station_state && formik.errors.station_state) ? 'border-red-600 ' : ''}`}
+                isDisabled={isDelete && station_id}
               />
               )}
             </div>

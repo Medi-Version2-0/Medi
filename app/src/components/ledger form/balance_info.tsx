@@ -37,7 +37,7 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
   return (
     <div className='ledger_balance_info'>
       <div className='balance_prefix'>Balance</div>
-      <form onSubmit={formik.handleSubmit} className='balance_inputs'>
+      <div className='balance_inputs'>
         <div className='ledger_inputs'>
           <FormikInputField
             label={`Opening Balance ${'  '}₹`}
@@ -127,7 +127,7 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
             />
           </>
         )}
-      </form>
+      </div>
     </div>
   );
 };
