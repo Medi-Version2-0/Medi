@@ -1,12 +1,10 @@
-import { 
-  // KeyboardEvent, 
-  useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Formik, Form, Field, ErrorMessage, FormikProps } from 'formik';
 import { CreateStationProps, FormDataProps, Option, State } from '../../interface/global';
-import { Popup } from '../helpers/popup';
+import { Popup } from '../../components/popup/Popup';
 import * as Yup from 'yup';
-import './stations.css';
-import CustomSelect from '../custom_select/CustomSelect';
+import CustomSelect from '../../components/custom_select/CustomSelect';
+import Button from '../../components/common/button/Button';
 
 export const CreateStation: React.FC<CreateStationProps> = ({
   togglePopup,
@@ -17,21 +15,10 @@ export const CreateStation: React.FC<CreateStationProps> = ({
 }) => {
   const { station_id } = data;
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const [stationState, setStationState] = useState<{
-    inputValue: string,
-    data: State[],
-    suggestions: State[]
-  }>({
-    inputValue: '',
-    data: [],
-    suggestions: []
-  });
-
-  // const [selectedIndex, setSelectedIndex] = useState(0);
-  const [, setErr] = useState("");
   const electronAPI = (window as any).electronAPI;
   const formikRef = useRef<FormikProps<FormDataProps>>(null);
   const [stateOptions, setStateOptions] = useState<Option[]>([]);
+  const [focused, setFocused] = useState("");
 
   const validationSchema = Yup.object({
     station_name: Yup.string()
@@ -61,72 +48,24 @@ export const CreateStation: React.FC<CreateStationProps> = ({
 
   const getStates = () => {
     const statesList = electronAPI.getAllStates('', 'state_name', '', '', '');
-    setStationState((prevState) => ({
-      ...prevState,
-      data: statesList
-    }));
     setStateOptions(
       statesList.map((state: State) => ({
         value: state.state_name,
-        label: state.state_name.toLowerCase(),
+        label: state.state_name,
       }))
     );
   };
 
-  const handleStateChange = (option: Option | null) => {
-    setStationState((prevState) => ({
-      ...prevState,
-      inputValue: option?.value || "",
-      suggestions: [],
-    }));
-    formikRef.current?.setFieldValue('station_state', option?.value);
-    setErr("");
-  };
-
   useEffect(() => {
     getStates();
-    setStationState((prevState) => ({
-      ...prevState,
-      inputValue: data?.station_state ? data.station_state : '',
-    }));
   }, []);
 
-  // const validateInputs = () => {
-  //   const { value, id } = (document.getElementById('station_state') as HTMLInputElement);
-
-  //   setErr("");
-
-  //   const isState = stationState.data.some(
-  //     (state: any) => state.state_name === value
-  //   );
-  //   if (id === 'station_state') {
-  //     if (!value) {
-  //       setErr('State is required');
-  //     } else if (value && isState === false) {
-  //       setErr('Invalid State');
-  //     }
-  //   }
-  // };
-
   const handleSubmit = async (values: object) => {
-    // validateInputs();
-    // if(err){
-    //   return;
-    // }
-
-    const formData = station_id
-      ? {
-        ...values,
-        station_id: station_id,
-        station_state: stationState.inputValue,
-      }
-      : stationState.inputValue
-        ? {
-          ...values,
-          station_state: stationState.inputValue,
-        }
-        : values;
-    !station_id && document.getElementById('account_button')?.focus();
+    const formData = {
+      ...values,
+      ...(station_id && { station_id }),
+    };
+    (!station_id) && document.getElementById('account_button')?.focus();
     handelFormSubmit(formData);
   };
 
@@ -141,16 +80,14 @@ export const CreateStation: React.FC<CreateStationProps> = ({
       case 'ArrowDown':
       case 'Enter':
         {
-          const nextField =
-            e.currentTarget.getAttribute('data-next-field') || '';
+          const nextField = e.currentTarget.getAttribute('data-next-field') || '';
           document.getElementById(nextField)?.focus();
           e.preventDefault();
         }
         break;
       case 'ArrowUp':
         {
-          const prevField =
-            e.currentTarget.getAttribute('data-prev-field') || '';
+          const prevField = e.currentTarget.getAttribute('data-prev-field') || '';
           document.getElementById(prevField)?.focus();
           e.preventDefault();
         }
@@ -158,15 +95,16 @@ export const CreateStation: React.FC<CreateStationProps> = ({
       case 'Tab':
         {
           if (shiftPressed) {
-            const prevField =
-              e.currentTarget.getAttribute('data-prev-field') || '';
+            const prevField = e.currentTarget.getAttribute('data-prev-field') || '';
+            setFocused(prevField);
             document.getElementById(prevField)?.focus();
             e.preventDefault();
           } else {
             const sideField = e.currentTarget.getAttribute('data-side-field') || '';
             const value = (document.getElementById(sideField) as HTMLInputElement)?.value;
-            formik && formik.setFieldValue('cst_sale', value);
+            setFocused(sideField);
             document.getElementById(sideField)?.focus();
+            formik && formik.setFieldValue('cst_sale', value);
             e.preventDefault();
           }
         }
@@ -176,15 +114,15 @@ export const CreateStation: React.FC<CreateStationProps> = ({
     }
   };
 
+  const handleStateChange = (option: Option | null) => {
+    formikRef.current?.setFieldValue('station_state', option?.value);
+  };
   return (
     <Popup
       togglePopup={togglePopup}
-      headding={
-        station_id && isDelete
-          ? 'Delete Station'
-          : station_id
-            ? 'Update Station'
-            : 'Create Station'
+      heading={station_id && isDelete ? 'Delete Station'
+        : station_id ? 'Update Station'
+          : 'Create Station'
       }
     >
       <Formik
@@ -196,7 +134,6 @@ export const CreateStation: React.FC<CreateStationProps> = ({
           station_pinCode: data?.station_pinCode || '',
           station_headQuarter: data?.station_headQuarter || "",
         }}
-        enableReinitialize={true}
         validationSchema={validationSchema}
         onSubmit={handleSubmit}
       >
@@ -224,21 +161,31 @@ export const CreateStation: React.FC<CreateStationProps> = ({
               />
             </div>
             <div className="flex flex-col w-full " >
-              {stateOptions.length >0 && (
-                <CustomSelect
-                value={formik.values.station_state==='' ? null : { label: formik.values.station_state, value: formik.values.station_state }}
-                onChange={handleStateChange}
-                options={stateOptions}
-                isSearchable={true}
-                placeholder="Station state"
-                disableArrow={true}
-                hidePlaceholder={false}
-                className={`${(formik.touched.station_state && formik.errors.station_state) ? 'border-red-600 ' : ''}`}
-                isDisabled={isDelete && station_id}
-              />
+              {stateOptions.length > 0 && (
+                <Field name="station_state">
+                  {() => (
+                    <CustomSelect
+                      id="station_state"
+                      name='station_state'
+                      value={formik.values.station_state === '' ? null : { label: formik.values.station_state, value: formik.values.station_state }}
+                      onChange={handleStateChange}
+                      options={stateOptions}
+                      isSearchable={true}
+                      placeholder="Station state"
+                      disableArrow={true}
+                      hidePlaceholder={false}
+                      className=""
+                      isFocused={focused === "station_state"}
+                      error={formik.errors.station_state}
+                      isDisabled={isDelete && station_id}
+                      isTouched={formik.touched.station_state}
+                      onBlur={() => { formik.setFieldTouched('station_state', true); setFocused(""); }}
+                    />
+                  )}
+                </Field>
               )}
+              <ErrorMessage name='station_state' component='div' className='text-red-600 font-xs ml-[1px]' />
             </div>
-
             <div className="flex flex-col w-full " >
               <Field
                 type='number'
@@ -261,19 +208,8 @@ export const CreateStation: React.FC<CreateStationProps> = ({
               />
             </div>
             <div className="flex flex-col w-full " >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '0.8rem',
-                  borderRadius: '0.4rem',
-                  border: '1px solid #c1c1c1',
-                }}
-              >
-                <label
-                  className={`w-1/2 text-base cursor-pointer text-center p-3 font-bold  ${station_id && isDelete ? 'disabled' : ''}`}
-                >
+              <div className='flex items-center justify-between gap-2 rounded-md border border-solid border-[#c1c1c1]'>
+                <label className={`w-1/2 text-base cursor-pointer text-center p-3 font-bold  ${station_id && isDelete ? 'disabled' : ''}`} >
                   <Field
                     type='radio'
                     name='cst_sale'
@@ -281,7 +217,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                     id='cst_yes'
                     checked={formik.values.cst_sale === 'yes'}
                     disabled={station_id && isDelete}
-                    data-prev-field='cst_yes'
+                    data-prev-field='station_pinCode'
                     data-next-field='submit_button'
                     data-side-field='cst_no'
                     onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
@@ -290,9 +226,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                   />
                   Yes
                 </label>
-                <label
-                  className={`w-1/2 text-base cursor-pointer text-center p-3 font-bold  ${station_id && isDelete ? 'disabled' : ''}`}
-                >
+                <label className={`w-1/2 text-base cursor-pointer text-center p-3 font-bold  ${station_id && isDelete ? 'disabled' : ''}`}>
                   <Field
                     type='radio'
                     name='cst_sale'
@@ -317,12 +251,8 @@ export const CreateStation: React.FC<CreateStationProps> = ({
               />
             </div>
             <div className='flex justify-between p-4 w-full'>
-              <button
-                autoFocus
-                id='cancel_button'
-                className='acc_button'
-                onMouseDown={() => togglePopup(false)}
-                onKeyDown={(e) => {
+              <Button type='fog' id='cancel_button' handleOnClick={() => togglePopup(false)}
+                handleOnKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
                     togglePopup(false);
@@ -330,27 +260,20 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                 }}
               >
                 Cancel
-              </button>
+              </Button>
               {isDelete ? (
-                <button
-                  id='del_button'
-                  className='account_add_button'
-                  onClick={() => station_id && deleteAcc(station_id)}
-                  onKeyDown={(e) => {
+                <Button id='del_button' type='fill' handleOnClick={() => station_id && deleteAcc(station_id)}
+                  handleOnKeyDown={(e) => {
                     if (e.key === 'Tab') {
                       e.preventDefault();
                     }
                   }}
                 >
                   Delete
-                </button>
+                </Button>
               ) : (
-                <button
-                  type='submit'
-                  id='submit_button'
-                  className='account_add_button'
-                  autoFocus
-                  onKeyDown={(e) => {
+                <Button id="submit_button" type="fill" autoFocus={true}
+                  handleOnKeyDown={(e) => {
                     if (e.key === 'Tab') {
                       document.getElementById('station_name')?.focus();
                       e.preventDefault();
@@ -358,7 +281,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                   }}
                 >
                   {station_id ? 'Update' : 'Add'}
-                </button>
+                </Button>
               )}
             </div>
           </Form>

@@ -5,7 +5,7 @@ import { MdDeleteForever } from 'react-icons/md';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { SubGroupFormData } from '../../interface/global';
-import Confirm_Alert_Popup from '../../components/helpers/Confirm_Alert_Popup';
+import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { ColDef, ColGroupDef } from 'ag-grid-community';
 import { CreateSubGroup } from './CreateSubGroup';
 import Button from '../../components/common/button/Button';

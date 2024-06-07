@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Formik, Form, Field, ErrorMessage, FormikProps } from 'formik';
 import { CreateStationProps, Option, StationFormData } from '../../interface/global';
-import { Popup } from '../helpers/popup';
+import { Popup } from '../popup/Popup';
 import CustomSelect from '../custom_select/CustomSelect';
 // import '../stations/stations.css';
 
@@ -171,7 +171,7 @@ export const CreateHeadquarters: React.FC<CreateStationProps> = ({
   return (
     <Popup
       togglePopup={togglePopup}
-      headding={
+      heading={
         station_id && isDelete
           ? 'Delete Station'
           : station_id

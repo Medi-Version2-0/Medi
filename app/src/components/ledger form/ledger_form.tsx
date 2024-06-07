@@ -12,7 +12,7 @@ import { TaxDetails } from './tax_details';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useLocation, useNavigate } from 'react-router-dom';
-import Confirm_Alert_Popup from '../helpers/Confirm_Alert_Popup';
+import Confirm_Alert_Popup from '../popup/Confirm_Alert_Popup';
 
 const initialValue = {
   btn_1: false,

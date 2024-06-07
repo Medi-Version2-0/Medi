@@ -1,5 +1,5 @@
 import React from 'react';
-import { Stations } from './components/stations/stations';
+import { Stations } from './views/stations';
 import { HashRouter, Route, Routes } from 'react-router-dom';
 import { Groups } from "./views/groups";
 import { SubGroups } from './views/subgroups';

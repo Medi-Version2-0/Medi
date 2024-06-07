@@ -2,12 +2,11 @@ import React, { useEffect, useState, useRef } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { FaEdit } from 'react-icons/fa';
 import { MdDeleteForever } from 'react-icons/md';
-import { CreateStation } from './createStation';
+import { CreateStation } from './CreateStation';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
-import './stations.css';
 import { StationFormData } from '../../interface/global';
-import Confirm_Alert_Popup from '../helpers/Confirm_Alert_Popup';
+import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 
 const initialValue = {
   station_id: '',

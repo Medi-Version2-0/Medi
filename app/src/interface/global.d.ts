@@ -91,7 +91,7 @@ export interface StationFormData {
 
   export interface PopupProps {
     togglePopup?: Function;
-    headding: string;
+    heading: string;
     children: any;
     className?: string;
   }

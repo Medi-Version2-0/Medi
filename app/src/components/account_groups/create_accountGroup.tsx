@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Formik, Form, Field, ErrorMessage, FormikProps } from 'formik';
 import * as Yup from 'yup';
 import { CreateAccountGroupProps, FormDataProps } from '../../interface/global';
-import { Popup } from '../helpers/popup';
+import { Popup } from '../popup/Popup';
 import '../stations/stations.css';
 
 export const CreateGroup: React.FC<CreateAccountGroupProps> = ({
@@ -122,7 +122,7 @@ export const CreateGroup: React.FC<CreateAccountGroupProps> = ({
   return (
     <Popup
       togglePopup={togglePopup}
-      headding={
+      heading={
         head_code && isDelete
           ? 'Delete Account Group'
           : head_code

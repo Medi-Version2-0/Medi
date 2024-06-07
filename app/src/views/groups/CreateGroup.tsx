@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 import { Formik, Form, Field, ErrorMessage, FormikProps } from 'formik';
 import * as Yup from 'yup';
 import { CreateGroupProps, GroupFormDataProps } from '../../interface/global';
-import { Popup } from '../../components/helpers/popup';
+import { Popup } from '../../components/popup/Popup';
 import Button from '../../components/common/button/Button';
 
 export const CreateGroup: React.FC<CreateGroupProps> = ({
@@ -92,7 +92,7 @@ export const CreateGroup: React.FC<CreateGroupProps> = ({
   return (
     <Popup
       togglePopup={togglePopup}
-      headding={
+      heading={
         group_code && isDelete
           ? 'Delete Group'
           : group_code

@@ -4,9 +4,8 @@ import { FaEdit } from 'react-icons/fa';
 import { MdDeleteForever } from 'react-icons/md';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
-import '../../components/stations/stations.css';
 import { GroupFormData } from '../../interface/global';
-import Confirm_Alert_Popup from '../../components/helpers/Confirm_Alert_Popup';
+import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { ColDef, ColGroupDef } from 'ag-grid-community';
 import { CreateGroup } from './CreateGroup';
 import Button from '../../components/common/button/Button';
@@ -114,8 +113,7 @@ export const Groups = () => {
   const handelFormSubmit = (values: GroupFormData) => {
     const mode = values.group_code ? 'update' : 'create';
     if (values.group_name) {
-      values.group_name =
-        values.group_name.charAt(0).toUpperCase() + values.group_name.slice(1);
+      values.group_name = values.group_name.charAt(0).toUpperCase() + values.group_name.slice(1);
     }
     if (values !== initialValue) {
       setPopupState({

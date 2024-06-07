@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Sales_Purchase_Section } from './sales_puchase_section';
 import * as Yup from 'yup';
-import Confirm_Alert_Popup from '../helpers/Confirm_Alert_Popup';
+import Confirm_Alert_Popup from '../popup/Confirm_Alert_Popup';
 
 export const Sales_Purchase: React.FC<any> = () => {
   const [salesPurchaseValidationSchema, setSalesPurchaseValidationSchema] =

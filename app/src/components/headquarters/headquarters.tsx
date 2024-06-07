@@ -5,7 +5,7 @@ import { MdDeleteForever } from 'react-icons/md';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { StationFormData } from '../../interface/global';
-import Confirm_Alert_Popup from '../helpers/Confirm_Alert_Popup';
+import Confirm_Alert_Popup from '../popup/Confirm_Alert_Popup';
 import { CreateHeadquarters } from './createHeadquarters';
 
 const initialValue = {

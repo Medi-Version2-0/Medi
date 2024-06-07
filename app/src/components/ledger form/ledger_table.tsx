@@ -5,7 +5,7 @@ import { MdDeleteForever } from 'react-icons/md';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { LedgerFormData } from '../../interface/global';
-import Confirm_Alert_Popup from '../helpers/Confirm_Alert_Popup';
+import Confirm_Alert_Popup from '../popup/Confirm_Alert_Popup';
 import { useNavigate } from 'react-router-dom';
 import { ValueFormatterParams } from 'ag-grid-community';
 

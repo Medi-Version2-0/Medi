@@ -8,7 +8,7 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import '../stations/stations.css';
 import { AccountGroupFormData } from '../../interface/global';
-import Confirm_Alert_Popup from '../helpers/Confirm_Alert_Popup';
+import Confirm_Alert_Popup from '../popup/Confirm_Alert_Popup';
 import { CreateGroup } from './create_accountGroup';
 import { ColDef, ColGroupDef } from 'ag-grid-community';
 // import { FaSpinner } from 'react-icons/fa';

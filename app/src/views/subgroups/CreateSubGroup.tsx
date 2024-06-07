@@ -6,7 +6,7 @@ import {
   Option,
   SubGroupFormDataProps,
 } from '../../interface/global';
-import { Popup } from '../../components/helpers/popup';
+import { Popup } from '../../components/popup/Popup';
 import CustomSelect from '../../components/custom_select/CustomSelect';
 import Button from '../../components/common/button/Button';
 
@@ -19,14 +19,10 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
 }) => {
   const { group_code } = data;
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const [inputValue, setInputValue] = useState('');
-  const [groupData, setGroupData] = useState([]);
-  const [, setErr] = useState('');
-  const parentGroupVal = useRef('');
-  const typeVal = useRef('');
   const electronAPI = (window as any).electronAPI;
   const formikRef = useRef<FormikProps<SubGroupFormDataProps>>(null);
   const [parentGrpOptions, setParentGrpOptions] = useState<Option[]>([]);
+  const [focused, setFocused] = useState("");
 
   useEffect(() => {
     const focusTarget =
@@ -38,51 +34,21 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
 
   const getGroups = () => {
     const grpList = electronAPI.getAllGroups('', '', '', '', '');
-    setGroupData(electronAPI.getAllGroups('', '', '', '', ''));
     setParentGrpOptions(
       grpList.map((grp: any) => ({
         value: grp.group_name,
-        label: grp.group_name.toLowerCase(),
+        label: grp.group_name,
       }))
     );
   };
 
-
-  const handleParentChange = (option: Option | null) => {
-    setInputValue(option?.value || '');
-    formikRef.current?.setFieldValue('parent_group', option?.value);
-    setErr("");
-  };
-
   useEffect(() => {
     getGroups();
-    setInputValue(data?.parent_group ? data.parent_group : '');
   }, []);
 
-  useEffect(
-    () => {
-      if (parentGroupVal.current !== '') {
-        const value = parentGroupVal.current;
-        const filteredSuggestions = groupData.filter((group: any) => {
-          return (
-            group.parent_code === null &&
-            group.group_name?.toLowerCase().includes(value.toLowerCase())
-          );
-        });
-        filteredSuggestions.map((suggestion: any) => {
-          if (value === suggestion.group_name) {
-            typeVal.current = suggestion.type;
-          }
-        });
-        if (formikRef.current) {
-          formikRef.current.setFieldValue('type', typeVal.current);
-          const id = typeVal.current === 'P&L' ? 'p_and_l' : 'balance_sheet';
-          document.getElementById(id)?.focus();
-        }
-      }
-    },
-    [parentGroupVal.current]
-  );
+  const handleParentChange = (option: Option | null) => {
+    formikRef.current?.setFieldValue('parent_group', option?.value);
+  };
 
   const validationSchema = Yup.object({
     group_name: Yup.string()
@@ -99,14 +65,14 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
   });
 
   const handleSubmit = async (values: object) => {
-    const formData = group_code
-      ? { ...values, group_code: group_code, parent_group: inputValue }
-      : inputValue
-        ? { ...values, parent_group: inputValue }
-        : values;
+    const formData = {
+      ...values,
+      ...(group_code && { group_code }),
+    };
     !group_code && document.getElementById('account_button')?.focus();
     handelFormSubmit(formData);
   };
+
 
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
@@ -140,13 +106,14 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
       case 'Tab':
         {
           if (shiftPressed) {
-            const prevField =
-              e.currentTarget.getAttribute('data-prev-field') || '';
+            const prevField = e.currentTarget.getAttribute('data-prev-field') || '';
+            setFocused(prevField);
             document.getElementById(prevField)?.focus();
             e.preventDefault();
           } else {
             const sideField = e.currentTarget.getAttribute('data-side-field') || '';
             const value = (document.getElementById(sideField) as HTMLInputElement)?.value;
+            setFocused(sideField);
             document.getElementById(sideField)?.focus();
             formik && formik.setFieldValue('type', value);
             e.preventDefault();
@@ -157,11 +124,10 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
         break;
     }
   };
-
   return (
     <Popup
       togglePopup={togglePopup}
-      headding={
+      heading={
         group_code && isDelete
           ? 'Delete Group'
           : group_code
@@ -202,25 +168,37 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                 className="text-red-600 font-xs ml-[1px]  "
               />
             </div>
-            <div className="flex flex-col w-full " id='parent_group'>
+            <div className="flex flex-col w-full">
               {parentGrpOptions.length > 0 && (
-                <CustomSelect
-                  value={formik.values.parent_group === '' ? null : { label: formik.values.parent_group, value: formik.values.parent_group }}
-                  onChange={handleParentChange}
-                  options={parentGrpOptions}
-                  isSearchable={true}
-                  placeholder="Parent group"
-                  disableArrow={true}
-                  hidePlaceholder={false}
-                  className={`${(formik.touched.parent_group && formik.errors.parent_group) ? 'border-red-600 ' : ''}`}
-                />
+                <Field name="parent_group">
+                  {() => (
+                    <CustomSelect
+                      id="parent_group"
+                      name='parent_group'
+                      value={formik.values.parent_group === '' ? null : { label: formik.values.parent_group, value: formik.values.parent_group }}
+                      onChange={handleParentChange}
+                      options={parentGrpOptions}
+                      isSearchable={true}
+                      placeholder="Parent group"
+                      disableArrow={true}
+                      hidePlaceholder={false}
+                      className=""
+                      isFocused={focused === "parent_group"}
+                      error={formik.errors.parent_group}
+                      isTouched={formik.touched.parent_group}
+                      onBlur={() => {formik.setFieldTouched('parent_group', true); setFocused(""); }}
+                    />
+                  )}
+                </Field>
               )}
               <ErrorMessage
                 name='parent_group'
                 component='div'
-                className="text-red-600 font-xs ml-[1px]  "
+                className="text-red-600 font-xs ml-[1px]"
               />
             </div>
+            <ErrorMessage name="selectOption" component="div" />
+
             <div className='flex flex-col justify-center w-full'>
               <div className='flex items-center justify-between w-full gap-2 rounded-md border border-solid border-[#c1c1c1]' >
                 <label className={`w-1/2 text-base cursor-pointer text-center p-3 font-bold  ${group_code && isDelete ? 'disabled' : ''}`}>
