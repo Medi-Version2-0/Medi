@@ -189,15 +189,15 @@ export const CreateHeadquarters: React.FC<CreateStationProps> = ({
         onSubmit={handleSubmit}
       >
         {(formik) => (
-          <Form className='account-form'>
-            <div className='inputs'>
+          <Form className='flex flex-col gap-2 min-w-[18rem] items-center px-4 '>
+            <div className="flex flex-col w-full " >
               <Field
                 type='text'
                 id='station_name'
                 name='station_name'
                 placeholder='Station name'
                 disabled={isDelete && station_id}
-                className={`input-field ${formik.touched.station_name && formik.errors.station_name ? 'border-red-600 ' : ''}`}
+                className={`w-full p-3 rounded-md text-3  border border-solid  ${formik.touched.station_name && formik.errors.station_name ? 'border-red-600 ' : ''}`}
                 innerRef={inputRef}
                 // onBlur={validateInputs}
                 data-side-field='station_state'
@@ -233,7 +233,7 @@ export const CreateHeadquarters: React.FC<CreateStationProps> = ({
               )}
             </div>
 
-            <div className='inputs'>
+            <div className="flex flex-col w-full " >
               {hqOptions.length >0 && (
                 <CustomSelect
                 value={formik.values.station_headQuarter==='' ? null : { label: formik.values.station_headQuarter, value: formik.values.station_headQuarter }}

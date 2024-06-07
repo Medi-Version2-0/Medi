@@ -201,15 +201,15 @@ export const CreateStation: React.FC<CreateStationProps> = ({
         onSubmit={handleSubmit}
       >
         {(formik) => (
-          <Form className='account-form'>
-            <div className='inputs'>
+          <Form className='flex flex-col gap-2 min-w-[18rem] items-center px-4 '>
+            <div className="flex flex-col w-full " >
               <Field
                 type='text'
                 id='station_name'
                 name='station_name'
                 placeholder='Station name'
                 disabled={isDelete && station_id}
-                className={`input-field ${formik.touched.station_name && formik.errors.station_name ? 'border-red-600 ' : ''}`}
+                className={`w-full p-3 rounded-md text-3  border border-solid  ${formik.touched.station_name && formik.errors.station_name ? 'border-red-600 ' : ''}`}
                 innerRef={inputRef}
                 data-side-field='station_state'
                 data-next-field='station_state'
@@ -223,7 +223,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                 className="text-red-600 font-xs ml-[1px]  "
               />
             </div>
-            <div className='inputs'>
+            <div className="flex flex-col w-full " >
               {stateOptions.length >0 && (
                 <CustomSelect
                 value={formik.values.station_state==='' ? null : { label: formik.values.station_state, value: formik.values.station_state }}
@@ -239,14 +239,14 @@ export const CreateStation: React.FC<CreateStationProps> = ({
               )}
             </div>
 
-            <div className='inputs'>
+            <div className="flex flex-col w-full " >
               <Field
                 type='number'
                 id='station_pinCode'
                 name='station_pinCode'
                 placeholder='Station pin code'
                 disabled={isDelete && station_id}
-                className={`input-field ${(formik.touched.station_pinCode && formik.errors.station_pinCode) ? 'border-red-600 ' : ''}`}
+                className={`w-full p-3 rounded-md text-3  border border-solid  ${(formik.touched.station_pinCode && formik.errors.station_pinCode) ? 'border-red-600 ' : ''}`}
                 data-side-field='cst_yes'
                 data-next-field='cst_yes'
                 data-prev-field='station_state'
@@ -260,7 +260,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                 className="text-red-600 font-xs ml-[1px]  "
               />
             </div>
-            <div className='inputs'>
+            <div className="flex flex-col w-full " >
               <div
                 style={{
                   display: 'flex',
@@ -272,7 +272,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                 }}
               >
                 <label
-                  className={`credit-type ${station_id && isDelete ? 'disabled' : ''}`}
+                  className={`w-1/2 text-base cursor-pointer text-center p-3 font-bold  ${station_id && isDelete ? 'disabled' : ''}`}
                 >
                   <Field
                     type='radio'
@@ -291,7 +291,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                   Yes
                 </label>
                 <label
-                  className={`credit-type ${station_id && isDelete ? 'disabled' : ''}`}
+                  className={`w-1/2 text-base cursor-pointer text-center p-3 font-bold  ${station_id && isDelete ? 'disabled' : ''}`}
                 >
                   <Field
                     type='radio'

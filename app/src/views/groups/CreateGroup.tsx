@@ -4,7 +4,6 @@ import { Formik, Form, Field, ErrorMessage, FormikProps } from 'formik';
 import * as Yup from 'yup';
 import { CreateGroupProps, GroupFormDataProps } from '../../interface/global';
 import { Popup } from '../../components/helpers/popup';
-import '../../components/stations/stations.css';
 import Button from '../../components/common/button/Button';
 
 export const CreateGroup: React.FC<CreateGroupProps> = ({
@@ -132,7 +131,7 @@ export const CreateGroup: React.FC<CreateGroupProps> = ({
                 className="text-red-600 font-xs ml-[1px]"
               />
             </div>
-            <div className='flex justify-center w-full'>
+            <div className='flex flex-col justify-center w-full'>
               <div className='flex items-center justify-between w-full gap-2 rounded-md border border-solid border-[#c1c1c1]'>
                 <label className={`w-1/2 text-base cursor-pointer text-center p-3 font-bold ${group_code && isDelete ? 'disabled' : ''}`}                >
                   <Field

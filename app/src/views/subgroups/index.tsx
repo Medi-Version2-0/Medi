@@ -4,12 +4,11 @@ import { FaEdit } from 'react-icons/fa';
 import { MdDeleteForever } from 'react-icons/md';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
-import '../stations/stations.css';
 import { SubGroupFormData } from '../../interface/global';
-import Confirm_Alert_Popup from '../helpers/Confirm_Alert_Popup';
+import Confirm_Alert_Popup from '../../components/helpers/Confirm_Alert_Popup';
 import { ColDef, ColGroupDef } from 'ag-grid-community';
-import { CreateSubGroup } from './create_sub_groups';
-import './sub_groups.css'
+import { CreateSubGroup } from './CreateSubGroup';
+import Button from '../../components/common/button/Button';
 
 const initialValue = {
   group_code: '',
@@ -352,16 +351,10 @@ export const SubGroups = () => {
     ];
   return (
     <>
-        <div className='container'>
+      <div className='w-full'>
         <div className="flex justify-between mx-[1.6rem] my-8  bg-[#f3f3f3]  ">
           <h1 className="font-bold text-[#171A1FFF] m-0 ">Sub Groups</h1>
-          <button
-            id='account_button'
-            className='account_button'
-            onClick={() => togglePopup(true)}
-          >
-            Add Group
-          </button>
+          <Button id='account_button' handleOnClick={() => togglePopup(true)} type='highlight'>Add Group</Button>
         </div>
         <div id='account_table' className='ag-theme-quartz'>
           {
@@ -399,7 +392,7 @@ export const SubGroups = () => {
           />
         )}
       </div>
-      
+
     </>
   );
 };

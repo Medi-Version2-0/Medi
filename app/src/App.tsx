@@ -1,8 +1,8 @@
 import React from 'react';
 import { Stations } from './components/stations/stations';
 import { HashRouter, Route, Routes } from 'react-router-dom';
-import { SubGroups } from './components/sub_groups/sub_groups';
-import { Groups } from './views/groups/Groups';
+import { Groups } from "./views/groups";
+import { SubGroups } from './views/subgroups';
 import { Ledger } from './components/ledger form/ledger_form';
 import { Ledger_Table } from './components/ledger form/ledger_table';
 import { Headquarters } from './components/headquarters/headquarters';
@@ -21,7 +21,7 @@ export const App = () => {
             <Route path='/ledger' element={<Ledger />} />
             <Route path='/headquarters' element={<Headquarters />} />
             <Route path='/ledger_table' element={<Ledger_Table />} />
-            <Route path='/sales_purchase' element={<Sales_Purchase /> } />
+            <Route path='/sales_purchase' element={<Sales_Purchase />} />
           </Route>
         </Routes>
       </HashRouter>
