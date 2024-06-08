@@ -28,6 +28,7 @@ interface FormikInputFieldProps {
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   className?: string;
   labelClassName?: string;
+  inputClassName?: string;
   onClick?: (e: React.MouseEvent<HTMLInputElement>) => void;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
@@ -45,11 +46,12 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
   onKeyDown,
   className,
   labelClassName,
+  inputClassName,
   onClick,
   placeholder
 }) => {
   return (
-    <div className={`flex flex-row gap-2 items-center mb-2 relative w-full  ${!isRequired ? ' starlabel' : ''} ${className || ''}`}>
+    <div className={`flex flex-row gap-2 items-center mb-2 relative w-full  ${isRequired ? ' starlabel' : ''} ${className || ''}`}>
       <label htmlFor={id} className={`text-[0.9rem] font-bold text-gray-600 min-w-fit ${labelClassName}`}>
         {label}
       </label>
@@ -58,7 +60,7 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
         type={type}
         id={id}
         name={name}
-        className='w-full ml-1 h-6'
+        className={`w-full ml-1 h-6 ${inputClassName}`}
         onBlur={formik.handleBlur}
         onChange={onChange}
         value={formik.values[id]}

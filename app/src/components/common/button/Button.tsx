@@ -31,7 +31,7 @@ const Button: FC<ButtonProps> = ({
   icon: IconComponent,
   iconClass,
   padding = "px-6 py-2",
-  btnType = "button",
+  btnType = "submit",
   children,
   disable,
   autoFocus = false,
