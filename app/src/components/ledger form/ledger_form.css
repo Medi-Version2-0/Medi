@@ -18,7 +18,7 @@
 }
 
 
-.ledger_button {
+/* .ledger_button {
   padding: 8px 20px;
   border: 2px solid #009196FF;
   border-radius: 6px;
@@ -46,7 +46,7 @@
 .ledger_button:hover:active {
   color: #171A1FFF;
   background: #EAFBFCFF;
-}
+} */
 
 .middle_form {
   display: flex;

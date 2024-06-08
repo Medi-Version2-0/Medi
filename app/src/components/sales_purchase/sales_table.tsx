@@ -6,7 +6,7 @@ import { FaEdit } from 'react-icons/fa';
 import { MdDeleteForever } from 'react-icons/md';
 import { SalesPurchaseFormData, SalesPurchaseTableProps } from '../../interface/global';
 import { ValueFormatterParams } from 'ag-grid-community';
-import Confirm_Alert_Popup from '../helpers/Confirm_Alert_Popup';
+import Confirm_Alert_Popup from '../popup/Confirm_Alert_Popup';
 
 export const Sales_Table: React.FC<SalesPurchaseTableProps> = ({
   type,

@@ -77,7 +77,7 @@ function createMainWindow() {
       preload: path.join(__dirname, "./preload.js"),
     },
   });
-  mainWindow.removeMenu()
+  // mainWindow.removeMenu()
   mainWindow.webContents.openDevTools(); // TODO: Remove in prod builds
 
   // const startUrl = url.format({
@@ -86,7 +86,7 @@ function createMainWindow() {
   // });
   // mainWindow.loadURL(startUrl) // Uncomment for production builds
 
-  mainWindow.loadURL("http://localhost:3000"); // For local builds
+  mainWindow.loadURL("http://localhost:3001"); // For local builds
 }
 app.locale = 'en-GB';
 

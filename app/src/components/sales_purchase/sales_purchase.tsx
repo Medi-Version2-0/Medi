@@ -1,123 +1,17 @@
-import { useFormik } from 'formik';
-import React, { useCallback, useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React from 'react';
 import { Sales_Purchase_Section } from './sales_puchase_section';
-import * as Yup from 'yup';
-import Confirm_Alert_Popup from '../popup/Confirm_Alert_Popup';
+import { useLocation } from 'react-router-dom';
+
 
 export const Sales_Purchase: React.FC<any> = () => {
-  const [salesPurchaseValidationSchema, setSalesPurchaseValidationSchema] =
-    useState(Yup.object().shape({}));
-  const [hasErrors, setHasErrors] = useState(true);
   const location = useLocation();
   const data = location.state || {};
-  const navigate = useNavigate();
-  const [popupState, setPopupState] = useState({
-    isModalOpen: false,
-    isAlertOpen: false,
-    message: '',
-  });
-  const electronAPI = (window as any).electronAPI;
-
-  const handleAlertCloseModal = () => {
-    setPopupState({ ...popupState, isAlertOpen: false });
-    return navigate('/sales_purchase_table', {state: typeof data === 'string' ? data : data.salesPurchaseType})
-  };
-
-  const sales_purchase_config = useFormik({
-    initialValues: {
-      spType: data?.spType || '',
-      igst: data?.igst || '0.00',
-      cgst: data?.cgst || '0.00',
-      sgst: data?.sgst || '0.00',
-      stPer: data?.stPer || '',
-      surCharge: data?.surCharge || '',
-      spNo: data?.spNo || '',
-      column: data?.column || '',
-      shortName: data?.shortName || '',
-      shortName2: data?.shortName2 || '',
-    },
-    validationSchema: salesPurchaseValidationSchema,
-    onSubmit: (values) => {
-      console.log('sales/purchase data', values);
-    },
-  });
-
-  const receiveValidationSchemaSalesPurchase = useCallback((schema: any) => {
-    setSalesPurchaseValidationSchema(schema);
-  }, []);
-
-  const handleSubmit = () => {
-    sales_purchase_config.handleSubmit();
-    
-    if(data.sp_id){
-      const allData = {
-        ...sales_purchase_config.values,
-      };
-      electronAPI.updateSalesPurchase(data.sp_id, allData);
-    }else{
-      const allData = {
-        ...sales_purchase_config.values,
-        salesPurchaseType: data,
-      };
-      electronAPI.addSalesPurchase(allData);
-    }
-  };
-
-  useEffect(() => {
-    const checkErrors = async () => {
-      const sales_purchase_configErrors =
-        await sales_purchase_config.validateForm();
-
-      const allErrors = {
-        ...sales_purchase_configErrors,
-      };
-
-      setHasErrors(Object.keys(allErrors).length > 0);
-    };
-
-    checkErrors();
-  }, [sales_purchase_config.values, sales_purchase_config.isValid]);
-
   return (
     <div>
       <Sales_Purchase_Section
-        data={data}
-        type={typeof data === 'string' ? data : data.salesPurchaseType}
-        formik={sales_purchase_config}
-        receiveValidationSchemaSalesPurchase={
-          receiveValidationSchemaSalesPurchase
-        }
+       data= {data}
+       type={typeof data === 'string' ? data : data.salesPurchaseType}
       />
-      <button
-        type='button'
-        id='submit_all'
-        onClick={() => {
-          handleSubmit();
-          setPopupState({
-            ...popupState,
-            isAlertOpen: true,
-            message: `${typeof data === 'string' ? data : data.salesPurchaseType} account ${!!data.sp_id ? 'Update' : 'Submit'} successfully`,
-          });
-        }}
-        className='submit_button'
-        disabled={hasErrors}
-        onKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
-          if (e.key === 'ArrowUp') {
-            document.getElementById('accountHolderName')?.focus();
-            e.preventDefault();
-          }
-        }}
-      >
-        {!!data.sp_id ? 'Update' : 'Submit'}
-      </button>
-      {popupState.isAlertOpen && (
-        <Confirm_Alert_Popup
-          onConfirm={handleAlertCloseModal}
-          message={popupState.message}
-          isAlert={popupState.isAlertOpen}
-        />
-      )}
     </div>
-  );
-};
+    );
+  };

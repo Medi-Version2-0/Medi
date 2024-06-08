@@ -9,32 +9,6 @@
   justify-content: space-between;
 }
 
-.sales_purchase_button {
-  padding: 8px 20px;
-  border: 2px solid #009196ff;
-  border-radius: 6px;
-  font-size: 1rem;
-  cursor: pointer;
-  font-weight: 500;
-  color: #171a1fff;
-  background: #eafbfcff;
-  opacity: 1;
-}
-.sales_purchase_button:focus {
-  border-color: rgb(208, 208, 30);
-}
-.sales_purchase_button:hover {
-  color: #171a1fff;
-  background: #eafbfcff;
-}
-.sales_purchase_button:disabled {
-  opacity: 0.4;
-}
-.sales_purchase_button:hover:active {
-  color: #171a1fff;
-  background: #eafbfcff;
-}
-
 /* Popup */
 
 /* Main component */
@@ -159,6 +133,11 @@
   color: black;
   width: 8rem;
   background-color: rgb(246, 238, 238);
+}
+
+.sp_submit_button {
+  width: 97%;
+  margin: 1rem auto;
 }
 
 @media (max-width: 768px) {

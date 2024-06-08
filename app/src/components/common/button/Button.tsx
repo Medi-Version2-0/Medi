@@ -54,7 +54,7 @@ const Button: FC<ButtonProps> = ({
 
   return (
     <button
-      type={"submit" || btnType}
+      type={btnType}
       id={id || ""}
       disabled={disable}
       className={classNames(

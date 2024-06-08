@@ -13,6 +13,8 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Confirm_Alert_Popup from '../popup/Confirm_Alert_Popup';
+import Button from '../common/button/Button';
+import "../stations/stations.css";
 
 const initialValue = {
   btn_1: false,
@@ -210,15 +212,15 @@ export const Ledger = () => {
           <h1 id='ledger_header'>
             {!!data.party_id ? 'Update Party' : 'Create Party'}
           </h1>
-          <button
+          <Button
+            type='highlight'
             id='ledger_button'
-            className='ledger_button'
-            onClick={() => {
+            handleOnClick={() => {
               return navigate(`/ledger_table`);
             }}
           >
             Back
-          </button>
+          </Button>
         </div>
 
         <form onSubmit={ledgerFormInfo.handleSubmit} className='responsive-form'>
@@ -244,92 +246,100 @@ export const Ledger = () => {
           <div className='middle_form_2'>
             <div className='middle_form_2_buttons'>
               <div className='buttons'>
-                <button
-                  className='btn btn_1 active'
-                  id='GST/Tax Details'
-                  onClick={() => handleClick('btn_1')}
-                  onKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
-                    if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                      handleClick('btn_1');
-                      document.getElementById('ledgerType')?.focus();
-                      e.preventDefault();
-                    } else if (e.key === 'ArrowRight') {
-                      document.getElementById('Licence_Info')?.focus();
-                      e.preventDefault();
-                    }
-                    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-                      document.getElementById('phone3')?.focus();
-                      e.preventDefault();
-                    }
-                  }}
-                >
-                  GST/Tax Details
-                </button>
+              <Button
+                type='fog'
+                id='GST/Tax Details'
+                className='btn btn_1 active'
+                handleOnClick={() => handleClick('btn_1')}
+                handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
+                  if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                    handleClick('btn_1');
+                    document.getElementById('ledgerType')?.focus();
+                    e.preventDefault();
+                  } else if (e.key === 'ArrowRight') {
+                    document.getElementById('Licence_Info')?.focus();
+                    e.preventDefault();
+                  }
+                  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                    document.getElementById('phone3')?.focus();
+                    e.preventDefault();
+                  }
+                }}
+              >
+                GST/Tax Details
+              </Button>
+
               </div>
               <div className='buttons'>
-                <button
-                  className='btn btn_2'
-                  id='Licence_Info'
-                  onClick={() => handleClick('btn_2')}
-                  onKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
-                    if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                      handleClick('btn_2');
-                      document.getElementById('drugLicenceNo1')?.focus();
-                      e.preventDefault();
-                    } else if (e.key === 'ArrowRight') {
-                      document.getElementById('Contact_Info')?.focus();
-                      e.preventDefault();
-                    }
-                    if (e.key === 'ArrowLeft') {
-                      document.getElementById('GST/Tax Details')?.focus();
-                      e.preventDefault();
-                    }
-                  }}
-                >
-                  Licence Info
-                </button>
+
+              <Button
+                type='fog'
+                id='Licence_Info'
+                className='btn btn_2'
+                handleOnClick={() => handleClick('btn_2')}
+                handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
+                  if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                    handleClick('btn_2');
+                    document.getElementById('drugLicenceNo1')?.focus();
+                    e.preventDefault();
+                  } else if (e.key === 'ArrowRight') {
+                    document.getElementById('Contact_Info')?.focus();
+                    e.preventDefault();
+                  }
+                  if (e.key === 'ArrowLeft') {
+                    document.getElementById('GST/Tax Details')?.focus();
+                    e.preventDefault();
+                  }
+                }}
+              >
+                Licence Info
+              </Button>
               </div>
               <div className='buttons'>
-                <button
-                  className='btn btn_3'
-                  id='Contact_Info'
-                  onClick={() => handleClick('btn_3')}
-                  onKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
-                    if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                      handleClick('btn_3');
-                      document.getElementById('firstName')?.focus();
-                      e.preventDefault();
-                    } else if (e.key === 'ArrowRight') {
-                      document.getElementById('Bank_Details')?.focus();
-                      e.preventDefault();
-                    }
-                    if (e.key === 'ArrowLeft') {
-                      document.getElementById('Licence_Info')?.focus();
-                      e.preventDefault();
-                    }
-                  }}
-                >
-                  Contact Info
-                </button>
+              
+              <Button
+                type='fog'
+                id='Contact_Info'
+                className='btn btn_3'
+                handleOnClick={() => handleClick('btn_3')}
+                handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
+                  if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                    handleClick('btn_3');
+                    document.getElementById('firstName')?.focus();
+                    e.preventDefault();
+                  } else if (e.key === 'ArrowRight') {
+                    document.getElementById('Bank_Details')?.focus();
+                    e.preventDefault();
+                  }
+                  if (e.key === 'ArrowLeft') {
+                    document.getElementById('Licence_Info')?.focus();
+                    e.preventDefault();
+                  }
+                }}
+              >
+                Contact Info
+              </Button>
+
               </div>
               <div className='buttons'>
-                <button
-                  className='btn btn_4'
-                  id='Bank_Details'
-                  onClick={() => handleClick('btn_4')}
-                  onKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
-                    if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                      handleClick('btn_4');
-                      document.getElementById('bankName')?.focus();
-                      e.preventDefault();
-                    } else if (e.key === 'ArrowLeft') {
-                      document.getElementById('Contact_Info')?.focus();
-                      e.preventDefault();
-                    }
-                  }}
-                >
-                  Bank Details
-                </button>
+              <Button
+                type='fog'
+                id='Bank_Details'
+                className='btn btn_4'
+                handleOnClick={() => handleClick('btn_4')}
+                handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
+                  if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                    handleClick('btn_4');
+                    document.getElementById('bankName')?.focus();
+                    e.preventDefault();
+                  } else if (e.key === 'ArrowLeft') {
+                    document.getElementById('Contact_Info')?.focus();
+                    e.preventDefault();
+                  }
+                }}
+              >
+                Bank Details
+              </Button>
               </div>
             </div>
             <div className='middle_form_2_content'>
@@ -349,11 +359,12 @@ export const Ledger = () => {
           </div>
         )}
         <div>
-          <button
-            type='submit'
+          <Button
+            type='highlight'
             id='submit_all'
-            disabled={!(ledgerFormInfo.isValid && ledgerFormInfo.dirty)}
-            onClick={() => {
+            btnType='submit'
+            disable={!(ledgerFormInfo.isValid && ledgerFormInfo.dirty)}
+            handleOnClick={() => {
               setPopupState({
                 ...popupState,
                 isAlertOpen: true,
@@ -361,7 +372,7 @@ export const Ledger = () => {
               });
             }}
             className='submit_button'
-            onKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
+            handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
               if (e.key === 'ArrowUp') {
                 document
                   .getElementById(
@@ -376,7 +387,7 @@ export const Ledger = () => {
             }}
           >
             {!!data.party_id ? 'Update' : 'Submit'}
-          </button>
+          </Button>
         </div>
         </form>
         {(popupState.isModalOpen || popupState.isAlertOpen) && (

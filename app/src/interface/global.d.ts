@@ -131,7 +131,6 @@ interface SalesPurchaseProps {
   data?:any;
   type?: any;
   formik?: any;
-  receiveValidationSchemaSalesPurchase: (schema: Yup.ObjectSchema<any>) => void;
 }
 interface SalesPurchaseTableProps {
   type?: any;
