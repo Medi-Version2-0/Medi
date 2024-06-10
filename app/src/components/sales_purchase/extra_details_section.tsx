@@ -5,93 +5,121 @@ export const ExtraDetailsSection: React.FC<SpSubSectionProps> = ({
   formik,
 }) => {
   return (
-    <div className='extra_details'>
-      <div className='extra_section_heading'>Extra Details</div>
+    <div className='relative border sm:w-full md:w-3/5 h-full p-4 border-solid border-[gray]'>
+      <div className='absolute top-[-0.8rem] inline-block text-base text-black px-1 py-0 left-1 bg-[#f3f3f3]'>Extra Details</div>
       <FormikInputField
-        label='STPER'
+        label='StPer'
         id='stPer'
         name='stPer'
         formik={formik}
-        className='starlabel formik_input'
+        labelClassName='text-base text-[#474747] font-normal leading-none pt-1 pb-0 px-0'
+        inputClassName='input_field'
+        className='justify-between'
+        inputContainerClassName='w-2/3'
         onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-          if (e.key === 'ArrowDown' || e.key === 'Enter') {
+          if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === 'Tab') {
             e.preventDefault();
-            document.getElementById('accountGroup')?.focus();
+            document.getElementById('surCharge')?.focus();
+          } else if ((e.key === 'ArrowUp') || (e.shiftKey && e.key === 'Tab')) {
+            e.preventDefault();
+            document.getElementById('sgst')?.focus();
           }
         }}
-        showErrorTooltip={formik.touched.stPer && formik.errors.stPer}
       />
       <FormikInputField
-        label='SURCHARGE'
+        label='SurCharge'
         id='surCharge'
         name='surCharge'
         formik={formik}
-        className='starlabel formik_input'
+        labelClassName='text-base text-[#474747] font-normal leading-none pt-1 pb-0 px-0'
+        inputClassName='input_field'
+        className='justify-between'
+        inputContainerClassName='w-2/3'
         onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-          if (e.key === 'ArrowDown' || e.key === 'Enter') {
+          if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === 'Tab') {
             e.preventDefault();
-            document.getElementById('accountGroup')?.focus();
+            document.getElementById('spNo')?.focus();
+          } else if ((e.key === 'ArrowUp') || (e.shiftKey && e.key === 'Tab')) {
+            e.preventDefault();
+            document.getElementById('stPer')?.focus();
           }
         }}
-        showErrorTooltip={formik.touched.surCharge && formik.errors.surCharge}
       />
       <FormikInputField
-        label='SP No.'
+        label='Sp No.'
         id='spNo'
         name='spNo'
         formik={formik}
-        className='starlabel formik_input'
+        labelClassName='text-base text-[#474747] font-normal leading-none pt-1 pb-0 px-0'
+        inputClassName='input_field'
+        className='justify-between'
+        inputContainerClassName='w-2/3'
         onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-          if (e.key === 'ArrowDown' || e.key === 'Enter') {
+          if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === 'Tab') {
             e.preventDefault();
-            document.getElementById('accountGroup')?.focus();
+            document.getElementById('column')?.focus();
+          } else if ((e.key === 'ArrowUp') || (e.shiftKey && e.key === 'Tab')) {
+            e.preventDefault();
+            document.getElementById('surCharge')?.focus();
           }
         }}
-        showErrorTooltip={formik.touched.spNo && formik.errors.spNo}
       />
       <FormikInputField
-        label='COLUMN'
+        label='Column'
         id='column'
         name='column'
         formik={formik}
-        className='starlabel formik_input'
+        labelClassName='text-base text-[#474747] font-normal leading-none pt-1 pb-0 px-0'
+        inputClassName='input_field'
+        className='justify-between'
+        inputContainerClassName='w-2/3'
         onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-          if (e.key === 'ArrowDown' || e.key === 'Enter') {
+          if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === 'Tab') {
             e.preventDefault();
-            document.getElementById('accountGroup')?.focus();
+            document.getElementById('shortName')?.focus();
+          } else if ((e.key === 'ArrowUp') || (e.shiftKey && e.key === 'Tab')) {
+            e.preventDefault();
+            document.getElementById('spNo')?.focus();
           }
         }}
-        showErrorTooltip={formik.touched.column && formik.errors.column}
       />
       <FormikInputField
-        label='SHORTNAME'
+        label='ShortName'
         id='shortName'
         name='shortName'
         formik={formik}
-        className='starlabel formik_input'
+        labelClassName='text-base text-[#474747] font-normal leading-none pt-1 pb-0 px-0'
+        inputClassName='input_field'
+        className='justify-between'
+        inputContainerClassName='w-2/3'
         onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-          if (e.key === 'ArrowDown' || e.key === 'Enter') {
+          if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === 'Tab') {
             e.preventDefault();
-            document.getElementById('accountGroup')?.focus();
+            document.getElementById('shortName2')?.focus();
+          } else if ((e.key === 'ArrowUp') || (e.shiftKey && e.key === 'Tab')) {
+            e.preventDefault();
+            document.getElementById('column')?.focus();
           }
         }}
-        showErrorTooltip={formik.touched.shortName && formik.errors.shortName}
       />
       <FormikInputField
-        label='SHORTNAME2'
+        label='ShortName2'
         id='shortName2'
         name='shortName2'
         formik={formik}
-        className='starlabel formik_input'
+        labelClassName='text-base text-[#474747] font-normal leading-none pt-1 pb-0 px-0'
+        inputClassName='input_field'
+        className='justify-between'
+        inputContainerClassName='w-2/3'
         onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-          if (e.key === 'ArrowDown' || e.key === 'Enter') {
+          if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === 'Tab') {
             e.preventDefault();
-            document.getElementById('accountGroup')?.focus();
+            document.getElementById('submit_all')?.focus();
+          } else if ((e.key === 'ArrowUp') || (e.shiftKey && e.key === 'Tab')) {
+            e.preventDefault();
+            document.getElementById('shortName')?.focus();
           }
         }}
-        showErrorTooltip={
-          !!(formik.touched.shortName2 && formik.errors.shortName2)
-        }
       />
     </div>
   );

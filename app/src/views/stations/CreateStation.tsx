@@ -200,6 +200,11 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                 onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                   handleKeyDown(e)
                 }
+                onInput={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  if (e.target.value.length > 6) {
+                    e.target.value = e.target.value.slice(0, 6);
+                  }
+                }}
               />
               <ErrorMessage
                 name='station_pinCode'

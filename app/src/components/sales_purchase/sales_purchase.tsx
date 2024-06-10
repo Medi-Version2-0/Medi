@@ -1,11 +1,15 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Sales_Purchase_Section } from './sales_puchase_section';
 import { useLocation } from 'react-router-dom';
-
 
 export const Sales_Purchase: React.FC<any> = () => {
   const location = useLocation();
   const data = location.state || {};
+
+  useEffect(()=>{
+    document.getElementById('spType')?.focus();
+  },[])
+  
   return (
     <div>
       <Sales_Purchase_Section

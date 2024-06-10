@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import * as Yup from 'yup';
-import './sales_purchase.css';
 import { useFormik } from 'formik';
 import { useNavigate } from 'react-router-dom';
 import { TaxTypeSection } from './tax_type_section';
@@ -29,10 +28,6 @@ export const Sales_Purchase_Section: React.FC<SalesPurchaseProps> = ({
     spType: Yup.string()
       .max(100, `${type} Type must be 100 characters or less`)
       .required(`${type} Type is required`),
-    igst: Yup.string().required('IGST is required'),
-    cgst: Yup.string().required('CGST is required'),
-    sgst: Yup.string().required('SGST is required'),
-    shortName: Yup.string().required('Shortname is required'),
   });
 
   const sales_purchase_config = useFormik({
@@ -72,13 +67,13 @@ export const Sales_Purchase_Section: React.FC<SalesPurchaseProps> = ({
 
   return (  
     <>
-      <div className='sp-container'>
-        <div id='sp_main'>
-          <h1 id='sp_header'>{!!data.sp_id ? 'Update' : 'Create'} {type} Master</h1>
-          
+      <div className='w-full'>
+        <div className="flex justify-between items-center px-4 bg-[#f3f3f3]">
+          <h1 className="font-medium text-[1.3rem] text-[#474747]">{!!data.sp_id ? 'Update' : 'Create'} {type} Master</h1>
           <Button
             type='highlight'
             id='sp_button'
+            className='mx-0.5'
             handleOnClick={() => {
               return navigate(`/sales_purchase_table`, {state: type === 'Sales' ? 'Sales' : 'Purchase'});
             }}
@@ -88,18 +83,17 @@ export const Sales_Purchase_Section: React.FC<SalesPurchaseProps> = ({
         </div>
         <form
           onSubmit={sales_purchase_config.handleSubmit}
-          className='responsive-form'
+          className='flex flex-col w-full p-4'
         >
           <Sp_Header_Section type={type} formik={sales_purchase_config} />
-          <div className='middle_form'>
+          <div className='flex sm:flex-col md:flex-row gap-4 w-full shadow-[5px_0px_8px_gray] mx-0 my-4 p-4'>
             <TaxTypeSection formik={sales_purchase_config} />
             <ExtraDetailsSection formik={sales_purchase_config} />
           </div>
-          <div className='sp_submit_button'>
+          <div className='flex gap-4 w-full mx-0'>
             <Button
               type='highlight'
               id='submit_all'
-              btnType='submit'
               disable={
                 !(sales_purchase_config.isValid && sales_purchase_config.dirty)
               }

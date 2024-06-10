@@ -54,7 +54,7 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
 }) => {
   return (
     <div className={`flex flex-row gap-2 items-center mb-2 relative w-full  ${isRequired ? ' starlabel' : ''} ${className || ''}`}>
-      <label htmlFor={id} className={`text-[0.9rem] font-bold text-gray-600 min-w-fit ${labelClassName}`}>
+      <label htmlFor={id} className={`font-bold text-gray-600 min-w-fit ${labelClassName}`}>
         {label}
       </label>
       {children}

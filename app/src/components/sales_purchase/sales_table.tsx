@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import './sales_purchase.css';
 import { useNavigate } from 'react-router-dom';
 import { AgGridReact } from 'ag-grid-react';
 import { FaEdit } from 'react-icons/fa';
@@ -7,6 +6,7 @@ import { MdDeleteForever } from 'react-icons/md';
 import { SalesPurchaseFormData, SalesPurchaseTableProps } from '../../interface/global';
 import { ValueFormatterParams } from 'ag-grid-community';
 import Confirm_Alert_Popup from '../popup/Confirm_Alert_Popup';
+import Button from '../common/button/Button';
 
 export const Sales_Table: React.FC<SalesPurchaseTableProps> = ({
   type,
@@ -262,20 +262,20 @@ export const Sales_Table: React.FC<SalesPurchaseTableProps> = ({
 
   return (
     <>
-      <div className='sp-container'>
-        <div id='sp_main'>
-          <h1 id='sp_header'>{type} Master</h1>
-          <button
+      <div className='w-full'>
+        <div className="flex justify-between items-center p-4 bg-[#f3f3f3]">
+          <h1 className="font-medium text-[1.3rem] text-[#474747]">{type} Master</h1>
+          <Button
+            type='highlight'
             id='sp_button'
-            className='sp_button'
-            onClick={() => {
+            handleOnClick={() => {
               return navigate(`/sales_purchase`, {state: type});
             }}
           >
             Add {type}
-          </button>
+          </Button>
         </div>
-        <div id='account_table' className='ag-theme-quartz'>
+        <div className='ag-theme-quartz bg-[white] h-[calc(100vh_-_7.4rem)] mx-[1rem] my-0 rounded-[1.4rem]'>
             {
               <AgGridReact
                 rowData={tableData}
