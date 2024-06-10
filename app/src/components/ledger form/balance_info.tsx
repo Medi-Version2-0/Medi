@@ -37,10 +37,10 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
   };
 
   return (
-    <div className='relative border border-solid border-gray-400'>
-      <div className='absolute top-[-14px] left-2 border border-solid border-gray-400 px-2 w-max bg-gray-100'>Balance</div>
-      <div className='flex flex-col gap-2 w-full p-4'>
-        <div className='grid grid-cols-2 gap-2 items-center'>
+    <div className='relative border border-solid border-gray-400 '>
+      <div className='absolute top-[-14px] left-2 px-2 w-max bg-[#f3f3f3]'>Balance</div>
+      <div className='flex flex-col gap-2 w-full p-4 text-xs text-gray-600 leading-3'>
+        <div className='flex flex-row gap-2 items-center w-full'>
           <FormikInputField
             label={`Opening Balance ₹`}
             id='openingBal'
@@ -49,7 +49,9 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
             onChange={handleOpeningBalInput}
             placeholder='0.00'
             onClick={resetField}
-            className=''
+            className='!mb-0'
+            inputClassName='h-9 text-right'
+            labelClassName='w-fit text-nowrap'
             onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
               if (e.key === 'ArrowDown' || e.key === 'Enter') {
                 document.getElementById('openingBalType')?.focus();
@@ -59,7 +61,7 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
                   .getElementById(
                     accountInputValue?.toUpperCase() === 'CURRENT ASSETS' ||
                       accountInputValue?.toUpperCase() ===
-                        'CURRENT LIABILITIES' ||
+                      'CURRENT LIABILITIES' ||
                       accountInputValue?.toUpperCase() === 'PROVISIONS' ||
                       accountInputValue?.toUpperCase() === 'SECURED LOANS' ||
                       accountInputValue?.toUpperCase() === 'SUNDRY CREDITORS' ||
@@ -74,61 +76,60 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
           />
           <CustomSelect
             value={
-              formik.values.openingBal === '' || formik.initialValues.openingBal
-                ? null
-                : {
-                    label: formik.values.openingBal,
-                    value: formik.values.openingBal,
-                  }
+              formik.values.openingBalType === '' ? null : {
+                label: formik.values.openingBalType, value: formik.values.openingBalType,
+              }
             }
+            id='openingBalType'
             onChange={handleFieldChange}
             options={[
               { value: 'CR', label: 'CR' },
               { value: 'DR', label: 'DR' },
             ]}
             isSearchable={false}
-            placeholder='Select an option'
+            placeholder='Op. Balance Type'
             disableArrow={false}
             hidePlaceholder={false}
-            className=''
+            containerClass='!w-1/3'
+            className='!rounded-none !h-6'
           />
         </div>
         {(accountInputValue?.toUpperCase() === 'SUNDRY CREDITORS' ||
           accountInputValue?.toUpperCase() === 'SUNDRY DEBTORS') && (
-          <div className='flex flex-col'>
-            <FormikInputField
-              label='Credit Limit'
-              id='creditLimit'
-              name='creditLimit'
-              formik={formik}
-              placeholder='0'
-              className=''
-              onChange={handleCreditInput}
-              onClick={resetField}
-            />
-
-            <FormikInputField
-              label='Credit Days'
-              id='creditDays'
-              name='creditDays'
-              formik={formik}
-              placeholder='0'
-              maxLength={3}
-              className=''
-              onChange={handleCreditInput}
-              onClick={resetField}
-              onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                  document.getElementById('phone1')?.focus();
-                  e.preventDefault();
-                } else if (e.key === 'ArrowUp') {
-                  document.getElementById('openingBalType')?.focus();
-                  e.preventDefault();
-                }
-              }}
-            />
-          </div>
-        )}
+            <div className='flex flex-col gap-1'>
+              <FormikInputField
+                label='Credit Limit'
+                id='creditLimit'
+                name='creditLimit'
+                labelClassName='w-1/3'
+                formik={formik}
+                placeholder='0'
+                className=''
+                onChange={handleCreditInput}
+                onClick={resetField}
+              />
+              <FormikInputField
+                label='Credit Days'
+                id='creditDays'
+                name='creditDays'
+                formik={formik}
+                placeholder='0'
+                maxLength={3}
+                labelClassName='w-1/3'
+                onChange={handleCreditInput}
+                onClick={resetField}
+                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                  if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                    document.getElementById('phone1')?.focus();
+                    e.preventDefault();
+                  } else if (e.key === 'ArrowUp') {
+                    document.getElementById('openingBalType')?.focus();
+                    e.preventDefault();
+                  }
+                }}
+              />
+            </div>
+          )}
       </div>
     </div>
   );

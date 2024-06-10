@@ -2,17 +2,6 @@
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 
-.input_field {
-  @apply h-[1.563rem] text-base text-[#474747] px-2 py-[0.18rem] bg-[#fff] rounded border-solid border-[0.063rem] border-[hsl(210,14%,83%)]
-}
-
-.table_edit_buttons {
-  @apply flex gap-[0.7rem] items-center justify-center h-full;
-}
-
-.custom-header {
-  @apply bg-[#009196FF] text-[white];
-}
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',

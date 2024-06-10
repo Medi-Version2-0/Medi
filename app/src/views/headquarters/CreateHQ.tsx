@@ -171,7 +171,7 @@ export const CreateHQ: React.FC<CreateStationProps> = ({
                       placeholder="Station HeadQuarter"
                       disableArrow={true}
                       hidePlaceholder={false}
-                      className="h-12"
+                      className="!h-12"
                       isFocused={focused === "station_headQuarter"}
                       error={formik.errors.station_headQuarter}
                       isDisabled={isDelete && station_id}

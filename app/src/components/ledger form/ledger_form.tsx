@@ -23,31 +23,20 @@ const initialValue = {
 };
 
 export const Ledger = () => {
-  const [valueFromGeneral, setValueFromGeneral] = useState('');
   const [showActiveElement, setShowActiveElement] = useState(initialValue);
-  // const [hasErrors, setHasErrors] = useState(true);
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
     message: '',
   });
 
-  const isSUNDRY = (valueFromGeneral === 'SUNDRY CREDITORS' || valueFromGeneral === 'SUNDRY DEBTORS');
   const phoneRegex = /^[6-9][0-9]{9}$/;
   const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
-
-  const handleAlertCloseModal = () => {
-    setPopupState({ ...popupState, isAlertOpen: false });
-    return navigate('/ledger_table');
-  };
-
-  const handleClosePopup = () => {
-    setPopupState({ ...popupState, isModalOpen: false });
-  };
-
   const navigate = useNavigate();
   const location = useLocation();
   const data = location.state || {};
+  const [valueFromGeneral, setValueFromGeneral] = useState(data?.accountGroup || '');
+  const isSUNDRY = (valueFromGeneral === 'SUNDRY CREDITORS' || valueFromGeneral === 'SUNDRY DEBTORS');
 
   useEffect(() => {
     ledgerFormInfo.validateForm();
@@ -92,7 +81,7 @@ export const Ledger = () => {
         .required('GST number is required')
       : Yup.string(),
 
-    // personal info VS
+    // contact info VS
     emailId1: Yup.string().email('Invalid email'),
     emailId2: Yup.string().email('Invalid email'),
     website_input: Yup.string().matches(
@@ -138,7 +127,7 @@ export const Ledger = () => {
 
       // balance info
       openingBal: data?.openingBal || '0.00',
-      openingBalType: data?.openingBalType || '',
+      openingBalType: data?.openingBalType || 'DR',
       creditDays: data?.creditDays || '0',
       creditLimit: data?.creditLimit || '0',
 
@@ -202,186 +191,193 @@ export const Ledger = () => {
     prevClass.current = clickedClass;
   };
 
+  const handleAlertCloseModal = () => {
+    setPopupState({ ...popupState, isAlertOpen: false });
+    return navigate('/ledger_table');
+  };
+
+  const handleClosePopup = () => {
+    setPopupState({ ...popupState, isModalOpen: false });
+  };
+
   return (
-    <>
-      <div className='w-full'>
-        <div className='flex w-full items-center justify-between px-8 py-4  bg-[#f3f3f3]'>
-          <h1 className='font-bold'>
-            {!!data.party_id ? 'Update Party' : 'Create Party'}
-          </h1>
-          <Button
-            type='highlight'
-            id='ledger_button'
-            handleOnClick={() => {
-              return navigate(`/ledger_table`);
-            }}
-          >
-            Back
-          </Button>
-        </div>
-        <form onSubmit={ledgerFormInfo.handleSubmit} className='flex flex-col w-full'>
-          <div className='flex flex-row p-4 m-4 shadow-xl gap-2'>
-            <GeneralInfo
-              onValueChange={handleValueChange}
+    <div className='w-full'>
+      <div className='flex w-full items-center justify-between px-8 py-1'>
+        <h1 className='font-bold'>
+          {!!data.party_id ? 'Update Party' : 'Create Party'}
+        </h1>
+        <Button
+          type='highlight'
+          id='ledger_button'
+          className='h-8'
+          handleOnClick={() => {
+            return navigate(`/ledger_table`);
+          }}
+        >
+          Back
+        </Button>
+      </div>
+      <form onSubmit={ledgerFormInfo.handleSubmit} className='flex flex-col w-full'>
+        <div className='flex flex-row px-4 mx-4 py-2 gap-2'>
+          <GeneralInfo
+            onValueChange={handleValueChange}
+            formik={ledgerFormInfo}
+          />
+          <div className='flex flex-col gap-6 w-[40%]'>
+            <BalanceInfo
+              accountInputValue={valueFromGeneral}
               formik={ledgerFormInfo}
             />
-            <div className='flex flex-col gap-6 w-[40%]'>
-              <BalanceInfo
-                accountInputValue={valueFromGeneral}
-                formik={ledgerFormInfo}
-              />
-              <ContactsInfo
-                accountInputValue={valueFromGeneral}
-                formik={ledgerFormInfo}
-              />
-            </div>
+            <ContactsInfo
+              accountInputValue={valueFromGeneral}
+              formik={ledgerFormInfo}
+            />
           </div>
-          {(valueFromGeneral === 'SUNDRY CREDITORS' ||
-            valueFromGeneral === 'SUNDRY DEBTORS') && (
-              <div className=' shadow-lg m-4 p-4'>
-                <div className='flex flex-row'>
-                  <Button
-                    type='fog'
-                    id='GST/Tax Details'
-                    className='btn rounded-none !border-r-0 active'
-                    handleOnClick={() => handleClick('btn_1')}
-                    handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
-                      if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                        handleClick('btn_1');
-                        document.getElementById('ledgerType')?.focus();
-                        e.preventDefault();
-                      } else if (e.key === 'ArrowRight') {
-                        document.getElementById('Licence_Info')?.focus();
-                        e.preventDefault();
-                      }
-                      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-                        document.getElementById('phone3')?.focus();
-                        e.preventDefault();
-                      }
-                    }}
-                  >
-                    GST/Tax Details
-                  </Button>
-                  <Button
-                    type='fog'
-                    id='Licence_Info'
-                    className='btn rounded-none !border-x-0'
-                    handleOnClick={() => handleClick('btn_2')}
-                    handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
-                      if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                        handleClick('btn_2');
-                        document.getElementById('drugLicenceNo1')?.focus();
-                        e.preventDefault();
-                      } else if (e.key === 'ArrowRight') {
-                        document.getElementById('Contact_Info')?.focus();
-                        e.preventDefault();
-                      }
-                      if (e.key === 'ArrowLeft') {
-                        document.getElementById('GST/Tax Details')?.focus();
-                        e.preventDefault();
-                      }
-                    }}
-                  >
-                    Licence Info
-                  </Button>
-                  <Button
-                    type='fog'
-                    id='Contact_Info'
-                    className='btn rounded-none !border-x-0'
-                    handleOnClick={() => handleClick('btn_3')}
-                    handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
-                      if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                        handleClick('btn_3');
-                        document.getElementById('firstName')?.focus();
-                        e.preventDefault();
-                      } else if (e.key === 'ArrowRight') {
-                        document.getElementById('Bank_Details')?.focus();
-                        e.preventDefault();
-                      }
-                      if (e.key === 'ArrowLeft') {
-                        document.getElementById('Licence_Info')?.focus();
-                        e.preventDefault();
-                      }
-                    }}
-                  >
-                    Contact Info
-                  </Button>
-                  <Button
-                    type='fog'
-                    id='Bank_Details'
-                    className='btn rounded-none !border-l-0'
-                    handleOnClick={() => handleClick('btn_4')}
-                    handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
-                      if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                        handleClick('btn_4');
-                        document.getElementById('bankName')?.focus();
-                        e.preventDefault();
-                      } else if (e.key === 'ArrowLeft') {
-                        document.getElementById('Contact_Info')?.focus();
-                        e.preventDefault();
-                      }
-                    }}
-                  >
-                    Bank Details
-                  </Button>
-                </div>
-                <div className=''>
-                  {showActiveElement.btn_1 && (
-                    <TaxDetails formik={ledgerFormInfo} />
-                  )}
-                  {showActiveElement.btn_3 && (
-                    <ContactDetails formik={ledgerFormInfo} />
-                  )}
-                  {showActiveElement.btn_2 && (
-                    <LicenceInfo formik={ledgerFormInfo} />
-                  )}
-                  {showActiveElement.btn_4 && (
-                    <BankDetails formik={ledgerFormInfo} />
-                  )}
-                </div>
+        </div>
+        {(valueFromGeneral === 'SUNDRY CREDITORS' ||
+          valueFromGeneral === 'SUNDRY DEBTORS') && (
+            <div className=' shadow-lg mx-4 px-4'>
+              <div className='flex flex-row m-1'>
+                <Button
+                  type='fog'
+                  id='GST/Tax Details'
+                  className={`rounded-none !border-r-[1px] focus:font-black ${showActiveElement.btn_1 && 'border-b-blue-500 border-b-[2px]'} text-sm font-medium !py-1`}
+                  handleOnClick={() => handleClick('btn_1')}
+                  handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
+                    if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                      handleClick('btn_1');
+                      document.getElementById('ledgerType')?.focus();
+                      e.preventDefault();
+                    } else if (e.key === 'ArrowRight') {
+                      document.getElementById('Licence_Info')?.focus();
+                      e.preventDefault();
+                    }
+                    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                      document.getElementById('phone3')?.focus();
+                      e.preventDefault();
+                    }
+                  }}
+                >
+                  GST/Tax Details
+                </Button>
+                <Button
+                  type='fog'
+                  id='Licence_Info'
+                  className={`rounded-none !border-x-0 ${showActiveElement.btn_2 && 'border-b-blue-500 border-b-[2px]'} text-sm font-medium !py-1`}
+                  handleOnClick={() => handleClick('btn_2')}
+                  handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
+                    if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                      handleClick('btn_2');
+                      document.getElementById('drugLicenceNo1')?.focus();
+                      e.preventDefault();
+                    } else if (e.key === 'ArrowRight') {
+                      document.getElementById('Contact_Info')?.focus();
+                      e.preventDefault();
+                    }
+                    if (e.key === 'ArrowLeft') {
+                      document.getElementById('GST/Tax Details')?.focus();
+                      e.preventDefault();
+                    }
+                  }}
+                >
+                  Licence Info
+                </Button>
+                <Button
+                  type='fog'
+                  id='Contact_Info'
+                  className={`rounded-none !border-x-[1px] ${showActiveElement.btn_3 && 'border-b-blue-500 border-b-[2px]'} text-sm font-medium !py-1`}
+                  handleOnClick={() => handleClick('btn_3')}
+                  handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
+                    if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                      handleClick('btn_3');
+                      document.getElementById('firstName')?.focus();
+                      e.preventDefault();
+                    } else if (e.key === 'ArrowRight') {
+                      document.getElementById('Bank_Details')?.focus();
+                      e.preventDefault();
+                    }
+                    if (e.key === 'ArrowLeft') {
+                      document.getElementById('Licence_Info')?.focus();
+                      e.preventDefault();
+                    }
+                  }}
+                >
+                  Contact Info
+                </Button>
+                <Button
+                  type='fog'
+                  id='Bank_Details'
+                  className={` rounded-none !border-l-0 ${showActiveElement.btn_4 && 'border-b-blue-500 border-b-[2px]'} text-sm font-medium !py-1`}
+                  handleOnClick={() => handleClick('btn_4')}
+                  handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
+                    if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                      handleClick('btn_4');
+                      document.getElementById('bankName')?.focus();
+                      e.preventDefault();
+                    } else if (e.key === 'ArrowLeft') {
+                      document.getElementById('Contact_Info')?.focus();
+                      e.preventDefault();
+                    }
+                  }}
+                >
+                  Bank Details
+                </Button>
               </div>
-            )}
-          <div>
-            <Button
-              type='highlight'
-              id='submit_all'
-              btnType='submit'
-              disable={!(ledgerFormInfo.isValid && ledgerFormInfo.dirty)}
-              handleOnClick={() => {
-                setPopupState({
-                  ...popupState,
-                  isAlertOpen: true,
-                  message: 'Ledger created successfully',
-                });
-              }}
-              className='submit_button'
-              handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
-                if (e.key === 'ArrowUp') {
-                  document
-                    .getElementById(
-                      valueFromGeneral.toUpperCase() === 'SUNDRY CREDITORS' ||
-                        valueFromGeneral.toUpperCase() === 'SUNDRY DEBTORS'
-                        ? 'accountHolderName'
-                        : 'openingBalType'
-                    )
-                    ?.focus();
-                  e.preventDefault();
-                }
-              }}
-            >
-              {!!data.party_id ? 'Update' : 'Submit'}
-            </Button>
-          </div>
-        </form>
-        {(popupState.isModalOpen || popupState.isAlertOpen) && (
-          <Confirm_Alert_Popup
-            onClose={handleClosePopup}
-            onConfirm={handleAlertCloseModal}
-            message={popupState.message}
-            isAlert={popupState.isAlertOpen}
-          />
-        )}
-      </div>
-    </>
+              <div className=''>
+                {showActiveElement.btn_1 && (
+                  <TaxDetails formik={ledgerFormInfo} />
+                )}
+                {showActiveElement.btn_3 && (
+                  <ContactDetails formik={ledgerFormInfo} />
+                )}
+                {showActiveElement.btn_2 && (
+                  <LicenceInfo formik={ledgerFormInfo} />
+                )}
+                {showActiveElement.btn_4 && (
+                  <BankDetails formik={ledgerFormInfo} />
+                )}
+              </div>
+            </div>
+          )}
+        <div className='w-full px-8 py-2'>
+          <Button
+            type='highlight'
+            btnType='submit'
+            disable={!(ledgerFormInfo.isValid && ledgerFormInfo.dirty)}
+            handleOnClick={() => {
+              setPopupState({
+                ...popupState,
+                isAlertOpen: true,
+                message: 'Ledger created successfully',
+              });
+            }}
+            className=''
+            handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
+              if (e.key === 'ArrowUp') {
+                document
+                  .getElementById(
+                    valueFromGeneral.toUpperCase() === 'SUNDRY CREDITORS' ||
+                      valueFromGeneral.toUpperCase() === 'SUNDRY DEBTORS'
+                      ? 'accountHolderName'
+                      : 'openingBalType'
+                  )
+                  ?.focus();
+                e.preventDefault();
+              }
+            }}
+          >
+            {!!data.party_id ? 'Update' : 'Submit'}
+          </Button>
+        </div>
+      </form>
+      {(popupState.isModalOpen || popupState.isAlertOpen) && (
+        <Confirm_Alert_Popup
+          onClose={handleClosePopup}
+          onConfirm={handleAlertCloseModal}
+          message={popupState.message}
+          isAlert={popupState.isAlertOpen}
+        />
+      )}
+    </div>
   );
 };

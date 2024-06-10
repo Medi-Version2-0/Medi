@@ -20,7 +20,12 @@
 }
 
 .custom-select__indicators {
-  padding: 0;
+  padding: 0 !important;
+  max-height: 100%;
+}
+
+.custom-select__indicator {
+  padding: 0 !important;
 }
 
 .custom-select__indicator-separator {
@@ -48,10 +53,14 @@
 }
 
 .custom-select__control {
-  padding: 7px 10px;
+  padding: 8px 10px;
   border: none !important;
 }
 
 .custom-select__option--is-selected {
   background-color: rgb(147, 234, 241) !important;
+}
+
+.custom-select__input-container{
+  margin: 0px !important;
 }

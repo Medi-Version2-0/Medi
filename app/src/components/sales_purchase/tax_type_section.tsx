@@ -7,7 +7,7 @@ export const TaxTypeSection: React.FC<SpSubSectionProps> = ({ formik }) => {
     if (/^\d*\.?\d{0,2}$/.test(value)) {
       formik.setFieldValue(id, value);
       const igstValue = parseFloat(value);
-      if(!isNaN(igstValue)){
+      if (!isNaN(igstValue)) {
         formik.setFieldValue('cgst', igstValue / 2);
         formik.setFieldValue('sgst', igstValue / 2);
       }
@@ -25,9 +25,8 @@ export const TaxTypeSection: React.FC<SpSubSectionProps> = ({ formik }) => {
   };
 
   return (
-    <div className='relative border sm:w-full md:w-2/5 h-full p-4 border-solid border-[gray]'>
+    <div className='flex flex-col gap-1 relative border sm:w-full md:w-2/5 h-full p-4 border-solid border-[gray] text-gray-600 text-sm'>
       <div className='absolute top-[-0.8rem] inline-block text-base text-black px-1 py-0 left-1 bg-[#f3f3f3]'>Tax Type</div>
-
       <FormikInputField
         label='IGST%'
         id='igst'
@@ -36,10 +35,8 @@ export const TaxTypeSection: React.FC<SpSubSectionProps> = ({ formik }) => {
         placeholder='0.00'
         formik={formik}
         isRequired={true}
-        labelClassName='text-[#474747] font-normal leading-none pt-1 pb-0 px-0'
-        inputClassName='input_field text-right'
+        labelClassName='w-1/4'
         className='justify-between'
-        inputContainerClassName='w-2/3'
         onChange={handleIGSTChange}
         onClick={resetField}
         onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -52,7 +49,6 @@ export const TaxTypeSection: React.FC<SpSubSectionProps> = ({ formik }) => {
           }
         }}
       />
-
       <FormikInputField
         label='CGST%'
         id='cgst'
@@ -61,11 +57,9 @@ export const TaxTypeSection: React.FC<SpSubSectionProps> = ({ formik }) => {
         placeholder='0.00'
         formik={formik}
         isRequired={true}
-        labelClassName='text-[#474747] font-normal leading-none pt-1 pb-0 px-0'
-        inputClassName='input_field text-right'
+        labelClassName='w-1/4'
         className='justify-between'
-        inputContainerClassName='w-2/3'
-        onChange={() => {}}
+        onChange={() => { }}
         onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
           if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === 'Tab') {
             e.preventDefault();
@@ -76,7 +70,6 @@ export const TaxTypeSection: React.FC<SpSubSectionProps> = ({ formik }) => {
           }
         }}
       />
-
       <FormikInputField
         label='SGST%'
         id='sgst'
@@ -85,11 +78,9 @@ export const TaxTypeSection: React.FC<SpSubSectionProps> = ({ formik }) => {
         placeholder='0.00'
         formik={formik}
         isRequired={true}
-        labelClassName='text-base text-[#474747] font-normal leading-none pt-1 pb-0 px-0'
-        inputClassName='input_field text-right'
+        labelClassName='w-1/4'
         className='justify-between'
-        inputContainerClassName='w-2/3'
-        onChange={() => {}}
+        onChange={() => { }}
         onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
           if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === 'Tab') {
             e.preventDefault();

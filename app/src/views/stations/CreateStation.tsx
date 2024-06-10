@@ -120,12 +120,21 @@ export const CreateStation: React.FC<CreateStationProps> = ({
   const handleFieldChange = (option: Option | null, id: string) => {
     formikRef.current?.setFieldValue(id, option?.value);
   };
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const filteredValue = value.replace(/[^0-9]/g, '');
+    if (filteredValue.length <= 6) {
+      formikRef.current?.setFieldValue(e.target.name, filteredValue);
+    } else {
+      formikRef.current?.setFieldValue(e.target.name, filteredValue.slice(0, 6));
+    }
+  };
   return (
     <Popup
       togglePopup={togglePopup}
       heading={station_id && isDelete ? 'Delete Station'
         : station_id ? 'Update Station'
-          : 'Create Station'    
+          : 'Create Station'
       }
     >
       <Formik
@@ -177,7 +186,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                       placeholder="Station state"
                       disableArrow={true}
                       hidePlaceholder={false}
-                      className="h-12"
+                      className="!h-12"
                       isFocused={focused === "station_state"}
                       error={formik.errors.station_state}
                       isDisabled={isDelete && station_id}
@@ -191,7 +200,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
             </div>
             <div className="flex flex-col w-full " >
               <Field
-                type='number'
+                type='text'
                 id='station_pinCode'
                 name='station_pinCode'
                 placeholder='Station pin code'
@@ -203,11 +212,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                 onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                   handleKeyDown(e)
                 }
-                onInput={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  if (e.target.value.length > 6) {
-                    e.target.value = e.target.value.slice(0, 6);
-                  }
-                }}
+                onChange={handleChange}
               />
               <ErrorMessage
                 name='station_pinCode'
@@ -230,7 +235,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                   placeholder="CST Sale"
                   disableArrow={false}
                   hidePlaceholder={false}
-                  className="w-full h-12"
+                  className="w-full !h-12"
                   isTouched={formik.touched.cst_sale}
                   error={formik.errors.cst_sale}
                   onBlur={() => { formik.setFieldTouched('cst_sale', true); setFocused(""); }}

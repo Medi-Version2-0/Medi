@@ -13,18 +13,18 @@ export const ContactsInfo: React.FC<ContactsInfoProps> = ({
       {(accountInputValue?.toUpperCase() === 'SUNDRY CREDITORS' ||
         accountInputValue?.toUpperCase() === 'SUNDRY DEBTORS') && (
           <div className='relative border border-solid border-gray-400 p-4'>
-            <div className='absolute top-[-14px] left-2 border border-solid border-gray-400 px-2 w-max bg-gray-100'>Contact Numbers</div>
+            <div className='absolute top-[-14px] left-2 px-2 w-max bg-[#f3f3f3]'>Contact Numbers</div>
             <FormikInputField
               label='Mobile'
               id='phoneNumber'
               name='phoneNumber'
               maxLength={10}
               formik={formik}
-              inputClassName='ml-0 border-l-0'
-              labelClassName='mr-4'
-              className='gap-0'
+              inputClassName='!ml-0 border-l-0'
+              labelClassName='mr-4 min-w-[90px]'
+              className='!gap-0 text-xs text-gray-600'
               isRequired={true}
-              children={<span className='border border-solid border-black bg-white p-1 h-full select-none'>+91</span>}
+              children={<span className='border border-solid border-gray-400 bg-gray-100 p-1 h-full select-none'>+91</span>}
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                 if (e.key === 'ArrowDown' || e.key === 'Enter') {
                   document.getElementById('phone3')?.focus();

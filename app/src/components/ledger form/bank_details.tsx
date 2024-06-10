@@ -15,9 +15,9 @@ export const BankDetails: React.FC<BankDetailsProps> = ({
   };
 
   return (
-    <div className='grid grid-cols-2 gap-2 m-2'>
+    <div className='grid grid-cols-2 gap-x-4 gap-y-2 m-2 px-2 text-xs leading-3 text-gray-600'>
       <FormikInputField
-        labelClassName='w-1/5'
+        labelClassName='min-w-[90px]'
         label='Bank Name'
         id='bankName'
         name='bankName'
@@ -32,7 +32,7 @@ export const BankDetails: React.FC<BankDetailsProps> = ({
         }}
       />
       <FormikInputField
-        labelClassName='w-1/5'
+        labelClassName='min-w-[90px]'
         label='A/C No.'
         id='accountNumber'
         name='accountNumber'
@@ -48,7 +48,7 @@ export const BankDetails: React.FC<BankDetailsProps> = ({
         }}
       />
       <FormikInputField
-        labelClassName='w-1/5'
+        labelClassName='min-w-[90px]'
         label='Branch'
         id='branchName'
         name='branchName'
@@ -65,7 +65,7 @@ export const BankDetails: React.FC<BankDetailsProps> = ({
       <CustomSelect
         label='A/C Type'
         id='accountType'
-        labelClass='font-bold text-gray-600 w-1/5 mr-2'
+        labelClass='min-w-[90px]'
         value={
           formik.values.accountType === ''
             ? null
@@ -97,7 +97,7 @@ export const BankDetails: React.FC<BankDetailsProps> = ({
         }}
       />
       <FormikInputField
-        labelClassName='w-1/5'
+        labelClassName='min-w-[90px]'
         label='IFSC'
         id='ifscCode'
         name='ifscCode'
@@ -114,7 +114,7 @@ export const BankDetails: React.FC<BankDetailsProps> = ({
         }}
       />
       <FormikInputField
-        labelClassName='w-1/5'
+        labelClassName='min-w-[90px]'
         label='A/C Holder Name'
         id='accountHolderName'
         name='accountHolderName'

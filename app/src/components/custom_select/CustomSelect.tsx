@@ -8,6 +8,7 @@ interface CustomSelectProps extends Omit<SelectProps<Option>, 'onChange'> {
   id?: string;
   name?: string;
   labelClass?: string;
+  containerClass?: string;
   options: Option[];
   value: Option | null;
   onChange: (option: Option | null, id: string) => void;
@@ -30,6 +31,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   id,
   name = "",
   labelClass,
+  containerClass,
   options,
   value,
   onChange,
@@ -62,7 +64,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   }, [isFocused]);
 
   return (
-    <div className={`flex flex-row gap-1 justify-center items-center w-full h-fit ${isRequired ? ' starlabel' : ''}`}>
+    <div className={`flex flex-row gap-2 justify-center items-center w-full h-fit ${isRequired ? ' starlabel' : ''} ${containerClass}`}>
       {label && (
         <label htmlFor={id} className={`flex items-start h-full ${labelClass}`}>
           {label}

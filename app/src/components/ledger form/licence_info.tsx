@@ -7,11 +7,12 @@ interface LicenceInfoProps {
 
 export const LicenceInfo: React.FC<LicenceInfoProps> = ({ formik }) => {
   return (
-    <div className='flex w-2/3 m-2'>
+    <div className='flex gap-2 w-2/3 m-2 text-xs px-2 leading-3 text-gray-600'>
       <FormikInputField
         label='Drug Lic. No.'
         id='drugLicenceNo1'
         name='drugLicenceNo1'
+        labelClassName='min-w-[90px]'
         formik={formik}
         onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
           if (e.key === 'ArrowDown' || e.key === 'Enter') {
@@ -22,7 +23,7 @@ export const LicenceInfo: React.FC<LicenceInfoProps> = ({ formik }) => {
           }
         }}
       />
-      <button type='button' className='p-4 flex items-center text-[30px] h-12'> + </button>
+      <button type='button' className='mx-2 text-[24px] leading-3'> + </button>
     </div>
   );
 };

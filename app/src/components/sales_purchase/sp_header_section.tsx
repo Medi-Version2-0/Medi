@@ -6,16 +6,14 @@ export const Sp_Header_Section: React.FC<SpSubSectionProps> = ({
   formik,
 }) => {
   return (
-    <div className='flex gap-4 w-full shadow-[0.313rem_0rem_0.5rem_gray] my-0 p-4'>
+    <div className='flex gap-4 w-full shadow-lg my-0 p-4 text-xs text-gray-600'>
       <FormikInputField
         label={`${type} Type`}
         id='spType'
         name='spType'
         formik={formik}
-        className='mb-0 sm:justify-between md:justify-start md:gap-[3.45rem]'
-        inputContainerClassName='sm: w-[62.5%] md:w-1/3  sm:mr-[1rem] md:mr-0'
-        labelClassName='text-base text-[#474747] font-normal leading-none pt-1 pb-0 px-0'
-        inputClassName='input_field'
+        labelClassName='text-nowrap'
+        className='!w-1/2'
         isRequired={true}
         onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
           if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === 'Tab') {

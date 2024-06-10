@@ -8,6 +8,7 @@ import { LedgerFormData } from '../../interface/global';
 import Confirm_Alert_Popup from '../popup/Confirm_Alert_Popup';
 import { useNavigate } from 'react-router-dom';
 import { ValueFormatterParams } from 'ag-grid-community';
+import Button from '../common/button/Button';
 
 export const Ledger_Table = () => {
   const [selectedRow, setSelectedRow] = useState<any>(null);
@@ -159,8 +160,8 @@ export const Ledger_Table = () => {
       // electronAPI.updateStation(data.station_id, { [field]: newValue });
       getLedgerData();
     }
-    else{
-        const { column, oldValue, node } = e;
+    else {
+      const { column, oldValue, node } = e;
       const field = column.colId;
       setPopupState({
         ...popupState,
@@ -327,47 +328,37 @@ export const Ledger_Table = () => {
   ];
 
   return (
-    <>
-        <div className='stations_container'>
-          <div className="flex justify-between mx-[1.6rem] my-8  bg-[#f3f3f3]  ">
-            <h1 className="font-bold text-[#171A1FFF] m-0 ">Ledger Master</h1>
-            <button
-              id='account_button'
-              className='account_button'
-              onClick={() => {
-                return navigate(`/ledger`);
-              }}
-            >
-              Add Party
-            </button>
-          </div>
-          <div id='account_table' className='ag-theme-quartz'>
-            {
-              <AgGridReact
-                rowData={tableData}
-                columnDefs={colDefs}
-                defaultColDef={{
-                  floatingFilter: true,
-                }}
-                onCellClicked={onCellClicked}
-                onCellEditingStarted={cellEditingStarted}
-                onCellEditingStopped={handleCellEditingStopped}
-              />
-            }
-          </div>
-          {(popupState.isModalOpen || popupState.isAlertOpen) && (
-            <Confirm_Alert_Popup
-              onClose={handleClosePopup}
-              onConfirm={
-                popupState.isAlertOpen
-                  ? handleAlertCloseModal
-                  : handleConfirmPopup
-              }
-              message={popupState.message}
-              isAlert={popupState.isAlertOpen}
-            />
-          )}
-        </div>
-    </>
+    <div className='w-full'>
+      <div className="flex justify-between mx-[1.6rem] my-8  bg-[#f3f3f3]  ">
+        <h1 className="font-bold text-[#171A1FFF] m-0 ">Ledger Master</h1>
+        <Button type='highlight' handleOnClick={() => navigate(`/ledger`)}>Add Party</Button>
+      </div>
+      <div id='account_table' className='ag-theme-quartz'>
+        {
+          <AgGridReact
+            rowData={tableData}
+            columnDefs={colDefs}
+            defaultColDef={{
+              floatingFilter: true,
+            }}
+            onCellClicked={onCellClicked}
+            onCellEditingStarted={cellEditingStarted}
+            onCellEditingStopped={handleCellEditingStopped}
+          />
+        }
+      </div>
+      {(popupState.isModalOpen || popupState.isAlertOpen) && (
+        <Confirm_Alert_Popup
+          onClose={handleClosePopup}
+          onConfirm={
+            popupState.isAlertOpen
+              ? handleAlertCloseModal
+              : handleConfirmPopup
+          }
+          message={popupState.message}
+          isAlert={popupState.isAlertOpen}
+        />
+      )}
+    </div>
   );
 };

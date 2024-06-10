@@ -182,7 +182,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                       placeholder="Parent group"
                       disableArrow={true}
                       hidePlaceholder={false}
-                      className="h-12"
+                      className="!h-12"
                       isFocused={focused === "parent_group"}
                       error={formik.errors.parent_group}
                       isTouched={formik.touched.parent_group}

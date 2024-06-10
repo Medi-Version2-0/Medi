@@ -77,16 +77,17 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
 
   return (
     <div className='relative border w-3/5 h-full pt-4 border-solid border-gray-400'>
-      <div className='absolute top-[-14px] left-2 border border-solid border-gray-400 px-2 w-max bg-gray-100'>General Info</div>
-      <div className='flex flex-col gap-2 w-full px-4 py-2'>
+      <div className='absolute top-[-14px] left-2  px-2 w-max bg-[#f3f3f3]'>General Info</div>
+      <div className='flex flex-col gap-1 w-full px-4 py-2 text-xs leading-3 text-gray-600'>
         <FormikInputField
           label='Party Name'
           id='partyName'
           name='partyName'
           formik={formik}
-          className=''
+          className='!mb-0'
           inputClassName=''
-          labelClassName='w-1/5'
+          labelClassName='min-w-[90px] '
+          isRequired={true}
           onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
             if (e.key === 'ArrowDown' || e.key === 'Enter') {
               e.preventDefault();
@@ -95,13 +96,13 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
           }}
           showErrorTooltip={formik.touched.partyName && formik.errors.partyName}
         />
-        <div className='grid grid-cols-2 gap-2 w-full h-fit'>
+        <div className='grid grid-cols-2 gap-2 w-full items-center'>
           <div className=' starlabel'>
             {groupOptions.length > 0 && (
               <CustomSelect
                 label='Account Group'
                 id='accountGroup'
-                labelClass=' font-bold text-gray-600 '
+                labelClass='min-w-[90px]'
                 value={formik.values.accountGroup === '' ? null : { label: formik.values.accountGroup, value: formik.values.accountGroup }}
                 onChange={handleFieldChange}
                 options={groupOptions}
@@ -109,7 +110,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 placeholder="Account Group"
                 disableArrow={true}
                 hidePlaceholder={false}
-                className="h-9 rounded-sm"
+                className="!h-6 rounded-sm"
               />
             )}
           </div>
@@ -119,7 +120,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 <CustomSelect
                   label='Station'
                   id='stationName'
-                  labelClass='font-bold text-gray-600 items-center'
+                  labelClass='items-center w-1/3'
                   value={formik.values.stationName === '' ? null : { label: formik.values.stationName, value: formik.values.stationName }}
                   onChange={handleFieldChange}
                   options={stationOptions}
@@ -127,15 +128,16 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                   placeholder="Station Name"
                   disableArrow={true}
                   hidePlaceholder={false}
-                  className="h-9 rounded-sm"
+                  className="!h-6 rounded-sm"
+                  isRequired={true}
                 />
               )}
             </div>
           )}
         </div>
         {(isSUNDRY) && (
-          <div className='flex items-center'>
-            <label htmlFor='address1' className='font-bold text-gray-600'>
+          <div className='flex items-center m-[1px]'>
+            <label htmlFor='address1' className='min-w-[90px]'>
               Address
             </label>
             <div className='flex flex-col gap-0 w-full'>
@@ -174,13 +176,14 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
               id='country'
               name='country'
               formik={formik}
+              labelClassName='min-w-[90px]'
               isRequired={true}
             />
             {stateOptions.length > 0 && (
               <CustomSelect
                 label='State'
                 id='state'
-                labelClass='font-bold text-gray-600 items-center'
+                labelClass='w-1/3'
                 value={formik.values.state === '' ? null : { label: formik.values.state, value: formik.values.state }}
                 onChange={handleFieldChange}
                 options={stateOptions}
@@ -188,7 +191,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 placeholder="State"
                 disableArrow={true}
                 hidePlaceholder={false}
-                className="h-9 rounded-sm"
+                className="!h-6 rounded-sm"
                 isRequired={true}
               />
             )}
@@ -202,7 +205,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
               name='city'
               formik={formik}
               className=''
-              labelClassName='font-bold'
+              labelClassName='min-w-[90px]'
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                 if (e.key === 'ArrowDown' || e.key === 'Enter') {
                   document.getElementById('pinCode')?.focus();
@@ -218,6 +221,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
               name='pinCode'
               formik={formik}
               isRequired={true}
+              labelClassName='w-1/3'
               showErrorTooltip={true}
               className=''
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -236,7 +240,9 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
             id='mailTo'
             name='mailTo'
             formik={formik}
-            showErrorTooltip={true}
+            showErrorTooltip={formik.touched.mailTo && formik.errors.mailTo}
+            isRequired={true}
+            labelClassName='min-w-[90px]'
             onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
               if (e.key === 'ArrowDown' || e.key === 'Enter') {
                 document.getElementById('address')?.focus();
@@ -253,6 +259,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
               label='VAT Number'
               id='vatNumber'
               name='vatNumber'
+              labelClassName='min-w-[90px]'
               formik={formik}
             />
             <div className='grid grid-cols-2 gap-2'>
@@ -260,12 +267,14 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 label='Excess Rate'
                 id='excessRate'
                 name='excessRate'
+                labelClassName='min-w-[90px]'
                 formik={formik}
               />
               <FormikInputField
                 label='Route No.'
                 id='routeNo'
                 name='routeNo'
+                labelClassName='w-1/3'
                 formik={formik}
               />
             </div>
@@ -273,7 +282,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
               <CustomSelect
                 label='Party CACR'
                 id='party_cash_credit_invoice'
-                labelClass='font-bold text-gray-600'
+                labelClass='min-w-[90px]'
                 value={formik.values.party_cash_credit_invoice === '' ? null : { label: formik.values.party_cash_credit_invoice, value: formik.values.party_cash_credit_invoice }}
                 onChange={handleFieldChange}
                 options={[
@@ -284,12 +293,12 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 placeholder="Select an option"
                 disableArrow={false}
                 hidePlaceholder={false}
-                className="h-9 rounded-sm"
+                className="!h-6 rounded-sm"
               />
               <CustomSelect
                 label='Deduct Discount'
                 id='deductDiscount'
-                labelClass='font-bold text-gray-600'
+                labelClass='w-1/3'
                 value={formik.values.deductDiscount === '' ? null : { label: formik.values.deductDiscount, value: formik.values.deductDiscount }}
                 onChange={handleFieldChange}
                 options={[
@@ -300,14 +309,14 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 placeholder="Select an option"
                 disableArrow={false}
                 hidePlaceholder={false}
-                className="h-9 rounded-sm"
+                className="!h-6 rounded-sm"
               />
             </div>
-            <div className='grid grid-cols-3 gap-2'>
+            <div className='grid grid-cols-3 gap-2 items-center'>
               <CustomSelect
                 label='STOP NRX'
                 id='stopNrx'
-                labelClass=' font-bold text-gray-600'
+                labelClass='min-w-[90px]'
                 value={formik.values.stopNrx === '' ? null : { label: formik.values.stopNrx, value: formik.values.stopNrx }}
                 onChange={handleFieldChange}
                 options={[
@@ -318,12 +327,12 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 placeholder="Select an option"
                 disableArrow={false}
                 hidePlaceholder={false}
-                className="h-9 rounded-sm"
+                className="!h-6 rounded-sm"
               />
               <CustomSelect
                 label='STOP HI'
                 id='stopHi'
-                labelClass=' font-bold text-gray-600'
+                labelClass='w-[54%]'
                 value={formik.values.stopHi === '' ? null : { label: formik.values.stopHi, value: formik.values.stopHi }}
                 onChange={handleFieldChange}
                 options={[
@@ -334,14 +343,14 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 placeholder="Select an option"
                 disableArrow={false}
                 hidePlaceholder={false}
-                className="h-9 rounded-sm"
+                className="!h-6 rounded-sm"
               />
               <FormikInputField
                 label='Not PRINPBA'
                 id='notPrinpba'
                 name='notPrinpba'
+                labelClassName='w-[54%]'
                 formik={formik}
-                labelClassName=''
               />
             </div>
           </>
@@ -352,12 +361,14 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
               label='Credit Privilege'
               id='creditPrivilege'
               name='creditPrivilege'
+              labelClassName='min-w-[90px]'
               formik={formik}
             />
             <FormikInputField
               label='Transport'
               id='transport'
               name='transport'
+              labelClassName=' w-1/3'
               formik={formik}
             />
           </div>
@@ -365,7 +376,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
         <CustomSelect
           label='State In Out'
           id='stateInout'
-          labelClass=' font-bold text-gray-600 starlabel w-1/5 items-center'
+          labelClass='starlabel min-w-[90px] items-center'
           value={formik.values.stateInout === '' ? null : { label: formik.values.stateInout, value: formik.values.stateInout }}
           onChange={handleFieldChange}
           options={[
@@ -376,7 +387,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
           placeholder="Select an option"
           disableArrow={false}
           hidePlaceholder={false}
-          className="h-9 rounded-sm"
+          className="!h-6 rounded-sm"
         />
       </div>
     </div>
