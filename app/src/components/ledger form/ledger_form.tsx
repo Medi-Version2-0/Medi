@@ -1,5 +1,6 @@
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
+import './ledger_form.css';
 import { GeneralInfo } from './general_info';
 import { BalanceInfo } from './balance_info';
 import { useEffect, useRef, useState } from 'react';
@@ -340,7 +341,7 @@ export const Ledger = () => {
                 </div>
               </div>
             )}
-          <div className='p-4 m-4'>
+          <div>
             <Button
               type='highlight'
               id='submit_all'
@@ -353,7 +354,7 @@ export const Ledger = () => {
                   message: 'Ledger created successfully',
                 });
               }}
-              className=''
+              className='submit_button'
               handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
                 if (e.key === 'ArrowUp') {
                   document
