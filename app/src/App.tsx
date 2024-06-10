@@ -5,7 +5,7 @@ import { Groups } from "./views/groups";
 import { SubGroups } from './views/subgroups';
 import { Ledger } from './components/ledger form/ledger_form';
 import { Ledger_Table } from './components/ledger form/ledger_table';
-import { Headquarters } from './components/headquarters/headquarters';
+import { Headquarters } from './views/headquarters';
 import Home from './views/home';
 import { Sales_Purchase } from './components/sales_purchase/sales_purchase';
 import { Sales_Purchase_Table } from './components/sales_purchase/sales_purchase_table';

@@ -1,7 +1,6 @@
 import React from 'react';
 import { Tooltip as ReactTooltip } from 'react-tooltip';
 import { FaExclamationCircle } from 'react-icons/fa';
-
 interface FormikInputFieldProps {
   label: string;
   id: string;
@@ -33,7 +32,6 @@ interface FormikInputFieldProps {
   onClick?: (e: React.MouseEvent<HTMLInputElement>) => void;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
-
 const FormikInputField: React.FC<FormikInputFieldProps> = ({
   label,
   id,
@@ -53,32 +51,32 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
   placeholder
 }) => {
   return (
-    <div className={`flex flex-row gap-2 items-center mb-2 relative w-full  ${isRequired ? ' starlabel' : ''} ${className || ''}`}>
-      <label htmlFor={id} className={`font-bold text-gray-600 min-w-fit ${labelClassName}`}>
+    <div className={`flex flex-row gap-2 items-center mb-2 relative w-full  ${isRequired ? ' ' : ''} ${className || ''}`}>
+      <label htmlFor={id} className={`font-bold text-gray-600 ${labelClassName}`}>
         {label}
       </label>
       {children}
-      <div className={`relative ${inputContainerClassName}`}>
-      <input
-        type={type}
-        id={id}
-        name={name}
-        className={`w-full ml-1 h-6 ${inputClassName}`}
-        onBlur={formik.handleBlur}
-        onChange={onChange}
-        value={formik.values[id]}
-        onKeyDown={onKeyDown}
-        onClick={onClick}
-        placeholder={placeholder}
-      />
-      {showErrorTooltip && formik.touched[id] && formik.errors[id] && (
-        <>
-          <FaExclamationCircle data-tooltip-id={`${id}-error-tooltip`} className='absolute -translate-y-2/4 top-2/4 right-1 text-red-600' />
-          <ReactTooltip id={`${id}-error-tooltip`} place='bottom' className='bg-[#89050b] text-[white] border rounded text-sm z-10 p-2 border-solid border-[#d8000c]'>
-            {formik.errors[id]}
-          </ReactTooltip>
-        </>
-      )}
+      <div className={`relative w-full ${inputContainerClassName}`}>
+        <input
+          type={type}
+          id={id}
+          name={name}
+          className={`w-full ml-1 h-6 border border-solid border-[#9ca3af] rounded-sm px-2 py-4  ${inputClassName}`}
+          onBlur={formik.handleBlur}
+          onChange={onChange}
+          value={formik.values[id]}
+          onKeyDown={onKeyDown}
+          onClick={onClick}
+          placeholder={placeholder}
+        />
+        {showErrorTooltip && formik.touched[id] && formik.errors[id] && (
+          <>
+            <FaExclamationCircle data-tooltip-id={`${id}-error-tooltip`} className='absolute -translate-y-2/4 top-2/4 right-1 text-red-600' />
+            <ReactTooltip id={`${id}-error-tooltip`} place='bottom' className='bg-[#89050b] text-[white] border rounded text-sm z-10 p-2 border-solid border-[#d8000c]'>
+              {formik.errors[id]}
+            </ReactTooltip>
+          </>
+        )}
       </div>
     </div>
   );

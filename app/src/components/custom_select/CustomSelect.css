@@ -1,6 +1,7 @@
 .custom-select-field {
   width: 100%;
-  max-height: 1.5rem;
+  max-height: 100%;
+  padding: 0px;
 }
 
 .custom-select__control {
@@ -8,11 +9,18 @@
   box-shadow: none !important;
   cursor: text !important;
   width: 100%;
-  min-height: 1.5rem !important;
+  height: 100%;
+  padding: 0px 8px !important;
+  min-height: 20px !important;
 }
 
 .custom-select__value-container {
   padding: 0 !important;
+  max-height: 36px;
+}
+
+.custom-select__indicators {
+  padding: 0;
 }
 
 .custom-select__indicator-separator {
@@ -20,7 +28,10 @@
 }
 
 .custom-select__placeholder {
-  color:#A9A9A9 !important;
+  color: #A9A9A9 !important;
+  text-wrap: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .custom-select__single-value {
@@ -37,11 +48,10 @@
 }
 
 .custom-select__control {
-  padding : 7px 10px;
-  border: 1px solid #ccc !important;
-  /* border: 1px solid gray !important; */
+  padding: 7px 10px;
+  border: none !important;
 }
 
 .custom-select__option--is-selected {
-  background-color: rgb(183, 179, 179) !important;
+  background-color: rgb(147, 234, 241) !important;
 }

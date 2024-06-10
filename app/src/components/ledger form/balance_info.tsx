@@ -2,6 +2,8 @@ import React from 'react';
 import FormikInputField from '../common/FormikInputField';
 import CustomSelect from '../custom_select/CustomSelect';
 import { Option } from '../../interface/global';
+import '../stations/stations.css';
+
 interface BalanceInfoProps {
   accountInputValue?: string;
   formik?: any;
@@ -35,19 +37,19 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
   };
 
   return (
-    <div className='ledger_balance_info'>
-      <div className='balance_prefix'>Balance</div>
-      <div className='balance_inputs'>
-        <div className='ledger_inputs'>
+    <div className='relative border border-solid border-gray-400'>
+      <div className='absolute top-[-14px] left-2 border border-solid border-gray-400 px-2 w-max bg-gray-100'>Balance</div>
+      <div className='flex flex-col gap-2 w-full p-4'>
+        <div className='grid grid-cols-2 gap-2 items-center'>
           <FormikInputField
-            label={`Opening Balance ${'  '}₹`}
+            label={`Opening Balance ₹`}
             id='openingBal'
             name='openingBal'
             formik={formik}
             onChange={handleOpeningBalInput}
             placeholder='0.00'
             onClick={resetField}
-            className='balance_label_name label_name_css openingBal'
+            className=''
             onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
               if (e.key === 'ArrowDown' || e.key === 'Enter') {
                 document.getElementById('openingBalType')?.focus();
@@ -88,19 +90,19 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
             placeholder='Select an option'
             disableArrow={false}
             hidePlaceholder={false}
-            className='custom-select-field'
+            className=''
           />
         </div>
         {(accountInputValue?.toUpperCase() === 'SUNDRY CREDITORS' ||
           accountInputValue?.toUpperCase() === 'SUNDRY DEBTORS') && (
-          <>
+          <div className='flex flex-col'>
             <FormikInputField
               label='Credit Limit'
               id='creditLimit'
               name='creditLimit'
               formik={formik}
               placeholder='0'
-              className='input_class'
+              className=''
               onChange={handleCreditInput}
               onClick={resetField}
             />
@@ -112,7 +114,7 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
               formik={formik}
               placeholder='0'
               maxLength={3}
-              className='input_class'
+              className=''
               onChange={handleCreditInput}
               onClick={resetField}
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -125,7 +127,7 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
                 }
               }}
             />
-          </>
+          </div>
         )}
       </div>
     </div>

@@ -117,12 +117,15 @@ export const CreateStation: React.FC<CreateStationProps> = ({
   const handleStateChange = (option: Option | null) => {
     formikRef.current?.setFieldValue('station_state', option?.value);
   };
+  const handleFieldChange = (option: Option | null, id: string) => {
+    formikRef.current?.setFieldValue(id, option?.value);
+  };
   return (
     <Popup
       togglePopup={togglePopup}
       heading={station_id && isDelete ? 'Delete Station'
         : station_id ? 'Update Station'
-          : 'Create Station'
+          : 'Create Station'    
       }
     >
       <Formik
@@ -174,7 +177,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                       placeholder="Station state"
                       disableArrow={true}
                       hidePlaceholder={false}
-                      className=""
+                      className="h-12"
                       isFocused={focused === "station_state"}
                       error={formik.errors.station_state}
                       isDisabled={isDelete && station_id}
@@ -193,7 +196,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                 name='station_pinCode'
                 placeholder='Station pin code'
                 disabled={isDelete && station_id}
-                className={`w-full p-3 rounded-md text-3  border border-solid  ${(formik.touched.station_pinCode && formik.errors.station_pinCode) ? 'border-red-600 ' : ''}`}
+                className={`w-full p-3 rounded-md text-3  border border-solid border-[#9ca3af]  ${(formik.touched.station_pinCode && formik.errors.station_pinCode) ? '!border-red-600 ' : ''}`}
                 data-side-field='cst_yes'
                 data-next-field='cst_yes'
                 data-prev-field='station_state'
@@ -213,41 +216,25 @@ export const CreateStation: React.FC<CreateStationProps> = ({
               />
             </div>
             <div className="flex flex-col w-full " >
-              <div className='flex items-center justify-between gap-2 rounded-md border border-solid border-[#c1c1c1]'>
-                <label className={`w-1/2 text-base cursor-pointer text-center p-3 font-bold  ${station_id && isDelete ? 'disabled' : ''}`} >
-                  <Field
-                    type='radio'
-                    name='cst_sale'
-                    value='yes'
-                    id='cst_yes'
-                    checked={formik.values.cst_sale === 'yes'}
-                    disabled={station_id && isDelete}
-                    data-prev-field='station_pinCode'
-                    data-next-field='submit_button'
-                    data-side-field='cst_no'
-                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                      handleKeyDown(e, formik)
-                    }
-                  />
-                  Yes
-                </label>
-                <label className={`w-1/2 text-base cursor-pointer text-center p-3 font-bold  ${station_id && isDelete ? 'disabled' : ''}`}>
-                  <Field
-                    type='radio'
-                    name='cst_sale'
-                    value='no'
-                    id='cst_no'
-                    checked={formik.values.cst_sale === 'no'}
-                    disabled={station_id && isDelete}
-                    data-prev-field='station_pinCode'
-                    data-next-field='submit_button'
-                    data-side-field='cst_yes'
-                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                      handleKeyDown(e, formik)
-                    }
-                  />
-                  No
-                </label>
+              <div className='flex items-center justify-between gap-2'>
+                <CustomSelect
+                  label=''
+                  id='cst_sale'
+                  value={formik.values.cst_sale === '' ? null : { label: formik.values.cst_sale, value: formik.values.cst_sale }}
+                  onChange={handleFieldChange}
+                  options={[
+                    { value: 'Yes', label: 'Yes' },
+                    { value: 'No', label: 'No' },
+                  ]}
+                  isSearchable={false}
+                  placeholder="CST Sale"
+                  disableArrow={false}
+                  hidePlaceholder={false}
+                  className="w-full h-12"
+                  isTouched={formik.touched.cst_sale}
+                  error={formik.errors.cst_sale}
+                  onBlur={() => { formik.setFieldTouched('cst_sale', true); setFocused(""); }}
+                />
               </div>
               <ErrorMessage
                 name='cst_sale'

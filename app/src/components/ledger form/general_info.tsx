@@ -59,7 +59,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
   }, []);
 
   const handleFieldChange = (option: Option | null, id: string) => {
-    if(id==='accountGroup') {
+    if (id === 'accountGroup') {
       setAccountInputValue(option?.value || "");
       onValueChange(option?.value);
     }
@@ -76,15 +76,17 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
   };
 
   return (
-    <div className='ledger_general_info'>
-      <div className='general_info_prefix'>General Info</div>
-      <div className='general_info_inputs'>
+    <div className='relative border w-3/5 h-full pt-4 border-solid border-gray-400'>
+      <div className='absolute top-[-14px] left-2 border border-solid border-gray-400 px-2 w-max bg-gray-100'>General Info</div>
+      <div className='flex flex-col gap-2 w-full px-4 py-2'>
         <FormikInputField
           label='Party Name'
           id='partyName'
           name='partyName'
           formik={formik}
           className=''
+          inputClassName=''
+          labelClassName='w-1/5'
           onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
             if (e.key === 'ArrowDown' || e.key === 'Enter') {
               e.preventDefault();
@@ -93,56 +95,56 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
           }}
           showErrorTooltip={formik.touched.partyName && formik.errors.partyName}
         />
-        <div className='ledger_inputs'>
-          <div className='fixed_assets_input starlabel'>
+        <div className='grid grid-cols-2 gap-2 w-full h-fit'>
+          <div className=' starlabel'>
             {groupOptions.length > 0 && (
               <CustomSelect
                 label='Account Group'
                 id='accountGroup'
-                labelClass='label_name label_name_css starlabel'
-                value={formik.values.accountGroup==='' ? null : { label: formik.values.accountGroup, value: formik.values.accountGroup }}
+                labelClass=' font-bold text-gray-600 '
+                value={formik.values.accountGroup === '' ? null : { label: formik.values.accountGroup, value: formik.values.accountGroup }}
                 onChange={handleFieldChange}
                 options={groupOptions}
                 isSearchable={true}
                 placeholder="Account Group"
                 disableArrow={true}
                 hidePlaceholder={false}
-                className="custom-select-field"
+                className="h-9 rounded-sm"
               />
             )}
           </div>
           {(isSUNDRY) && (
-            <div className='stations_input starlabel'>
+            <div className='flex items-center'>
               {stationOptions.length > 0 && (
                 <CustomSelect
                   label='Station'
                   id='stationName'
-                  labelClass='label_name_css'
-                  value={formik.values.stationName==='' ? null : { label: formik.values.stationName, value: formik.values.stationName }}
+                  labelClass='font-bold text-gray-600 items-center'
+                  value={formik.values.stationName === '' ? null : { label: formik.values.stationName, value: formik.values.stationName }}
                   onChange={handleFieldChange}
                   options={stationOptions}
                   isSearchable={true}
                   placeholder="Station Name"
                   disableArrow={true}
                   hidePlaceholder={false}
-                  className="custom-select-field"
+                  className="h-9 rounded-sm"
                 />
               )}
             </div>
           )}
         </div>
         {(isSUNDRY) && (
-          <div className='ledger_inputs'>
-            <label htmlFor='address1' className='address_label_name label_name_css'>
+          <div className='flex items-center'>
+            <label htmlFor='address1' className='font-bold text-gray-600'>
               Address
             </label>
-            <div className='address_input'>
+            <div className='flex flex-col gap-0 w-full'>
               <FormikInputField
                 label=''
                 id='address1'
                 name='address1'
                 formik={formik}
-                className='input_class'
+                className='!mb-0'
                 onKeyDown={handleAddressInputKeyDown}
               />
               <FormikInputField
@@ -150,7 +152,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 id='address2'
                 name='address2'
                 formik={formik}
-                className='input_class'
+                className='!mb-0'
                 onKeyDown={handleAddressInputKeyDown}
               />
               <FormikInputField
@@ -158,7 +160,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 id='address3'
                 name='address3'
                 formik={formik}
-                className='input_class'
+                className='!mb-0'
                 onKeyDown={handleAddressInputKeyDown}
               />
             </div>
@@ -166,35 +168,41 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
 
         )}
         {(isSUNDRY) && (
-          <div className='ledger_inputs'>
-            <FormikInputField label='Country' id='country' name='country' formik={formik} isRequired={true} />
-            <div className='country_div starlabel'>
-              {stateOptions.length > 0 && (
-                <CustomSelect
-                  label='State'
-                  id='state'
-                  labelClass='label_name_css'
-                  value={formik.values.state==='' ? null : { label: formik.values.state, value: formik.values.state }}
-                  onChange={handleFieldChange}
-                  options={stateOptions}
-                  isSearchable={true}
-                  placeholder="State"
-                  disableArrow={true}
-                  hidePlaceholder={false}
-                  className="custom-select-field"
-                />
-              )}
-            </div>
+          <div className='grid grid-cols-2 gap-2 items-center'>
+            <FormikInputField
+              label='Country'
+              id='country'
+              name='country'
+              formik={formik}
+              isRequired={true}
+            />
+            {stateOptions.length > 0 && (
+              <CustomSelect
+                label='State'
+                id='state'
+                labelClass='font-bold text-gray-600 items-center'
+                value={formik.values.state === '' ? null : { label: formik.values.state, value: formik.values.state }}
+                onChange={handleFieldChange}
+                options={stateOptions}
+                isSearchable={true}
+                placeholder="State"
+                disableArrow={true}
+                hidePlaceholder={false}
+                className="h-9 rounded-sm"
+                isRequired={true}
+              />
+            )}
           </div>
         )}
         {(isSUNDRY) && (
-          <div className='flex'>
+          <div className='grid grid-cols-2 gap-2'>
             <FormikInputField
               label='City'
               id='city'
               name='city'
               formik={formik}
-              className='max-w-1/2'
+              className=''
+              labelClassName='font-bold'
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                 if (e.key === 'ArrowDown' || e.key === 'Enter') {
                   document.getElementById('pinCode')?.focus();
@@ -211,7 +219,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
               formik={formik}
               isRequired={true}
               showErrorTooltip={true}
-              className='max-w-1/2'
+              className=''
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                 if (e.key === 'ArrowDown' || e.key === 'Enter') {
                   e.preventDefault();
@@ -241,52 +249,48 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
         )}
         {(accountInputValue?.toUpperCase() === 'SUNDRY DEBTORS') && (
           <>
-            <FormikInputField label='VAT Number' id='vatNumber' name='vatNumber' formik={formik} />
-            <div className='ledger_inputs'>
-              <FormikInputField label='Excess Rate' id='excessRate' name='excessRate' formik={formik} />
-              <FormikInputField label='Route No.' id='routeNo' name='routeNo' formik={formik} />
-            </div>
-            <div className='ledger_inputs'>
-            <CustomSelect
-              label='Party CACR'
-              id='party_cash_credit_invoice'
-              labelClass='label_name label_name_css'
-              value={formik.values.party_cash_credit_invoice==='' ? null : { label: formik.values.party_cash_credit_invoice, value: formik.values.party_cash_credit_invoice }}
-              onChange={handleFieldChange}
-              options={[
-                { value: 'Cash Invoice', label: 'Cash Invoice' },
-                { value: 'Credit Invoice', label: 'Credit Invoice' },
-              ]}
-              isSearchable={false}
-              placeholder="Select an option"
-              disableArrow={false}
-              hidePlaceholder={false}
-              className="custom-select-field"
+            <FormikInputField
+              label='VAT Number'
+              id='vatNumber'
+              name='vatNumber'
+              formik={formik}
             />
-
-            <CustomSelect
-              label='Deduct Discount'
-              id='deductDiscount'
-              labelClass='label_name label_name_css'
-              value={formik.values.deductDiscount==='' ? null : { label: formik.values.deductDiscount, value: formik.values.deductDiscount }}
-              onChange={handleFieldChange}
-              options={[
-                { value: 'Yes', label: 'Yes' },
-                { value: 'No', label: 'No' },
-              ]}
-              isSearchable={false}
-              placeholder="Select an option"
-              disableArrow={false}
-              hidePlaceholder={false}
-              className="custom-select-field"
-            />
+            <div className='grid grid-cols-2 gap-2'>
+              <FormikInputField
+                label='Excess Rate'
+                id='excessRate'
+                name='excessRate'
+                formik={formik}
+              />
+              <FormikInputField
+                label='Route No.'
+                id='routeNo'
+                name='routeNo'
+                formik={formik}
+              />
             </div>
-            <div className='ledger_inputs'>
+            <div className='grid grid-cols-2 gap-2'>
               <CustomSelect
-                label='STOP NRX'
-                id='stopNrx'
-                labelClass='label_name label_name_css'
-                value={formik.values.stopNrx==='' ? null : { label: formik.values.stopNrx, value: formik.values.stopNrx }}
+                label='Party CACR'
+                id='party_cash_credit_invoice'
+                labelClass='font-bold text-gray-600'
+                value={formik.values.party_cash_credit_invoice === '' ? null : { label: formik.values.party_cash_credit_invoice, value: formik.values.party_cash_credit_invoice }}
+                onChange={handleFieldChange}
+                options={[
+                  { value: 'Cash Invoice', label: 'Cash Invoice' },
+                  { value: 'Credit Invoice', label: 'Credit Invoice' },
+                ]}
+                isSearchable={false}
+                placeholder="Select an option"
+                disableArrow={false}
+                hidePlaceholder={false}
+                className="h-9 rounded-sm"
+              />
+              <CustomSelect
+                label='Deduct Discount'
+                id='deductDiscount'
+                labelClass='font-bold text-gray-600'
+                value={formik.values.deductDiscount === '' ? null : { label: formik.values.deductDiscount, value: formik.values.deductDiscount }}
                 onChange={handleFieldChange}
                 options={[
                   { value: 'Yes', label: 'Yes' },
@@ -296,13 +300,31 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 placeholder="Select an option"
                 disableArrow={false}
                 hidePlaceholder={false}
-                className="custom-select-field"
+                className="h-9 rounded-sm"
+              />
+            </div>
+            <div className='grid grid-cols-3 gap-2'>
+              <CustomSelect
+                label='STOP NRX'
+                id='stopNrx'
+                labelClass=' font-bold text-gray-600'
+                value={formik.values.stopNrx === '' ? null : { label: formik.values.stopNrx, value: formik.values.stopNrx }}
+                onChange={handleFieldChange}
+                options={[
+                  { value: 'Yes', label: 'Yes' },
+                  { value: 'No', label: 'No' },
+                ]}
+                isSearchable={false}
+                placeholder="Select an option"
+                disableArrow={false}
+                hidePlaceholder={false}
+                className="h-9 rounded-sm"
               />
               <CustomSelect
                 label='STOP HI'
                 id='stopHi'
-                labelClass='label_name label_name_css'
-                value={formik.values.stopHi==='' ? null : { label: formik.values.stopHi, value: formik.values.stopHi }}
+                labelClass=' font-bold text-gray-600'
+                value={formik.values.stopHi === '' ? null : { label: formik.values.stopHi, value: formik.values.stopHi }}
                 onChange={handleFieldChange}
                 options={[
                   { value: 'Yes', label: 'Yes' },
@@ -312,41 +334,50 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 placeholder="Select an option"
                 disableArrow={false}
                 hidePlaceholder={false}
-                className="custom-select-field"
+                className="h-9 rounded-sm"
               />
               <FormikInputField
                 label='Not PRINPBA'
                 id='notPrinpba'
                 name='notPrinpba'
                 formik={formik}
+                labelClassName=''
               />
             </div>
           </>
         )}
-        {accountInputValue?.toUpperCase() === 'SUNDRY CREDITORS' && (
-          <div className='ledger_inputs'>
-            <FormikInputField label='Credit Privilege' id='creditPrivilege' name='creditPrivilege' formik={formik} />
-            <FormikInputField label='Transport' id='transport' name='transport' formik={formik} />
-            </div>
-        )}
-          <div className='ledger_inputs'>
-            <CustomSelect
-              label='State In Out'
-              id='stateInout'
-              labelClass='label_name label_name_css starlabel'
-              value={formik.values.stateInout==='' ? null : { label: formik.values.stateInout, value: formik.values.stateInout }}
-              onChange={handleFieldChange}
-              options={[
-                { value: 'Within state', label: 'Within state' },
-                { value: 'Out of state', label: 'Out of state' },
-              ]}
-              isSearchable={false}
-              placeholder="Select an option"
-              disableArrow={false}
-              hidePlaceholder={false}
-              className="custom-select-field"
+        {(accountInputValue?.toUpperCase() === 'SUNDRY CREDITORS') && (
+          <div className='grid grid-cols-2 gap-2'>
+            <FormikInputField
+              label='Credit Privilege'
+              id='creditPrivilege'
+              name='creditPrivilege'
+              formik={formik}
+            />
+            <FormikInputField
+              label='Transport'
+              id='transport'
+              name='transport'
+              formik={formik}
             />
           </div>
+        )}
+        <CustomSelect
+          label='State In Out'
+          id='stateInout'
+          labelClass=' font-bold text-gray-600 starlabel w-1/5 items-center'
+          value={formik.values.stateInout === '' ? null : { label: formik.values.stateInout, value: formik.values.stateInout }}
+          onChange={handleFieldChange}
+          options={[
+            { value: 'Within state', label: 'Within state' },
+            { value: 'Out of state', label: 'Out of state' },
+          ]}
+          isSearchable={false}
+          placeholder="Select an option"
+          disableArrow={false}
+          hidePlaceholder={false}
+          className="h-9 rounded-sm"
+        />
       </div>
     </div>
   );

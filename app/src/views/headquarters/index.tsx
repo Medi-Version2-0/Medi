@@ -5,8 +5,9 @@ import { MdDeleteForever } from 'react-icons/md';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { StationFormData } from '../../interface/global';
-import Confirm_Alert_Popup from '../popup/Confirm_Alert_Popup';
-import { CreateHeadquarters } from './createHeadquarters';
+import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
+import { CreateHQ } from './CreateHQ';
+import Button from '../../components/common/button/Button';
 
 const initialValue = {
   station_id: '',
@@ -72,6 +73,7 @@ export const Headquarters = () => {
       if (formData.station_id) {
         electronAPI.updateStation(formData.station_id, formData);
       } else {
+        console.log("formdata--",formData);
         electronAPI.addStation(formData);
       }
       togglePopup(false);
@@ -81,7 +83,6 @@ export const Headquarters = () => {
 
   const handelFormSubmit = (values: StationFormData) => {
     const mode = values.station_id ? 'update' : 'create';
-    console.log("Values >>>>>>>>>>",values);
     if (values.station_name) {
       values.station_name =
         values.station_name.charAt(0).toUpperCase() +
@@ -288,53 +289,47 @@ export const Headquarters = () => {
 
   return (
     <>
-        <div className='w-full '>
-          <div className="flex justify-between mx-[1.6rem] my-8  bg-[#f3f3f3]  ">
-            <h1 className="font-bold text-[#171A1FFF] m-0 ">Headquarters</h1>
-            <button
-              id='account_button'
-              className='account_button'
-              onClick={() => togglePopup(true)}
-            >
-              Add Headquarter
-            </button>
-          </div>
-          <div id='account_table' className='ag-theme-quartz'>
-            {
-              <AgGridReact
-                rowData={tableData}
-                columnDefs={colDefs}
-                defaultColDef={{
-                  floatingFilter: true,
-                }}
-                onCellClicked={onCellClicked}
-                onCellEditingStarted={cellEditingStarted}
-                onCellEditingStopped={handleCellEditingStopped}
-              />
-            }
-          </div>
-          {(popupState.isModalOpen || popupState.isAlertOpen) && (
-            <Confirm_Alert_Popup
-              onClose={handleClosePopup}
-              onConfirm={
-                popupState.isAlertOpen
-                  ? handleAlertCloseModal
-                  : handleConfirmPopup
-              }
-              message={popupState.message}
-              isAlert={popupState.isAlertOpen}
-            />
-          )}
-          {open && (
-            <CreateHeadquarters
-              togglePopup={togglePopup}
-              data={formData}
-              handelFormSubmit={handelFormSubmit}
-              isDelete={isDelete.current}
-              deleteAcc={deleteAcc}
-            />
-          )}
+      <div className='w-full '>
+        <div className="flex justify-between mx-[1.6rem] my-8  bg-[#f3f3f3]  ">
+          <h1 className="font-bold text-[#171A1FFF] m-0 ">Headquarters</h1>
+          <Button type='highlight' className='' handleOnClick={() => togglePopup(true)}>Add HeadQuarter</Button>
         </div>
+        <div id='account_table' className='ag-theme-quartz'>
+          {
+            <AgGridReact
+              rowData={tableData}
+              columnDefs={colDefs}
+              defaultColDef={{
+                floatingFilter: true,
+              }}
+              onCellClicked={onCellClicked}
+              onCellEditingStarted={cellEditingStarted}
+              onCellEditingStopped={handleCellEditingStopped}
+            />
+          }
+        </div>
+        {(popupState.isModalOpen || popupState.isAlertOpen) && (
+          <Confirm_Alert_Popup
+            onClose={handleClosePopup}
+            onConfirm={
+              popupState.isAlertOpen
+                ? handleAlertCloseModal
+                : handleConfirmPopup
+            }
+            message={popupState.message}
+            isAlert={popupState.isAlertOpen}
+          />
+        )}
+        {open && (
+          <CreateHQ
+            togglePopup={togglePopup}
+            data={formData}
+            handelFormSubmit={handelFormSubmit}
+            isDelete={isDelete.current}
+            deleteAcc={deleteAcc}
+          />
+        )}
+      </div>
     </>
   );
 };

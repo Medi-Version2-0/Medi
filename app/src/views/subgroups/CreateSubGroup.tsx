@@ -85,9 +85,9 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
       case 'ArrowDown':
       case 'Enter':
         {
-          const nextField =
-            e.currentTarget.getAttribute('data-next-field') || '';
+          const nextField = e.currentTarget.getAttribute('data-next-field') || '';
           document.getElementById(nextField)?.focus();
+          setFocused(nextField);
           if (e.currentTarget.type == 'radio') {
             const value = e.currentTarget.value;
             formik && formik.setFieldValue('type', value);
@@ -170,7 +170,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
             </div>
             <div className="flex flex-col w-full">
               {parentGrpOptions.length > 0 && (
-                <Field name="parent_group">
+                <Field name="parent_group" className="">
                   {() => (
                     <CustomSelect
                       id="parent_group"
@@ -182,11 +182,11 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                       placeholder="Parent group"
                       disableArrow={true}
                       hidePlaceholder={false}
-                      className=""
+                      className="h-12"
                       isFocused={focused === "parent_group"}
                       error={formik.errors.parent_group}
                       isTouched={formik.touched.parent_group}
-                      onBlur={() => {formik.setFieldTouched('parent_group', true); setFocused(""); }}
+                      onBlur={() => { formik.setFieldTouched('parent_group', true); setFocused(""); }}
                     />
                   )}
                 </Field>
@@ -198,7 +198,6 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
               />
             </div>
             <ErrorMessage name="selectOption" component="div" />
-
             <div className='flex flex-col justify-center w-full'>
               <div className='flex items-center justify-between w-full gap-2 rounded-md border border-solid border-[#c1c1c1]' >
                 <label className={`w-1/2 text-base cursor-pointer text-center p-3 font-bold  ${group_code && isDelete ? 'disabled' : ''}`}>

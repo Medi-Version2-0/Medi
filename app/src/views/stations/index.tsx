@@ -7,6 +7,7 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { StationFormData } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
+import Button from '../../components/common/button/Button';
 
 const initialValue = {
   station_id: '',
@@ -366,13 +367,7 @@ export const Stations = () => {
         <div className='w-full '>
           <div className="flex justify-between mx-[1.6rem] my-8  bg-[#f3f3f3]  ">
             <h1 className="font-bold text-[#171A1FFF] m-0 ">Stations</h1>
-            <button
-              id='account_button'
-              className='account_button'
-              onClick={() => togglePopup(true)}
-            >
-              Add Station
-            </button>
+            <Button type='highlight' className='' handleOnClick={() => togglePopup(true)}>Add Station</Button>
           </div>
           <div id='account_table' className='ag-theme-quartz'>
             {

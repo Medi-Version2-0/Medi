@@ -15,132 +15,120 @@ export const BankDetails: React.FC<BankDetailsProps> = ({
   };
 
   return (
-    <div className='tax_details_page'>
-      <div className='tax_ledger_inputs'>
-        <div className='name_input'>
-          <FormikInputField
-            label='Bank Name'
-            id='bankName'
-            name='bankName'
-            formik={formik}
-            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-              if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                document.getElementById('accountNumber')?.focus();
-                e.preventDefault();
-              } else if (e.key === 'ArrowUp') {
-                document.getElementById('Bank_Details')?.focus();
-              }
-            }}
-          />
-        </div>
-
-        <div className='name_input'>
-          <FormikInputField
-            label='A/C No.'
-            id='accountNumber'
-            name='accountNumber'
-            formik={formik}
-            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-              if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                document.getElementById('branchName')?.focus();
-                e.preventDefault();
-              } else if (e.key === 'ArrowUp') {
-                document.getElementById('bankName')?.focus();
-                e.preventDefault();
-              }
-            }}
-          />
-        </div>
-      </div>
-      <div className='tax_ledger_inputs'>
-        <div className='name_input'>
-          <FormikInputField
-            label='Branch'
-            id='branchName'
-            name='branchName'
-            formik={formik}
-            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-              if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                document.getElementById('accountType')?.focus();
-                e.preventDefault();
-              } else if (e.key === 'ArrowUp') {
-                document.getElementById('accountNumber')?.focus();
-              }
-            }}
-          />
-        </div>
-        <div className='name_input'>
-          <CustomSelect
-            label='A/C Type'
-            id='accountType'
-            labelClass='label_name label_name_css'
-            value={
-              formik.values.accountType === ''
-                ? null
-                : {
-                    label: formik.values.accountType,
-                    value: formik.values.accountType,
-                  }
+    <div className='grid grid-cols-2 gap-2 m-2'>
+      <FormikInputField
+        labelClassName='w-1/5'
+        label='Bank Name'
+        id='bankName'
+        name='bankName'
+        formik={formik}
+        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+          if (e.key === 'ArrowDown' || e.key === 'Enter') {
+            document.getElementById('accountNumber')?.focus();
+            e.preventDefault();
+          } else if (e.key === 'ArrowUp') {
+            document.getElementById('Bank_Details')?.focus();
+          }
+        }}
+      />
+      <FormikInputField
+        labelClassName='w-1/5'
+        label='A/C No.'
+        id='accountNumber'
+        name='accountNumber'
+        formik={formik}
+        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+          if (e.key === 'ArrowDown' || e.key === 'Enter') {
+            document.getElementById('branchName')?.focus();
+            e.preventDefault();
+          } else if (e.key === 'ArrowUp') {
+            document.getElementById('bankName')?.focus();
+            e.preventDefault();
+          }
+        }}
+      />
+      <FormikInputField
+        labelClassName='w-1/5'
+        label='Branch'
+        id='branchName'
+        name='branchName'
+        formik={formik}
+        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+          if (e.key === 'ArrowDown' || e.key === 'Enter') {
+            document.getElementById('accountType')?.focus();
+            e.preventDefault();
+          } else if (e.key === 'ArrowUp') {
+            document.getElementById('accountNumber')?.focus();
+          }
+        }}
+      />
+      <CustomSelect
+        label='A/C Type'
+        id='accountType'
+        labelClass='font-bold text-gray-600 w-1/5 mr-2'
+        value={
+          formik.values.accountType === ''
+            ? null
+            : {
+              label: formik.values.accountType,
+              value: formik.values.accountType,
             }
-            onChange={handleFieldChange}
-            options={[
-              { value: 'Saving Account', label: 'Saving Account' },
-              { value: 'Current Account', label: 'Current Account' },
-            ]}
-            isSearchable={false}
-            placeholder='Select an option'
-            disableArrow={false}
-            hidePlaceholder={false}
-            className='custom-select-field'
-            onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-              if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                document.getElementById('ifscCode')?.focus();
-                e.preventDefault();
-              } else if (e.key === 'ArrowUp') {
-                document.getElementById('branchName')?.focus();
-                e.preventDefault();
-              }
-            }}
-          />
-        </div>
-      </div>
-      <div className='tax_ledger_inputs'>
-        <div className='name_input'>
-          <FormikInputField
-            label='IFSC'
-            id='ifscCode'
-            name='ifscCode'
-            maxLength={11}
-            formik={formik}
-            className='input_class'
-            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-              if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                document.getElementById('accountHolderName')?.focus();
-                e.preventDefault();
-              } else if (e.key === 'ArrowUp') {
-                document.getElementById('accountType')?.focus();
-              }
-            }}
-          />
-        </div>
-        <div className='name_input'>
-          <FormikInputField
-            label='A/C Holder Name'
-            id='accountHolderName'
-            name='accountHolderName'
-            formik={formik}
-            className='input_class'
-            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-              if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                document.getElementById('submit_all')?.focus();
-                e.preventDefault();
-              } else if (e.key === 'ArrowUp') {
-                document.getElementById('ifscCode')?.focus();
-              }
-            }}
-          />
-        </div>
-      </div>
+        }
+        onChange={handleFieldChange}
+        options={[
+          { value: 'Saving Account', 
+            label: 'Saving Account' },
+          { value: 'Current Account',  
+            label: 'Current Account' },
+        ]}
+        isSearchable={false}
+        placeholder='Select an option'
+        disableArrow={false}
+        hidePlaceholder={false}
+        className='!rounded-none'
+        onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+          if (e.key === 'ArrowDown' || e.key === 'Enter') {
+            document.getElementById('ifscCode')?.focus();
+            e.preventDefault();
+          } else if (e.key === 'ArrowUp') {
+            document.getElementById('branchName')?.focus();
+            e.preventDefault();
+          }
+        }}
+      />
+      <FormikInputField
+        labelClassName='w-1/5'
+        label='IFSC'
+        id='ifscCode'
+        name='ifscCode'
+        maxLength={11}
+        formik={formik}
+        className=''
+        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+          if (e.key === 'ArrowDown' || e.key === 'Enter') {
+            document.getElementById('accountHolderName')?.focus();
+            e.preventDefault();
+          } else if (e.key === 'ArrowUp') {
+            document.getElementById('accountType')?.focus();
+          }
+        }}
+      />
+      <FormikInputField
+        labelClassName='w-1/5'
+        label='A/C Holder Name'
+        id='accountHolderName'
+        name='accountHolderName'
+        formik={formik}
+        className=''
+        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+          if (e.key === 'ArrowDown' || e.key === 'Enter') {
+            document.getElementById('submit_all')?.focus();
+            e.preventDefault();
+          } else if (e.key === 'ArrowUp') {
+            document.getElementById('ifscCode')?.focus();
+          }
+        }}
+      />
     </div>
   );
 };

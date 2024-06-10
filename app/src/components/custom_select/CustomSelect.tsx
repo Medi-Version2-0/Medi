@@ -21,6 +21,7 @@ interface CustomSelectProps extends Omit<SelectProps<Option>, 'onChange'> {
   isTouched?: boolean;
   error?: string;
   onBlur?: () => void;
+  isRequired?: boolean;
 }
 
 const CustomSelect: React.FC<CustomSelectProps> = ({
@@ -42,6 +43,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   isTouched = false,
   error = '',
   onBlur,
+  isRequired,
   ...props
 }) => {
   const customComponents = disableArrow ? { DropdownIndicator: () => null, IndicatorSeparator: () => null } : {};
@@ -60,33 +62,35 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   }, [isFocused]);
 
   return (
-    <>
+    <div className={`flex flex-row gap-1 justify-center items-center w-full h-fit ${isRequired ? ' starlabel' : ''}`}>
       {label && (
-        <label htmlFor={id} className={labelClass}>
+        <label htmlFor={id} className={`flex items-start h-full ${labelClass}`}>
           {label}
         </label>
       )}
-      <Select
-        ref={selectRef}
-        id={id || ""}
-        name={name || ""}
-        classNamePrefix='custom-select'
-        components={customComponents}
-        options={options}
-        value={value}
-        onChange={(selectedOption) =>
-          onChange(selectedOption as Option | null, id!)
-        }
-        placeholder={hidePlaceholder ? '' : placeholder}
-        isSearchable={isSearchable}
-        className={`rounded-md ${className} ${isTouched && error && !active && 'border border-solid border-red-500'} ${active && "border-2 border-solid border-yellow-500"} `}
-        {...props}
-        onKeyDown={onKeyDown}
-        isDisabled={isDisabled}
-        onBlur={handleBlur}
-        onFocus={handleFocus}
-      />
-    </>
+      <div className={`w-full border border-solid border-[#9ca3af] h-fit rounded-md ${className}  ${isTouched && error && !active && '!border-red-500'} ${active && "!border-2 !border-yellow-500 outline-none"}`}>
+        <Select
+          ref={selectRef}
+          id={id || ""}
+          name={name || ""}
+          classNamePrefix='custom-select'
+          components={customComponents}
+          options={options}
+          value={value}
+          onChange={(selectedOption) =>
+            onChange(selectedOption as Option | null, id!)
+          }
+          placeholder={hidePlaceholder ? '' : placeholder}
+          isSearchable={isSearchable}
+          className={`w-full h-full text-gray-700`}
+          {...props}
+          onKeyDown={onKeyDown}
+          isDisabled={isDisabled}
+          onBlur={handleBlur}
+          onFocus={handleFocus}
+        />
+      </div>
+    </div>
   );
 };
 
