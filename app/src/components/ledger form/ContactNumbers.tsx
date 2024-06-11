@@ -1,10 +1,10 @@
 import FormikInputField from '../common/FormikInputField';
-interface ContactsInfoProps {
+interface ContactNumbersProps {
   accountInputValue?: string;
   formik?: any;
 }
 
-export const ContactsInfo: React.FC<ContactsInfoProps> = ({
+export const ContactNumbers: React.FC<ContactNumbersProps> = ({
   accountInputValue,
   formik,
 }) => {

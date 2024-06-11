@@ -20,10 +20,10 @@ export const TaxDetails: React.FC<TaxInfoProps> = ({
         labelClassName='min-w-[90px]'
         onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
           if (e.key === 'ArrowDown' || e.key === 'Enter') {
-            document.getElementById('registrationDate')?.focus();
+            document.getElementById('panCard')?.focus();
             e.preventDefault();
           } else if (e.key === 'ArrowUp') {
-            document.getElementById('ledgerType')?.focus();
+            document.getElementById('GST/Tax Details')?.focus();
             e.preventDefault();
           }
         }}

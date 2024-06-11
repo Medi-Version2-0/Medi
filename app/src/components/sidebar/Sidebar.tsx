@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { CiSearch } from 'react-icons/ci';
 import { MdLibraryBooks, MdNavigateNext } from 'react-icons/md';
 import { IoChevronDownSharp } from 'react-icons/io5';
-import { GoPlus } from "react-icons/go";
+import { FaPlus } from "react-icons/fa6";
 import { FaCircleArrowRight } from "react-icons/fa6";
 import { FaCircleArrowLeft } from "react-icons/fa6";
 import MenuItem from "./MenuItem";
@@ -77,13 +77,13 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
           {showSubElements.master && (
             <>
-              <MenuItem url="/ledger_table" label='Ledger' icon={<GoPlus />} onClickIcon={() => navigate('/ledger')}/>
+              <MenuItem url="/ledger_table" label='Ledger' icon={<FaPlus className='fill-red-900'/>} onClickIcon={() => navigate('/ledger')}/>
               <MenuItem url="/groups" label='Groups'/>
               <MenuItem url="/subgroups" label='Sub Groups'/>
               <MenuItem url="/stations" label='Stations'/>
               <MenuItem url="/headquarters" label='Headquarters'/>
-              <MenuItem url="/sales_purchase_table" label='Sales' icon={<GoPlus />} onClickIcon={() => navigate('/sales_purchase', {state: "Sales"})}/>
-              <MenuItem url="/sales_purchase_table" label='Purchase' icon={<GoPlus />} onClickIcon={() => navigate('/sales_purchase', {state: "Purchase"})}/>
+              <MenuItem url="/sales_purchase_table" label='Sales' icon={<FaPlus className='fill-blue-900'/>} onClickIcon={() => navigate('/sales_purchase', {state: "Sales"})}/>
+              <MenuItem url="/sales_purchase_table" label='Purchase' icon={<FaPlus className='fill-green-900'/>} onClickIcon={() => navigate('/sales_purchase', {state: "Purchase"})}/>
               {showSubElements.setup && (
                 <>
                 </>

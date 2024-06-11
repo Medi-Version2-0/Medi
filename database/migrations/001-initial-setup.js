@@ -99,6 +99,7 @@ module.exports = {
           creditLimit INTEGER,
           creditDays TEXT,
           drugLicenceNo1 TEXT,
+          drugLicenceNo2 TEXT,
           panCard TEXT,
           gstIn TEXT,
           bankName TEXT,

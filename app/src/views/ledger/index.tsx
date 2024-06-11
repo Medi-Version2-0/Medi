@@ -5,20 +5,44 @@ import { MdDeleteForever } from 'react-icons/md';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { LedgerFormData } from '../../interface/global';
-import Confirm_Alert_Popup from '../popup/Confirm_Alert_Popup';
+import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { useNavigate } from 'react-router-dom';
 import { ValueFormatterParams } from 'ag-grid-community';
-import Button from '../common/button/Button';
+import Button from '../../components/common/button/Button';
+import * as Yup from 'yup';
 
-export const Ledger_Table = () => {
+const ledgerValidationSchema = Yup.object().shape({
+  partyName: Yup.string()
+    .required('Party Name is required')
+    .matches(/^\D+$/, 'Only Numbers not allowed')
+    .max(100, 'Party name cannot exceed 100 characters'),
+  stationName: Yup.string()
+    .required('Station Name is required')
+    .matches(/^\D+$/, 'Only Numbers not allowed')
+    .max(100, 'Station name cannot exceed 100 characters'),
+  openingBal: Yup.number()
+    .required('Opening Balance is required')
+    .positive('Opening Balance must be greater than 0'),
+  openingBalType: Yup.string()
+});
+
+const validateField = async (field: string, value: any) => {
+  try {
+    await ledgerValidationSchema.validateAt(field, { [field]: value });
+    return null;
+  } catch (error: any) {
+    return error.message;
+  }
+};
+
+
+export const Ledger = () => {
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<LedgerFormData | any>(null);
   const editing = useRef(false);
   const partyId = useRef('');
-
   const electronAPI = (window as any).electronAPI;
   const navigate = useNavigate();
-
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
@@ -41,8 +65,8 @@ export const Ledger_Table = () => {
   }, [selectedRow]);
 
   const typeMapping = {
-    debit: 'Debit',
-    credit: 'Credit',
+    DR: 'Debit',
+    CR: 'Credit',
   };
 
   const extractKeys = (mappings: { [key: string]: string }) => {
@@ -86,81 +110,32 @@ export const Ledger_Table = () => {
     return navigate(`/ledger`, { state: oldData });
   };
 
-  const handleCellEditingStopped = (e: any) => {
+  const handleCellEditingStopped = async (e: any) => {
     if (e?.data?.isPredefinedParty === false) {
       editing.current = false;
-      const { column, oldValue, valueChanged, node } = e;
+      const { column, oldValue, valueChanged, node, data } = e;
       let { newValue } = e;
       if (!valueChanged) return;
       const field = column.colId;
-      switch (field) {
-        case 'ledger_name':
-          {
-            if (!newValue || /^\d+$/.test(newValue) || newValue.length > 100) {
-              setPopupState({
-                ...popupState,
-                isAlertOpen: true,
-                message: !newValue
-                  ? 'Ledger Name is required'
-                  : /^\d+$/.test(newValue)
-                    ? 'Only Numbers not allowed'
-                    : 'Ledger name cannot exceed 100 characters',
-              });
-              node.setDataValue(field, oldValue);
-              return;
-            }
-            newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
-          }
-          break;
-        case 'stationName':
-          {
-            if (!newValue || /^\d+$/.test(newValue) || newValue.length > 100) {
-              setPopupState({
-                ...popupState,
-                isAlertOpen: true,
-                message: !newValue
-                  ? 'Station Name is required'
-                  : /^\d+$/.test(newValue)
-                    ? 'Only Numbers not allowed'
-                    : 'Station name cannot exceed 100 characters',
-              });
-              node.setDataValue(field, oldValue);
-              return;
-            }
-            newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
-          }
-          break;
-        case 'openingBal':
-          {
-            const numericValue = parseFloat(newValue);
-            const numericValueStr = String(newValue);
-            if (
-              isNaN(numericValue) ||
-              numericValue <= 0 ||
-              (numericValueStr.includes('.') &&
-                numericValueStr.split('.')[1].length > 2)
-            ) {
-              setPopupState({
-                ...popupState,
-                isAlertOpen: true,
-                message: isNaN(numericValue)
-                  ? 'Opening Balance is required'
-                  : numericValue <= 0
-                    ? 'Opening Balance must be greater than 0'
-                    : `Opening Balance shouldn't exceed 2 Decimal places`,
-              });
-              node.setDataValue(field, oldValue);
-              return;
-            }
-          }
-          break;
-        default:
-          break;
+
+      const errorMessage = await validateField(field, newValue);
+      if (errorMessage) {
+        setPopupState({
+          ...popupState,
+          isAlertOpen: true,
+          message: errorMessage,
+        });
+        node.setDataValue(field, oldValue);
+        return;
       }
-      // electronAPI.updateStation(data.station_id, { [field]: newValue });
+
+      if (field === 'partyName' || field === 'stationName') {
+        newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
+      }
+      node.setDataValue(field, newValue);
+      electronAPI.updateParty(data.party_id, { [field]: newValue });
       getLedgerData();
-    }
-    else {
+    } else {
       const { column, oldValue, node } = e;
       const field = column.colId;
       setPopupState({
@@ -169,9 +144,9 @@ export const Ledger_Table = () => {
         message: 'Predefined Ledgers are not editable',
       });
       node.setDataValue(field, oldValue);
-      return;
     }
   };
+
 
   const onCellClicked = (params: { data: any }) => {
     setSelectedRow(selectedRow !== null ? null : params.data);
@@ -241,7 +216,7 @@ export const Ledger_Table = () => {
       flex: 2,
       menuTabs: ['filterMenuTab'],
       filter: true,
-      editable: true,
+      editable: (params: any) => !params.data.isPredefinedParty,
       suppressMovable: true,
       headerClass: 'custom-header',
     },
@@ -250,7 +225,7 @@ export const Ledger_Table = () => {
       field: 'stationName',
       flex: 1,
       filter: true,
-      editable: true,
+      editable: (params: any) => !params.data.isPredefinedParty,
       headerClass: 'custom-header',
       suppressMovable: true,
     },
@@ -259,7 +234,7 @@ export const Ledger_Table = () => {
       field: 'openingBal',
       flex: 1,
       filter: true,
-      editable: true,
+      editable: (params: any) => !params.data.isPredefinedParty,
       type: 'rightAligned',
       valueFormatter: decimalFormatter,
       headerClass: 'custom-header custom_header_class ag-right-aligned-header',
@@ -269,7 +244,7 @@ export const Ledger_Table = () => {
       headerName: 'Debit/Credit',
       field: 'openingBalType',
       filter: true,
-      editable: true,
+      editable: (params: any) => !params.data.isPredefinedParty,
       cellEditor: 'agSelectCellEditor',
       flex: 1,
       cellEditorParams: {

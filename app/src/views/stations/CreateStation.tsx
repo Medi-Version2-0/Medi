@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { Formik, Form, Field, ErrorMessage, FormikProps } from 'formik';
-import { CreateStationProps, FormDataProps, Option, State } from '../../interface/global';
+import { CreateStationProps, FormDataProps, Option, State, StationFormData } from '../../interface/global';
 import { Popup } from '../../components/popup/Popup';
 import * as Yup from 'yup';
 import CustomSelect from '../../components/custom_select/CustomSelect';
 import Button from '../../components/common/button/Button';
+import onKeyDown from '../../utilities/formKeyDown';
 
 export const CreateStation: React.FC<CreateStationProps> = ({
   togglePopup,
@@ -69,49 +70,15 @@ export const CreateStation: React.FC<CreateStationProps> = ({
     handelFormSubmit(formData);
   };
 
-  const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>,
-    formik?: FormikProps<FormDataProps>
-  ) => {
-    const key = e.key;
-    const shiftPressed = e.shiftKey;
-
-    switch (key) {
-      case 'ArrowDown':
-      case 'Enter':
-        {
-          const nextField = e.currentTarget.getAttribute('data-next-field') || '';
-          document.getElementById(nextField)?.focus();
-          e.preventDefault();
-        }
-        break;
-      case 'ArrowUp':
-        {
-          const prevField = e.currentTarget.getAttribute('data-prev-field') || '';
-          document.getElementById(prevField)?.focus();
-          e.preventDefault();
-        }
-        break;
-      case 'Tab':
-        {
-          if (shiftPressed) {
-            const prevField = e.currentTarget.getAttribute('data-prev-field') || '';
-            setFocused(prevField);
-            document.getElementById(prevField)?.focus();
-            e.preventDefault();
-          } else {
-            const sideField = e.currentTarget.getAttribute('data-side-field') || '';
-            const value = (document.getElementById(sideField) as HTMLInputElement)?.value;
-            setFocused(sideField);
-            document.getElementById(sideField)?.focus();
-            formik && formik.setFieldValue('cst_sale', value);
-            e.preventDefault();
-          }
-        }
-        break;
-      default:
-        break;
-    }
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, formik?: FormikProps<StationFormData>, radioField?: any) => {
+    onKeyDown({
+      e,
+      formik: formik,
+      radioField: radioField,
+      focusedSetter: (field: string) => {
+        setFocused(field);
+      },
+    });
   };
 
   const handleStateChange = (option: Option | null) => {
@@ -192,6 +159,12 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                       isDisabled={isDelete && station_id}
                       isTouched={formik.touched.station_state}
                       onBlur={() => { formik.setFieldTouched('station_state', true); setFocused(""); }}
+                      onKeyDown={(e: any) => {
+                        if (e.key === 'Enter') {
+                          document.getElementById('station_pinCode')?.focus();
+                          e.preventDefault();
+                        }
+                      }}
                     />
                   )}
                 </Field>
@@ -237,8 +210,15 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                   hidePlaceholder={false}
                   className="w-full !h-12"
                   isTouched={formik.touched.cst_sale}
+                  isFocused={focused === "cst_yes"}
                   error={formik.errors.cst_sale}
                   onBlur={() => { formik.setFieldTouched('cst_sale', true); setFocused(""); }}
+                  onKeyDown={(e: any) => {
+                    if (e.key === 'Enter') {
+                      document.getElementById('submit_button')?.focus();
+                      e.preventDefault();
+                    }
+                  }}
                 />
               </div>
               <ErrorMessage

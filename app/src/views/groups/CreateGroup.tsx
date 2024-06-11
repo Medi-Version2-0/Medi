@@ -5,6 +5,7 @@ import * as Yup from 'yup';
 import { CreateGroupProps, GroupFormDataProps } from '../../interface/global';
 import { Popup } from '../../components/popup/Popup';
 import Button from '../../components/common/button/Button';
+import onKeyDown from "../../utilities/formKeyDown";
 
 export const CreateGroup: React.FC<CreateGroupProps> = ({
   togglePopup,
@@ -41,52 +42,12 @@ export const CreateGroup: React.FC<CreateGroupProps> = ({
     handelFormSubmit(formData);
   };
 
-  const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>,
-    formik?: FormikProps<GroupFormDataProps>
-  ) => {
-    const key = e.key;
-    const shiftPressed = e.shiftKey;
-
-    switch (key) {
-      case 'ArrowDown':
-      case 'Enter':
-        {
-          const nextField = e.currentTarget.getAttribute('data-next-field') || '';
-          document.getElementById(nextField)?.focus();
-          if (e.currentTarget.type == 'radio') {
-            const value = e.currentTarget.value;
-            formik && formik.setFieldValue('type', value);
-          }
-          e.preventDefault();
-        }
-        break;
-      case 'ArrowUp':
-        {
-          const prevField =
-            e.currentTarget.getAttribute('data-prev-field') || '';
-          document.getElementById(prevField)?.focus();
-          e.preventDefault();
-        }
-        break;
-      case 'Tab':
-        {
-          if (shiftPressed) {
-            const prevField = e.currentTarget.getAttribute('data-prev-field') || '';
-            document.getElementById(prevField)?.focus();
-            e.preventDefault();
-          } else {
-            const sideField = e.currentTarget.getAttribute('data-side-field') || '';
-            const value = (document.getElementById(sideField) as HTMLInputElement)?.value;
-            document.getElementById(sideField)?.focus();
-            formik && formik.setFieldValue('type', value);
-            e.preventDefault();
-          }
-        }
-        break;
-      default:
-        break;
-    }
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, formik?: FormikProps<GroupFormDataProps>, radioField?: any) => {
+    onKeyDown({
+      e,
+      formik: formik,
+      radioField: radioField,
+    });
   };
 
   return (
@@ -146,7 +107,7 @@ export const CreateGroup: React.FC<CreateGroupProps> = ({
                     data-next-field='submit_button'
                     data-side-field='balance_sheet'
                     onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                      handleKeyDown(e, formik)
+                      handleKeyDown(e, formik, { typeField: 'type', sideField: 'balance_sheet' })
                     }
                   />
                   P & L
@@ -165,7 +126,7 @@ export const CreateGroup: React.FC<CreateGroupProps> = ({
                     data-next-field='submit_button'
                     data-side-field='p_and_l'
                     onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                      handleKeyDown(e, formik)
+                      handleKeyDown(e, formik, { typeField: 'type', sideField: 'p_and_l' })
                     }
                   />
                   Bl. Sheet
@@ -212,7 +173,7 @@ export const CreateGroup: React.FC<CreateGroupProps> = ({
                   autoFocus
                   handleOnKeyDown={(e) => {
                     if (e.key === 'Tab') {
-                      document.getElementById('station_name')?.focus();
+                      document.getElementById('group_name')?.focus();
                       e.preventDefault();
                     }
                   }}

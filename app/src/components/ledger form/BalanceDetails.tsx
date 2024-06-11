@@ -2,14 +2,13 @@ import React from 'react';
 import FormikInputField from '../common/FormikInputField';
 import CustomSelect from '../custom_select/CustomSelect';
 import { Option } from '../../interface/global';
-import '../stations/stations.css';
 
-interface BalanceInfoProps {
+interface BalanceDetailsProps {
   accountInputValue?: string;
   formik?: any;
 }
 
-export const BalanceInfo: React.FC<BalanceInfoProps> = ({
+export const BalanceDetails: React.FC<BalanceDetailsProps> = ({
   accountInputValue,
   formik,
 }) => {
@@ -102,6 +101,7 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
                 id='creditLimit'
                 name='creditLimit'
                 labelClassName='w-1/3'
+                inputClassName='text-right'
                 formik={formik}
                 placeholder='0'
                 className=''
@@ -116,6 +116,7 @@ export const BalanceInfo: React.FC<BalanceInfoProps> = ({
                 placeholder='0'
                 maxLength={3}
                 labelClassName='w-1/3'
+                inputClassName='text-right'
                 onChange={handleCreditInput}
                 onClick={resetField}
                 onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {

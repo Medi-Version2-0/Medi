@@ -5,6 +5,7 @@ import { Popup } from '../../components/popup/Popup';
 import CustomSelect from '../../components/custom_select/CustomSelect';
 import Button from '../../components/common/button/Button';
 import * as Yup from 'yup';
+import onKeyDown from '../../utilities/formKeyDown';
 
 export const CreateHQ: React.FC<CreateStationProps> = ({
   togglePopup,
@@ -43,7 +44,6 @@ export const CreateHQ: React.FC<CreateStationProps> = ({
 
   const getHq = () => {
     const hqList = electronAPI.getAllStations('', 'station_name', '', '', '');
-    console.log(hqList,"-------")
     setHqOptions(
       hqList.map((hq: StationFormData) => ({
         value: hq.station_name,
@@ -64,55 +64,19 @@ export const CreateHQ: React.FC<CreateStationProps> = ({
       ...values,
       ...(station_id && { station_id }),
     };
-    console.log("FOrm data----",formData);
     !station_id && document.getElementById('account_button')?.focus();
     handelFormSubmit(formData);
   };
 
-  const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>,
-    formik?: FormikProps<StationFormData>
-  ) => {
-    const key = e.key;
-    const shiftPressed = e.shiftKey;
-
-    switch (key) {
-      case 'ArrowDown':
-      case 'Enter':
-        {
-          const nextField =
-            e.currentTarget.getAttribute('data-next-field') || '';
-          document.getElementById(nextField)?.focus();
-          e.preventDefault();
-        }
-        break;
-      case 'ArrowUp':
-        {
-          const prevField =
-            e.currentTarget.getAttribute('data-prev-field') || '';
-          document.getElementById(prevField)?.focus();
-          e.preventDefault();
-        }
-        break;
-      case 'Tab':
-        {
-          if (shiftPressed) {
-            const prevField = e.currentTarget.getAttribute('data-prev-field') || '';
-            setFocused(prevField);
-            document.getElementById(prevField)?.focus();
-            e.preventDefault();
-          } else {
-            const sideField = e.currentTarget.getAttribute('data-side-field') || '';
-            setFocused(sideField);
-            formik && formik.setFieldValue('type', sideField);
-            document.getElementById(sideField)?.focus();
-            e.preventDefault();
-          }
-        }
-        break;
-      default:
-        break;
-    }
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, formik?: FormikProps<StationFormData>, radioField?: any) => {
+    onKeyDown({
+      e,
+      formik: formik,
+      radioField: radioField,
+      focusedSetter: (field: string) => {
+        setFocused(field);
+      },
+    });
   };
   return (
     <Popup

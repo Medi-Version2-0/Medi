@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import FormikInputField from '../common/FormikInputField';
 import CustomSelect from '../custom_select/CustomSelect';
 import { Option } from '../../interface/global';
@@ -10,6 +10,7 @@ interface BankDetailsProps {
 export const BankDetails: React.FC<BankDetailsProps> = ({
   formik,
 }) => {
+  const [focused, setFocused] = useState('');
   const handleFieldChange = (option: Option | null, id: string) => {
     formik.setFieldValue(id, option?.value);
   };
@@ -55,7 +56,7 @@ export const BankDetails: React.FC<BankDetailsProps> = ({
         formik={formik}
         onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
           if (e.key === 'ArrowDown' || e.key === 'Enter') {
-            document.getElementById('accountType')?.focus();
+            setFocused('accountType');
             e.preventDefault();
           } else if (e.key === 'ArrowUp') {
             document.getElementById('accountNumber')?.focus();
@@ -76,23 +77,25 @@ export const BankDetails: React.FC<BankDetailsProps> = ({
         }
         onChange={handleFieldChange}
         options={[
-          { value: 'Saving Account', 
-            label: 'Saving Account' },
-          { value: 'Current Account',  
-            label: 'Current Account' },
+          {
+            value: 'Saving Account',
+            label: 'Saving Account'
+          },
+          {
+            value: 'Current Account',
+            label: 'Current Account'
+          },
         ]}
         isSearchable={false}
         placeholder='Select an option'
         disableArrow={false}
         hidePlaceholder={false}
+        isFocused={focused === 'accountType'}
+        onBlur={() => { setFocused(""); }}
         className='!rounded-none'
         onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-          if (e.key === 'ArrowDown' || e.key === 'Enter') {
+          if (e.key === 'Enter') {
             document.getElementById('ifscCode')?.focus();
-            e.preventDefault();
-          } else if (e.key === 'ArrowUp') {
-            document.getElementById('branchName')?.focus();
-            e.preventDefault();
           }
         }}
       />
@@ -109,7 +112,7 @@ export const BankDetails: React.FC<BankDetailsProps> = ({
             document.getElementById('accountHolderName')?.focus();
             e.preventDefault();
           } else if (e.key === 'ArrowUp') {
-            document.getElementById('accountType')?.focus();
+            setFocused('accountType');
           }
         }}
       />

@@ -73,7 +73,6 @@ export const Headquarters = () => {
       if (formData.station_id) {
         electronAPI.updateStation(formData.station_id, formData);
       } else {
-        console.log("formdata--",formData);
         electronAPI.addStation(formData);
       }
       togglePopup(false);

@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Select, { Props as SelectProps } from 'react-select';
-import './CustomSelect.css';
+import { Tooltip as ReactTooltip } from 'react-tooltip';
+import { FaExclamationCircle } from 'react-icons/fa';
 import { Option } from '../../interface/global';
+import './CustomSelect.css';
 
 interface CustomSelectProps extends Omit<SelectProps<Option>, 'onChange'> {
   label?: string;
@@ -23,6 +25,8 @@ interface CustomSelectProps extends Omit<SelectProps<Option>, 'onChange'> {
   error?: string;
   onBlur?: () => void;
   isRequired?: boolean;
+  showErrorTooltip?: boolean;
+  noOptionsMsg?: string;
 }
 
 const CustomSelect: React.FC<CustomSelectProps> = ({
@@ -46,6 +50,8 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   error = '',
   onBlur,
   isRequired,
+  showErrorTooltip = false,
+  noOptionsMsg = 'No Options',
   ...props
 }) => {
   const customComponents = disableArrow ? { DropdownIndicator: () => null, IndicatorSeparator: () => null } : {};
@@ -70,7 +76,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
           {label}
         </label>
       )}
-      <div className={`w-full border border-solid border-[#9ca3af] h-fit rounded-md ${className}  ${isTouched && error && !active && '!border-red-500'} ${active && "!border-2 !border-yellow-500 outline-none"}`}>
+      <div className={`w-full relative border border-solid border-[#9ca3af] h-fit rounded-md ${className}  ${isTouched && error && !active && '!border-red-500'} ${active && "!border-2 !border-yellow-500 outline-none"}`}>
         <Select
           ref={selectRef}
           id={id || ""}
@@ -90,7 +96,16 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
           isDisabled={isDisabled}
           onBlur={handleBlur}
           onFocus={handleFocus}
+          noOptionsMessage={() => noOptionsMsg}
         />
+        {showErrorTooltip && isTouched && error && (
+          <>
+            <FaExclamationCircle data-tooltip-id={`${id}-error-tooltip`} className='absolute -translate-y-2/4 top-2/4 right-1 text-red-600' />
+            <ReactTooltip id={`${id}-error-tooltip`} place='bottom' className=' text-[white] border rounded text-sm z-10 p-2 border-solid border-[#d8000c] !bg-red-600'>
+              {error}
+            </ReactTooltip>
+          </>
+        )}
       </div>
     </div>
   );

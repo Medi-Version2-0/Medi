@@ -33,7 +33,7 @@ export const ContactDetails: React.FC<personalInfoProps> = ({
         formik={formik}
         onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
           if (e.key === 'ArrowDown' || e.key === 'Enter') {
-            document.getElementById('gender')?.focus();
+            document.getElementById('emailId1')?.focus();
             e.preventDefault();
           } else if (e.key === 'ArrowUp') {
             document.getElementById('firstName')?.focus();
@@ -52,7 +52,7 @@ export const ContactDetails: React.FC<personalInfoProps> = ({
             document.getElementById('emailId2')?.focus();
             e.preventDefault();
           } else if (e.key === 'ArrowUp') {
-            document.getElementById('website_input')?.focus();
+            document.getElementById('lastName')?.focus();
           }
         }}
         showErrorTooltip={formik.touched.emailId1 && formik.errors.emailId1}
@@ -73,24 +73,6 @@ export const ContactDetails: React.FC<personalInfoProps> = ({
           }
         }}
         showErrorTooltip={formik.touched.emailId2 && formik.errors.emailId2}
-      />
-      <FormikInputField
-        labelClassName='min-w-[90px] text-nowrap'
-        label='Website '
-        id='website_input'
-        type='url'
-        name='website_input'
-        placeholder='www.abc.com/'
-        formik={formik}
-        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-          if (e.key === 'ArrowDown' || e.key === 'Enter') {
-            document.getElementById('Bank_Details')?.focus();
-            e.preventDefault();
-          } else if (e.key === 'ArrowUp') {
-            document.getElementById('emailId1')?.focus();
-          }
-        }}
-        showErrorTooltip={formik.touched.website_input && formik.errors.website_input}
       />
     </div>
   );

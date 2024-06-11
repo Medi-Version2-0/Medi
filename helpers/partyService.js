@@ -27,21 +27,18 @@ module.exports.getAllLedgerData = (where = "", sort = "", limit = "") => {
   });
 
   data.forEach((s) => {
-    
+
     s.isPredefinedParty = s.isPredefinedParty === 1 ? true : false;
-      s.openingBalType = s.isPredefinedParty === true ? "" : s.openingBalType === "debit" ? "DR" : "CR";
+    s.openingBalType = s.isPredefinedParty === true ? "" : s.openingBalType === "debit" ? "DR" : "CR";
     s.stateInout =
       s.isPredefinedParty !== true
         ? s.stateInout === "In"
           ? "With in State"
           : "Out of State"
         : "";
-    s.party_cash_credit_invoice =
-      s.isPredefinedParty !== false
-        ? s.party_cash_credit_invoice === "Cash Invoice"
-          ? "cash_invoice"
-          : "credit_invoice"
-        : "";
+    s.party_cash_credit_invoice = s.isPredefinedParty !== true
+      ? s.party_cash_credit_invoice === "cash_invoice" ? "Cash Invoice" : "Credit Invoice"
+      : "";
   });
 
   data.forEach((d) => {
@@ -88,7 +85,7 @@ module.exports.addParty = async (partyData) => {
             : "Out";
         partyData.party_cash_credit_invoice =
           !!partyData.party_cash_credit_invoice &&
-          partyData.party_cash_credit_invoice === "Cash Invoice"
+            partyData.party_cash_credit_invoice === "Cash Invoice"
             ? "cash_invoice"
             : "credit_invoice";
       }
@@ -134,16 +131,16 @@ module.exports.updateParty = (party_id, partyData) => {
   if (partyData) {
     !!partyData.openingBalType
       ? (partyData.openingBalType =
-          partyData.openingBalType === "DR" ? "debit" : "credit")
+        partyData.openingBalType === "DR" ? "debit" : "credit")
       : "";
     partyData.stateInout =
-          partyData.stateInout === "With in State" ? "In" : "Out"
+      partyData.stateInout === "With in State" ? "In" : "Out"
       ;
     !!partyData.party_cash_credit_invoice
       ? (partyData.party_cash_credit_invoice =
-          partyData.party_cash_credit_invoice === "Cash Invoice"
-            ? "cash_invoice"
-            : "credit_invoice")
+        partyData.party_cash_credit_invoice === "Cash Invoice"
+          ? "cash_invoice"
+          : "credit_invoice")
       : "";
   }
 

@@ -19,7 +19,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
   const [groupOptions, setGroupOptions] = useState<Option[]>([]);
   const [stationOptions, setStationOptions] = useState<Option[]>([]);
   const [stateOptions, setStateOptions] = useState<Option[]>([]);
-  const isSUNDRY = accountInputValue === 'SUNDRY CREDITORS' || 'SUNDRY DEBTORS';
+  const isSUNDRY = (accountInputValue === 'SUNDRY CREDITORS' || accountInputValue === 'SUNDRY DEBTORS');
   const electronAPI = (window as any).electronAPI;
 
   const fetchAllData = () => {
@@ -111,27 +111,34 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 disableArrow={true}
                 hidePlaceholder={false}
                 className="!h-6 rounded-sm"
+                error={formik.errors.accountGroup}
+                isTouched={formik.touched.accountGroup}
+                onBlur={() => { formik.setFieldTouched('accountGroup', true); }}
+                showErrorTooltip={true}
               />
             )}
           </div>
           {(isSUNDRY) && (
             <div className='flex items-center'>
-              {stationOptions.length > 0 && (
-                <CustomSelect
-                  label='Station'
-                  id='stationName'
-                  labelClass='items-center w-1/3'
-                  value={formik.values.stationName === '' ? null : { label: formik.values.stationName, value: formik.values.stationName }}
-                  onChange={handleFieldChange}
-                  options={stationOptions}
-                  isSearchable={true}
-                  placeholder="Station Name"
-                  disableArrow={true}
-                  hidePlaceholder={false}
-                  className="!h-6 rounded-sm"
-                  isRequired={true}
-                />
-              )}
+              <CustomSelect
+                label='Station'
+                id='stationName'
+                labelClass='items-center w-1/3'
+                value={formik.values.stationName === '' ? null : { label: formik.values.stationName, value: formik.values.stationName }}
+                onChange={handleFieldChange}
+                options={stationOptions}
+                isSearchable={true}
+                placeholder="Station Name"
+                disableArrow={true}
+                hidePlaceholder={false}
+                className="!h-6 rounded-sm"
+                isRequired={true}
+                error={formik.errors.stationName}
+                isTouched={formik.touched.stationName}
+                onBlur={() => { formik.setFieldTouched('stationName', true); }}
+                showErrorTooltip={true}
+                noOptionsMsg="No station found,create one..."
+              />
             </div>
           )}
         </div>
@@ -241,7 +248,6 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
             name='mailTo'
             formik={formik}
             showErrorTooltip={formik.touched.mailTo && formik.errors.mailTo}
-            isRequired={true}
             labelClassName='min-w-[90px]'
             onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
               if (e.key === 'ArrowDown' || e.key === 'Enter') {
@@ -312,7 +318,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 className="!h-6 rounded-sm"
               />
             </div>
-            <div className='grid grid-cols-3 gap-2 items-center'>
+            <div className='flex gap-4 items-center w-full'>
               <CustomSelect
                 label='STOP NRX'
                 id='stopNrx'
@@ -327,12 +333,13 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 placeholder="Select an option"
                 disableArrow={false}
                 hidePlaceholder={false}
-                className="!h-6 rounded-sm"
+                containerClass='w-max'
+                className="!h-6 rounded-sm w-max"
               />
               <CustomSelect
                 label='STOP HI'
                 id='stopHi'
-                labelClass='w-[54%]'
+                labelClass='w-max'
                 value={formik.values.stopHi === '' ? null : { label: formik.values.stopHi, value: formik.values.stopHi }}
                 onChange={handleFieldChange}
                 options={[
@@ -343,13 +350,15 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 placeholder="Select an option"
                 disableArrow={false}
                 hidePlaceholder={false}
-                className="!h-6 rounded-sm"
+                containerClass='w-min'
+                className="!h-6 rounded-sm w-max"
               />
               <FormikInputField
                 label='Not PRINPBA'
                 id='notPrinpba'
                 name='notPrinpba'
-                labelClassName='w-[54%]'
+                labelClassName=''
+                className='w-auto'
                 formik={formik}
               />
             </div>

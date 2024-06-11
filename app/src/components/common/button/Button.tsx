@@ -42,11 +42,11 @@ const Button: FC<ButtonProps> = ({
       case "ghost":
         return "rounded";
       case "highlight":
-        return "bg-[#EAFBFCFF] border-2 border-solid border-[#009196FF] focus:border-yellow-500 focus-visible:border-yellow-500";
+        return "bg-[#EAFBFCFF] hover:bg-[#d0eced] border-2 border-solid border-[#009196FF] focus:border-yellow-500 focus-visible:border-yellow-500";
       case "fill":
-        return "bg-[#009196FF] hover:bg-[#009196FF] font-medium text-white rounded-md border-none focus:border-yellow-500 focus-visible:border-yellow-500";
+        return "bg-[#009196FF] hover:bg-[#009196e3] font-medium text-white rounded-md border-none focus:border-yellow-500 focus-visible:border-yellow-500";
       case "fog":
-        return "bg-white hover:bg-gray-100 font-medium text-[#171A1FFF] border-2 border-solid border-[#ccc]";
+        return "bg-white hover:bg-gray-100 font-medium text-[#171A1FFF] border-2 border-solid border-[#cbc9c9] focus:border-yellow-500 focus-visible:border-yellow-500";
       default:
         return "bg-white border border-solid border-black text-[#009196FF] font-medium";
     }
@@ -59,7 +59,7 @@ const Button: FC<ButtonProps> = ({
       disabled={disable}
       className={classNames(
         `flex flex-row items-center text-base font-medium justify-center cursor-pointer rounded-md
-         ${disable ? "opacity-40 cursor-not-allowed" : "opacity-100"}`,
+         ${disable ? "opacity-60 !cursor-not-allowed" : "opacity-100"}`,
         padding,
         styleType,
         className

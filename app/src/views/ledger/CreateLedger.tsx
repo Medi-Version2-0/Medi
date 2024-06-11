@@ -1,19 +1,18 @@
+import { useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useFormik } from 'formik';
+import { GeneralInfo } from '../../components/ledger form/GeneralInfo';
+import { BalanceDetails } from '../../components/ledger form/BalanceDetails';
+import { ContactNumbers } from '../../components/ledger form/ContactNumbers';
+import { BankDetails } from '../../components/ledger form/BankDetails';
+import { ContactDetails } from '../../components/ledger form/ContactDetails';
+import { LicenceDetails } from '../../components/ledger form/LicenceDetails';
+import { TaxDetails } from '../../components/ledger form/TaxDetails';
+import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
+import Button from '../../components/common/button/Button';
+import { getLedgerFormValidationSchema } from './validation_schema';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
-import './ledger_form.css';
-import { GeneralInfo } from './general_info';
-import { BalanceInfo } from './balance_info';
-import { useEffect, useRef, useState } from 'react';
-import { ContactsInfo } from './contacts_info';
-import { BankDetails } from './bank_details';
-import { ContactDetails } from './contact_details';
-import { LicenceInfo } from './licence_info';
-import { TaxDetails } from './tax_details';
-import { useFormik } from 'formik';
-import * as Yup from 'yup';
-import { useLocation, useNavigate } from 'react-router-dom';
-import Confirm_Alert_Popup from '../popup/Confirm_Alert_Popup';
-import Button from '../common/button/Button';
 
 const initialValue = {
   btn_1: false,
@@ -22,79 +21,23 @@ const initialValue = {
   btn_4: false,
 };
 
-export const Ledger = () => {
+export const CreateLedger = () => {
   const [showActiveElement, setShowActiveElement] = useState(initialValue);
+  const electronAPI = (window as any).electronAPI;
+  const navigate = useNavigate();
+  const location = useLocation();
+  const data = location.state || {};
+  const [valueFromGeneral, setValueFromGeneral] = useState(data?.accountGroup || '');
+  const isSUNDRY = (valueFromGeneral === 'SUNDRY CREDITORS' || valueFromGeneral === 'SUNDRY DEBTORS');
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
     message: '',
   });
 
-  const phoneRegex = /^[6-9][0-9]{9}$/;
-  const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
-  const navigate = useNavigate();
-  const location = useLocation();
-  const data = location.state || {};
-  const [valueFromGeneral, setValueFromGeneral] = useState(data?.accountGroup || '');
-  const isSUNDRY = (valueFromGeneral === 'SUNDRY CREDITORS' || valueFromGeneral === 'SUNDRY DEBTORS');
-
   useEffect(() => {
     ledgerFormInfo.validateForm();
   }, [valueFromGeneral]);
-
-  const ledgerFormValidationSchema = Yup.object({
-    // general info VS
-    partyName: Yup.string()
-      .max(100, 'Party Name must be 100 characters or less')
-      .required('Party Name is required'),
-    accountGroup: Yup.string().required('Account group is required'),
-    country: isSUNDRY
-      ? Yup.string().required('Country is required')
-      : Yup.string(),
-    state: isSUNDRY
-      ? Yup.string().required('State is required')
-      : Yup.string(),
-    stationName: isSUNDRY
-      ? Yup.string().required('Station is required')
-      : Yup.string(),
-    mailTo: Yup.string().email('Invalid email'),
-    pinCode: isSUNDRY
-      ? Yup.string()
-        .matches(/^[0-9]+$/, 'PIN code must be a number')
-        .matches(/^[1-9]/, 'PIN code must not start with zero')
-        .matches(/^[0-9]{6}$/, 'PIN code must be exactly 6 digits')
-      : Yup.string(),
-
-    // contacts info VS
-    phoneNumber: isSUNDRY
-      ? Yup.string()
-        .matches(phoneRegex, 'Invalid phone number')
-        .required('Phone number is required')
-      : Yup.string(),
-
-    // gst data VS
-    gstIn: isSUNDRY
-      ? Yup.string()
-        .required('GST number is required')
-        .max(15, 'Not a valid GSTIN, Required 15 character')
-        .matches(gstRegex, 'GST number is not valid')
-        .required('GST number is required')
-      : Yup.string(),
-
-    // contact info VS
-    emailId1: Yup.string().email('Invalid email'),
-    emailId2: Yup.string().email('Invalid email'),
-    website_input: Yup.string().matches(
-      /((https?):\/\/)?(www.)?[a-z0-9]+(\.[a-z]{2,}){1,3}(#?\/?[a-zA-Z0-9#]+)*\/?(\?[a-zA-Z0-9-_]+=[a-zA-Z0-9-%]+&?)?$/,
-      'Enter correct url!'
-    ),
-
-    // bank details VS
-    accountHolderName: Yup.string().max(
-      100,
-      'Account Holder Name must be 50 characters or less'
-    ),
-  });
 
   const ledgerFormInfo = useFormik({
     initialValues: {
@@ -146,6 +89,7 @@ export const Ledger = () => {
 
       // licence info
       drugLicenceNo1: data?.drugLicenceNo1 || '',
+      drugLicenceNo2: data?.drugLicenceNo2 || '',
 
       // bank details
       accountHolderName: data?.accountHolderName || '',
@@ -155,7 +99,7 @@ export const Ledger = () => {
       accountType: data?.accountType || '',
       branchName: data?.branchName || '',
     },
-    validationSchema: ledgerFormValidationSchema,
+    validationSchema: getLedgerFormValidationSchema(isSUNDRY),
     onSubmit: (values) => {
       const allData = {
         ...values
@@ -168,10 +112,28 @@ export const Ledger = () => {
     },
   });
 
-  const electronAPI = (window as any).electronAPI;
-
   const handleValueChange = (value: any) => {
-    setValueFromGeneral(value);
+    if (value !== data.accountGroup) {
+      setValueFromGeneral(value);
+      const newValues: any = {};
+      for (const key in ledgerFormInfo.initialValues) {
+        if (key !== 'partyName') {
+          newValues[key] = '';
+        }
+      }
+      newValues.partyName = ledgerFormInfo.values.partyName;
+      newValues.accountGroup = value;
+      newValues.openingBalType = "DR";
+      ledgerFormInfo.setValues(newValues);
+    } else {
+      const initialValues = {
+        ...data,
+        accountGroup: value
+      };
+      ledgerFormInfo.setValues(initialValues);
+      setValueFromGeneral(value);
+    }
+    ledgerFormInfo.validateForm();
   };
 
   const prevClass = useRef('');
@@ -224,11 +186,11 @@ export const Ledger = () => {
             formik={ledgerFormInfo}
           />
           <div className='flex flex-col gap-6 w-[40%]'>
-            <BalanceInfo
+            <BalanceDetails
               accountInputValue={valueFromGeneral}
               formik={ledgerFormInfo}
             />
-            <ContactsInfo
+            <ContactNumbers
               accountInputValue={valueFromGeneral}
               formik={ledgerFormInfo}
             />
@@ -246,7 +208,7 @@ export const Ledger = () => {
                   handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
                     if (e.key === 'ArrowDown' || e.key === 'Enter') {
                       handleClick('btn_1');
-                      document.getElementById('ledgerType')?.focus();
+                      document.getElementById('gstIn')?.focus();
                       e.preventDefault();
                     } else if (e.key === 'ArrowRight') {
                       document.getElementById('Licence_Info')?.focus();
@@ -280,7 +242,7 @@ export const Ledger = () => {
                     }
                   }}
                 >
-                  Licence Info
+                  Licence Details
                 </Button>
                 <Button
                   type='fog'
@@ -302,7 +264,7 @@ export const Ledger = () => {
                     }
                   }}
                 >
-                  Contact Info
+                  Contact Details
                 </Button>
                 <Button
                   type='fog'
@@ -331,7 +293,7 @@ export const Ledger = () => {
                   <ContactDetails formik={ledgerFormInfo} />
                 )}
                 {showActiveElement.btn_2 && (
-                  <LicenceInfo formik={ledgerFormInfo} />
+                  <LicenceDetails formik={ledgerFormInfo} />
                 )}
                 {showActiveElement.btn_4 && (
                   <BankDetails formik={ledgerFormInfo} />
@@ -341,8 +303,10 @@ export const Ledger = () => {
           )}
         <div className='w-full px-8 py-2'>
           <Button
-            type='highlight'
+            type='fill'
             btnType='submit'
+            padding='px-4 py-2'
+            id='submit_all'
             disable={!(ledgerFormInfo.isValid && ledgerFormInfo.dirty)}
             handleOnClick={() => {
               setPopupState({
@@ -351,17 +315,10 @@ export const Ledger = () => {
                 message: 'Ledger created successfully',
               });
             }}
-            className=''
+            className='h-8'
             handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
               if (e.key === 'ArrowUp') {
-                document
-                  .getElementById(
-                    valueFromGeneral.toUpperCase() === 'SUNDRY CREDITORS' ||
-                      valueFromGeneral.toUpperCase() === 'SUNDRY DEBTORS'
-                      ? 'accountHolderName'
-                      : 'openingBalType'
-                  )
-                  ?.focus();
+                document.getElementById(isSUNDRY ? 'accountHolderName' : 'openingBalType')?.focus();
                 e.preventDefault();
               }
             }}
