@@ -140,6 +140,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                       onChange={handleParentChange}
                       options={parentGrpOptions}
                       isSearchable={true}
+                      isDisabled={isDelete && group_code}
                       placeholder="Parent group"
                       disableArrow={true}
                       hidePlaceholder={false}
@@ -150,6 +151,10 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                       onBlur={() => { formik.setFieldTouched('parent_group', true); setFocused(""); }}
                       onKeyDown={(e: any) => {
                         if (e.key === 'Enter') {
+                          const dropdown = document.querySelector('.custom-select__menu');
+                          if (!dropdown) {
+                            e.preventDefault();
+                          }
                           document.getElementById('p_and_l')?.focus();
                         }
                       }}

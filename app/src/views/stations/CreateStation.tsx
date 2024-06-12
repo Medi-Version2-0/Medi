@@ -81,9 +81,6 @@ export const CreateStation: React.FC<CreateStationProps> = ({
     });
   };
 
-  const handleStateChange = (option: Option | null) => {
-    formikRef.current?.setFieldValue('station_state', option?.value);
-  };
   const handleFieldChange = (option: Option | null, id: string) => {
     formikRef.current?.setFieldValue(id, option?.value);
   };
@@ -147,7 +144,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                       id="station_state"
                       name='station_state'
                       value={formik.values.station_state === '' ? null : { label: formik.values.station_state, value: formik.values.station_state }}
-                      onChange={handleStateChange}
+                      onChange={handleFieldChange}
                       options={stateOptions}
                       isSearchable={true}
                       placeholder="Station state"
@@ -161,8 +158,11 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                       onBlur={() => { formik.setFieldTouched('station_state', true); setFocused(""); }}
                       onKeyDown={(e: any) => {
                         if (e.key === 'Enter') {
+                          const dropdown = document.querySelector('.custom-select__menu');
+                          if (!dropdown) {
+                            e.preventDefault();
+                          }
                           document.getElementById('station_pinCode')?.focus();
-                          e.preventDefault();
                         }
                       }}
                     />
@@ -215,8 +215,11 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                   onBlur={() => { formik.setFieldTouched('cst_sale', true); setFocused(""); }}
                   onKeyDown={(e: any) => {
                     if (e.key === 'Enter') {
+                      const dropdown = document.querySelector('.custom-select__menu');
+                      if (!dropdown) {
+                        e.preventDefault();
+                      }
                       document.getElementById('submit_button')?.focus();
-                      e.preventDefault();
                     }
                   }}
                 />

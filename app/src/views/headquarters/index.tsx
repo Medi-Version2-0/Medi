@@ -24,6 +24,12 @@ export const Headquarters = () => {
   const isDelete = useRef(false);
 
   const electronAPI = (window as any).electronAPI;
+  const allStations = electronAPI.getAllStations('', 'station_name', '', '', '');
+
+  const getStationId = (station_name : string) =>{
+    const selectedHq = allStations.find((item: StationFormData) => item.station_name === station_name);
+    return selectedHq.station_id;
+  }
 
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
@@ -43,7 +49,9 @@ export const Headquarters = () => {
   }, [selectedRow]);
 
   const getStations = () => {
-    setTableData(electronAPI.getAllStations('', 'station_name', '', '', ''));
+    const allStations = electronAPI.getAllStations('', 'station_name', '', '', '');
+    const selectedSt = allStations.filter((item: StationFormData) => item.station_headQuarter!=='');
+    setTableData(selectedSt);
   };
 
   const togglePopup = (isOpen: boolean) => {
@@ -81,24 +89,34 @@ export const Headquarters = () => {
   };
 
   const handelFormSubmit = (values: StationFormData) => {
-    const mode = values.station_id ? 'update' : 'create';
+    const allData = electronAPI.getAllStations('', 'station_name', '', '', '');
+    const selectedHq = allData.find((item: StationFormData) => item.station_id===values.station_id);
+    const mode = selectedHq.station_headQuarter!=='' ? 'update' : 'create';
     if (values.station_name) {
       values.station_name =
         values.station_name.charAt(0).toUpperCase() +
         values.station_name.slice(1);
     }
+    if (values.station_headQuarter) {
+      allData.map((station: any) => {
+        if (values.station_headQuarter === station.station_name) {
+          values.station_headQuarter = station.station_id;
+          delete values.station_headQuarter;
+        }
+      });
+    }
     if (values !== initialValue) {
       setPopupState({
         ...popupState,
         isModalOpen: true,
-        message: `Are you sure you want to ${mode} this Station?`,
+        message: `Are you sure you want to ${mode} this Headquarter?`,
       });
       setFormData(values);
     }
   };
 
   const deleteAcc = (station_id: string) => {
-    electronAPI.deleteStation(station_id);
+    electronAPI.updateStation(station_id, { ['station_headquarter']: '' });
     isDelete.current = false;
     togglePopup(false);
     getStations();
@@ -121,14 +139,15 @@ export const Headquarters = () => {
 
   const stationHeadquarterMap: { [key: number]: string } = {};
 
-  tableData?.forEach((data: any) => {
+  allStations?.forEach((data: any) => {
     stationHeadquarterMap[data.station_id] = data.station_name;
   });
 
   const extractKeys = (mappings: {
-    [x: number]: string;
+    [x: string]: string;
   }) => {
-    return Object.keys(mappings);
+
+    return Object.values(mappings);
   };
 
   const stationHeadquarters = extractKeys(stationHeadquarterMap);
@@ -138,7 +157,7 @@ export const Headquarters = () => {
       [x: string]: any;
       [x: number]: string;
     },
-    key: string | number
+    key: string
   ) => {
     return mappings[key];
   };
@@ -181,7 +200,12 @@ export const Headquarters = () => {
       default:
         break;
     }
-    electronAPI.updateStation(data.station_id, { [field]: newValue });
+    if(field==='station_headQuarter')
+      {
+        const newValue2 = getStationId(newValue);
+        electronAPI.updateStation(data.station_id, { [field]: newValue2 })
+      }
+    else electronAPI.updateStation(data.station_id, { [field]: newValue })
     getStations();
   };
 
@@ -236,7 +260,7 @@ export const Headquarters = () => {
       field: 'station_name',
       flex: 1,
       filter: true,
-      editable: true,
+      editable: false,
       headerClass: 'custom-header',
       suppressMovable: true,
     },
@@ -253,7 +277,9 @@ export const Headquarters = () => {
         valueListMaxWidth: 192,
         valueListGap: 8,
       },
-      valueFormatter: (params: { value: string | number }) => lookupValue(stationHeadquarterMap, params.value),
+      valueFormatter: (params: { value: string }) => {
+        lookupValue(stationHeadquarterMap, params.value)
+      },
       headerClass: 'custom-header custom_header_class',
       suppressMovable: true,
     },

@@ -4,7 +4,7 @@ export interface StationFormData {
     cst_sale?: string;
     station_state?: string;
     station_pinCode?: string;
-    station_headQuarter: string;
+    station_headQuarter?: string;
     state_code?: Number;
   }
 
@@ -110,8 +110,8 @@ export interface StationFormData {
 }
 
 interface Option {
-  value: string;
-  label: string;
+  value: string | undefined;
+  label: string | undefined;
 }
 
 export interface SalesPurchaseFormData {

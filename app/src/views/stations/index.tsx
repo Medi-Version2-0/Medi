@@ -89,6 +89,18 @@ export const Stations = () => {
   };
 
   const handelFormSubmit = (values: StationFormData) => {
+    const existingStation = tableData.find(
+      (station: StationFormData) =>
+        station.station_name.toLowerCase() === values.station_name.toLowerCase()
+    );
+    if (existingStation) {
+      setPopupState({
+        ...popupState,
+        isAlertOpen: true,
+        message: 'Station with this name already exists!',
+      });
+      return;
+    }
     const mode = values.station_id ? 'update' : 'create';
     if (values.station_name) {
       values.station_name =
@@ -178,7 +190,20 @@ export const Stations = () => {
     switch (field) {
       case 'station_name':
         {
-          if (!newValue || /^\d+$/.test(newValue) || newValue.length > 100) {
+          const existingStation = tableData.find(
+            (station: StationFormData) =>
+              station.station_name.toLowerCase() === newValue.toLowerCase()
+          );
+          if (existingStation) {
+            setPopupState({
+              ...popupState,
+              isAlertOpen: true,
+              message: 'Station with this name already exists!',
+            });
+            node.setDataValue(field, oldValue);
+            return;
+          }
+          else if (!newValue || /^\d+$/.test(newValue) || newValue.length > 100) {
             setPopupState({
               ...popupState,
               isAlertOpen: true,

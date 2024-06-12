@@ -5,7 +5,6 @@ import { Popup } from '../../components/popup/Popup';
 import CustomSelect from '../../components/custom_select/CustomSelect';
 import Button from '../../components/common/button/Button';
 import * as Yup from 'yup';
-import onKeyDown from '../../utilities/formKeyDown';
 
 export const CreateHQ: React.FC<CreateStationProps> = ({
   togglePopup,
@@ -15,12 +14,17 @@ export const CreateHQ: React.FC<CreateStationProps> = ({
   deleteAcc,
 }) => {
   const { station_id } = data;
-  const inputRef = useRef<HTMLInputElement | null>(null);
-
+  const [stationOptions, setStationOptions] = useState<Option[]>([]);
   const [hqOptions, setHqOptions] = useState<Option[]>([]);
   const formikRef = useRef<FormikProps<StationFormData>>(null);
-  const [focused, setFocused] = useState("");
+  const [focused, setFocused] = useState("station_name");
   const electronAPI = (window as any).electronAPI;
+  const allStations = electronAPI.getAllStations('', 'station_name', '', '', '');
+
+  const getStationId = (station_name : string) =>{
+    const selectedHq = allStations.find((item: StationFormData) => item.station_name === station_name);
+    return selectedHq.station_id;
+  }
 
   const validationSchema = Yup.object({
     station_name: Yup.string()
@@ -35,59 +39,61 @@ export const CreateHQ: React.FC<CreateStationProps> = ({
 
   });
 
-  useEffect(() => {
-    const focusTarget = inputRef.current && !isDelete
-      ? inputRef.current
-      : document.getElementById('cancel_button');
-    focusTarget?.focus();
-  }, []);
-
   const getHq = () => {
-    const hqList = electronAPI.getAllStations('', 'station_name', '', '', '');
+    const stationList=allStations.filter((item: StationFormData) => item.station_headQuarter==='');
     setHqOptions(
-      hqList.map((hq: StationFormData) => ({
+      allStations.map((hq: StationFormData) => ({
+        value: hq.station_name,
+        label: hq.station_name,
+      })))
+    setStationOptions(
+      stationList.map((hq: StationFormData) => ({
         value: hq.station_name,
         label: hq.station_name,
       })))
   };
 
   useEffect(() => {
+    isDelete && document.getElementById('cancel_button')?.focus();
     getHq();
   }, []);
 
-  const handleHQChange = (option: Option | null) => {
-    formikRef.current?.setFieldValue('station_headQuarter', option?.value);
+  const handleFieldChange = (option: Option | null, id: string) => {
+    formikRef.current?.setFieldValue(id, option?.value);
   };
 
-  const handleSubmit = async (values: object) => {
+  const handleSubmit = async (values: StationFormData) => {
+    const selectedHq = allStations.find((item: StationFormData) => item.station_name === values.station_name);
+    const station_id = selectedHq.station_id;
+    if (!values.station_headQuarter) {
+      values.station_headQuarter = '';
+    }
+    values.station_headQuarter = getStationId(values.station_headQuarter);
     const formData = {
       ...values,
-      ...(station_id && { station_id }),
+      ...{ station_id },
     };
-    !station_id && document.getElementById('account_button')?.focus();
+    !station_id && document.getElementById('cancel_button')?.focus();
     handelFormSubmit(formData);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, formik?: FormikProps<StationFormData>, radioField?: any) => {
-    onKeyDown({
-      e,
-      formik: formik,
-      radioField: radioField,
-      focusedSetter: (field: string) => {
-        setFocused(field);
-      },
-    });
+  const fetchType = (isDelete: boolean, station_id?: string) => {
+    const selectedHq = allStations.find((item: StationFormData) => item.station_id === station_id);
+  
+    if (!selectedHq) {
+      return isDelete ? 'Delete' : 'Create';
+    }
+  
+    return selectedHq.station_headQuarter !== ''
+      ? isDelete
+        ? 'Delete'
+        : 'Update'
+      : 'Create';
   };
   return (
     <Popup
       togglePopup={togglePopup}
-      heading={
-        station_id && isDelete
-          ? 'Delete Station'
-          : station_id
-            ? 'Update Station'
-            : 'Create Station'
-      }
+      heading={`${fetchType(isDelete,station_id)} Headquarter`}
     >
       <Formik
         innerRef={formikRef}
@@ -101,20 +107,37 @@ export const CreateHQ: React.FC<CreateStationProps> = ({
         {(formik) => (
           <Form className='flex flex-col gap-2 min-w-[18rem] items-center px-4 '>
             <div className="flex flex-col w-full " >
-              <Field
-                type='text'
-                id='station_name'
-                name='station_name'
-                placeholder='Station name'
-                disabled={isDelete && station_id}
-                className={`w-full p-3 rounded-md text-3  border border-solid  ${formik.touched.station_name && formik.errors.station_name ? 'border-red-600 ' : ''}`}
-                innerRef={inputRef}
-                data-side-field='station_headQuarter'
-                data-next-field='station_headQuarter'
-                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                  handleKeyDown(e)
-                }
-              />
+                <Field name="station_name" >
+                  {() => (
+                    <CustomSelect
+                      id="station_name"
+                      name='station_name'
+                      value={formik.values.station_name === '' ? null : { label: formik.values.station_name, value: formik.values.station_name }}
+                      onChange={handleFieldChange}
+                      options={stationOptions}
+                      isSearchable={true}
+                      placeholder="Station Name"
+                      disableArrow={true}
+                      hidePlaceholder={false}
+                      className="!h-12"
+                      isFocused={focused === "station_name"}
+                      error={formik.errors.station_name}
+                      isDisabled={fetchType(isDelete,station_id)==='Delete' || fetchType(isDelete,station_id)==='Update'}
+                      isTouched={formik.touched.station_name}
+                      onBlur={() => { formik.setFieldTouched('station_name', true); setFocused(""); }}
+                      noOptionsMsg="No station found,create one..."
+                      onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+                        if (e.key === 'Enter' || e.key === 'ArrowDown') {
+                          const dropdown = document.querySelector('.custom-select__menu');
+                          if (!dropdown) {
+                            e.preventDefault();
+                          }
+                          setFocused("station_headQuarter");
+                        }
+                      }}
+                    />
+                  )}
+                </Field>
               <ErrorMessage
                 name='station_name'
                 component='div'
@@ -122,14 +145,13 @@ export const CreateHQ: React.FC<CreateStationProps> = ({
               />
             </div>
             <div className="flex flex-col w-full " >
-              {hqOptions.length > 0 && (
                 <Field name="station_headQuarter">
                   {() => (
                     <CustomSelect
                       id="station_headQuarter"
                       name='station_headQuarter'
                       value={formik.values.station_headQuarter === '' ? null : { label: formik.values.station_headQuarter, value: formik.values.station_headQuarter }}
-                      onChange={handleHQChange}
+                      onChange={handleFieldChange}
                       options={hqOptions}
                       isSearchable={true}
                       placeholder="Station HeadQuarter"
@@ -141,10 +163,22 @@ export const CreateHQ: React.FC<CreateStationProps> = ({
                       isDisabled={isDelete && station_id}
                       isTouched={formik.touched.station_headQuarter}
                       onBlur={() => { formik.setFieldTouched('station_headQuarter', true); setFocused(""); }}
+                      onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+                        if (e.key === 'Enter' || e.key === 'ArrowDown') {
+                          const dropdown = document.querySelector('.custom-select__menu');
+                          if (!dropdown) {
+                            e.preventDefault();
+                          }
+                          document.getElementById("submit_button")?.focus();
+                        }
+                        if ((e.shiftKey && e.key === 'Tab') || e.key === 'ArrowUp') {
+                          setFocused('station_name');
+                          e.preventDefault();
+                        }
+                      }}
                     />
                   )}
                 </Field>
-              )}
               <ErrorMessage name='station_headQuarter' component='div' className='text-red-600 font-xs ml-[1px]' />
             </div>
             <div className='flex justify-between p-4 w-full'>
@@ -153,6 +187,10 @@ export const CreateHQ: React.FC<CreateStationProps> = ({
                   if (e.key === 'Enter') {
                     e.preventDefault();
                     togglePopup(false);
+                  }
+                  if ((e.shiftKey && e.key === 'Tab') || e.key === 'ArrowUp') {
+                    setFocused('station_headQuarter');
+                    e.preventDefault();
                   }
                 }}
               >
@@ -174,10 +212,14 @@ export const CreateHQ: React.FC<CreateStationProps> = ({
                     if (e.key === 'Tab') {
                       document.getElementById('station_name')?.focus();
                       e.preventDefault();
+                    } 
+                    if (e.shiftKey && e.key === 'Tab') {
+                      document.getElementById('cancel_button')?.focus();
+                      e.preventDefault();
                     }
                   }}
                 >
-                  {station_id ? 'Update' : 'Add'}
+                  {fetchType(isDelete,station_id)==='Update' ? 'Update' : 'Add'}
                 </Button>
               )}
             </div>

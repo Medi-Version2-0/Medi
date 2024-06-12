@@ -47,7 +47,7 @@ module.exports = {
         cst_sale BOOLEAN DEFAULT FALSE,
         state_code INTEGER,
         station_pinCode INTEGER,
-        station_headQuarter TEXT,
+        station_headQuarter INTEGER,
         FOREIGN KEY (state_code) REFERENCES states(state_code)
     )`,
     `CREATE TABLE IF NOT EXISTS groups (
