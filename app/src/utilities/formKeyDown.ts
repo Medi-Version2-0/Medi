@@ -46,7 +46,7 @@ const onKeyDown = ({ e, formik, focusedSetter, radioField }: HandleKeyDownParams
           focusedSetter && focusedSetter(prevField);
           e.preventDefault();
         } else {
-          const sideField = e.currentTarget.getAttribute('data-side-field') || '';
+          const sideField = e.currentTarget.getAttribute('data-side-field') || e.currentTarget.getAttribute('data-next-field') || '';
           document.getElementById(sideField)?.focus();
           if (radioField?.typeField) {
             const value = (document.getElementById(sideField) as HTMLInputElement)?.value;

@@ -19,8 +19,8 @@ const insertGroups = groups.map((group) => {
 const insertPartyAccountGroup = PartyList.map((party) => {
   let { party_name, account_group, isPredefinedParty, account_code } = party;
   groups.map((group) => {
-    const {group_code, group_name} = group;
-    if(account_group === group_name){
+    const { group_code, group_name } = group;
+    if (account_group === group_name) {
       account_code = group_code;
     }
   })
@@ -29,19 +29,19 @@ const insertPartyAccountGroup = PartyList.map((party) => {
 });
 
 const insertSalesPurchase = SalesPurchasePred.map((sp) => {
-  let {spType, igst, cgst, sgst, salesPurchaseType} = sp;
-  console.log("inside insert sales purchase =====> ", sp); 
-  return `('${spType}', ${igst}, ${cgst}, ${sgst}, '${salesPurchaseType}')`; 
+  let { spType, igst, cgst, sgst, salesPurchaseType } = sp;
+  console.log("inside insert sales purchase =====> ", sp);
+  return `('${spType}', ${igst}, ${cgst}, ${sgst}, '${salesPurchaseType}')`;
 })
 
 module.exports = {
   up: [
-      `CREATE TABLE IF NOT EXISTS states (
+    `CREATE TABLE IF NOT EXISTS states (
         state_code INTEGER PRIMARY KEY,
         state_name TEXT NOT NULL,
         union_territory boolean            
       )`,
-      `CREATE TABLE IF NOT EXISTS stations (
+    `CREATE TABLE IF NOT EXISTS stations (
         station_id INTEGER PRIMARY KEY,
         station_name TEXT NOT NULL,
         cst_sale BOOLEAN DEFAULT FALSE,
@@ -107,7 +107,8 @@ module.exports = {
           ifscCode TEXT,
           accountNumber TEXT,
           accountType TEXT,
-          accountHolderName TEXT
+          accountHolderName TEXT,
+          partyType TEXT
         )`,
     `CREATE TABLE IF NOT EXISTS sales_purchase (
           sp_id INTEGER PRIMARY KEY,
@@ -130,6 +131,34 @@ module.exports = {
         address2 TEXT,
         address3 TEXT
     )`,
+    `CREATE TABLE IF NOT EXISTS company (
+          company_id INTEGER PRIMARY KEY,
+          party_id INTEGER,
+          companyName TEXT,
+          shortName TEXT,
+          address1 TEXT,
+          address2 TEXT,
+          address3 TEXT,
+          station_id TEXT,
+          openingBal INTEGER,  
+          openingBalType TEXT CHECK(openingBalType IN ('credit', 'debit')),
+          sales_id TEXT,
+          purchase_id TEXT,    
+          discPercent INTEGER,
+          isDiscountPercent BOOLEAN DEFAULT FALSE,
+          vatNumber INTEGER,
+          gstIn INTEGER,
+          drugLicenceNo1 INTEGER,
+          stateInOut TEXT,
+          phoneNumber TEXT,
+          mobileNumber TEXT,
+          panNumber TEXT,
+          emailId1 TEXT,
+          emailId2 TEXT,
+          emailId3 TEXT,
+          purSaleAc BOOLEAN DEFAULT FALSE, 
+          twoPrice INTEGER
+        )`,
     `INSERT INTO states (state_code, state_name, union_territory) VALUES ${insertStatements.join(
       ", "
     )};`,
@@ -151,5 +180,6 @@ module.exports = {
     "DROP TABLE IF EXISTS party_table",
     "DROP TABLE IF EXISTS sales_purchase",
     "DROP TABLE IF EXISTS store",
+    "DROP TABLE IF EXISTS company"
   ],
 };

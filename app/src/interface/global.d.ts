@@ -159,3 +159,11 @@ export interface CreateStoreProps {
   isDelete: any;
   deleteAcc: (store_code: string) => void;
 }
+
+export interface CompanyFormData {
+  company_id?: string;
+  companyName:string;
+  stationName: string;
+  openingBal: string;
+  openingBalType:string;
+}
