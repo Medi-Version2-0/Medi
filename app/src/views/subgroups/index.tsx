@@ -352,8 +352,8 @@ export const SubGroups = () => {
   return (
     <>
       <div className='w-full'>
-        <div className="flex justify-between mx-[1.6rem] my-8  bg-[#f3f3f3]  ">
-          <h1 className="font-bold text-[#171A1FFF] m-0 ">Sub Groups</h1>
+        <div className="flex w-full items-center justify-between px-8 py-1">
+          <h1 className="font-bold">Sub Groups</h1>
           <Button id='account_button' handleOnClick={() => togglePopup(true)} type='highlight'>Add Subgroup</Button>
         </div>
         <div id='account_table' className='ag-theme-quartz'>

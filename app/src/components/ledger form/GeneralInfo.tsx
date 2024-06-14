@@ -85,7 +85,6 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
           name='partyName'
           formik={formik}
           className='!mb-0'
-          inputClassName=''
           labelClassName='min-w-[90px] '
           isRequired={true}
           onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {

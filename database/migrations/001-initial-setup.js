@@ -123,6 +123,13 @@ module.exports = {
           shortName TEXT,
           shortName2 TEXT
         )`,
+    `CREATE TABLE IF NOT EXISTS store (
+        store_code INTEGER PRIMARY KEY,
+        store_name TEXT NOT NULL,
+        address1 TEXT,
+        address2 TEXT,
+        address3 TEXT
+    )`,
     `INSERT INTO states (state_code, state_name, union_territory) VALUES ${insertStatements.join(
       ", "
     )};`,
@@ -143,5 +150,6 @@ module.exports = {
     "DROP TABLE IF EXISTS groups",
     "DROP TABLE IF EXISTS party_table",
     "DROP TABLE IF EXISTS sales_purchase",
+    "DROP TABLE IF EXISTS store",
   ],
 };

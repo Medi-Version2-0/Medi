@@ -171,7 +171,6 @@ export const CreateLedger = () => {
         <Button
           type='highlight'
           id='ledger_button'
-          className='h-8'
           handleOnClick={() => {
             return navigate(`/ledger_table`);
           }}
@@ -304,7 +303,6 @@ export const CreateLedger = () => {
         <div className='w-full px-8 py-2'>
           <Button
             type='fill'
-            btnType='submit'
             padding='px-4 py-2'
             id='submit_all'
             disable={!(ledgerFormInfo.isValid && ledgerFormInfo.dirty)}
@@ -315,7 +313,6 @@ export const CreateLedger = () => {
                 message: 'Ledger created successfully',
               });
             }}
-            className='h-8'
             handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
               if (e.key === 'ArrowUp') {
                 document.getElementById(isSUNDRY ? 'accountHolderName' : 'openingBalType')?.focus();

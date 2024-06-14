@@ -58,7 +58,7 @@ const Button: FC<ButtonProps> = ({
       id={id || ""}
       disabled={disable}
       className={classNames(
-        `flex flex-row items-center text-base font-medium justify-center cursor-pointer rounded-md
+        `flex flex-row items-center text-base font-medium justify-center cursor-pointer rounded-md h-8
          ${disable ? "opacity-60 !cursor-not-allowed" : "opacity-100"}`,
         padding,
         styleType,

@@ -89,9 +89,13 @@ export const Stations = () => {
   };
 
   const handelFormSubmit = (values: StationFormData) => {
+    const mode = values.station_id ? 'update' : 'create';
     const existingStation = tableData.find(
-      (station: StationFormData) =>
-        station.station_name.toLowerCase() === values.station_name.toLowerCase()
+      (station: StationFormData) => {
+        if (mode === 'create')
+          return (station.station_name.toLowerCase() === values.station_name.toLowerCase())
+        return ((station.station_name.toLowerCase() === values.station_name.toLowerCase()) && (station.station_id !== values.station_id))
+      }
     );
     if (existingStation) {
       setPopupState({
@@ -101,7 +105,6 @@ export const Stations = () => {
       });
       return;
     }
-    const mode = values.station_id ? 'update' : 'create';
     if (values.station_name) {
       values.station_name =
         values.station_name.charAt(0).toUpperCase() +
@@ -390,8 +393,8 @@ export const Stations = () => {
   return (
     <>
         <div className='w-full '>
-          <div className="flex justify-between mx-[1.6rem] my-8  bg-[#f3f3f3]  ">
-            <h1 className="font-bold text-[#171A1FFF] m-0 ">Stations</h1>
+          <div className="flex w-full items-center justify-between px-8 py-1">
+            <h1 className="font-bold">Stations</h1>
             <Button type='highlight' className='' handleOnClick={() => togglePopup(true)}>Add Station</Button>
           </div>
           <div id='account_table' className='ag-theme-quartz'>

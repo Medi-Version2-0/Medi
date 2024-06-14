@@ -139,3 +139,23 @@ interface SpSubSectionProps {
   type?: any;
   formik: any;
 }
+export interface StoreFormData {
+  store_code?: string;
+  store_name: string;
+  address1: string;
+  address2: string;
+  address3: string;
+}
+export interface StoreFormDataProps {
+  store_name: string;
+  address1: string;
+  address2: string;
+  address3: string;
+}
+export interface CreateStoreProps {
+  togglePopup: Function;
+  data: StoreFormData;
+  handelFormSubmit: any;
+  isDelete: any;
+  deleteAcc: (store_code: string) => void;
+}

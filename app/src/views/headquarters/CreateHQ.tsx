@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Formik, Form, Field, ErrorMessage, FormikProps } from 'formik';
+import { Formik, Form, Field, FormikProps } from 'formik';
 import { CreateStationProps, Option, StationFormData } from '../../interface/global';
 import { Popup } from '../../components/popup/Popup';
 import CustomSelect from '../../components/custom_select/CustomSelect';
@@ -119,7 +119,7 @@ export const CreateHQ: React.FC<CreateStationProps> = ({
                       placeholder="Station Name"
                       disableArrow={true}
                       hidePlaceholder={false}
-                      className="!h-12"
+                      className='!h-6 rounded-sm text-xs'
                       isFocused={focused === "station_name"}
                       error={formik.errors.station_name}
                       isDisabled={fetchType(isDelete,station_id)==='Delete' || fetchType(isDelete,station_id)==='Update'}
@@ -127,22 +127,24 @@ export const CreateHQ: React.FC<CreateStationProps> = ({
                       onBlur={() => { formik.setFieldTouched('station_name', true); setFocused(""); }}
                       noOptionsMsg="No station found,create one..."
                       onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-                        if (e.key === 'Enter' || e.key === 'ArrowDown') {
-                          const dropdown = document.querySelector('.custom-select__menu');
+                        const dropdown = document.querySelector('.custom-select__menu');
+                        if (e.key === 'Enter' || e.key === 'ArrowDown' || e.key === 'Tab') {
                           if (!dropdown) {
                             e.preventDefault();
                           }
                           setFocused("station_headQuarter");
                         }
+                        if ((e.shiftKey && e.key === 'Tab') || e.key === 'ArrowUp') {
+                          if (!dropdown) {
+                            e.preventDefault();
+                          }
+                          setFocused('station_name');
+                        }
                       }}
+                      showErrorTooltip={true}
                     />
                   )}
                 </Field>
-              <ErrorMessage
-                name='station_name'
-                component='div'
-                className="text-red-600 font-xs ml-[1px]  "
-              />
             </div>
             <div className="flex flex-col w-full " >
                 <Field name="station_headQuarter">
@@ -157,31 +159,33 @@ export const CreateHQ: React.FC<CreateStationProps> = ({
                       placeholder="Station HeadQuarter"
                       disableArrow={true}
                       hidePlaceholder={false}
-                      className="!h-12"
+                      className='!h-6 rounded-sm text-xs'
                       isFocused={focused === "station_headQuarter"}
                       error={formik.errors.station_headQuarter}
                       isDisabled={isDelete && station_id}
                       isTouched={formik.touched.station_headQuarter}
                       onBlur={() => { formik.setFieldTouched('station_headQuarter', true); setFocused(""); }}
                       onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-                        if (e.key === 'Enter' || e.key === 'ArrowDown') {
-                          const dropdown = document.querySelector('.custom-select__menu');
+                        const dropdown = document.querySelector('.custom-select__menu');
+                        if (e.key === 'Enter' || e.key === 'ArrowDown' || e.key === 'Tab') {
                           if (!dropdown) {
                             e.preventDefault();
                           }
-                          document.getElementById("submit_button")?.focus();
+                          document.getElementById(`${e.key === 'Tab' ? "cancel_button" : "submit_button"}`)?.focus();
                         }
                         if ((e.shiftKey && e.key === 'Tab') || e.key === 'ArrowUp') {
+                          if (!dropdown) {
+                            e.preventDefault();
+                          }
                           setFocused('station_name');
-                          e.preventDefault();
                         }
                       }}
+                      showErrorTooltip={true}
                     />
                   )}
                 </Field>
-              <ErrorMessage name='station_headQuarter' component='div' className='text-red-600 font-xs ml-[1px]' />
             </div>
-            <div className='flex justify-between p-4 w-full'>
+            <div className='flex justify-between my-4 w-full'>
               <Button type='fog' id='cancel_button' handleOnClick={() => togglePopup(false)}
                 handleOnKeyDown={(e) => {
                   if (e.key === 'Enter') {
@@ -210,10 +214,10 @@ export const CreateHQ: React.FC<CreateStationProps> = ({
                 <Button id="submit_button" type="fill" autoFocus={true}
                   handleOnKeyDown={(e) => {
                     if (e.key === 'Tab') {
-                      document.getElementById('station_name')?.focus();
+                      setFocused('station_name');
                       e.preventDefault();
                     } 
-                    if (e.shiftKey && e.key === 'Tab') {
+                    if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab')) {
                       document.getElementById('cancel_button')?.focus();
                       e.preventDefault();
                     }

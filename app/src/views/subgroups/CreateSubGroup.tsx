@@ -10,6 +10,7 @@ import { Popup } from '../../components/popup/Popup';
 import CustomSelect from '../../components/custom_select/CustomSelect';
 import Button from '../../components/common/button/Button';
 import onKeyDown from '../../utilities/formKeyDown';
+import FormikInputField from '../../components/common/FormikInputField';
 
 export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
   togglePopup,
@@ -108,27 +109,22 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
       >
         {(formik) => (
           <Form className='flex flex-col gap-2 min-w-[18rem] items-center px-4 '>
-            <div className="flex flex-col w-full " >
-              <Field
-                type='text'
-                id='group_name'
-                name='group_name'
-                placeholder='Group name'
-                disabled={isDelete && group_code}
-                className={`w-full p-3 rounded-md text-3  border border-solid  ${formik.touched.group_name && formik.errors.group_name ? 'border-red-600 ' : ''}`}
-                innerRef={inputRef}
-                data-side-field='parent_group'
-                data-next-field='parent_group'
-                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                  handleKeyDown(e)
-                }
-              />
-              <ErrorMessage
-                name='group_name'
-                component='div'
-                className="text-red-600 font-xs ml-[1px]  "
-              />
-            </div>
+            <FormikInputField
+              placeholder='Group name'
+              id='group_name'
+              name='group_name'
+              formik={formik}
+              className='!gap-0'
+              isDisabled={isDelete && group_code}
+              nextField='parent_group'
+              prevField='group_name'
+              sideField='parent_group'
+              onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
+                handleKeyDown(e)
+              }
+              showErrorTooltip={!!(formik.touched.group_name && formik.errors.group_name)}
+            />
+
             <div className="flex flex-col w-full">
               {parentGrpOptions.length > 0 && (
                 <Field name="parent_group" className="">
@@ -144,29 +140,31 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                       placeholder="Parent group"
                       disableArrow={true}
                       hidePlaceholder={false}
-                      className="!h-12"
+                      className='!h-6 rounded-sm text-xs'
                       isFocused={focused === "parent_group"}
                       error={formik.errors.parent_group}
                       isTouched={formik.touched.parent_group}
                       onBlur={() => { formik.setFieldTouched('parent_group', true); setFocused(""); }}
-                      onKeyDown={(e: any) => {
-                        if (e.key === 'Enter') {
-                          const dropdown = document.querySelector('.custom-select__menu');
+                      onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+                        const dropdown = document.querySelector('.custom-select__menu');
+                        if (e.key === 'Enter' || e.key === 'ArrowDown' || e.key === 'Tab') {
                           if (!dropdown) {
                             e.preventDefault();
                           }
                           document.getElementById('p_and_l')?.focus();
                         }
+                        if ((e.shiftKey && e.key === 'Tab') || e.key === 'ArrowUp') {
+                          if (!dropdown) {
+                            e.preventDefault();
+                          }
+                          document.getElementById('group_name')?.focus();
+                        }
                       }}
+                      showErrorTooltip={true}
                     />
                   )}
                 </Field>
               )}
-              <ErrorMessage
-                name='parent_group'
-                component='div'
-                className="text-red-600 font-xs ml-[1px]"
-              />
             </div>
             <ErrorMessage name="selectOption" component="div" />
             <div className='flex flex-col justify-center w-full'>
@@ -212,7 +210,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                 className="text-red-600 font-xs ml-[1px]  "
               />
             </div>
-            <div className='flex justify-between p-4 w-full'>
+            <div className='flex justify-between my-4 w-full'>
               <Button
                 autoFocus={true}
                 type='fog'

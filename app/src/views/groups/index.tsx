@@ -334,8 +334,8 @@ export const Groups = () => {
   return (
     <>
       <div className='w-full'>
-        <div className="flex justify-between mx-[1.6rem] my-8 bg-[#f3f3f3] ">
-          <h1 className="font-bold text-[#171A1FFF] m-0 ">Groups</h1>
+        <div className="flex w-full items-center justify-between px-8 py-1">
+          <h1 className="font-bold">Groups</h1>
           <Button type='highlight' className='' handleOnClick={() => togglePopup(true)}>Add Group</Button>
         </div>
         <div id='account_table' className='ag-theme-quartz'>

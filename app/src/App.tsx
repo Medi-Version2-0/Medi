@@ -9,6 +9,7 @@ import { Headquarters } from './views/headquarters';
 import Home from './views/home';
 import { Sales_Purchase } from './components/sales_purchase/sales_purchase';
 import { Sales_Purchase_Table } from './components/sales_purchase/sales_purchase_table';
+import { Store } from './views/Stores';
 
 export const App = () => {
   return (
@@ -24,6 +25,7 @@ export const App = () => {
             <Route path='/ledger_table' element={<Ledger />} />
             <Route path='/sales_purchase' element={<Sales_Purchase />} />
             <Route path='/sales_purchase_table' element={<Sales_Purchase_Table />} />
+            <Route path='/store' element={<Store />} />
           </Route>
         </Routes>
       </HashRouter>

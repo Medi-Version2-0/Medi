@@ -68,12 +68,11 @@ export const Sales_Purchase_Section: React.FC<SalesPurchaseProps> = ({
   return (  
     <>
       <div className='w-full'>
-        <div className="flex justify-between items-center px-4 bg-[#f3f3f3]">
-          <h1 className="font-medium text-[1.3rem] text-[#474747]">{!!data.sp_id ? 'Update' : 'Create'} {type} Master</h1>
+        <div className="flex w-full items-center justify-between px-8 py-1">
+          <h1 className="font-bold">{!!data.sp_id ? 'Update' : 'Create'} {type} Master</h1>
           <Button
             type='highlight'
             id='sp_button'
-            className='mx-0.5'
             handleOnClick={() => {
               return navigate(`/sales_purchase_table`, {state: type === 'Sales' ? 'Sales' : 'Purchase'});
             }}
@@ -83,7 +82,7 @@ export const Sales_Purchase_Section: React.FC<SalesPurchaseProps> = ({
         </div>
         <form
           onSubmit={sales_purchase_config.handleSubmit}
-          className='flex flex-col w-full p-4'
+          className='flex flex-col w-full py-2 px-8'
         >
           <Sp_Header_Section type={type} formik={sales_purchase_config} />
           <div className='flex sm:flex-col md:flex-row gap-4 w-full shadow-[5px_0px_8px_gray] mx-0 my-4 p-4'>
@@ -92,7 +91,7 @@ export const Sales_Purchase_Section: React.FC<SalesPurchaseProps> = ({
           </div>
           <div className='flex gap-4 w-full mx-0'>
             <Button
-              type='highlight'
+              type='fill'
               id='submit_all'
               disable={
                 !(sales_purchase_config.isValid && sales_purchase_config.dirty)

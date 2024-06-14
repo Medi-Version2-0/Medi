@@ -5,18 +5,21 @@ const States = require('./database/models/statesData.js');
 const Account_groups = require('./database/models/account_group.js');
 const Groups = require('./database/models/groupsData.js');
 const SalesPurchase = require("./database/models/sales_purchase.js");
+const Store = require("./database/models/store.js");
 
 const stationService = require('./helpers/stationService.js');
 const groupService = require('./helpers/groupService.js');
 const accountGroupService = require('./helpers/accountGroupService.js');
 const partyService =require('./helpers/partyService.js');
 const salesPurchaseService = require('./helpers/salesPurchaseService.js');
+const storeService = require('./helpers/storeService.js');
 
 const station = new Station()
 const account_groups = new Account_groups()
 const states = new States()
 const groups = new Groups()
 const salesPurchase = new SalesPurchase()
+const store = new Store()
 
 contextBridge.exposeInMainWorld("electronAPI", {
   // STATIONS SERVICE
@@ -60,6 +63,13 @@ contextBridge.exposeInMainWorld("electronAPI", {
   getSalesPurchase: (where = "", sort = "", limit = "", type="") => salesPurchaseService.getSalesPurchase(where, sort, limit, type),
   deleteSalesPurchase: (sp_id) => salesPurchase.delete(sp_id, 'sp_id'),
   updateSalesPurchase: (sp_id, spData) => salesPurchase.update(sp_id, spData, 'sp_id'),
+
+  // Store
+  getAllStores : (where = "", sort = "", limit = "") => storeService.getAll(where, sort, limit),  
+  addStore: (storeData) => store.insert(storeData),
+  updateStore: (id, storeData) => store.update(id, storeData, 'store_code'),  
+  deleteStore: (store_code) => store.delete(store_code, "store_code"),
+
 
   // suggestion List for different inputs 
   addSuggestionList:(where = "", sort = "", limit = "")=> partyService.getAllSuggestions(where, sort, limit),

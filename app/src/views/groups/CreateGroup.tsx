@@ -6,6 +6,7 @@ import { CreateGroupProps, GroupFormDataProps } from '../../interface/global';
 import { Popup } from '../../components/popup/Popup';
 import Button from '../../components/common/button/Button';
 import onKeyDown from "../../utilities/formKeyDown";
+import FormikInputField from '../../components/common/FormikInputField';
 
 export const CreateGroup: React.FC<CreateGroupProps> = ({
   togglePopup,
@@ -72,25 +73,22 @@ export const CreateGroup: React.FC<CreateGroupProps> = ({
         {(formik) => (
           <Form className='flex flex-col gap-2 min-w-[18rem] items-center px-4'>
             <div className='flex flex-col w-full'>
-              <Field
-                type='text'
-                id='group_name'
-                name='group_name'
-                placeholder='Group name'
-                disabled={isDelete && group_code}
-                className={`w-full p-3 rounded-md text-3  border border-solid ${formik.touched.group_name && formik.errors.group_name ? ' border-red-600 ' : ''}`}
-                innerRef={inputRef}
-                data-side-field='p_and_l'
-                data-next-field='p_and_l'
-                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                  handleKeyDown(e)
-                }
-              />
-              <ErrorMessage
-                name='group_name'
-                component='div'
-                className="text-red-600 font-xs ml-[1px]"
-              />
+            <FormikInputField
+              placeholder='Group name'
+              id='group_name'
+              name='group_name'
+              formik={formik}
+              className='!gap-0'
+              isDisabled={isDelete && group_code}
+              sideField='p_and_l'
+              nextField='p_and_l'
+              onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
+                handleKeyDown(e)
+              }
+              showErrorTooltip={
+                !!(formik.touched.group_name && formik.errors.group_name)
+              }
+            />
             </div>
             <div className='flex flex-col justify-center w-full'>
               <div className='flex items-center justify-between w-full gap-2 rounded-md border border-solid border-[#c1c1c1]'>
@@ -138,7 +136,7 @@ export const CreateGroup: React.FC<CreateGroupProps> = ({
                 className="text-red-600 font-xs ml-[1px]  "
               />
             </div>
-            <div className='flex justify-between p-4 w-full'>
+            <div className='flex justify-between my-4 w-full'>
               <Button
                 autoFocus={true}
                 type='fog'

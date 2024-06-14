@@ -19,10 +19,10 @@ code {
 
 
 #account_table {
-  margin: 0rem 1em;
+  margin: 0.5rem 2rem;
   background-color: white;
   border-radius: 1.4rem;
-  height: calc(100vh - 7.4rem);
+  height: calc(100vh - 4rem);
 }
 
 .table_edit_buttons {

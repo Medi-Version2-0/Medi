@@ -263,8 +263,8 @@ export const Sales_Table: React.FC<SalesPurchaseTableProps> = ({
   return (
     <>
       <div className='w-full'>
-        <div className="flex justify-between items-center p-4 bg-[#f3f3f3]">
-          <h1 className="font-medium text-[1.3rem] text-[#474747]">{type} Master</h1>
+        <div className="flex w-full items-center justify-between px-8 py-1">
+          <h1 className="font-bold">{type} Master</h1>
           <Button
             type='highlight'
             id='sp_button'
@@ -275,7 +275,7 @@ export const Sales_Table: React.FC<SalesPurchaseTableProps> = ({
             Add {type}
           </Button>
         </div>
-        <div className='ag-theme-quartz bg-[white] h-[calc(100vh_-_7.4rem)] mx-[1rem] my-0 rounded-[1.4rem]'>
+        <div id='account_table' className='ag-theme-quartz bg-[white] h-[calc(100vh_-_7.4rem)] mx-[1rem] my-0 rounded-[1.4rem]'>
             {
               <AgGridReact
                 rowData={tableData}

@@ -1,35 +1,36 @@
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { FaEdit } from 'react-icons/fa';
 import { MdDeleteForever } from 'react-icons/md';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
-import { StationFormData } from '../../interface/global';
+import { StoreFormData } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
-import { CreateHQ } from './CreateHQ';
 import Button from '../../components/common/button/Button';
+import { CreateStore } from './CreateStore';
 
 const initialValue = {
-  station_id: '',
-  station_name: '',
-  station_headQuarter: '',
+  store_code: '',
+  store_name: '',
+  address1: '',
+  address2: '',
+  address3: '',
 };
 
-export const Headquarters = () => {
+export const Store = () => {
   const [open, setOpen] = useState<boolean>(false);
-  const [formData, setFormData] = useState<StationFormData | any>(initialValue);
+  const [formData, setFormData] = useState<StoreFormData | any>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
-  const [tableData, setTableData] = useState<StationFormData | any>(null);
+  const [tableData, setTableData] = useState<StoreFormData | any>(null);
+  const [selectedStoreAddress, setSelectedStoreAddress] = useState({
+    address1: '',
+    address2: '',
+    address3: '',
+  });
   const editing = useRef(false);
   const isDelete = useRef(false);
 
   const electronAPI = (window as any).electronAPI;
-  const allStations = electronAPI.getAllStations('', 'station_name', '', '', '');
-
-  const getStationId = (station_name : string) =>{
-    const selectedHq = allStations.find((item: StationFormData) => item.station_name === station_name);
-    return selectedHq.station_id;
-  }
 
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
@@ -38,7 +39,7 @@ export const Headquarters = () => {
   });
 
   useEffect(() => {
-    getStations();
+    getStores();
   }, []);
 
   useEffect(() => {
@@ -48,10 +49,8 @@ export const Headquarters = () => {
     };
   }, [selectedRow]);
 
-  const getStations = () => {
-    const allStations = electronAPI.getAllStations('', 'station_name', '', '', '');
-    const selectedSt = allStations.filter((item: StationFormData) => item.station_headQuarter!=='');
-    setTableData(selectedSt);
+  const getStores = () => {
+    setTableData(electronAPI.getAllStores('', 'store_name', '', '', ''));
   };
 
   const togglePopup = (isOpen: boolean) => {
@@ -72,64 +71,69 @@ export const Headquarters = () => {
 
   const handleConfirmPopup = () => {
     setPopupState({ ...popupState, isModalOpen: false });
-    if (formData.station_name) {
-      formData.station_name =
-        formData.station_name.charAt(0).toUpperCase() +
-        formData.station_name.slice(1);
+    if (formData.store_name) {
+      formData.store_name =
+        formData.store_name.charAt(0).toUpperCase() +
+        formData.store_name.slice(1);
     }
     if (formData !== initialValue) {
-      if (formData.station_id) {
-        electronAPI.updateStation(formData.station_id, formData);
+      if (formData.store_code) {
+        electronAPI.updateStore(formData.store_code, formData);
       } else {
-        electronAPI.addStation(formData);
+        electronAPI.addStore(formData);
       }
       togglePopup(false);
-      getStations();
+      getStores();
     }
   };
 
-  const handelFormSubmit = (values: StationFormData) => {
-    const allData = electronAPI.getAllStations('', 'station_name', '', '', '');
-    const selectedHq = allData.find((item: StationFormData) => item.station_id===values.station_id);
-    const mode = selectedHq.station_headQuarter!=='' ? 'update' : 'create';
-    if (values.station_name) {
-      values.station_name =
-        values.station_name.charAt(0).toUpperCase() +
-        values.station_name.slice(1);
-    }
-    if (values.station_headQuarter) {
-      allData.map((station: any) => {
-        if (values.station_headQuarter === station.station_name) {
-          values.station_headQuarter = station.station_id;
-          delete values.station_headQuarter;
-        }
+  const handelFormSubmit = (values: StoreFormData) => {
+    const mode = values.store_code ? 'update' : 'create';
+    const existingStore = tableData.find(
+      (store: StoreFormData) => {
+        if (mode === 'create')
+          return (store.store_name.toLowerCase() === values.store_name.toLowerCase())
+        return ((store.store_name.toLowerCase() === values.store_name.toLowerCase()) && (store.store_code !== values.store_code))
+      }
+    );
+    if (existingStore) {
+      setPopupState({
+        ...popupState,
+        isAlertOpen: true,
+        message: 'Store with this name already exists!',
       });
+      return;
+    }
+  
+    if (values.store_name) {
+      values.store_name =
+        values.store_name.charAt(0).toUpperCase() + values.store_name.slice(1);
     }
     if (values !== initialValue) {
       setPopupState({
         ...popupState,
         isModalOpen: true,
-        message: `Are you sure you want to ${mode} this Headquarter?`,
+        message: `Are you sure you want to ${mode} this Store?`,
       });
       setFormData(values);
     }
   };
 
-  const deleteAcc = (station_id: string) => {
-    electronAPI.updateStation(station_id, { ['station_headquarter']: '' });
+  const deleteAcc = (store_code: string) => {
+    electronAPI.deleteStore(store_code);
     isDelete.current = false;
     togglePopup(false);
-    getStations();
+    getStores();
   };
 
-  const handleDelete = (oldData: StationFormData) => {
+  const handleDelete = (oldData: StoreFormData) => {
     isDelete.current = true;
     setFormData(oldData);
     togglePopup(true);
     setSelectedRow(null);
   };
 
-  const handleUpdate = (oldData: StationFormData) => {
+  const handleUpdate = (oldData: StoreFormData) => {
     setFormData(oldData);
     isDelete.current = false;
     editing.current = true;
@@ -137,49 +141,40 @@ export const Headquarters = () => {
     setSelectedRow(null);
   };
 
-  const stationHeadquarterMap: { [key: number]: string } = {};
-
-  allStations?.forEach((data: any) => {
-    stationHeadquarterMap[data.station_id] = data.station_name;
-  });
-
-  const extractKeys = (mappings: {
-    [x: string]: string;
-  }) => {
-
-    return Object.values(mappings);
-  };
-
-  const stationHeadquarters = extractKeys(stationHeadquarterMap);
-
-  const lookupValue = (
-    mappings: {
-      [x: string]: any;
-      [x: number]: string;
-    },
-    key: string
-  ) => {
-    return mappings[key];
-  };
-
   const handleCellEditingStopped = (e: any) => {
     editing.current = false;
     const { data, column, oldValue, valueChanged, node } = e;
     let { newValue } = e;
     if (!valueChanged) return;
-    let field = column.colId;
+    const field = column.colId;
     switch (field) {
-      case 'station_name':
+      case 'store_name':
         {
-          if (!newValue || /^\d+$/.test(newValue) || newValue.length > 100) {
+          const existingStore = tableData.find(
+            (store: StoreFormData) =>
+              store.store_name.toLowerCase() === newValue.toLowerCase()
+          );
+          if (existingStore) {
+            setPopupState({
+              ...popupState,
+              isAlertOpen: true,
+              message: 'Store with this name already exists!',
+            });
+            node.setDataValue(field, oldValue);
+            return;
+          } else if (
+            !newValue ||
+            /^\d+$/.test(newValue) ||
+            newValue.length > 100
+          ) {
             setPopupState({
               ...popupState,
               isAlertOpen: true,
               message: !newValue
-                ? 'Station Name is required'
+                ? 'Store Name is required'
                 : /^\d+$/.test(newValue)
                   ? 'Only Numbers not allowed'
-                  : 'Station name cannot exceed 100 characters',
+                  : 'Store name cannot exceed 100 characters',
             });
             node.setDataValue(field, oldValue);
             return;
@@ -187,30 +182,20 @@ export const Headquarters = () => {
           newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
         }
         break;
-      case 'station_state':
-        {
-          field = 'state_code';
-        }
-        break;
-      case 'station_headQuarter':
-        {
-          field = 'station_headQuarter';
-        }
-        break;
       default:
         break;
     }
-    if(field==='station_headQuarter')
-      {
-        const newValue2 = getStationId(newValue);
-        electronAPI.updateStation(data.station_id, { [field]: newValue2 })
-      }
-    else electronAPI.updateStation(data.station_id, { [field]: newValue })
-    getStations();
+    electronAPI.updateStore(data.store_code, { [field]: newValue });
+    getStores();
   };
 
   const onCellClicked = (params: { data: any }) => {
     setSelectedRow(selectedRow !== null ? null : params.data);
+    setSelectedStoreAddress({
+      address1: params.data.address1,
+      address2: params.data.address2,
+      address3: params.data.address3,
+    });
   };
 
   const cellEditingStarted = () => {
@@ -245,42 +230,37 @@ export const Headquarters = () => {
     }
   };
 
+  const handleCellKeyDown = (event: any) => {
+    const { node } = event;
+  
+    if (event.event.key === 'ArrowDown' || event.event.key === 'ArrowUp') {
+      const nextRowIndex = event.event.key === 'ArrowDown'
+        ? node.rowIndex + 1
+        : node.rowIndex - 1;
+  
+      const nextRowNode = event.api.getDisplayedRowAtIndex(nextRowIndex);
+  
+      if (nextRowNode) {
+        const nextRowData = nextRowNode.data;
+        setSelectedRow(nextRowData);
+        setSelectedStoreAddress({
+          address1: nextRowData.address1,
+          address2: nextRowData.address2,
+          address3: nextRowData.address3,
+        });
+      }
+    }
+  };
+  
+
   const colDefs: any[] = [
     {
-      headerName: 'Station Code',
-      field: 'station_id',
-      flex: 1,
-      menuTabs: ['filterMenuTab'],
-      filter: true,
-      suppressMovable: true,
-      headerClass: 'custom-header',
-    },
-    {
-      headerName: 'Station Name',
-      field: 'station_name',
-      flex: 1,
-      filter: true,
-      editable: false,
-      headerClass: 'custom-header',
-      suppressMovable: true,
-    },
-    {
-      headerName: 'Headquarter',
-      field: 'station_headQuarter',
-      flex: 1,
+      headerName: 'Store Name',
+      field: 'store_name',
+      flex: 3,
       filter: true,
       editable: true,
-      cellEditor: 'agSelectCellEditor',
-      cellEditorParams: {
-        values: stationHeadquarters,
-        valueListMaxHeight: 120,
-        valueListMaxWidth: 192,
-        valueListGap: 8,
-      },
-      valueFormatter: (params: { value: string }) => {
-        lookupValue(stationHeadquarterMap, params.value)
-      },
-      headerClass: 'custom-header custom_header_class',
+      headerClass: 'custom-header',
       suppressMovable: true,
     },
     {
@@ -294,7 +274,7 @@ export const Headquarters = () => {
         justifyContent: 'center',
         alignItems: 'center',
       },
-      cellRenderer: (params: { data: StationFormData }) => (
+      cellRenderer: (params: { data: StoreFormData }) => (
         <div className='table_edit_buttons'>
           <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
@@ -315,11 +295,20 @@ export const Headquarters = () => {
   return (
     <>
       <div className='w-full '>
-        <div className="flex w-full items-center justify-between px-8 py-1">
-          <h1 className="font-bold">Headquarters</h1>
-          <Button type='highlight' className='' handleOnClick={() => togglePopup(true)}>Add HeadQuarter</Button>
+        <div className='flex w-full items-center justify-between px-8 py-1'>
+          <h1 className='font-bold'>Store List</h1>
+          <Button
+            type='highlight'
+            className=''
+            handleOnClick={() => togglePopup(true)}
+          >
+            Add Store
+          </Button>
         </div>
-        <div id='account_table' className='ag-theme-quartz'>
+        <div
+          id='store_table'
+          className='ag-theme-quartz bg-[white] h-[calc(100vh_-_11rem)] mx-8 my-2 rounded-[1.4rem]'
+        >
           {
             <AgGridReact
               rowData={tableData}
@@ -330,8 +319,17 @@ export const Headquarters = () => {
               onCellClicked={onCellClicked}
               onCellEditingStarted={cellEditingStarted}
               onCellEditingStopped={handleCellEditingStopped}
+              onCellKeyDown={handleCellKeyDown}
             />
           }
+        </div>
+        <div className='flex flex-col gap-1 relative border h-[6rem] p-4 border-solid border-[gray] text-gray-600 text-sm  mx-8 my-[1em]'>
+          <div className='absolute top-[-0.8rem] inline-block text-base text-black px-1 py-0 left-1 bg-[#f3f3f3]'>
+            Address
+          </div>
+          <div className='w-full'>{selectedStoreAddress.address1}</div>
+          <div className='w-full'>{selectedStoreAddress.address2}</div>
+          <div className='w-full'>{selectedStoreAddress.address3}</div>
         </div>
         {(popupState.isModalOpen || popupState.isAlertOpen) && (
           <Confirm_Alert_Popup
@@ -346,7 +344,7 @@ export const Headquarters = () => {
           />
         )}
         {open && (
-          <CreateHQ
+          <CreateStore
             togglePopup={togglePopup}
             data={formData}
             handelFormSubmit={handelFormSubmit}
