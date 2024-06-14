@@ -15,7 +15,7 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 
 const initialValue = {
-  btn_1: false,
+  btn_1: true,
   btn_2: false,
   btn_3: false,
   btn_4: false,
@@ -197,8 +197,8 @@ export const CreateLedger = () => {
         </div>
         {(valueFromGeneral === 'SUNDRY CREDITORS' ||
           valueFromGeneral === 'SUNDRY DEBTORS') && (
-            <div className=' shadow-lg mx-4 px-4'>
-              <div className='flex flex-row m-1'>
+            <div className='shadow-lg mx-8'>
+              <div className='flex flex-row my-1'>
                 <Button
                   type='fog'
                   id='GST/Tax Details'

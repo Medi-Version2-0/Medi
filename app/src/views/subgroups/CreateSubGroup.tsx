@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Formik, Form, Field, ErrorMessage, FormikProps } from 'formik';
+import { Formik, Form, Field, FormikProps } from 'formik';
 import * as Yup from 'yup';
 import {
   CreateSubGroupProps,
@@ -11,6 +11,8 @@ import CustomSelect from '../../components/custom_select/CustomSelect';
 import Button from '../../components/common/button/Button';
 import onKeyDown from '../../utilities/formKeyDown';
 import FormikInputField from '../../components/common/FormikInputField';
+import { FaExclamationCircle } from 'react-icons/fa';
+import { Tooltip as ReactTooltip } from 'react-tooltip';
 
 export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
   togglePopup,
@@ -20,7 +22,6 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
   deleteAcc,
 }) => {
   const { group_code } = data;
-  const inputRef = useRef<HTMLInputElement | null>(null);
   const electronAPI = (window as any).electronAPI;
   const formikRef = useRef<FormikProps<SubGroupFormDataProps>>(null);
   const [parentGrpOptions, setParentGrpOptions] = useState<Option[]>([]);
@@ -28,8 +29,8 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
 
   useEffect(() => {
     const focusTarget =
-      inputRef.current && !isDelete
-        ? inputRef.current
+      !isDelete
+        ? document.getElementById('group_name')
         : document.getElementById('cancel_button');
     focusTarget?.focus();
   }, []);
@@ -147,13 +148,13 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                       onBlur={() => { formik.setFieldTouched('parent_group', true); setFocused(""); }}
                       onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
                         const dropdown = document.querySelector('.custom-select__menu');
-                        if (e.key === 'Enter' || e.key === 'ArrowDown' || e.key === 'Tab') {
+                        if (e.key === 'Enter' || e.key === 'Tab') {
                           if (!dropdown) {
                             e.preventDefault();
                           }
                           document.getElementById('p_and_l')?.focus();
                         }
-                        if ((e.shiftKey && e.key === 'Tab') || e.key === 'ArrowUp') {
+                        if (e.shiftKey && e.key === 'Tab') {
                           if (!dropdown) {
                             e.preventDefault();
                           }
@@ -166,15 +167,14 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                 </Field>
               )}
             </div>
-            <ErrorMessage name="selectOption" component="div" />
-            <div className='flex flex-col justify-center w-full'>
-              <div className='flex items-center justify-between w-full gap-2 rounded-md border border-solid border-[#c1c1c1]' >
-                <label className={`w-1/2 text-base cursor-pointer text-center p-3 font-bold  ${group_code && isDelete ? 'disabled' : ''}`}>
+              <div className={`flex items-center justify-evenly w-full rounded-sm border border-solid border-[#9ca3af] p-[3px] ${(group_code && isDelete) && 'bg-[#f5f5f5]'}`} >
+                <label className={`flex items-center justify-center text-xs cursor-pointer text-center font-medium ${group_code && isDelete ? 'disabled' : ''}`}>
                   <Field
                     type='radio'
                     name='type'
                     value='P&L'
                     id='p_and_l'
+                    className='text-xs mr-1'
                     checked={formik.values.type === 'P&L'}
                     disabled={group_code && isDelete}
                     data-next-field='submit_button'
@@ -184,14 +184,15 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                       handleKeyDown(e, formik, { typeField: 'type', sideField: 'balance_sheet' })
                     }
                   />
-                  P & L
+                  <span>P & L</span>
                 </label>
-                <label className={`w-1/2 text-base cursor-pointer text-center p-3 font-bold  ${group_code && isDelete ? 'disabled' : ''}`}>
+                <label className={`flex items-center justify-center text-xs cursor-pointer text-center font-medium ${group_code && isDelete ? 'disabled' : ''}`}>
                   <Field
                     type='radio'
                     name='type'
                     value='Balance Sheet'
                     id='balance_sheet'
+                    className='text-xs mr-1'
                     checked={formik.values.type === 'Balance Sheet'}
                     disabled={group_code && isDelete}
                     data-next-field='submit_button'
@@ -201,15 +202,24 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                       handleKeyDown(e, formik, { typeField: 'type', sideField: 'p_and_l' })
                     }
                   />
-                  Bl. Sheet
+                  <span>Bl. Sheet</span>
                 </label>
+                {formik.touched.type && formik.errors.type && (
+                <>
+                  <FaExclamationCircle
+                    data-tooltip-id='typeError'
+                    className='absolute -translate-y-2/4 top-2/4 right-1 text-xs text-red-600'
+                  />
+                  <ReactTooltip
+                    id='typeError'
+                    place='bottom'
+                    className=' text-[white] border rounded !text-xs z-10 p-2 border-solid border-[#d8000c] !bg-red-600'
+                  >
+                    {formik.errors.type}
+                  </ReactTooltip>
+                </>
+                )}
               </div>
-              <ErrorMessage
-                name='type'
-                component='div'
-                className="text-red-600 font-xs ml-[1px]  "
-              />
-            </div>
             <div className='flex justify-between my-4 w-full'>
               <Button
                 autoFocus={true}
@@ -220,6 +230,10 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                   if (e.key === 'Enter') {
                     e.preventDefault();
                     togglePopup(false);
+                  }
+                  if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab')) {
+                    e.preventDefault();
+                    document.getElementById(`${isDelete ? 'cancel_button' : 'balance_sheet'}`)?.focus();
                   }
                 }}
               >
@@ -234,6 +248,9 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                     if (e.key === 'Tab') {
                       e.preventDefault();
                     }
+                    if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab') ) {
+                      document.getElementById('cancel_button')?.focus();
+                    }
                   }}
                 >
                   Delete
@@ -247,6 +264,9 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                     if (e.key === 'Tab') {
                       document.getElementById('group_name')?.focus();
                       e.preventDefault();
+                    }
+                    if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab') ) {
+                      document.getElementById('cancel_button')?.focus();
                     }
                   }}
                 >

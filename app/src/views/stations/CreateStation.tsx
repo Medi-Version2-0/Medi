@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Formik, Form, Field, ErrorMessage, FormikProps } from 'formik';
+import { Formik, Form, Field, FormikProps } from 'formik';
 import { CreateStationProps, FormDataProps, Option, State, StationFormData } from '../../interface/global';
 import { Popup } from '../../components/popup/Popup';
 import * as Yup from 'yup';
@@ -165,8 +165,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                       onKeyDown={(e: any) => {
                         if (
                           e.key === 'Enter' ||
-                          e.key === 'Tab' ||
-                          e.key === 'ArrowDown'
+                          e.key === 'Tab'
                         ) {
                           const dropdown = document.querySelector(
                             '.custom-select__menu'
@@ -176,7 +175,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                           }
                           document.getElementById('station_pinCode')?.focus();
                         }
-                        if ((e.shiftKey && e.key === 'Tab') || e.key === 'ArrowUp') {
+                        if (e.shiftKey && e.key === 'Tab') {
                           document.getElementById('station_name')?.focus();
                           e.preventDefault();
                         }
@@ -243,7 +242,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                       setFocused('');
                     }}
                     onKeyDown={(e: any) => {
-                      if (e.key === 'Enter' || e.key === 'ArrowDown' || e.key === 'Tab') {
+                      if (e.key === 'Enter' || e.key === 'Tab') {
                         const dropdown = document.querySelector(
                           '.custom-select__menu'
                         );
@@ -252,7 +251,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                         }
                         document.getElementById('submit_button')?.focus();
                       }
-                      if ((e.shiftKey && e.key === 'Tab') || e.key === 'ArrowUp') {
+                      if (e.shiftKey && e.key === 'Tab') {
                         document.getElementById('station_pinCode')?.focus();
                         e.preventDefault();
                       }
@@ -293,6 +292,9 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                   handleOnKeyDown={(e) => {
                     if (e.key === 'Tab') {
                       e.preventDefault();
+                    }
+                    if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab') ) {
+                      document.getElementById('cancel_button')?.focus();
                     }
                   }}
                 >

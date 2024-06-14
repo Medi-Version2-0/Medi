@@ -128,13 +128,13 @@ export const CreateHQ: React.FC<CreateStationProps> = ({
                       noOptionsMsg="No station found,create one..."
                       onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
                         const dropdown = document.querySelector('.custom-select__menu');
-                        if (e.key === 'Enter' || e.key === 'ArrowDown' || e.key === 'Tab') {
+                        if (e.key === 'Enter' || e.key === 'Tab') {
                           if (!dropdown) {
                             e.preventDefault();
                           }
                           setFocused("station_headQuarter");
                         }
-                        if ((e.shiftKey && e.key === 'Tab') || e.key === 'ArrowUp') {
+                        if (e.shiftKey && e.key === 'Tab') {
                           if (!dropdown) {
                             e.preventDefault();
                           }
@@ -167,13 +167,13 @@ export const CreateHQ: React.FC<CreateStationProps> = ({
                       onBlur={() => { formik.setFieldTouched('station_headQuarter', true); setFocused(""); }}
                       onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
                         const dropdown = document.querySelector('.custom-select__menu');
-                        if (e.key === 'Enter' || e.key === 'ArrowDown' || e.key === 'Tab') {
+                        if (e.key === 'Enter' || e.key === 'Tab') {
                           if (!dropdown) {
                             e.preventDefault();
                           }
                           document.getElementById(`${e.key === 'Tab' ? "cancel_button" : "submit_button"}`)?.focus();
                         }
-                        if ((e.shiftKey && e.key === 'Tab') || e.key === 'ArrowUp') {
+                        if (e.shiftKey && e.key === 'Tab') {
                           if (!dropdown) {
                             e.preventDefault();
                           }
@@ -205,6 +205,9 @@ export const CreateHQ: React.FC<CreateStationProps> = ({
                   handleOnKeyDown={(e) => {
                     if (e.key === 'Tab') {
                       e.preventDefault();
+                    }
+                    if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab') ) {
+                      document.getElementById('cancel_button')?.focus();
                     }
                   }}
                 >

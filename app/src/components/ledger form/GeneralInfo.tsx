@@ -21,6 +21,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
   const [stateOptions, setStateOptions] = useState<Option[]>([]);
   const isSUNDRY = (accountInputValue === 'SUNDRY CREDITORS' || accountInputValue === 'SUNDRY DEBTORS');
   const electronAPI = (window as any).electronAPI;
+  const [focused, setFocused] = useState('');
 
   const fetchAllData = () => {
     const stateList = electronAPI.getAllStations('', 'station_name', '', '', '');
@@ -90,7 +91,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
           onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
             if (e.key === 'ArrowDown' || e.key === 'Enter') {
               e.preventDefault();
-              document.getElementById('accountGroup')?.focus();
+              setFocused('accountGroup');
             }
           }}
           showErrorTooltip={formik.touched.partyName && formik.errors.partyName}
@@ -107,6 +108,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 options={groupOptions}
                 isSearchable={true}
                 placeholder="Account Group"
+                isFocused={focused === 'accountGroup'}
                 disableArrow={true}
                 hidePlaceholder={false}
                 className="!h-6 rounded-sm"

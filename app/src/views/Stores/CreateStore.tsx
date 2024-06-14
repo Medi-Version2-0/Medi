@@ -155,6 +155,7 @@ export const CreateStore: React.FC<CreateStoreProps> = ({
                     e.preventDefault();
                   } 
                   if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab') ) {
+                    e.preventDefault();
                     document.getElementById('address3')?.focus();
                   }
                 }}
