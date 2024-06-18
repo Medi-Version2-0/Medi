@@ -80,10 +80,10 @@ const Sidebar: React.FC<SidebarProps> = ({
               <MenuItem url="/ledger_table" label='Ledger' icon={<FaPlus className='fill-red-900'/>} onClickIcon={() => navigate('/ledger')}/>
               <MenuItem url="/groups" label='Groups'/>
               <MenuItem url="/subgroups" label='Sub Groups'/>
-              <MenuItem url="/stations" label='Stations'/>
+              <MenuItem url="/stations" label='Station Setup'/>
               <MenuItem url="/headquarters" label='Headquarters'/>
-              <MenuItem url="/sales_purchase_table" label='Sales' icon={<FaPlus className='fill-blue-900'/>} onClickIcon={() => navigate('/sales_purchase', {state: "Sales"})}/>
-              <MenuItem url="/sales_purchase_table" label='Purchase' icon={<FaPlus className='fill-green-900'/>} onClickIcon={() => navigate('/sales_purchase', {state: "Purchase"})}/>
+              <MenuItem url="/sales_purchase_table" label='Sales Account' icon={<FaPlus className='fill-blue-900'/>} onClickIcon={() => navigate('/sales_purchase', {state: "Sales"})}/>
+              <MenuItem url="/sales_purchase_table" label='Purchase Account' icon={<FaPlus className='fill-green-900'/>} onClickIcon={() => navigate('/sales_purchase', {state: "Purchase"})}/>
               <MenuItem url="/store" label='Store'/>
               <MenuItem url="/company_table" label='Company' icon={<FaPlus className='fill-yellow-900'/>} onClickIcon={() => navigate('/company', {state: "Purchase"})}/>
               {showSubElements.setup && (

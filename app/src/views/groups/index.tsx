@@ -23,6 +23,7 @@ export const Groups = () => {
   const [formData, setFormData] = useState<GroupFormData>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<GroupFormData | any>(null);
+  const [currTableData, setCurrTableData] = useState<GroupFormData | any>(null);
   const editing = useRef(false);
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
@@ -86,6 +87,7 @@ export const Groups = () => {
 
   const getGroups = () => {
     setTableData(electronAPI.getAllGroups('', '', '', '', ''));
+    setCurrTableData(electronAPI.getAllGroups('', '', '', '', ''));
   };
 
   const deleteAcc = (group_code: string) => {
@@ -112,6 +114,21 @@ export const Groups = () => {
 
   const handelFormSubmit = (values: GroupFormData) => {
     const mode = values.group_code ? 'update' : 'create';
+    const existingGroup = tableData.find(
+      (group: GroupFormData) => {
+        if (mode === 'create')
+          return (group.group_name.toLowerCase() === values.group_name.toLowerCase())
+        return ((group.group_name.toLowerCase() === values.group_name.toLowerCase()) && (group.group_code !== values.group_code))
+      }
+    );
+    if (existingGroup) {
+      setPopupState({
+        ...popupState,
+        isAlertOpen: true,
+        message: 'Group with this name already exists!',
+      });
+      return;
+    }
     if (values.group_name) {
       values.group_name = values.group_name.charAt(0).toUpperCase() + values.group_name.slice(1);
     }
@@ -142,7 +159,20 @@ export const Groups = () => {
       switch (field) {
         case 'group_name':
           {
-            if (!newValue || /^\d+$/.test(newValue) || newValue.length > 100) {
+            const existingGroups = currTableData.find(
+              (group: GroupFormData) =>
+                group.group_name?.toLowerCase() === newValue?.toLowerCase()
+            );
+            if (existingGroups) {
+              setPopupState({
+                ...popupState,
+                isAlertOpen: true,
+                message: 'Group with this name already exists!',
+              });
+              node.setDataValue(field, oldValue);
+              return;
+            }
+            else if (!newValue || /^\d+$/.test(newValue) || newValue.length > 100) {
               setPopupState({
                 ...popupState,
                 isAlertOpen: true,
@@ -158,7 +188,7 @@ export const Groups = () => {
             newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
           }
           break;
-        case 'cst_sale':
+        case 'igst_sale':
           {
             if (newValue) newValue = newValue.toLowerCase();
             if (!['yes', 'no'].includes(newValue)) {

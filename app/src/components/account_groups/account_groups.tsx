@@ -165,7 +165,7 @@ export const Account_group = () => {
           newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
         }
         break;
-      case 'cst_sale':
+      case 'igst_sale':
         {
           if (newValue) newValue = newValue.toLowerCase();
           if (!['yes', 'no'].includes(newValue)) {

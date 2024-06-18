@@ -7,6 +7,7 @@ interface FormikInputFieldProps {
   id: string;
   name: string;
   type?: string;
+  value?: string;
   placeholder?: string;
   maxLength?: number;
   formik: {
@@ -55,7 +56,8 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
   isDisabled=false,
   nextField,
   prevField,
-  sideField
+  sideField,
+  value,
 }) => {
   return (
     <div className={`flex flex-row gap-2 items-center relative w-full h-6 text-xs ${isRequired && 'starlabel'} ${className}`}>
@@ -70,7 +72,7 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
         className={`w-full border border-solid border-[#9ca3af] text-gray-800 h-full rounded-sm p-1 disabled:text-[#A9A9A9] disabled:bg-[#f5f5f5] ${!!(formik.touched[id] && formik.errors[id]) && ('!border-red-500')} ${inputClassName}`}
         onBlur={formik.handleBlur}
         onChange={onChange}
-        value={formik.values[id]}
+        value={!!value ? value : formik.values[id]}
         onKeyDown={onKeyDown}
         onClick={onClick}
         placeholder={placeholder}

@@ -22,7 +22,7 @@ export const Sales_Purchase_Section: React.FC<SalesPurchaseProps> = ({
   const electronAPI = (window as any).electronAPI;
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
-    return navigate('/sales_purchase_table', {state: typeof data === 'string' ? data : data.salesPurchaseType})
+    return navigate('/sales_purchase_table', {state: typeof data === 'string' ? `${data} Account` : data.salesPurchaseType})
   };
   const salesPurchaseValidationSchema = Yup.object({
     spType: Yup.string()
@@ -44,8 +44,7 @@ export const Sales_Purchase_Section: React.FC<SalesPurchaseProps> = ({
       shortName2: data?.shortName2 || '',
     },
     validationSchema: salesPurchaseValidationSchema,
-    onSubmit: (values) => {
-      console.log('sales/purchase data', values);
+    onSubmit: () => {
       if(data.sp_id){
         const allData = {
           ...sales_purchase_config.values,
@@ -62,7 +61,7 @@ export const Sales_Purchase_Section: React.FC<SalesPurchaseProps> = ({
   });
 
   useEffect(() => {
-    sales_purchase_config.validateForm();
+      sales_purchase_config.validateForm();
   }, [type]);
 
   return (  
@@ -74,7 +73,7 @@ export const Sales_Purchase_Section: React.FC<SalesPurchaseProps> = ({
             type='highlight'
             id='sp_button'
             handleOnClick={() => {
-              return navigate(`/sales_purchase_table`, {state: type === 'Sales' ? 'Sales' : 'Purchase'});
+              return navigate(`/sales_purchase_table`, {state: type === 'Sales' ? 'Sales Account' : 'Purchase Account'});
             }}
           >
             Back

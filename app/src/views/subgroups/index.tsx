@@ -23,6 +23,7 @@ export const SubGroups = () => {
   const [formData, setFormData] = useState<SubGroupFormData>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<SubGroupFormData | any>(null);
+  const [currTableData, setCurrTableData] = useState<SubGroupFormData | any>(null);
   const [groupData, setGroupData] = useState([]);
   const editing = useRef(false);
   const [popupState, setPopupState] = useState({
@@ -95,6 +96,7 @@ export const SubGroups = () => {
 
   const getSubGroups = () => {
     setTableData(electronAPI.getAllSubGroups('', '', ''));
+    setCurrTableData(electronAPI.getAllSubGroups('', '', ''));
   };
 
   const deleteAcc = (group_code: string) => {
@@ -121,6 +123,21 @@ export const SubGroups = () => {
 
   const handelFormSubmit = (values: SubGroupFormData) => {
     const mode = values.group_code ? 'update' : 'create';
+    const existingGroup = tableData.find(
+      (group: SubGroupFormData) => {
+        if (mode === 'create')
+          return (group.group_name.toLowerCase() === values.group_name.toLowerCase())
+        return ((group.group_name.toLowerCase() === values.group_name.toLowerCase()) && (group.group_code !== values.group_code))
+      }
+    );
+    if (existingGroup) {
+      setPopupState({
+        ...popupState,
+        isAlertOpen: true,
+        message: 'Sub Group with this name already exists!',
+      });
+      return;
+    }
     if (values.group_name) {
       values.group_name =
         values.group_name.charAt(0).toUpperCase() + values.group_name.slice(1);
@@ -160,15 +177,28 @@ export const SubGroups = () => {
       switch (field) {
         case 'group_name':
           {
-            if (!newValue || /^\d+$/.test(newValue) || newValue.length > 100) {
+            const existingGroups = currTableData.find(
+              (group: SubGroupFormData) =>
+                group.group_name?.toLowerCase() === newValue?.toLowerCase()
+            );
+            if (existingGroups) {
+              setPopupState({
+                ...popupState,
+                isAlertOpen: true,
+                message: 'Sub Group with this name already exists!',
+              });
+              node.setDataValue(field, oldValue);
+              return;
+            }
+            else if (!newValue || /^\d+$/.test(newValue) || newValue.length > 100) {
               setPopupState({
                 ...popupState,
                 isAlertOpen: true,
                 message: !newValue
-                  ? 'Group Name is required'
+                  ? 'Sub Group name is required'
                   : /^\d+$/.test(newValue)
                     ? 'Only Numbers not allowed'
-                    : 'Group name cannot exceed 100 characters',
+                    : 'Sub Group name cannot exceed 100 characters',
               });
               node.setDataValue(field, oldValue);
               return;
@@ -176,7 +206,7 @@ export const SubGroups = () => {
             newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
           }
           break;
-        case 'cst_sale':
+        case 'igst_sale':
           {
             if (newValue) newValue = newValue.toLowerCase();
             if (!['yes', 'no'].includes(newValue)) {
@@ -280,7 +310,7 @@ export const SubGroups = () => {
   const colDefs: (ColDef<any, any> | ColGroupDef<any>)[] | null | undefined[] =
     [
       {
-        headerName: 'Group Name',
+        headerName: 'Sub Group Name',
         field: 'group_name',
         flex: 1,
         filter: true,

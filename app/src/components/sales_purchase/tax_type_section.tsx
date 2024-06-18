@@ -49,7 +49,7 @@ export const TaxTypeSection: React.FC<SpSubSectionProps> = ({ formik }) => {
           }
         }}
       />
-      <FormikInputField
+      {/* <FormikInputField
         label='CGST%'
         id='cgst'
         name='cgst'
@@ -90,7 +90,7 @@ export const TaxTypeSection: React.FC<SpSubSectionProps> = ({ formik }) => {
             document.getElementById('cgst')?.focus();
           }
         }}
-      />
+      /> */}
     </div>
   );
 };

@@ -8,7 +8,7 @@ export const ExtraDetailsSection: React.FC<SpSubSectionProps> = ({
     <div className='relative border sm:w-full md:w-3/5 h-full p-4 border-solid border-[gray]'>
       <div className='absolute top-[-0.8rem] inline-block text-base text-black px-1 py-0 left-1 bg-[#f3f3f3]'>Extra Details</div>
       <div className='flex flex-col gap-1 text-xs text-gray-600'>
-        <FormikInputField
+        {/* <FormikInputField
           label='StPer'
           id='stPer'
           name='stPer'
@@ -24,9 +24,9 @@ export const ExtraDetailsSection: React.FC<SpSubSectionProps> = ({
               document.getElementById('sgst')?.focus();
             }
           }}
-        />
+        /> */}
         <FormikInputField
-          label='SurCharge'
+          label='Cess %'
           id='surCharge'
           name='surCharge'
           formik={formik}
@@ -42,7 +42,7 @@ export const ExtraDetailsSection: React.FC<SpSubSectionProps> = ({
             }
           }}
         />
-        <FormikInputField
+        {/* <FormikInputField
           label='Sp No.'
           id='spNo'
           name='spNo'
@@ -58,8 +58,8 @@ export const ExtraDetailsSection: React.FC<SpSubSectionProps> = ({
               document.getElementById('surCharge')?.focus();
             }
           }}
-        />
-        <FormikInputField
+        /> */}
+        {/* <FormikInputField
           label='Column'
           id='column'
           name='column'
@@ -75,7 +75,7 @@ export const ExtraDetailsSection: React.FC<SpSubSectionProps> = ({
               document.getElementById('spNo')?.focus();
             }
           }}
-        />
+        /> */}
         <FormikInputField
           label='ShortName'
           id='shortName'

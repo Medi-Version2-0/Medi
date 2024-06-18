@@ -15,12 +15,12 @@ export const Sales_Purchase_Table: React.FC<any> = () => {
 
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
-    return navigate('/sales_purchase_table' , {state: selection});
+    return navigate('/sales_purchase_table' , {state: selection === 'Sales Account' ? 'Sales' : 'Purchase'});
   };
 
   return (
     <div>
-      {<Sales_Table type={selection} />}
+      {<Sales_Table type={selection === 'Sales Account' ? 'Sales' : 'Purchase'} />}
       {popupState.isAlertOpen && (
         <Confirm_Alert_Popup
           onConfirm={handleAlertCloseModal}

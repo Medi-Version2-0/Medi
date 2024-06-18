@@ -246,15 +246,15 @@ export const Headquarters = () => {
   };
 
   const colDefs: any[] = [
-    {
-      headerName: 'Station Code',
-      field: 'station_id',
-      flex: 1,
-      menuTabs: ['filterMenuTab'],
-      filter: true,
-      suppressMovable: true,
-      headerClass: 'custom-header',
-    },
+    // {
+    //   headerName: 'Station Code',
+    //   field: 'station_id',
+    //   flex: 1,
+    //   menuTabs: ['filterMenuTab'],
+    //   filter: true,
+    //   suppressMovable: true,
+    //   headerClass: 'custom-header',
+    // },
     {
       headerName: 'Station Name',
       field: 'station_name',
@@ -317,7 +317,7 @@ export const Headquarters = () => {
       <div className='w-full '>
         <div className="flex w-full items-center justify-between px-8 py-1">
           <h1 className="font-bold">Headquarters</h1>
-          <Button type='highlight' className='' handleOnClick={() => togglePopup(true)}>Add HeadQuarter</Button>
+          <Button type='highlight' className='' handleOnClick={() => togglePopup(true)}>Add Headquarter</Button>
         </div>
         <div id='account_table' className='ag-theme-quartz'>
           {

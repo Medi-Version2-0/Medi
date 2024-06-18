@@ -51,7 +51,6 @@ export const Company = () => {
 
     const getCompanyData = () => {
         const companyData = electronAPI.getAllCompany('', 'companyName', '');
-        console.log(companyData);
         // setTableData(electronAPI.getAllCompany('', 'companyName', '', '', ''));
         setTableData(companyData);
     };

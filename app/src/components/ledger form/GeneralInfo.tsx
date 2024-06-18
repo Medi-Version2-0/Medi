@@ -183,9 +183,10 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
               label='Country'
               id='country'
               name='country'
+              value={formik.values='INDIA'}
               formik={formik}
+              isDisabled={true}
               labelClassName='min-w-[90px]'
-              isRequired={true}
             />
             {stateOptions.length > 0 && (
               <CustomSelect

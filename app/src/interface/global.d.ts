@@ -1,7 +1,7 @@
 export interface StationFormData {
     station_id?: string;
     station_name: string;
-    cst_sale?: string;
+    igst_sale?: string;
     station_state?: string;
     station_pinCode?: string;
     station_headQuarter?: string;
@@ -48,6 +48,15 @@ export interface StationFormData {
     deleteAcc: (station_id: string) => void;
   }
 
+  export interface CreateSalePurchaseProps {
+    type?: string;
+    togglePopup: Function;
+    data: SalesPurchaseFormData;
+    handelFormSubmit: any;
+    isDelete: any;
+    deleteAcc: (sp_id: string) => void;
+  }
+
   export interface CreateAccountGroupProps {
     togglePopup: Function;
     data: AccountGroupFormData;
@@ -57,7 +66,7 @@ export interface StationFormData {
   }
   export interface FormDataProps {
     station_name: string;
-    cst_sale: string;
+    igst_sale: string;
     station_state: string;
     station_pinCode: string;
     station_headQuarter: string;
@@ -115,18 +124,34 @@ interface Option {
 }
 
 export interface SalesPurchaseFormData {
+  sp_id?: string;
   spType?: string;
   salesPurchaseType?: string;
-  igst?: Number | null;
+  igst?: Number | null | string;
   cgst?: Number;
   sgst?: Number,    
   stper?: Number,    
-  surCharge?: Number,    
+  surCharge?: Number | string,    
   spNo?: Number,    
   column?: Number,    
   shortName?: string,    
   shortName2?: string,    
 }
+
+export interface SalesPurchaseFormProps {  
+  spType?: string;
+  salesPurchaseType?: string;
+  igst?: Number | null |string;
+  cgst?: Number;
+  sgst?: Number,    
+  stper?: Number,    
+  surCharge?: Number | string,    
+  spNo?: Number,    
+  column?: Number,    
+  shortName?: string,    
+  shortName2?: string,    
+}
+
 interface SalesPurchaseProps {
   data?:any;
   type?: any;

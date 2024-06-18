@@ -15,7 +15,7 @@ const MenuItem: React.FC<MenuItemProps> = ({ id, label, url, className, icon, ic
     const navigate = useNavigate();
 
     const handleClick = () => {
-        if(label === 'Sales' || label === 'Purchase'){
+        if(label === 'Sales Account' || label === 'Purchase Account'){
             navigate(url, {state: label});
         } else{
             navigate(url);

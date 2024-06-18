@@ -65,7 +65,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   addSalesPurchase: (spData) => salesPurchaseService.addSalesPurchase(spData),
   getSalesPurchase: (where = "", sort = "", limit = "", type = "") => salesPurchaseService.getSalesPurchase(where, sort, limit, type),
   deleteSalesPurchase: (sp_id) => salesPurchase.delete(sp_id, 'sp_id'),
-  updateSalesPurchase: (sp_id, spData) => salesPurchase.update(sp_id, spData, 'sp_id'),
+  updateSalesPurchase: (sp_id, spData) => salesPurchaseService.updateSalesPurchase(sp_id, spData, 'sp_id'),
 
   // Store
   getAllStores: (where = "", sort = "", limit = "") => storeService.getAll(where, sort, limit),

@@ -30,7 +30,6 @@ const insertPartyAccountGroup = PartyList.map((party) => {
 
 const insertSalesPurchase = SalesPurchasePred.map((sp) => {
   let { spType, igst, cgst, sgst, salesPurchaseType } = sp;
-  console.log("inside insert sales purchase =====> ", sp);
   return `('${spType}', ${igst}, ${cgst}, ${sgst}, '${salesPurchaseType}')`;
 })
 
@@ -44,7 +43,7 @@ module.exports = {
     `CREATE TABLE IF NOT EXISTS stations (
         station_id INTEGER PRIMARY KEY,
         station_name TEXT NOT NULL,
-        cst_sale BOOLEAN DEFAULT FALSE,
+        igst_sale BOOLEAN DEFAULT FALSE,
         state_code INTEGER,
         station_pinCode INTEGER,
         station_headQuarter INTEGER,

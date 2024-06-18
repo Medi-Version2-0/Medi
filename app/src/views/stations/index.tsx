@@ -12,7 +12,7 @@ import Button from '../../components/common/button/Button';
 const initialValue = {
   station_id: '',
   station_name: '',
-  cst_sale: '',
+  igst_sale: '',
   station_state: '',
   station_pinCode: '',
 };
@@ -22,6 +22,7 @@ export const Stations = () => {
   const [formData, setFormData] = useState<StationFormData | any>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<StationFormData | any>(null);
+  const [currTableData, setCurrTableData] = useState<StationFormData | any>(null);
   const [stateData, setStateData] = useState([]);
   const editing = useRef(false);
   const isDelete = useRef(false);
@@ -52,6 +53,7 @@ export const Stations = () => {
 
   const getStations = () => {
     setTableData(electronAPI.getAllStations('', 'station_name', '', '', ''));
+    setCurrTableData(electronAPI.getAllStations('', 'station_name', '', '', ''));
   };
 
   const togglePopup = (isOpen: boolean) => {
@@ -151,8 +153,8 @@ export const Stations = () => {
   };
 
   const typeMapping = {
-    yes: 'Yes',
-    no: 'No',
+    Yes: 'Yes',
+    No: 'No',
   };
 
   const stateCodeMap: { [key: number]: string } = {};
@@ -163,8 +165,8 @@ export const Stations = () => {
 
   const extractKeys = (mappings: {
     [x: number]: string;
-    yes?: string;
-    no?: string;
+    Yes?: string;
+    No?: string;
   }) => {
     return Object.keys(mappings);
   };
@@ -176,8 +178,8 @@ export const Stations = () => {
     mappings: {
       [x: string]: any;
       [x: number]: string;
-      yes?: string;
-      no?: string;
+      Yes?: string;
+      No?: string;
     },
     key: string | number
   ) => {
@@ -193,9 +195,9 @@ export const Stations = () => {
     switch (field) {
       case 'station_name':
         {
-          const existingStation = tableData.find(
+          const existingStation = currTableData.find(
             (station: StationFormData) =>
-              station.station_name.toLowerCase() === newValue.toLowerCase()
+              station.station_name?.toLowerCase() === newValue?.toLowerCase()
           );
           if (existingStation) {
             setPopupState({
@@ -222,10 +224,9 @@ export const Stations = () => {
           newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
         }
         break;
-      case 'cst_sale':
+      case 'igst_sale':
         {
-          if (newValue) newValue = newValue.toLowerCase();
-          if (!['yes', 'no'].includes(newValue)) {
+          if (!['yes', 'no'].includes(newValue.toLowerCase())) {
             return node.setDataValue(field, oldValue);
           }
         }
@@ -302,15 +303,6 @@ export const Stations = () => {
 
   const colDefs: any[] = [
     {
-      headerName: 'Station Code',
-      field: 'station_id',
-      flex: 1,
-      menuTabs: ['filterMenuTab'],
-      filter: true,
-      suppressMovable: true,
-      headerClass: 'custom-header',
-    },
-    {
       headerName: 'Station Name',
       field: 'station_name',
       flex: 1,
@@ -321,7 +313,7 @@ export const Stations = () => {
     },
     {
       headerName: 'IGST Sale',
-      field: 'cst_sale',
+      field: 'igst_sale',
       flex: 1,
       filter: true,
       editable: true,

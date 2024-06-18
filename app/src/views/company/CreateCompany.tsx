@@ -63,7 +63,6 @@ export const CreateCompany = () => {
         validationSchema: getCompanyFormSchema(),
         onSubmit: (values) => {
             const allData = { ...values };
-            console.log(allData);
 
             if (data.company_id) {
                 electronAPI.updatecompany(data.company_id, allData);

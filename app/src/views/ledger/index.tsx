@@ -306,7 +306,7 @@ export const Ledger = () => {
     <div className='w-full'>
       <div className="flex w-full items-center justify-between px-8 py-1">
         <h1 className="font-bold">Ledger Master</h1>
-        <Button type='highlight' handleOnClick={() => navigate(`/ledger`)}>Add Party</Button>
+        <Button type='highlight' handleOnClick={() => navigate(`/ledger`)}>Add Ledger</Button>
       </div>
       <div id='account_table' className='ag-theme-quartz'>
         {

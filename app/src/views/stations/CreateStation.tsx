@@ -36,7 +36,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
       .matches(/^[0-9]+$/, "Station pincode must contain only numbers")
       .min(6, "Station pincode must be at least 6 characters long")
       .max(6, "Station pincode cannot exceed 6 characters"),
-    cst_sale: Yup.string().required("CST sale is required"),
+      igst_sale: Yup.string().required("CST sale is required"),
   });
 
 
@@ -105,7 +105,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
         innerRef={formikRef}
         initialValues={{
           station_name: data?.station_name || '',
-          cst_sale: data?.cst_sale || '',
+          igst_sale: data?.igst_sale || '',
           station_state: data?.station_state || '',
           station_pinCode: data?.station_pinCode || '',
           station_headQuarter: data?.station_headQuarter || "",
@@ -194,8 +194,8 @@ export const CreateStation: React.FC<CreateStationProps> = ({
               formik={formik}
               className='!gap-0'
               isDisabled={isDelete && station_id}
-              sideField='cst_sale'
-              nextField='cst_sale'
+              sideField='igst_sale'
+              nextField='igst_sale'
               prevField='station_state'
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                 handleKeyDown(e)
@@ -210,17 +210,17 @@ export const CreateStation: React.FC<CreateStationProps> = ({
             />
 
             <div className='flex flex-col w-full '>
-              <Field name='cst_sale'>
+              <Field name='igst_sale'>
                 {() => (
                   <CustomSelect
-                    id='cst_sale'
-                    name='cst_sale'
+                    id='igst_sale'
+                    name='igst_sale'
                     value={
-                      formik.values.cst_sale === ''
+                      formik.values.igst_sale === ''
                         ? null
                         : {
-                            label: formik.values.cst_sale,
-                            value: formik.values.cst_sale,
+                            label: formik.values.igst_sale,
+                            value: formik.values.igst_sale,
                           }
                     }
                     onChange={handleFieldChange}
@@ -229,16 +229,16 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                       { value: 'No', label: 'No' },
                     ]}
                     isSearchable={false}
-                    placeholder='CST Sale'
+                    placeholder='IGST sale'
                     disableArrow={false}
                     hidePlaceholder={false}
                     className='!h-6 rounded-sm text-xs'
-                    isTouched={formik.touched.cst_sale}
-                    isFocused={focused === 'cst_sale'}
-                    error={formik.errors.cst_sale}
+                    isTouched={formik.touched.igst_sale}
+                    isFocused={focused === 'igst_sale'}
+                    error={formik.errors.igst_sale}
                     isDisabled={isDelete && station_id}
                     onBlur={() => {
-                      formik.setFieldTouched('cst_sale', true);
+                      formik.setFieldTouched('igst_sale', true);
                       setFocused('');
                     }}
                     onKeyDown={(e: any) => {
@@ -273,7 +273,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                   } 
                   if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab') ) {
                     e.preventDefault();
-                    setFocused('cst_sale');
+                    setFocused('igst_sale');
                   }
                   if (e.key === 'Enter') {
                     e.preventDefault();
