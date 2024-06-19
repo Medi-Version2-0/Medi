@@ -65,8 +65,8 @@ export const Ledger = () => {
   }, [selectedRow]);
 
   const typeMapping = {
-    DR: 'Debit',
-    CR: 'Credit',
+    Dr: 'Debit',
+    Cr: 'Credit',
   };
 
   const extractKeys = (mappings: { [key: string]: string }) => {

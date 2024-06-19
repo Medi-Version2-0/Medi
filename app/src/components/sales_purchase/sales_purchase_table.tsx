@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Confirm_Alert_Popup from '../popup/Confirm_Alert_Popup';
-import { Sales_Table } from './sales_table';
+import { Sales_Table } from '../../views/sales_purchase/index';
 
 export const Sales_Purchase_Table: React.FC<any> = () => {
   const location = useLocation();

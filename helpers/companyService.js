@@ -15,7 +15,7 @@ module.exports.getAllCompany = (where = "", sort = "", limit = "") => {
     const spData = salesPurchase.getAll("", "", "");
 
     data.forEach((d) => {
-        d.openingBalType = d.openingBalType === "debit" ? "DR" : "CR";
+        d.openingBalType = d.openingBalType === "Debit" ? "Dr" : "Cr";
         spData.forEach((sp) => {
             if (d.sales_id && d.sales_id === sp.sp_id) {
                 d.sales = sp.spType;
@@ -43,15 +43,15 @@ module.exports.addCompany = async (companyData) => {
                 salesPurchase.getAll("", "", "")
             ]);
             stationData.map((station) => {
-                if (companyData.stationName && (station.stationName === companyData.stationName)) {
+                if (companyData.stationName && (station.stationName.toLowerCase() === companyData.stationName.toLowerCase())) {
                     companyData.station_id = station.station_id;
                 }
             });
             const spMap = new Map(spData.map(sp => [sp.spType, sp.sp_id]));
             companyData.sales_id = spMap.get(companyData.sales) || null;
             companyData.purchase_id = spMap.get(companyData.purchase) || null;
-            companyData.openingBalType = companyData.openingBalType === "DR" ? "debit" : "credit";
-            companyData.stateInout = companyData.stateInout === "With in State" ? "In" : "Out";
+            companyData.openingBalType = companyData.openingBalType === "Dr" ? "Debit" : "Credit";
+            companyData.stateInout = companyData.stateInout === "Within State" ? "In" : "Out";
 
             delete companyData.stationName;
             delete companyData.sales;
@@ -97,13 +97,13 @@ module.exports.updatecompany = (company_id, companyData) => {
 
     if (companyData) {
         groupData.forEach((s) => {
-            if (companyData.accountGroup === s.group_name) {
+            if (companyData.accountGroup.toLowerCase() === s.group_name.toLowerCase()) {
                 companyData.account_code = s.group_code;
             }
         });
 
         data.forEach((s) => {
-            if (companyData.stationName === s.station_name) {
+            if (companyData.stationName.toLowerCase() === s.station_name.toLowerCase()) {
                 companyData.station_id = s.station_id;
             }
         });
@@ -117,16 +117,16 @@ module.exports.updatecompany = (company_id, companyData) => {
     if (companyData) {
         !!companyData.openingBalType
             ? (companyData.openingBalType =
-                companyData.openingBalType === "DR" ? "debit" : "credit")
+                companyData.openingBalType === "Dr" ? "Debit" : "Credit")
             : "";
         companyData.stateInout =
-            companyData.stateInout === "With in State" ? "In" : "Out"
+            companyData.stateInout === "Within State" ? "In" : "Out"
             ;
         !!companyData.company_cash_credit_invoice
             ? (companyData.company_cash_credit_invoice =
                 companyData.company_cash_credit_invoice === "Cash Invoice"
-                    ? "cash_invoice"
-                    : "credit_invoice")
+                    ? "Cash_Invoice"
+                    : "Credit_Invoice")
             : "";
     }
 

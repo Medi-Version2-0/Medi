@@ -26,6 +26,10 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
   const formikRef = useRef<FormikProps<SubGroupFormDataProps>>(null);
   const [parentGrpOptions, setParentGrpOptions] = useState<Option[]>([]);
   const [focused, setFocused] = useState("");
+  const [isRadioFocused, setIsRadioFocused] = useState(false);
+
+  const handleFocus = () => setIsRadioFocused(true);
+  const handleBlur = () => setIsRadioFocused(false);
 
   useEffect(() => {
     const focusTarget =
@@ -39,8 +43,8 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
     const grpList = electronAPI.getAllGroups('', '', '', '', '');
     setParentGrpOptions(
       grpList.map((grp: any) => ({
-        value: grp.group_name,
-        label: grp.group_name,
+        value: grp.group_name.toUpperCase(),
+        label: grp.group_name.toUpperCase(),
       }))
     );
   };
@@ -167,7 +171,11 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                 </Field>
               )}
             </div>
-              <div className={`flex items-center justify-evenly w-full rounded-sm border border-solid border-[#9ca3af] p-[3px] ${(group_code && isDelete) && 'bg-[#f5f5f5]'}`} >
+              <div className={`flex items-center justify-evenly w-full rounded-sm border border-solid border-[#9ca3af] p-[3px] ${(group_code && isDelete) && 'bg-[#f5f5f5]'} ${
+              isRadioFocused ? 'bg-[#FFEB80]' : ''}`}
+                onFocus={handleFocus} 
+                onBlur={handleBlur} 
+              >
                 <label className={`flex items-center justify-center text-xs cursor-pointer text-center font-medium ${group_code && isDelete ? 'disabled' : ''}`}>
                   <Field
                     type='radio'

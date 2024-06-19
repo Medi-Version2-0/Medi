@@ -1,13 +1,13 @@
 import React from 'react';
 import { Tooltip as ReactTooltip } from 'react-tooltip';
 import { FaExclamationCircle } from 'react-icons/fa';
+import titleCase from '../../utilities/titleCase';
 
 interface FormikInputFieldProps {
   label?: string;
   id: string;
   name: string;
   type?: string;
-  value?: string;
   placeholder?: string;
   maxLength?: number;
   formik: {
@@ -46,7 +46,17 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
   isRequired = false,
   children,
   name,
-  onChange = formik.handleChange,
+  onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    formik.handleChange({
+      ...e,
+      target: {
+        ...e.target,
+        id,
+        value: titleCase(value),
+      },
+    });
+  },
   onKeyDown,
   className,
   labelClassName,
@@ -57,7 +67,6 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
   nextField,
   prevField,
   sideField,
-  value,
 }) => {
   return (
     <div className={`flex flex-row gap-2 items-center relative w-full h-6 text-xs ${isRequired && 'starlabel'} ${className}`}>
@@ -69,10 +78,10 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
         type={type}
         id={id}
         name={name}
-        className={`w-full border border-solid border-[#9ca3af] text-gray-800 h-full rounded-sm p-1 disabled:text-[#A9A9A9] disabled:bg-[#f5f5f5] ${!!(formik.touched[id] && formik.errors[id]) && ('!border-red-500')} ${inputClassName}`}
+        className={`w-full border border-solid border-[#9ca3af] text-gray-800 h-full rounded-sm p-1 disabled:text-[#A9A9A9] disabled:bg-[#f5f5f5] focus:bg-[#ffeb80] ${!!(formik.touched[id] && formik.errors[id]) && ('!border-red-500')} ${inputClassName}`}
         onBlur={formik.handleBlur}
         onChange={onChange}
-        value={!!value ? value : formik.values[id]}
+        value={formik.values[id]}
         onKeyDown={onKeyDown}
         onClick={onClick}
         placeholder={placeholder}

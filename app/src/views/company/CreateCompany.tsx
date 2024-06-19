@@ -10,6 +10,7 @@ import { getCompanyFormSchema } from './validation_schema';
 import { CompanyFormData, Option } from '../../interface/global';
 import CustomSelect from '../../components/custom_select/CustomSelect';
 import onKeyDown from '../../utilities/formKeyDown';
+import titleCase from '../../utilities/titleCase';
 
 export const CreateCompany = () => {
     const electronAPI = (window as any).electronAPI;
@@ -39,7 +40,7 @@ export const CreateCompany = () => {
             stationName: data?.stationName || '',
             //balance
             openingBal: data?.openingBal || '0.00',
-            openingBalType: data?.openingBalType || 'DR',
+            openingBalType: data?.openingBalType || 'Dr',
             sales: data?.sales || '',
             purchase: data?.purchase || '',
             discPercent: data?.discPercent || '',
@@ -78,16 +79,16 @@ export const CreateCompany = () => {
         const salesList = electronAPI.getSalesPurchase('', '', '', 'Sales');
         const purchaseList = electronAPI.getSalesPurchase('', '', '', 'Purchase');
         setStationOptions(stateList.map((station: any) => ({
-            value: station.station_name,
-            label: station.station_name.toLowerCase(),
+            value: titleCase(station.station_name),
+            label: titleCase(station.station_name),
         })));
         setSalesOptions(salesList.map((sales: any) => ({
-            value: sales.spType,
-            label: sales.spType
+            value: titleCase(sales.spType),
+            label: titleCase(sales.spType)
         })));
         setPurchaseOptions(purchaseList.map((purchase: any) => ({
-            value: purchase.spType,
-            label: purchase.spType,
+            value: titleCase(purchase.spType),
+            label: titleCase(purchase.spType),
         })));
     };
 
@@ -261,8 +262,8 @@ export const CreateCompany = () => {
                                         id='openingBalType'
                                         onChange={handleFieldChange}
                                         options={[
-                                            { value: 'CR', label: 'CR' },
-                                            { value: 'DR', label: 'DR' },
+                                            { value: 'Cr', label: 'Cr' },
+                                            { value: 'Dr', label: 'Dr' },
                                         ]}
                                         isSearchable={false}
                                         placeholder='Op. Balance Type'
@@ -425,8 +426,8 @@ export const CreateCompany = () => {
                                 value={formik.values.stateInout === '' ? null : { label: formik.values.stateInout, value: formik.values.stateInout }}
                                 onChange={handleFieldChange}
                                 options={[
-                                    { value: 'Within state', label: 'Within state' },
-                                    { value: 'Out of state', label: 'Out of state' },
+                                    { value: 'Within State', label: 'Within State' },
+                                    { value: 'Out Of State', label: 'Out Of State' },
                                 ]}
                                 isSearchable={false}
                                 placeholder="Select an option"
@@ -562,7 +563,7 @@ export const CreateCompany = () => {
                         padding='px-4 py-2'
                         id='submit_company'
                         btnType='submit'
-                        disable={!(formik.isValid && formik.dirty)}
+                        disable={!(formik.isValid)}
                         // handleOnClick={() => {
                         //     setPopupState({
                         //         ...popupState,

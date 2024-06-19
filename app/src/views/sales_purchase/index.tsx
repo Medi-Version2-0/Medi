@@ -8,9 +8,9 @@ import {
   SalesPurchaseTableProps,
 } from '../../interface/global';
 import { ValueFormatterParams } from 'ag-grid-community';
-import Confirm_Alert_Popup from '../popup/Confirm_Alert_Popup';
-import Button from '../common/button/Button';
-import { CreateSalePurchaseAccount } from './CreateSalePurchaseAccount';
+import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
+import Button from '../../components/common/button/Button';
+import { CreateSalePurchase } from './CreateSalePurchase';
 
 const initialValue = {
   // spType: data?.spType || '',
@@ -433,7 +433,7 @@ export const Sales_Table: React.FC<SalesPurchaseTableProps> = ({ type }) => {
           />
         )}
         {open && (
-          <CreateSalePurchaseAccount
+          <CreateSalePurchase
             togglePopup={togglePopup}
             data={formData}
             handelFormSubmit={handelFormSubmit}

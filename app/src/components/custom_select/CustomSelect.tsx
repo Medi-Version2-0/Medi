@@ -4,6 +4,7 @@ import { Tooltip as ReactTooltip } from 'react-tooltip';
 import { FaExclamationCircle } from 'react-icons/fa';
 import { Option } from '../../interface/global';
 import './CustomSelect.css';
+import titleCase from '../../utilities/titleCase';
 
 interface CustomSelectProps extends Omit<SelectProps<Option>, 'onChange'> {
   label?: string;
@@ -56,11 +57,17 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
 }) => {
   const customComponents = disableArrow ? { DropdownIndicator: () => null, IndicatorSeparator: () => null } : {};
   const selectRef = useRef<any>(null);
+  const [inputValue, setInputValue] = useState('');
   const [active, setActive] = useState(false);
   const handleFocus = () => setActive(!active);
   const handleBlur = () => {
     setActive(false);
     if (onBlur) onBlur();
+  };
+
+  const handleInputChange = (newValue: string) => {
+    setInputValue(titleCase(newValue));
+    return titleCase(newValue);
   };
 
   useEffect(() => {
@@ -85,6 +92,8 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
           components={customComponents}
           options={options}
           value={value}
+          inputValue={inputValue}
+          onInputChange={handleInputChange}
           onChange={(selectedOption) =>
             onChange(selectedOption as Option | null, id!)
           }

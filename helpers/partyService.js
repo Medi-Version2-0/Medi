@@ -29,15 +29,15 @@ module.exports.getAllLedgerData = (where = "", sort = "", limit = "") => {
   data.forEach((s) => {
 
     s.isPredefinedParty = s.isPredefinedParty === 1 ? true : false;
-    s.openingBalType = s.isPredefinedParty === true ? "" : s.openingBalType === "debit" ? "DR" : "CR";
+    s.openingBalType = s.isPredefinedParty === true ? "" : s.openingBalType === "Debit" ? "Dr" : "Cr";
     s.stateInout =
       s.isPredefinedParty !== true
         ? s.stateInout === "In"
-          ? "With in State"
-          : "Out of State"
+          ? "Within State"
+          : "Out Of State"
         : "";
     s.party_cash_credit_invoice = s.isPredefinedParty !== true
-      ? s.party_cash_credit_invoice === "cash_invoice" ? "Cash Invoice" : "Credit Invoice"
+      ? s.party_cash_credit_invoice === "Cash_Invoice" ? "Cash Invoice" : "Credit Invoice"
       : "";
   });
 
@@ -60,13 +60,13 @@ module.exports.addParty = async (partyData) => {
 
     if (partyData) {
       groupData.forEach((s) => {
-        if (partyData.accountGroup === s.group_name) {
+        if (partyData.accountGroup.toLowerCase() === s.group_name.toLowerCase()) {
           partyData.account_code = s.group_code;
         }
       });
 
       data.forEach((s) => {
-        if (partyData.stationName && partyData.stationName === s.station_name) {
+        if (partyData.stationName && partyData.stationName.toLowerCase() === s.station_name.toLowerCase()) {
           partyData.station_id = s.station_id;
         }
       });
@@ -78,16 +78,16 @@ module.exports.addParty = async (partyData) => {
       // for balance-info
       if (partyData) {
         partyData.openingBalType =
-          partyData.openingBalType === "DR" ? "debit" : "credit";
+          partyData.openingBalType === "Dr" ? "Debit" : "Credit";
         partyData.stateInout =
-          !!partyData.stateInout && partyData.stateInout === "With in State"
+          !!partyData.stateInout ? (partyData.stateInout === "Within State"
             ? "In"
-            : "Out";
+            : "Out") : "";
         partyData.party_cash_credit_invoice =
-          !!partyData.party_cash_credit_invoice &&
-            partyData.party_cash_credit_invoice === "Cash Invoice"
-            ? "cash_invoice"
-            : "credit_invoice";
+          !!partyData.party_cash_credit_invoice ?
+            (partyData.party_cash_credit_invoice === "Cash Invoice"
+            ? "Cash_Invoice"
+            : "Credit_Invoice") : "";
       }
 
 
@@ -111,13 +111,13 @@ module.exports.updateParty = (party_id, partyData) => {
 
   if (partyData) {
     groupData.forEach((s) => {
-      if (partyData.accountGroup === s.group_name) {
+      if (partyData.accountGroup.toLowerCase() === s.group_name.toLowerCase()) {
         partyData.account_code = s.group_code;
       }
     });
 
     data.forEach((s) => {
-      if (partyData.stationName === s.station_name) {
+      if (partyData.stationName.toLowerCase() === s.station_name.toLowerCase()) {
         partyData.station_id = s.station_id;
       }
     });
@@ -131,16 +131,16 @@ module.exports.updateParty = (party_id, partyData) => {
   if (partyData) {
     !!partyData.openingBalType
       ? (partyData.openingBalType =
-        partyData.openingBalType === "DR" ? "debit" : "credit")
+        partyData.openingBalType === "Dr" ? "Debit" : "Credit")
       : "";
     partyData.stateInout =
-      partyData.stateInout === "With in State" ? "In" : "Out"
+      partyData.stateInout === "Within State" ? "In" : "Out"
       ;
     !!partyData.party_cash_credit_invoice
       ? (partyData.party_cash_credit_invoice =
         partyData.party_cash_credit_invoice === "Cash Invoice"
-          ? "cash_invoice"
-          : "credit_invoice")
+          ? "Cash_Invoice"
+          : "Credit_Invoice")
       : "";
   }
 

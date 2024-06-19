@@ -13,7 +13,7 @@ import Button from '../../components/common/button/Button';
 import onKeyDown from '../../utilities/formKeyDown';
 import FormikInputField from '../../components/common/FormikInputField';
 
-export const CreateSalePurchaseAccount: React.FC<CreateSalePurchaseProps> = ({
+export const CreateSalePurchase: React.FC<CreateSalePurchaseProps> = ({
   togglePopup,
   data,
   handelFormSubmit,
@@ -38,9 +38,13 @@ export const CreateSalePurchaseAccount: React.FC<CreateSalePurchaseProps> = ({
     focusTarget?.focus();
   }, []);
 
-  const handleSubmit = async (values: object) => {
+  const handleSubmit = async (values: any) => {
+    const formattedigst = parseFloat(values.igst).toFixed(2);
+    const formattedsurcharge = parseFloat(values.surCharge).toFixed(2);
     const formData = {
       ...values,
+      igst: formattedigst,
+      surCharge: formattedsurcharge,
       ...(sp_id && { sp_id }),
     };
     !sp_id && document.getElementById('account_button')?.focus();
@@ -60,6 +64,18 @@ export const CreateSalePurchaseAccount: React.FC<CreateSalePurchaseProps> = ({
     //     setFocused(field);
     //   },
     });
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>,formik:  FormikProps<SalesPurchaseFormData>) => {
+    const { id, value } = e.target;
+    if (/^\d*\.?\d{0,2}$/.test(value)) {
+      formik.setFieldValue(id, value);
+    }
+  };
+
+  const resetField = (e: React.MouseEvent<HTMLInputElement>) => {
+    const inputElement = e.currentTarget;
+    inputElement.setSelectionRange(0, inputElement.value.length);
   };
 
   return (
@@ -109,12 +125,14 @@ export const CreateSalePurchaseAccount: React.FC<CreateSalePurchaseProps> = ({
               id='igst'
               name='igst'
               formik={formik}
-              type='number'
               className='!gap-0'
               isDisabled={isDelete && sp_id}
               nextField='surCharge'
               prevField='spType'
               sideField='surCharge'
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                handleChange(e,formik)}
+              onClick={resetField}
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                 handleKeyDown(e)
               }
@@ -125,12 +143,13 @@ export const CreateSalePurchaseAccount: React.FC<CreateSalePurchaseProps> = ({
               id='surCharge'
               name='surCharge'
               formik={formik}
-              type='number'
               className='!gap-0'
               isDisabled={isDelete && sp_id}
               sideField='shortName'
               nextField='shortName'
               prevField='igst'
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                handleChange(e,formik)}
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                 handleKeyDown(e)
               }

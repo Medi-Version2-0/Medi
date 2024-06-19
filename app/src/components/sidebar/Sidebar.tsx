@@ -82,8 +82,12 @@ const Sidebar: React.FC<SidebarProps> = ({
               <MenuItem url="/subgroups" label='Sub Groups'/>
               <MenuItem url="/stations" label='Station Setup'/>
               <MenuItem url="/headquarters" label='Headquarters'/>
-              <MenuItem url="/sales_purchase_table" label='Sales Account' icon={<FaPlus className='fill-blue-900'/>} onClickIcon={() => navigate('/sales_purchase', {state: "Sales"})}/>
-              <MenuItem url="/sales_purchase_table" label='Purchase Account' icon={<FaPlus className='fill-green-900'/>} onClickIcon={() => navigate('/sales_purchase', {state: "Purchase"})}/>
+              <MenuItem url="/sales_purchase_table" label='Sales Account' 
+              // icon={<FaPlus className='fill-blue-900'/>} onClickIcon={() => navigate('/sales_purchase', {state: "Sales"})}
+              />
+              <MenuItem url="/sales_purchase_table" label='Purchase Account'
+              //  icon={<FaPlus className='fill-green-900'/>} onClickIcon={() => navigate('/sales_purchase', {state: "Purchase"})}
+               />
               <MenuItem url="/store" label='Store'/>
               <MenuItem url="/company_table" label='Company' icon={<FaPlus className='fill-yellow-900'/>} onClickIcon={() => navigate('/company', {state: "Purchase"})}/>
               {showSubElements.setup && (

@@ -20,7 +20,7 @@ const insertPartyAccountGroup = PartyList.map((party) => {
   let { party_name, account_group, isPredefinedParty, account_code } = party;
   groups.map((group) => {
     const { group_code, group_name } = group;
-    if (account_group === group_name) {
+    if (account_group.toLowerCase() === group_name.toLowerCase()) {
       account_code = group_code;
     }
   })
@@ -93,8 +93,8 @@ module.exports = {
           phoneNumber TEXT,
           emailId1 TEXT,
           emailId2 TEXT,
-          openingBal INTEGER,
-          openingBalType TEXT CHECK(openingBalType IN ('credit', 'debit')),
+          openingBal TEXT,
+          openingBalType TEXT CHECK(openingBalType IN ('Credit', 'Debit')),
           creditLimit INTEGER,
           creditDays TEXT,
           drugLicenceNo1 TEXT,
@@ -113,11 +113,11 @@ module.exports = {
           sp_id INTEGER PRIMARY KEY,
           spType TEXT NOT NULL,
           salesPurchaseType TEXT NOT NULL,
-          igst INTEGER,
-          cgst INTEGER,
-          sgst INTEGER,
+          igst TEXT,
+          cgst TEXT,
+          sgst TEXT,
           stPer INTEGER,
-          surCharge INTEGER,
+          surCharge TEXT,
           spNo INTEGER,
           column INTEGER,
           shortName TEXT,
@@ -140,7 +140,7 @@ module.exports = {
           address3 TEXT,
           station_id TEXT,
           openingBal INTEGER,  
-          openingBalType TEXT CHECK(openingBalType IN ('credit', 'debit')),
+          openingBalType TEXT CHECK(openingBalType IN ('Credit', 'Debit')),
           sales_id TEXT,
           purchase_id TEXT,    
           discPercent INTEGER,

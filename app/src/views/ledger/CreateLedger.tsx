@@ -15,7 +15,7 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 
 const initialValue = {
-  btn_1: true,
+  btn_1: false,
   btn_2: false,
   btn_3: false,
   btn_4: false,
@@ -28,7 +28,7 @@ export const CreateLedger = () => {
   const location = useLocation();
   const data = location.state || {};
   const [valueFromGeneral, setValueFromGeneral] = useState(data?.accountGroup || '');
-  const isSUNDRY = (valueFromGeneral === 'SUNDRY CREDITORS' || valueFromGeneral === 'SUNDRY DEBTORS');
+  const isSUNDRY = (valueFromGeneral.toUpperCase() === 'SUNDRY CREDITORS' || valueFromGeneral.toUpperCase() === 'SUNDRY DEBTORS');
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
@@ -52,7 +52,7 @@ export const CreateLedger = () => {
       address1: data?.address1 || '',
       address2: data?.address2 || '',
       address3: data?.address3 || '',
-      country: data?.country || '',
+      country: data?.country || 'India',
       state: data?.state || '',
       city: data?.city || '',
       pinCode: data?.pinCode || '',
@@ -70,7 +70,7 @@ export const CreateLedger = () => {
 
       // balance info
       openingBal: data?.openingBal || '0.00',
-      openingBalType: data?.openingBalType || 'DR',
+      openingBalType: data?.openingBalType || 'Dr',
       creditDays: data?.creditDays || '0',
       creditLimit: data?.creditLimit || '0',
 
@@ -101,8 +101,10 @@ export const CreateLedger = () => {
     },
     validationSchema: getLedgerFormValidationSchema(isSUNDRY),
     onSubmit: (values) => {
+      const formattedOpeningBal = parseFloat(values.openingBal).toFixed(2);
       const allData = {
-        ...values
+        ...values,
+        openingBal: formattedOpeningBal,
       };
       if (data.party_id) {
         electronAPI.updateParty(data.party_id, allData);
@@ -123,7 +125,9 @@ export const CreateLedger = () => {
       }
       newValues.partyName = ledgerFormInfo.values.partyName;
       newValues.accountGroup = value;
-      newValues.openingBalType = "DR";
+      newValues.openingBal = ledgerFormInfo.values.openingBal;
+      newValues.openingBalType = "Dr";
+      ((value.toUpperCase() ===   'SUNDRY CREDITORS' || value.toUpperCase() === 'SUNDRY DEBTORS')) && (newValues.country = "India");
       ledgerFormInfo.setValues(newValues);
     } else {
       const initialValues = {
@@ -157,6 +161,10 @@ export const CreateLedger = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
     return navigate('/ledger_table');
   };
+
+  useEffect(()=>{
+    handleClick('btn_1');
+  },[])
 
   const handleClosePopup = () => {
     setPopupState({ ...popupState, isModalOpen: false });
@@ -195,13 +203,14 @@ export const CreateLedger = () => {
             />
           </div>
         </div>
-        {(valueFromGeneral === 'SUNDRY CREDITORS' ||
-          valueFromGeneral === 'SUNDRY DEBTORS') && (
+        {(valueFromGeneral.toUpperCase() === 'SUNDRY CREDITORS' ||
+          valueFromGeneral.toUpperCase() === 'SUNDRY DEBTORS') && (
             <div className='shadow-lg mx-8'>
               <div className='flex flex-row my-1'>
                 <Button
                   type='fog'
                   id='GST/Tax Details'
+                  btnType='button'
                   className={`rounded-none !border-r-[1px] focus:font-black ${showActiveElement.btn_1 && 'border-b-blue-500 border-b-[2px]'} text-sm font-medium !py-1`}
                   handleOnClick={() => handleClick('btn_1')}
                   handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
@@ -224,6 +233,7 @@ export const CreateLedger = () => {
                 <Button
                   type='fog'
                   id='Licence_Info'
+                  btnType='button'
                   className={`rounded-none !border-x-0 ${showActiveElement.btn_2 && 'border-b-blue-500 border-b-[2px]'} text-sm font-medium !py-1`}
                   handleOnClick={() => handleClick('btn_2')}
                   handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
@@ -246,6 +256,7 @@ export const CreateLedger = () => {
                 <Button
                   type='fog'
                   id='Contact_Info'
+                  btnType='button'
                   className={`rounded-none !border-x-[1px] ${showActiveElement.btn_3 && 'border-b-blue-500 border-b-[2px]'} text-sm font-medium !py-1`}
                   handleOnClick={() => handleClick('btn_3')}
                   handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
@@ -268,6 +279,7 @@ export const CreateLedger = () => {
                 <Button
                   type='fog'
                   id='Bank_Details'
+                  btnType='button'
                   className={` rounded-none !border-l-0 ${showActiveElement.btn_4 && 'border-b-blue-500 border-b-[2px]'} text-sm font-medium !py-1`}
                   handleOnClick={() => handleClick('btn_4')}
                   handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
@@ -305,12 +317,12 @@ export const CreateLedger = () => {
             type='fill'
             padding='px-4 py-2'
             id='submit_all'
-            disable={!(ledgerFormInfo.isValid && ledgerFormInfo.dirty)}
+            disable={!(ledgerFormInfo.isValid)}
             handleOnClick={() => {
               setPopupState({
                 ...popupState,
                 isAlertOpen: true,
-                message: 'Ledger created successfully',
+                message: `Ledger ${!!data.party_id ? 'updated' : 'created'} successfully`,
               });
             }}
             handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {

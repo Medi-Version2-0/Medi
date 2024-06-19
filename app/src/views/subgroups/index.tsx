@@ -144,7 +144,7 @@ export const SubGroups = () => {
     }
     if (values.parent_group) {
       groupData.map((group: any) => {
-        if (values.parent_group === group.group_name) {
+        if (values.parent_group?.toLowerCase() === group.group_name?.toLowerCase()) {
           values.parent_code = Number(`${group.group_code}`);
           delete values.parent_group;
         }

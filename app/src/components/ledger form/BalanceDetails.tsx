@@ -82,8 +82,8 @@ export const BalanceDetails: React.FC<BalanceDetailsProps> = ({
             id='openingBalType'
             onChange={handleFieldChange}
             options={[
-              { value: 'CR', label: 'CR' },
-              { value: 'DR', label: 'DR' },
+              { value: 'Cr', label: 'Cr' },
+              { value: 'Dr', label: 'Dr' },
             ]}
             isSearchable={false}
             placeholder='Op. Balance Type'

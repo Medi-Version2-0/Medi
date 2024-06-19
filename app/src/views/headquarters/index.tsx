@@ -92,11 +92,6 @@ export const Headquarters = () => {
     const allData = electronAPI.getAllStations('', 'station_name', '', '', '');
     const selectedHq = allData.find((item: StationFormData) => item.station_id===values.station_id);
     const mode = selectedHq.station_headQuarter!=='' ? 'update' : 'create';
-    if (values.station_name) {
-      values.station_name =
-        values.station_name.charAt(0).toUpperCase() +
-        values.station_name.slice(1);
-    }
     if (values.station_headQuarter) {
       allData.map((station: any) => {
         if (values.station_headQuarter === station.station_name) {
@@ -246,15 +241,6 @@ export const Headquarters = () => {
   };
 
   const colDefs: any[] = [
-    // {
-    //   headerName: 'Station Code',
-    //   field: 'station_id',
-    //   flex: 1,
-    //   menuTabs: ['filterMenuTab'],
-    //   filter: true,
-    //   suppressMovable: true,
-    //   headerClass: 'custom-header',
-    // },
     {
       headerName: 'Station Name',
       field: 'station_name',
@@ -274,7 +260,7 @@ export const Headquarters = () => {
       cellEditorParams: {
         values: stationHeadquarters,
         valueListMaxHeight: 120,
-        valueListMaxWidth: 192,
+        valueListMaxWidth: 330,
         valueListGap: 8,
       },
       valueFormatter: (params: { value: string }) => {

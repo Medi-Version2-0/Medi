@@ -7,6 +7,7 @@ import CustomSelect from '../../components/custom_select/CustomSelect';
 import Button from '../../components/common/button/Button';
 import onKeyDown from '../../utilities/formKeyDown';
 import FormikInputField from '../../components/common/FormikInputField';
+import titleCase from '../../utilities/titleCase';
 
 export const CreateStation: React.FC<CreateStationProps> = ({
   togglePopup,
@@ -51,8 +52,8 @@ export const CreateStation: React.FC<CreateStationProps> = ({
     const statesList = electronAPI.getAllStates('', 'state_name', '', '', '');
     setStateOptions(
       statesList.map((state: State) => ({
-        value: state.state_name,
-        label: state.state_name,
+        value: titleCase(state.state_name),
+        label: titleCase(state.state_name),
       }))
     );
   };

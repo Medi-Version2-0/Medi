@@ -107,14 +107,9 @@ export const Stations = () => {
       });
       return;
     }
-    if (values.station_name) {
-      values.station_name =
-        values.station_name.charAt(0).toUpperCase() +
-        values.station_name.slice(1);
-    }
     if (values.station_state) {
       stateData.map((state: any) => {
-        if (values.station_state === state.state_name) {
+        if (values.station_state?.toUpperCase() === state.state_name.toUpperCase()) {
           values.state_code = Number(`${state.state_code}`);
           delete values.station_state;
         }

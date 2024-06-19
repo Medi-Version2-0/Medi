@@ -31,6 +31,9 @@ export const Groups = () => {
     message: '',
   });
 
+  const electronAPI = (window as any).electronAPI;
+  const subgroups = electronAPI.getAllSubGroups('', '', '');
+
   const typeMapping = {
     p_and_l: 'P&L',
     balance_sheet: 'Balance Sheet',
@@ -74,7 +77,6 @@ export const Groups = () => {
       getGroups();
     }
   };
-  const electronAPI = (window as any).electronAPI;
   const isDelete = useRef(false);
 
   const togglePopup = (isOpen: boolean) => {
@@ -240,7 +242,16 @@ export const Groups = () => {
           selectedRow &&
           selectedRow.isPredefinedGroup === false
         ) {
-          handleDelete(selectedRow);
+          const isParentGroup = subgroups.some((subgroup: GroupFormData)=> subgroup.parent_code === selectedRow.group_code);
+          if (isParentGroup) {
+            setPopupState({
+              ...popupState,
+              isAlertOpen: true,
+              message: 'This group is associated with sub group',
+            });
+          } else {
+            handleDelete(selectedRow);
+          }
         } else if (
           event.ctrlKey &&
           selectedRow &&
@@ -346,14 +357,24 @@ export const Groups = () => {
             <MdDeleteForever
               style={{ cursor: 'pointer', fontSize: '1.2rem' }}
               onClick={() => {
-                if (params.data.isPredefinedGroup === false) {
-                  handleDelete(params.data);
-                } else if (params.data.isPredefinedGroup === true) {
+                const groupToDelete = params.data;
+                if (groupToDelete.isPredefinedGroup) {
                   setPopupState({
                     ...popupState,
                     isAlertOpen: true,
                     message: 'Predefined Groups should not be deleted',
                   });
+                } else {
+                  const isParentGroup = subgroups.some((subgroup: GroupFormData)=> subgroup.parent_code === groupToDelete.group_code);
+                  if (isParentGroup) {
+                    setPopupState({
+                      ...popupState,
+                      isAlertOpen: true,
+                      message: 'This group is associated with sub group',
+                    });
+                  } else {
+                    handleDelete(groupToDelete);
+                  }
                 }
               }}
             />

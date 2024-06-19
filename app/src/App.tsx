@@ -7,7 +7,6 @@ import { CreateLedger } from './views/ledger/CreateLedger';
 import { Ledger } from './views/ledger';
 import { Headquarters } from './views/headquarters';
 import Home from './views/home';
-import { Sales_Purchase } from './components/sales_purchase/sales_purchase';
 import { Sales_Purchase_Table } from './components/sales_purchase/sales_purchase_table';
 import { Store } from './views/Stores';
 import { Company } from './views/company';
@@ -25,7 +24,6 @@ export const App = () => {
             <Route path='/ledger' element={<CreateLedger />} />
             <Route path='/headquarters' element={<Headquarters />} />
             <Route path='/ledger_table' element={<Ledger />} />
-            <Route path='/sales_purchase' element={<Sales_Purchase />} />
             <Route path='/sales_purchase_table' element={<Sales_Purchase_Table />} />
             <Route path='/store' element={<Store />} />
             <Route path='/company_table' element={<Company />} />

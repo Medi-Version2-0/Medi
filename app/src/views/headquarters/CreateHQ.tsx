@@ -5,6 +5,7 @@ import { Popup } from '../../components/popup/Popup';
 import CustomSelect from '../../components/custom_select/CustomSelect';
 import Button from '../../components/common/button/Button';
 import * as Yup from 'yup';
+import titleCase from '../../utilities/titleCase';
 
 export const CreateHQ: React.FC<CreateStationProps> = ({
   togglePopup,
@@ -43,13 +44,13 @@ export const CreateHQ: React.FC<CreateStationProps> = ({
     const stationList=allStations.filter((item: StationFormData) => item.station_headQuarter==='');
     setHqOptions(
       allStations.map((hq: StationFormData) => ({
-        value: hq.station_name,
-        label: hq.station_name,
+        value: titleCase(hq.station_name),
+        label: titleCase(hq.station_name),
       })))
     setStationOptions(
       stationList.map((hq: StationFormData) => ({
-        value: hq.station_name,
-        label: hq.station_name,
+        value: titleCase(hq.station_name),
+        label: titleCase(hq.station_name),
       })))
   };
 

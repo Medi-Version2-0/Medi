@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Option } from '../../interface/global';
 import CustomSelect from '../custom_select/CustomSelect';
 import FormikInputField from "../common/FormikInputField";
+import titleCase from '../../utilities/titleCase';
 
 interface GeneralInfoProps {
   onValueChange?: any;
@@ -19,7 +20,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
   const [groupOptions, setGroupOptions] = useState<Option[]>([]);
   const [stationOptions, setStationOptions] = useState<Option[]>([]);
   const [stateOptions, setStateOptions] = useState<Option[]>([]);
-  const isSUNDRY = (accountInputValue === 'SUNDRY CREDITORS' || accountInputValue === 'SUNDRY DEBTORS');
+  const isSUNDRY = (accountInputValue.toUpperCase() === 'SUNDRY CREDITORS' || accountInputValue.toUpperCase() === 'SUNDRY DEBTORS');
   const electronAPI = (window as any).electronAPI;
   const [focused, setFocused] = useState('');
 
@@ -34,22 +35,22 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
 
     setStationOptions(
       stateList.map((station: any) => ({
-        value: station.station_name,
-        label: station.station_name.toLowerCase(),
+        value: titleCase(station.station_name),
+        label: titleCase(station.station_name),
       }))
     );
 
     setGroupOptions(
       groupDataList.map((group: any) => ({
-        value: group.group_name,
-        label: group.group_name.toLowerCase(),
+        value: titleCase(group.group_name),
+        label: titleCase(group.group_name),
       }))
     );
 
     setStateOptions(
       statesList.map((state: any) => ({
-        value: state.state_name,
-        label: state.state_name.toLowerCase(),
+        value: titleCase(state.state_name),
+        label: titleCase(state.state_name),
       }))
     );
   };
@@ -183,7 +184,6 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
               label='Country'
               id='country'
               name='country'
-              value={formik.values='INDIA'}
               formik={formik}
               isDisabled={true}
               labelClassName='min-w-[90px]'
@@ -391,8 +391,8 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
           value={formik.values.stateInout === '' ? null : { label: formik.values.stateInout, value: formik.values.stateInout }}
           onChange={handleFieldChange}
           options={[
-            { value: 'Within state', label: 'Within state' },
-            { value: 'Out of state', label: 'Out of state' },
+            { value: 'Within State', label: 'Within State' },
+            { value: 'Out Of State', label: 'Out Of State' },
           ]}
           isSearchable={false}
           placeholder="Select an option"

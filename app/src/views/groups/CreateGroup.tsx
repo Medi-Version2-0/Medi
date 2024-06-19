@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useEffect } from 'react';
 import { Formik, Form, Field, FormikProps } from 'formik';
 import * as Yup from 'yup';
@@ -18,6 +18,10 @@ export const CreateGroup: React.FC<CreateGroupProps> = ({
   deleteAcc,
 }) => {
   const { group_code } = data;
+  const [isFocused, setIsFocused] = useState(false);
+
+  const handleFocus = () => setIsFocused(true);
+  const handleBlur = () => setIsFocused(false);
 
   useEffect(() => {
     const focusTarget =
@@ -99,7 +103,11 @@ export const CreateGroup: React.FC<CreateGroupProps> = ({
                 }
               />
             </div>
-            <div className={`relative flex items-center justify-evenly w-full rounded-sm border border-solid p-[3px] border-[#9ca3af] ${(group_code && isDelete) && 'bg-[#f5f5f5]'} ${!!(formik.touched.type && formik.errors.type) && ('!border-red-500')}`}>
+            <div className={`relative flex items-center justify-evenly w-full rounded-sm border border-solid p-[3px] border-[#9ca3af] ${(group_code && isDelete) && 'bg-[#f5f5f5]'} ${!!(formik.touched.type && formik.errors.type) && ('!border-red-500')} ${
+              isFocused ? 'bg-[#FFEB80]' : ''}`}
+              onFocus={handleFocus} 
+              onBlur={handleBlur} 
+            >
               <label
                 className={`flex items-center justify-center text-xs cursor-pointer text-center font-medium ${group_code && isDelete ? 'disabled' : ''}`}
               >
