@@ -41,6 +41,7 @@ export const BalanceDetails: React.FC<BalanceDetailsProps> = ({
       <div className='flex flex-col gap-2 w-full p-4 text-xs text-gray-600 leading-3'>
         <div className='flex flex-row gap-2 items-center w-full'>
           <FormikInputField
+          isPopupOpen={false}
             label={`Opening Balance ₹`}
             id='openingBal'
             name='openingBal'
@@ -74,6 +75,7 @@ export const BalanceDetails: React.FC<BalanceDetailsProps> = ({
             }}
           />
           <CustomSelect
+          isPopupOpen={false}
             value={
               formik.values.openingBalType === '' ? null : {
                 label: formik.values.openingBalType, value: formik.values.openingBalType,
@@ -93,10 +95,32 @@ export const BalanceDetails: React.FC<BalanceDetailsProps> = ({
             className='!rounded-none !h-6'
           />
         </div>
+        <CustomSelect
+        isPopupOpen={false}
+        label={`Party Type`}
+            value={
+              formik.values.partyType === '' ? null : {
+                label: formik.values.partyType, value: formik.values.partyType,
+              }
+            }
+            id='partyType'
+            onChange={handleFieldChange}
+            options={[
+              { value: 'P & L', label: 'P & L' },
+              { value: 'Balance Sheet', label: 'Balance Sheet' },
+            ]}
+            isSearchable={false}
+            placeholder='Type'
+            disableArrow={false}
+            hidePlaceholder={false}
+            containerClass='!w-1/3'
+            className='!rounded-none !h-6'
+          />
         {(accountInputValue?.toUpperCase() === 'SUNDRY CREDITORS' ||
           accountInputValue?.toUpperCase() === 'SUNDRY DEBTORS') && (
             <div className='flex flex-col gap-1'>
               <FormikInputField
+              isPopupOpen={false}
                 label='Credit Limit'
                 id='creditLimit'
                 name='creditLimit'
@@ -109,6 +133,7 @@ export const BalanceDetails: React.FC<BalanceDetailsProps> = ({
                 onClick={resetField}
               />
               <FormikInputField
+              isPopupOpen={false}
                 label='Credit Days'
                 id='creditDays'
                 name='creditDays'

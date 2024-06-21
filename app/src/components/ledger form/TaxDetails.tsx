@@ -11,6 +11,7 @@ export const TaxDetails: React.FC<TaxInfoProps> = ({
   return (
     <div className='flex flex-col  gap-x-4 gap-y-2 w-1/2 px-2 m-2 text-xs leading-3 text-gray-600'>
       <FormikInputField
+      isPopupOpen={false}
         label='GSTIN'
         id='gstIn'
         name='gstIn'
@@ -30,6 +31,7 @@ export const TaxDetails: React.FC<TaxInfoProps> = ({
         showErrorTooltip={formik.touched.gstIn && formik.errors.gstIn}
       />
       <FormikInputField
+      isPopupOpen={false}
         label='Pan No.'
         id='panCard'
         name='panCard'
@@ -38,13 +40,33 @@ export const TaxDetails: React.FC<TaxInfoProps> = ({
         labelClassName='min-w-[90px]'
         onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
           if (e.key === 'ArrowDown' || e.key === 'Enter') {
-            document.getElementById('Licence_Info')?.focus();
+            document.getElementById('gstExpiry')?.focus();
             e.preventDefault();
           } else if (e.key === 'ArrowUp') {
             document.getElementById('gstIn')?.focus();
             e.preventDefault();
           }
         }}
+      />
+      <FormikInputField
+      isPopupOpen={false}
+        label='Expiry Date'
+        id='gstExpiry'
+        name='gstExpiry'
+        maxLength={15}
+        isRequired={true}
+        formik={formik}
+        labelClassName='min-w-[90px]'
+        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+          if (e.key === 'ArrowDown' || e.key === 'Enter') {
+            document.getElementById('licence_info')?.focus();
+            e.preventDefault();
+          } else if (e.key === 'ArrowUp') {
+            document.getElementById('panCard')?.focus();
+            e.preventDefault();
+          }
+        }}
+        showErrorTooltip={formik.touched.gstExpiry && formik.errors.gstExpiry}
       />
     </div>
   );

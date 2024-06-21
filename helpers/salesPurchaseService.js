@@ -17,11 +17,11 @@ module.exports.getSalesPurchase = (
   }
 };
 
-module.exports.addSalesPurchase = async (spData) => {
+module.exports.addSalesPurchase = (spData) => {
   try {
     spData.cgst = (parseFloat(spData.igst) / 2).toFixed(2);
     spData.sgst = (parseFloat(spData.igst) / 2).toFixed(2);
-    const data = await salesPurchase.insert(spData);
+    const data = salesPurchase.insert(spData);
     return data;
   } catch (error) {
     console.error("Error adding sales_purchase account:", error);
@@ -29,13 +29,23 @@ module.exports.addSalesPurchase = async (spData) => {
   }
 };
 
-module.exports.updateSalesPurchase = async (sp_id, spData) => {
+module.exports.updateSalesPurchase = (sp_id, spData) => {
   try {
     spData.cgst = (parseFloat(spData.igst) / 2).toFixed(2);
     spData.sgst = (parseFloat(spData.igst) / 2).toFixed(2);
-    return await salesPurchase.update(sp_id, spData, "sp_id");
+    return salesPurchase.update(sp_id, spData, "sp_id");
   } catch (error) {
     console.error("Error updating sales_purchase account:", error);
+    throw error;
+  }
+};
+module.exports.getSalesPurchaseIdByType = (spType) => {
+  try {
+    const spData = salesPurchase.getAll('', '', '');
+    const spFound = spData.find((sp) => sp.spType === spType);
+    return spFound ? spFound.sp_id : null;
+  } catch (error) {
+    console.error('Error getting sales/purchase ID:', error);
     throw error;
   }
 };

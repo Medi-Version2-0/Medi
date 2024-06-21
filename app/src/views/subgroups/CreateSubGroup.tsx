@@ -26,10 +26,6 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
   const formikRef = useRef<FormikProps<SubGroupFormDataProps>>(null);
   const [parentGrpOptions, setParentGrpOptions] = useState<Option[]>([]);
   const [focused, setFocused] = useState("");
-  const [isRadioFocused, setIsRadioFocused] = useState(false);
-
-  const handleFocus = () => setIsRadioFocused(true);
-  const handleBlur = () => setIsRadioFocused(false);
 
   useEffect(() => {
     const focusTarget =
@@ -113,9 +109,9 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
         onSubmit={handleSubmit}
       >
         {(formik) => (
-          <Form className='flex flex-col gap-2 min-w-[18rem] items-center px-4 '>
+          <Form className='flex flex-col gap-3 min-w-[18rem] items-center px-4 '>
             <FormikInputField
-              placeholder='Group name'
+            label='Sub Group Name'
               id='group_name'
               name='group_name'
               formik={formik}
@@ -135,6 +131,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                 <Field name="parent_group" className="">
                   {() => (
                     <CustomSelect
+                    label='Parent Group'
                       id="parent_group"
                       name='parent_group'
                       value={formik.values.parent_group === '' ? null : { label: formik.values.parent_group, value: formik.values.parent_group }}
@@ -142,7 +139,6 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                       options={parentGrpOptions}
                       isSearchable={true}
                       isDisabled={isDelete && group_code}
-                      placeholder="Parent group"
                       disableArrow={true}
                       hidePlaceholder={false}
                       className='!h-6 rounded-sm text-xs'
@@ -171,10 +167,9 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                 </Field>
               )}
             </div>
-              <div className={`flex items-center justify-evenly w-full rounded-sm border border-solid border-[#9ca3af] p-[3px] ${(group_code && isDelete) && 'bg-[#f5f5f5]'} ${
-              isRadioFocused ? 'bg-[#FFEB80]' : ''}`}
-                onFocus={handleFocus} 
-                onBlur={handleBlur} 
+            <div className={`radio_fields relative w-full rounded-sm border border-solid border-[#9ca3af] p-[3px]${!!(formik.touched.type && formik.errors.type) && ('!border-red-500')}`}>
+              <span className={`label_prefix bg-white px-1 absolute top-0 left-1 -translate-y-1/2 text-xs ${!!(formik.touched.type && formik.errors.type) && ('!text-red-700')}`}>Type</span>
+              <div className={`flex items-center relative  justify-evenly w-full p-[3px] ${(group_code && isDelete) && 'bg-[#f5f5f5]'}  `}
               >
                 <label className={`flex items-center justify-center text-xs cursor-pointer text-center font-medium ${group_code && isDelete ? 'disabled' : ''}`}>
                   <Field
@@ -228,6 +223,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                 </>
                 )}
               </div>
+            </div>
             <div className='flex justify-between my-4 w-full'>
               <Button
                 autoFocus={true}

@@ -76,7 +76,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
   //Company
   getAllCompany: (where = "", sort = "", limit = "") => companyService.getAllCompany(where, sort, limit),
   addcompany: (companyData) => companyService.addCompany(companyData),
-
+  updatecompany: (companyId, companyData) => companyService.updatecompany(companyId, companyData),
+  deleteCompany: (companyId) => companyService.deleteCompany(companyId),
 
   // suggestion List for different inputs 
   addSuggestionList: (where = "", sort = "", limit = "") => partyService.getAllSuggestions(where, sort, limit),

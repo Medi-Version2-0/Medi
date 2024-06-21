@@ -28,9 +28,11 @@ interface CustomSelectProps extends Omit<SelectProps<Option>, 'onChange'> {
   isRequired?: boolean;
   showErrorTooltip?: boolean;
   noOptionsMsg?: string;
+  isPopupOpen?: boolean;
 }
 
 const CustomSelect: React.FC<CustomSelectProps> = ({
+  isPopupOpen=true,
   isDisabled = false,
   label,
   id,
@@ -77,13 +79,13 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   }, [isFocused]);
 
   return (
-    <div className={`flex flex-row gap-2 justify-center items-center w-full h-fit ${isRequired ? ' starlabel' : ''} ${containerClass}`}>
+    <div className={`${isPopupOpen ? `flex flex-col w-full h-fit relative text-xs${isRequired ? ' starlabel' : ''} ${containerClass}` : `flex flex-row gap-2 justify-center items-center w-full h-fit ${isRequired ? ' starlabel' : ''} ${containerClass}`}`}>
       {label && (
-        <label htmlFor={id} className={`flex items-start h-full ${labelClass}`}>
+        <label htmlFor={id} className={`${isPopupOpen ? `absolute top-0 left-1 -translate-y-1/2 bg-white px-1 z-10 ${isTouched && error && !active && '!text-red-700'} ${labelClass}` : `flex items-start h-full ${labelClass}`}`}>
           {label}
         </label>
       )}
-      <div className={`w-full relative border border-solid border-[#9ca3af] h-fit rounded-md ${className}  ${isTouched && error && !active && '!border-red-500'} ${active && "!border-2 !border-yellow-500 outline-none"}`}>
+      <div className={` ${isPopupOpen ? `w-full relative border border-solid border-[#9ca3af] h-10 rounded-md ${className}  ${isTouched && error && !active && '!border-red-500'} ${active && "!border-2 !border-yellow-500 outline-none"}` : `w-full relative border border-solid border-[#9ca3af] h-fit rounded-md ${className}  ${isTouched && error && !active && '!border-red-500'} ${active && "!border-2 !border-yellow-500 outline-none"}`} `}>
         <Select
           ref={selectRef}
           id={id || ""}

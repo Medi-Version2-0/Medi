@@ -11,6 +11,7 @@ export const ContactDetails: React.FC<personalInfoProps> = ({
   return (
     <div className='grid grid-cols-2  gap-x-4 gap-y-2 px-2 m-2 text-xs leading-3 text-gray-600'>
       <FormikInputField
+      isPopupOpen={false}
         labelClassName='min-w-[90px] text-nowrap'
         label='First Name'
         id='firstName'
@@ -26,6 +27,7 @@ export const ContactDetails: React.FC<personalInfoProps> = ({
         }}
       />
       <FormikInputField
+      isPopupOpen={false}
         labelClassName='min-w-[90px] text-nowrap'
         label='Last Name'
         id='lastName'
@@ -41,6 +43,7 @@ export const ContactDetails: React.FC<personalInfoProps> = ({
         }}
       />
       <FormikInputField
+      isPopupOpen={false}
         labelClassName='min-w-[90px] text-nowrap'
         label='Email ID'
         id='emailId1'
@@ -58,6 +61,7 @@ export const ContactDetails: React.FC<personalInfoProps> = ({
         showErrorTooltip={formik.touched.emailId1 && formik.errors.emailId1}
       />
       <FormikInputField
+      isPopupOpen={false}
         labelClassName='min-w-[90px] text-nowrap'
         label='Email ID 2'
         id='emailId2'

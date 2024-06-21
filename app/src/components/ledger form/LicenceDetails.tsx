@@ -10,6 +10,7 @@ export const LicenceDetails: React.FC<LicenceDetailsProps> = ({ formik }) => {
   return (
     <div className={`flex ${licenseId2 && 'flex-col'} w-full  gap-2 m-2 text-xs px-2 leading-3 text-gray-600`}>
       <FormikInputField
+      isPopupOpen={false}
         label='Drug Lic. No.'
         id='drugLicenceNo1'
         name='drugLicenceNo1'
@@ -25,9 +26,27 @@ export const LicenceDetails: React.FC<LicenceDetailsProps> = ({ formik }) => {
           }
         }}
       />
+      <FormikInputField
+      isPopupOpen={false}
+        label='Expiry Date'
+        id='licenceExpiry'
+        name='licenceExpiry'
+        labelClassName='min-w-[90px]'
+        className='!w-2/3'
+        formik={formik}
+        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+          if (e.key === 'ArrowDown' || e.key === 'Enter') {
+            document.getElementById(licenseId2 ? 'drugLicenceNo2' : 'Contact_Info')?.focus();
+            e.preventDefault();
+          } else if (e.key === 'ArrowUp') {
+            document.getElementById('drugLicenceNo1')?.focus();
+          }
+        }}
+      />
       <div className='flex gap-2 '>
         {(licenseId2 || (formik.values.drugLicenceNo2 !== '')) &&
           <FormikInputField
+          isPopupOpen={false}
             label='Drug Lic. No. 2'
             id='drugLicenceNo2'
             name='drugLicenceNo2'

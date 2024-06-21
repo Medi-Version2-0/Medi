@@ -115,9 +115,9 @@ export const CreateStation: React.FC<CreateStationProps> = ({
         onSubmit={handleSubmit}
       >
         {(formik) => (
-          <Form className='flex flex-col gap-1 min-w-[18rem] items-start px-4'>
+          <Form className='flex flex-col gap-3 min-w-[18rem] items-start px-4'>
             <FormikInputField
-              placeholder='Station name'
+            label='Station Name'
               id='station_name'
               name='station_name'
               formik={formik}
@@ -138,6 +138,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                 <Field name='station_state'>
                   {() => (
                     <CustomSelect
+                    label='State'
                       id='station_state'
                       name='station_state'
                       value={
@@ -151,7 +152,6 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                       onChange={handleFieldChange}
                       options={stateOptions}
                       isSearchable={true}
-                      placeholder='Station state'
                       disableArrow={true}
                       hidePlaceholder={false}
                       className='!h-6 rounded-sm text-xs'
@@ -189,7 +189,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
             </div>
 
             <FormikInputField
-              placeholder='Station pin code'
+            label='Pin Code'
               id='station_pinCode'
               name='station_pinCode'
               formik={formik}
@@ -214,6 +214,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
               <Field name='igst_sale'>
                 {() => (
                   <CustomSelect
+                  label='IGST Sale'
                     id='igst_sale'
                     name='igst_sale'
                     value={
@@ -230,7 +231,6 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                       { value: 'No', label: 'No' },
                     ]}
                     isSearchable={false}
-                    placeholder='IGST sale'
                     disableArrow={false}
                     hidePlaceholder={false}
                     className='!h-6 rounded-sm text-xs'

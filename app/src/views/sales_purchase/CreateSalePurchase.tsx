@@ -3,12 +3,10 @@ import { Formik, Form, FormikProps } from 'formik';
 import {
   CreateSalePurchaseProps,
   SalesPurchaseFormProps,
-//   Option,
   SalesPurchaseFormData,
 } from '../../interface/global';
 import { Popup } from '../../components/popup/Popup';
 import * as Yup from 'yup';
-// import CustomSelect from '../../components/custom_select/CustomSelect';
 import Button from '../../components/common/button/Button';
 import onKeyDown from '../../utilities/formKeyDown';
 import FormikInputField from '../../components/common/FormikInputField';
@@ -23,7 +21,6 @@ export const CreateSalePurchase: React.FC<CreateSalePurchaseProps> = ({
 }) => {
   const { sp_id } = data;
   const formikRef = useRef<FormikProps<SalesPurchaseFormProps>>(null);
-//   const [focused, setFocused] = useState('');
 
   const validationSchema = Yup.object({
     spType: Yup.string()
@@ -60,9 +57,6 @@ export const CreateSalePurchase: React.FC<CreateSalePurchaseProps> = ({
       e,
       formik: formik,
       radioField: radioField,
-    //   focusedSetter: (field: string) => {
-    //     setFocused(field);
-    //   },
     });
   };
 
@@ -102,9 +96,9 @@ export const CreateSalePurchase: React.FC<CreateSalePurchaseProps> = ({
         onSubmit={handleSubmit}
       >
         {(formik: FormikProps<SalesPurchaseFormData>) => (
-          <Form className='flex flex-col gap-1 min-w-[18rem] items-start px-4'>
+          <Form className='flex flex-col gap-3 min-w-[18rem] items-start px-4'>
             <FormikInputField
-              placeholder='Sp type'
+            label='Sp Type'
               id='spType'
               name='spType'
               formik={formik}
@@ -121,7 +115,7 @@ export const CreateSalePurchase: React.FC<CreateSalePurchaseProps> = ({
               }
             />
             <FormikInputField
-              placeholder='IGST %'
+            label='IGST %'
               id='igst'
               name='igst'
               formik={formik}
@@ -139,7 +133,7 @@ export const CreateSalePurchase: React.FC<CreateSalePurchaseProps> = ({
               showErrorTooltip={!!(formik.touched.igst && formik.errors.igst)}
             />
             <FormikInputField
-              placeholder='Cess %'
+            label='Cess %'
               id='surCharge'
               name='surCharge'
               formik={formik}
@@ -158,7 +152,7 @@ export const CreateSalePurchase: React.FC<CreateSalePurchaseProps> = ({
               }
             />
             <FormikInputField
-              placeholder='ShortName'
+            label='ShortName'
               id='shortName'
               name='shortName'
               formik={formik}
@@ -175,7 +169,7 @@ export const CreateSalePurchase: React.FC<CreateSalePurchaseProps> = ({
               }
             />
             <FormikInputField
-              placeholder='ShortName2'
+            label='shortName2'
               id='shortName2'
               name='shortName2'
               formik={formik}
@@ -207,7 +201,6 @@ export const CreateSalePurchase: React.FC<CreateSalePurchaseProps> = ({
                   }
                   if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab')) {
                     e.preventDefault();
-                    // setFocused('shortName2');
                   }
                   if (e.key === 'Enter') {
                     e.preventDefault();

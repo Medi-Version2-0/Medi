@@ -1,11 +1,6 @@
 const LedgerParty = require("./../database/models/ledger_party");
 const Groups = require("../database/models/groupsData.js");
 const Station = require("../database/models/stations.js");
-const LedgerPartyContact = require("../database/models/ledger_party_contact");
-const LedgerPartyBalance = require("../database/models/ledger_party_balance");
-const LedgerPartyLicence = require("../database/models/ledger_party_licence");
-const LedgerPartyGST = require("../database/models/ledger_party_gst");
-const LedgerPartyAccountDetails = require("../database/models/ledger_account_details");
 
 const station = new Station();
 const groups = new Groups();
@@ -30,6 +25,7 @@ module.exports.getAllLedgerData = (where = "", sort = "", limit = "") => {
 
     s.isPredefinedParty = s.isPredefinedParty === 1 ? true : false;
     s.openingBalType = s.isPredefinedParty === true ? "" : s.openingBalType === "Debit" ? "Dr" : "Cr";
+    s.partyType = s.isPredefinedParty === true ? "" : s.partyType === "B" ? "Balance Sheet" : s.partyType ==='P' ? "P & L" : s.partyType;
     s.stateInout =
       s.isPredefinedParty !== true
         ? s.stateInout === "In"
@@ -48,13 +44,19 @@ module.exports.getAllLedgerData = (where = "", sort = "", limit = "") => {
       }
     });
   });
-  return data;
+  const filteredData = [];
+  data.forEach((d) => {
+    if (d.partyType!== 'C') {
+      filteredData.push(d);
+    }
+  });
+  return filteredData;
 };
 
-module.exports.addParty = async (partyData) => {
+module.exports.addParty = (partyData) => {
   try {
-    const data = await station.getAll("", "station_name", "", "", "");
-    const groupData = (await groups.getAll("", "", "", "", "")).filter(
+    const data = station.getAll("", "station_name", "", "", "");
+    const groupData = groups.getAll("", "", "", "", "").filter(
       (group) => group.parent_code === null
     );
 
@@ -76,22 +78,18 @@ module.exports.addParty = async (partyData) => {
       delete partyData.stationName;
 
       // for balance-info
-      if (partyData) {
         partyData.openingBalType =
           partyData.openingBalType === "Dr" ? "Debit" : "Credit";
-        partyData.stateInout =
-          !!partyData.stateInout ? (partyData.stateInout === "Within State"
+         partyData.partyType = partyData.partyType === 'Balance Sheet' ? 'B' : 'P'; 
+        partyData.stateInout = partyData.stateInout === "Within State"
             ? "In"
-            : "Out") : "";
-        partyData.party_cash_credit_invoice =
-          !!partyData.party_cash_credit_invoice ?
-            (partyData.party_cash_credit_invoice === "Cash Invoice"
-            ? "Cash_Invoice"
-            : "Credit_Invoice") : "";
-      }
+            : partyData.stateInout === "Out Of state" ? 'Out' : '';
+        partyData.party_cash_credit_invoice = 
+            partyData.party_cash_credit_invoice === "Cash Invoice"
+            ? "cash_invoice"
+            : partyData.party_cash_credit_invoice === "credit_invoice" ? 'credit_invoice' : '';
 
-
-      const insertedParty = await ledgerParty.insert(partyData);
+      const insertedParty = ledgerParty.insert(partyData);
 
       return insertedParty;
     } else {
@@ -133,9 +131,10 @@ module.exports.updateParty = (party_id, partyData) => {
       ? (partyData.openingBalType =
         partyData.openingBalType === "Dr" ? "Debit" : "Credit")
       : "";
-    partyData.stateInout =
-      partyData.stateInout === "Within State" ? "In" : "Out"
-      ;
+      partyData.partyType = partyData.partyType === 'Balance Sheet' ? 'B' : 'P'; 
+      partyData.stateInout = partyData.stateInout === "Within State"
+      ? "In"
+      : partyData.stateInout === "Out Of State" ? 'Out' : '';
     !!partyData.party_cash_credit_invoice
       ? (partyData.party_cash_credit_invoice =
         partyData.party_cash_credit_invoice === "Cash Invoice"

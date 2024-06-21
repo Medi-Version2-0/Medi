@@ -54,12 +54,10 @@ export const CreateLedger = () => {
       address3: data?.address3 || '',
       country: data?.country || 'India',
       state: data?.state || '',
-      city: data?.city || '',
       pinCode: data?.pinCode || '',
       stateInout: data?.stateInout || '',
       transport: data?.transport || '',
       creditPrivilege: data?.creditPrivilege || '',
-      vatNumber: data?.vatNumber || '',
       excessRate: data?.excessRate || '',
       routeNo: data?.routeNo || '',
       party_cash_credit_invoice: data?.party_cash_credit_invoice || '',
@@ -73,6 +71,7 @@ export const CreateLedger = () => {
       openingBalType: data?.openingBalType || 'Dr',
       creditDays: data?.creditDays || '0',
       creditLimit: data?.creditLimit || '0',
+      partyType: data?.partyType || '',
 
       // contact info
       phoneNumber: data?.phoneNumber || '',
@@ -80,6 +79,7 @@ export const CreateLedger = () => {
       // gst data
       gstIn: data?.gstIn || '',
       panCard: data?.panCard || '',
+      gstExpiry: data?.gstExpiry || '',
 
       // personal info
       firstName: data?.firstName || '',
@@ -90,6 +90,7 @@ export const CreateLedger = () => {
       // licence info
       drugLicenceNo1: data?.drugLicenceNo1 || '',
       drugLicenceNo2: data?.drugLicenceNo2 || '',
+      licenceExpiry: data?.licenceExpiry || '',
 
       // bank details
       accountHolderName: data?.accountHolderName || '',
@@ -125,9 +126,9 @@ export const CreateLedger = () => {
       }
       newValues.partyName = ledgerFormInfo.values.partyName;
       newValues.accountGroup = value;
-      newValues.openingBal = ledgerFormInfo.values.openingBal;
+      newValues.openingBal = '0.00'; 
+      ((value.toUpperCase() === 'SUNDRY CREDITORS' || value.toUpperCase() === 'SUNDRY DEBTORS')) && (newValues.country = 'India');
       newValues.openingBalType = "Dr";
-      ((value.toUpperCase() ===   'SUNDRY CREDITORS' || value.toUpperCase() === 'SUNDRY DEBTORS')) && (newValues.country = "India");
       ledgerFormInfo.setValues(newValues);
     } else {
       const initialValues = {
@@ -142,9 +143,8 @@ export const CreateLedger = () => {
 
   const prevClass = useRef('');
 
-  const handleClick = (clickedClass: any) => {
-    setShowActiveElement({ ...initialValue, [prevClass.current]: false });
-
+  const handleClick = (clickedClass: string) => {
+    setShowActiveElement({...initialValue, [prevClass.current]: false});
     const currentActiveBtns = document.getElementsByClassName('active');
     if (currentActiveBtns.length > 0) {
       currentActiveBtns[0].classList.remove('active');
@@ -153,7 +153,7 @@ export const CreateLedger = () => {
     if (clickedElements.length > 0) {
       clickedElements[0].classList.add('active');
     }
-    setShowActiveElement({ ...initialValue, [clickedClass]: true });
+    setShowActiveElement({...initialValue, [clickedClass]: true});
     prevClass.current = clickedClass;
   };
 
@@ -209,9 +209,9 @@ export const CreateLedger = () => {
               <div className='flex flex-row my-1'>
                 <Button
                   type='fog'
-                  id='GST/Tax Details'
                   btnType='button'
-                  className={`rounded-none !border-r-[1px] focus:font-black ${showActiveElement.btn_1 && 'border-b-blue-500 border-b-[2px]'} text-sm font-medium !py-1`}
+                  id='GST/Tax Details'
+                  className={`rounded-none !border-r-[1px] focus:font-black ${!!showActiveElement.btn_1 && 'border-b-blue-500 border-b-[2px]'} text-sm font-medium !py-1`}
                   handleOnClick={() => handleClick('btn_1')}
                   handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
                     if (e.key === 'ArrowDown' || e.key === 'Enter') {
@@ -232,9 +232,9 @@ export const CreateLedger = () => {
                 </Button>
                 <Button
                   type='fog'
-                  id='Licence_Info'
                   btnType='button'
-                  className={`rounded-none !border-x-0 ${showActiveElement.btn_2 && 'border-b-blue-500 border-b-[2px]'} text-sm font-medium !py-1`}
+                  id='Licence_Info'
+                  className={`rounded-none !border-x-0 ${!!showActiveElement.btn_2 && 'border-b-blue-500 border-b-[2px]'} $text-sm font-medium !py-1`}
                   handleOnClick={() => handleClick('btn_2')}
                   handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
                     if (e.key === 'ArrowDown' || e.key === 'Enter') {
@@ -255,8 +255,8 @@ export const CreateLedger = () => {
                 </Button>
                 <Button
                   type='fog'
-                  id='Contact_Info'
                   btnType='button'
+                  id='Contact_Info'
                   className={`rounded-none !border-x-[1px] ${showActiveElement.btn_3 && 'border-b-blue-500 border-b-[2px]'} text-sm font-medium !py-1`}
                   handleOnClick={() => handleClick('btn_3')}
                   handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
@@ -278,9 +278,9 @@ export const CreateLedger = () => {
                 </Button>
                 <Button
                   type='fog'
-                  id='Bank_Details'
                   btnType='button'
-                  className={` rounded-none !border-l-0 ${showActiveElement.btn_4 && 'border-b-blue-500 border-b-[2px]'} text-sm font-medium !py-1`}
+                  id='Bank_Details'
+                  className={`btn_4 rounded-none !border-l-0 ${showActiveElement.btn_4 && 'border-b-blue-500 border-b-[2px]'} text-sm font-medium !py-1`}
                   handleOnClick={() => handleClick('btn_4')}
                   handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
                     if (e.key === 'ArrowDown' || e.key === 'Enter') {

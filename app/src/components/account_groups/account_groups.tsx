@@ -1,9 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
-// import { Link } from 'react-router-dom';
 import { AgGridReact } from 'ag-grid-react';
 import { FaEdit } from 'react-icons/fa';
 import { MdDeleteForever } from 'react-icons/md';
-// import { CreateStation } from './createStation';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import '../stations/stations.css';
@@ -11,7 +9,6 @@ import { AccountGroupFormData } from '../../interface/global';
 import Confirm_Alert_Popup from '../popup/Confirm_Alert_Popup';
 import { CreateGroup } from './create_accountGroup';
 import { ColDef, ColGroupDef } from 'ag-grid-community';
-// import { FaSpinner } from 'react-icons/fa';
 
 const initialValue = {
   head_code: '',
@@ -19,7 +16,6 @@ const initialValue = {
 
   parent_code: '',
   group_details: '',
-  // station_pinCode: undefined
 };
 
 export const Account_group = () => {
@@ -28,8 +24,6 @@ export const Account_group = () => {
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<AccountGroupFormData | any>(null);
   const editing = useRef(false);
-  //   const navigate = useNavigate();
-  //   const [loading, setLoading] = useState<boolean>(true);
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
@@ -62,20 +56,6 @@ export const Account_group = () => {
     }
   };
 
-  // const typeMapping = {
-  //   yes: 'Yes',
-  //   no: 'No',
-  // };
-
-  // const extractKeys = (mappings: any) => {
-  //   return Object.keys(mappings);
-  // };
-
-  // const types = extractKeys(typeMapping);
-  // const lookupValue = (mappings: any, key: any) => {
-  //   return mappings[key];
-  // };
-
   const electronAPI = (window as any).electronAPI;
   const isDelete = useRef(false);
 
@@ -87,11 +67,8 @@ export const Account_group = () => {
     setOpen(isOpen);
   };
 
-  const getGroups = async () => {
-    setTableData(
-      await electronAPI.getAllAccountGroups('', 'head_name', '', '', '')
-    );
-    //   setLoading(false);
+  const getGroups = () => {
+    setTableData(electronAPI.getAllAccountGroups('', 'head_name', '', '', ''));
   };
 
   const deleteAcc = (head_code: string) => {
@@ -180,9 +157,8 @@ export const Account_group = () => {
     getGroups();
   };
 
-  const onCellClicked = (params: { data: any }) => {
+  const onCellClicked = (params: { data: any }) =>
     setSelectedRow(selectedRow !== null ? null : params.data);
-  };
 
   const cellEditingStarted = () => {
     editing.current = true;
@@ -211,20 +187,11 @@ export const Account_group = () => {
           handleUpdate(selectedRow);
         }
         break;
-      //   case ' ':
-      //     if (!editing.current && selectedRow) {
-      //       return navigate(`/transactions/${selectedRow.ac_code}`);
-      //     }
-      //     break;
       default:
         break;
     }
   };
 
-  //   const decimalFormatter = (params: any) => {
-  //     if (!params.value) return;
-  //     return parseFloat(params.value).toFixed(2);
-  //   };
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
@@ -242,11 +209,7 @@ export const Account_group = () => {
       {
         headerName: 'Head Code',
         field: 'head_code',
-        //   flex: 2,
         flex: 1,
-        //   cellRenderer: (params: any) => (
-        //     <Link to={`/transactions/${params.data.ac_code}`}> {params.value}</Link>
-        //   ),
         menuTabs: ['filterMenuTab'],
         filter: true,
         editable: true,
@@ -303,8 +266,8 @@ export const Account_group = () => {
     ];
   return (
     <div className='container'>
-      <div className="flex justify-between mx-[1.6rem] my-8  bg-[#f3f3f3]  ">
-        <h1 className="font-bold text-[#171A1FFF] m-0 ">Account Group</h1>
+      <div className='flex justify-between mx-[1.6rem] my-8  bg-[#f3f3f3]  '>
+        <h1 className='font-bold text-[#171A1FFF] m-0 '>Account Group</h1>
         <button
           id='account_button'
           className='account_button'
@@ -314,7 +277,6 @@ export const Account_group = () => {
         </button>
       </div>
       <div id='account_table' className='ag-theme-quartz'>
-        {/* {!loading && ( */}
         {
           <AgGridReact
             rowData={tableData}
@@ -325,7 +287,6 @@ export const Account_group = () => {
             onCellClicked={onCellClicked}
             onCellEditingStarted={cellEditingStarted}
             onCellEditingStopped={handleCellEditingStopped}
-            // localeText={{ dateFormatOoo: 'DD_MM_YYYY' }}
           />
         }
       </div>

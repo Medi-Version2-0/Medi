@@ -7,13 +7,13 @@ import Button from '../../components/common/button/Button';
 import * as Yup from 'yup';
 import titleCase from '../../utilities/titleCase';
 
-export const CreateHQ: React.FC<CreateStationProps> = ({
+export const CreateHQ = ({
   togglePopup,
   data,
   handelFormSubmit,
   isDelete,
   deleteAcc,
-}) => {
+}: CreateStationProps) => {
   const { station_id } = data;
   const [stationOptions, setStationOptions] = useState<Option[]>([]);
   const [hqOptions, setHqOptions] = useState<Option[]>([]);
@@ -106,18 +106,18 @@ export const CreateHQ: React.FC<CreateStationProps> = ({
         onSubmit={handleSubmit}
       >
         {(formik) => (
-          <Form className='flex flex-col gap-2 min-w-[18rem] items-center px-4 '>
+          <Form className='flex flex-col gap-3 min-w-[18rem] items-center px-4 '>
             <div className="flex flex-col w-full " >
                 <Field name="station_name" >
                   {() => (
                     <CustomSelect
+                    label='Station Name'
                       id="station_name"
                       name='station_name'
                       value={formik.values.station_name === '' ? null : { label: formik.values.station_name, value: formik.values.station_name }}
                       onChange={handleFieldChange}
                       options={stationOptions}
                       isSearchable={true}
-                      placeholder="Station Name"
                       disableArrow={true}
                       hidePlaceholder={false}
                       className='!h-6 rounded-sm text-xs'
@@ -151,13 +151,13 @@ export const CreateHQ: React.FC<CreateStationProps> = ({
                 <Field name="station_headQuarter">
                   {() => (
                     <CustomSelect
+                    label='Headquarter'
                       id="station_headQuarter"
                       name='station_headQuarter'
                       value={formik.values.station_headQuarter === '' ? null : { label: formik.values.station_headQuarter, value: formik.values.station_headQuarter }}
                       onChange={handleFieldChange}
                       options={hqOptions}
                       isSearchable={true}
-                      placeholder="Station HeadQuarter"
                       disableArrow={true}
                       hidePlaceholder={false}
                       className='!h-6 rounded-sm text-xs'

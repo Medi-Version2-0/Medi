@@ -6,7 +6,7 @@ module.exports.addAccountGroup = (groupData) => {
   account_groups.insert(groupData);
 };
 
-module.exports.getAllAccountGroups = async (
+module.exports.getAllAccountGroups = (
   where = "",
   sort = "",
   limit = ""
@@ -15,9 +15,9 @@ module.exports.getAllAccountGroups = async (
 
   const groupCodes = groupData.map((group) => group.parent_code);
 
-  const groupDetails = await Promise.all(
-    groupCodes.map(async (parent_code) => {
-      const groupDetail = await queryGroupByParentCode(parent_code);
+  const groupDetails =  Promise.all(
+    groupCodes.map((parent_code) => {
+      const groupDetail = queryGroupByParentCode(parent_code);
       return groupDetail;
     })
   );
@@ -30,7 +30,7 @@ module.exports.getAllAccountGroups = async (
   return result;
 };
 
-async function queryGroupByParentCode(parent_code) {
-  const groupDetail = await groups.getByField("group_code", parent_code);
+function queryGroupByParentCode(parent_code) {
+  const groupDetail =  groups.getByField("group_code", parent_code);
   return groupDetail;
 }

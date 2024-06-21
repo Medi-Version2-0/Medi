@@ -15,6 +15,7 @@ export const ContactNumbers: React.FC<ContactNumbersProps> = ({
           <div className='relative border border-solid border-gray-400 p-4'>
             <div className='absolute top-[-14px] left-2 px-2 w-max bg-[#f3f3f3]'>Contact Numbers</div>
             <FormikInputField
+            isPopupOpen={false}
               label='Mobile'
               id='phoneNumber'
               name='phoneNumber'

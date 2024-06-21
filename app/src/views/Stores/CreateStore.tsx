@@ -82,9 +82,9 @@ export const CreateStore: React.FC<CreateStoreProps> = ({
         onSubmit={handleSubmit}
       >
         {(formik) => (
-          <Form className='flex flex-col gap-1 min-w-[18rem] items-start px-4'>
+          <Form className='flex flex-col gap-3 min-w-[18rem] items-start px-4'>
             <FormikInputField
-              placeholder='Store name'
+            label='store Name'
               id='store_name'
               name='store_name'
               formik={formik}
@@ -99,7 +99,7 @@ export const CreateStore: React.FC<CreateStoreProps> = ({
               showErrorTooltip={!!(formik.touched.store_name && formik.errors.store_name)}
             />
             <FormikInputField
-              placeholder='Address line1'
+              label='Address line1'
               id='address1'
               name='address1'
               formik={formik}
@@ -113,7 +113,7 @@ export const CreateStore: React.FC<CreateStoreProps> = ({
               }
             />
             <FormikInputField
-              placeholder='Address line2'
+              label='Address line2'
               id='address2'
               name='address2'
               formik={formik}
@@ -127,7 +127,7 @@ export const CreateStore: React.FC<CreateStoreProps> = ({
               }
             />
             <FormikInputField
-              placeholder='Address line3'
+              label='Address line3'
               id='address3'
               name='address3'
               formik={formik}

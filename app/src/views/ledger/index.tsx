@@ -16,14 +16,11 @@ const ledgerValidationSchema = Yup.object().shape({
     .required('Party Name is required')
     .matches(/^\D+$/, 'Only Numbers not allowed')
     .max(100, 'Party name cannot exceed 100 characters'),
-  stationName: Yup.string()
-    .required('Station Name is required')
-    .matches(/^\D+$/, 'Only Numbers not allowed')
-    .max(100, 'Station name cannot exceed 100 characters'),
+  stationName: Yup.string(),
   openingBal: Yup.number()
     .required('Opening Balance is required')
     .positive('Opening Balance must be greater than 0'),
-  openingBalType: Yup.string()
+  openingBalType: Yup.string(),
 });
 
 const validateField = async (field: string, value: any) => {
@@ -34,7 +31,6 @@ const validateField = async (field: string, value: any) => {
     return error.message;
   }
 };
-
 
 export const Ledger = () => {
   const [selectedRow, setSelectedRow] = useState<any>(null);
@@ -48,6 +44,14 @@ export const Ledger = () => {
     isAlertOpen: false,
     message: '',
   });
+
+  const allStations = electronAPI.getAllStations(
+    '',
+    'station_name',
+    '',
+    '',
+    ''
+  );
 
   const getLedgerData = () => {
     setTableData(electronAPI.getAllLedgerData('', 'partyName', '', '', ''));
@@ -69,12 +73,28 @@ export const Ledger = () => {
     Cr: 'Credit',
   };
 
+  const ledgerStationsMap: { [key: number]: string } = {};
+
+  allStations?.forEach((data: any) => {
+    ledgerStationsMap[data.station_id] = data.station_name;
+  });
+
+
   const extractKeys = (mappings: { [key: string]: string }) => {
+    return Object.values(mappings);
+  };
+
+  const extractKey = (mappings: { [key: string]: string }) => {
     return Object.keys(mappings);
   };
 
-  const types = extractKeys(typeMapping);
-  const lookupValue = (mappings: { [key: string]: string }, key: string) => {
+  const types = extractKey(typeMapping);
+  const ledgerStations = extractKeys(ledgerStationsMap);
+
+  const lookupValue = (
+    mappings: { [key: string]: string; [key: number]: string },
+    key: string
+  ) => {
     return mappings[key];
   };
 
@@ -106,9 +126,7 @@ export const Ledger = () => {
     partyId.current = oldData.party_id;
   };
 
-  const handleUpdate = (oldData: any) => {
-    return navigate(`/ledger`, { state: oldData });
-  };
+  const handleUpdate = (oldData: any) => navigate(`/ledger`, { state: oldData });
 
   const handleCellEditingStopped = async (e: any) => {
     if (e?.data?.isPredefinedParty === false) {
@@ -129,7 +147,7 @@ export const Ledger = () => {
         return;
       }
 
-      if (field === 'partyName' || field === 'stationName') {
+      if (field === 'partyName') {
         newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
       }
       node.setDataValue(field, newValue);
@@ -146,7 +164,6 @@ export const Ledger = () => {
       node.setDataValue(field, oldValue);
     }
   };
-
 
   const onCellClicked = (params: { data: any }) => {
     setSelectedRow(selectedRow !== null ? null : params.data);
@@ -225,7 +242,20 @@ export const Ledger = () => {
       field: 'stationName',
       flex: 1,
       filter: true,
-      editable: (params: any) => !params.data.isPredefinedParty,
+      cellEditor: 'agSelectCellEditor',
+      cellEditorParams: {
+        values: ledgerStations,
+        valueListMaxHeight: 120,
+        valueListMaxWidth: 192,
+        valueListGap: 8,
+      },
+      valueFormatter: (params: { value: string }) => lookupValue(ledgerStationsMap, params.value),
+      editable: (params: any) => {
+        if (!params.data.isPredefinedGroup) {
+          return ( params.data.accountGroup === 'SUNDRY CREDITORS' || params.data.accountGroup === 'SUNDRY DEBTORS');
+        }
+        return false;
+      },
       headerClass: 'custom-header',
       suppressMovable: true,
     },
@@ -304,9 +334,11 @@ export const Ledger = () => {
 
   return (
     <div className='w-full'>
-      <div className="flex w-full items-center justify-between px-8 py-1">
-        <h1 className="font-bold">Ledger Master</h1>
-        <Button type='highlight' handleOnClick={() => navigate(`/ledger`)}>Add Ledger</Button>
+      <div className='flex w-full items-center justify-between px-8 py-1'>
+        <h1 className='font-bold'>Ledger Master</h1>
+        <Button type='highlight' handleOnClick={() => navigate(`/ledger`)}>
+          Add Ledger
+        </Button>
       </div>
       <div id='account_table' className='ag-theme-quartz'>
         {
@@ -326,9 +358,7 @@ export const Ledger = () => {
         <Confirm_Alert_Popup
           onClose={handleClosePopup}
           onConfirm={
-            popupState.isAlertOpen
-              ? handleAlertCloseModal
-              : handleConfirmPopup
+            popupState.isAlertOpen ? handleAlertCloseModal : handleConfirmPopup
           }
           message={popupState.message}
           isAlert={popupState.isAlertOpen}

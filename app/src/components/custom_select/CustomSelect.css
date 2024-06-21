@@ -15,6 +15,7 @@
 }
 
 .custom-select__value-container {
+  font-size: 10px !important;
   padding: 0 !important;
   max-height: 36px;
 }
@@ -62,7 +63,7 @@
 }
 
 .custom-select__control--is-focused {
-  background-color: #FFEB80 !important;
+  background-color: #EAFBFCFF !important;
 }
 
 .custom-select__input-container{

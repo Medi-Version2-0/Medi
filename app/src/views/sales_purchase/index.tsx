@@ -13,32 +13,17 @@ import Button from '../../components/common/button/Button';
 import { CreateSalePurchase } from './CreateSalePurchase';
 
 const initialValue = {
-  // spType: data?.spType || '',
-  // igst: data?.igst || '0.00',
-  // cgst: data?.cgst || '0.00',
-  // sgst: data?.sgst || '0.00',
-  // stPer: data?.stPer || '',
-  // surCharge: data?.surCharge || '',
-  // spNo: data?.spNo || '',
-  // column: data?.column || '',
-  // shortName: data?.shortName || '',
-  // shortName2: data?.shortName2 || '',
   spType: '',
   igst: '0.00',
-  // cgst: data?.cgst || '0.00',
-  // sgst: data?.sgst || '0.00',
-  // stPer: data?.stPer || '',
   surCharge: '',
-  // spNo: data?.spNo || '',
-  // column: data?.column || '',
   shortName: '',
   shortName2: '',
 };
 
 export const Sales_Table: React.FC<SalesPurchaseTableProps> = ({ type }) => {
-  // const navigate = useNavigate();
   const [open, setOpen] = useState<boolean>(false);
   const [tableData, setTableData] = useState<SalesPurchaseFormData | any>(null);
+  const [currTableData, setCurrTableData] = useState<SalesPurchaseFormData | any>(null);
   const [formData, setFormData] = useState<SalesPurchaseFormData | any>(
     initialValue
   );
@@ -48,7 +33,6 @@ export const Sales_Table: React.FC<SalesPurchaseTableProps> = ({ type }) => {
     isAlertOpen: false,
     message: '',
   });
-  // const spId = useRef('');
   const editing = useRef(false);
   const isDelete = useRef(false);
 
@@ -57,6 +41,7 @@ export const Sales_Table: React.FC<SalesPurchaseTableProps> = ({ type }) => {
   const getSalesData = async () => {
     const data = await electronAPI.getSalesPurchase('', 'spType', '', type);
     setTableData(data);
+    setCurrTableData(electronAPI.getSalesPurchase('', 'spType', '', type));
   };
 
   useEffect(() => {
@@ -93,7 +78,6 @@ export const Sales_Table: React.FC<SalesPurchaseTableProps> = ({ type }) => {
 
   const handleConfirmPopup = () => {
     setPopupState({ ...popupState, isModalOpen: false });
-    // electronAPI.deleteSalesPurchase(spId.current);
     if (formData.spType) {
       formData.spType =
         formData.spType.charAt(0).toUpperCase() + formData.spType.slice(1);
@@ -134,14 +118,6 @@ export const Sales_Table: React.FC<SalesPurchaseTableProps> = ({ type }) => {
     if (mode === 'create') {
       values.salesPurchaseType = type;
     }
-    // if (values.station_state) {
-    //   stateData.map((state: any) => {
-    //     if (values.station_state === state.state_name) {
-    //       values.state_code = Number(`${state.state_code}`);
-    //       delete values.station_state;
-    //     }
-    //   });
-    // }
     if (values !== initialValue) {
       setPopupState({
         ...popupState,
@@ -153,7 +129,6 @@ export const Sales_Table: React.FC<SalesPurchaseTableProps> = ({ type }) => {
   };
 
   const handleUpdate = (oldData: any) => {
-    // return navigate(`/sales_purchase`, { state: oldData });
     setFormData(oldData);
     isDelete.current = false;
     editing.current = true;
@@ -168,12 +143,6 @@ export const Sales_Table: React.FC<SalesPurchaseTableProps> = ({ type }) => {
     getSalesData();
   };
   const handleDelete = (oldData: any) => {
-    // setPopupState({
-    //   ...popupState,
-    //   isModalOpen: true,
-    //   message: 'Are you sure you want to delete the selected record ?',
-    // });
-    // spId.current = oldData.sp_id;
     setFormData(oldData);
     isDelete.current = true;
     togglePopup(true);
@@ -196,7 +165,6 @@ export const Sales_Table: React.FC<SalesPurchaseTableProps> = ({ type }) => {
       case 'n':
       case 'N':
         if (event.ctrlKey) {
-          // return navigate(`/sales_purchase`, {state: type});
           togglePopup(true);
         }
         break;
@@ -233,12 +201,25 @@ export const Sales_Table: React.FC<SalesPurchaseTableProps> = ({ type }) => {
     switch (field) {
       case 'spType':
         {
-          if (!newValue || newValue.length > 100) {
+          const existingSalePurchase = currTableData.find((sp: SalesPurchaseFormData) => sp.spType?.toLowerCase() === newValue?.toLowerCase()
+        );
+        if(existingSalePurchase){
+          setPopupState({
+           ...popupState,
+            isAlertOpen: true,
+            message: `${type} with this name already exists!`,
+          });
+          node.setDataValue(field, oldValue);
+          return;
+        }
+          else if (!newValue || /^\d+$/.test(newValue) || newValue.length > 100) {
             setPopupState({
               ...popupState,
               isAlertOpen: true,
               message: !newValue
                 ? `${type} Type is required`
+                : /^\d+$/.test(newValue)
+                ? `Only numbers not allowed`
                 : `${type} Type must be 100 characters or less`,
             });
             node.setDataValue(field, oldValue);
@@ -354,7 +335,6 @@ export const Sales_Table: React.FC<SalesPurchaseTableProps> = ({ type }) => {
       flex: 1,
       filter: true,
       editable: true,
-      // valueFormatter: decimalFormatter,
       headerClass: 'custom-header',
       suppressMovable: true,
     },
@@ -396,7 +376,6 @@ export const Sales_Table: React.FC<SalesPurchaseTableProps> = ({ type }) => {
             type='highlight'
             id='sp_button'
             handleOnClick={() => {
-              // return navigate(`/sales_purchase`, {state: type});
               return togglePopup(true);
             }}
           >

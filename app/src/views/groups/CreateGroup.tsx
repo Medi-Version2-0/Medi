@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useEffect } from 'react';
 import { Formik, Form, Field, FormikProps } from 'formik';
 import * as Yup from 'yup';
@@ -18,16 +18,11 @@ export const CreateGroup: React.FC<CreateGroupProps> = ({
   deleteAcc,
 }) => {
   const { group_code } = data;
-  const [isFocused, setIsFocused] = useState(false);
-
-  const handleFocus = () => setIsFocused(true);
-  const handleBlur = () => setIsFocused(false);
 
   useEffect(() => {
-    const focusTarget =
-      !isDelete
-        ? document.getElementById('group_name')
-        : document.getElementById('cancel_button');
+    const focusTarget = !isDelete
+      ? document.getElementById('group_name')
+      : document.getElementById('cancel_button');
     focusTarget?.focus();
   }, []);
 
@@ -83,10 +78,10 @@ export const CreateGroup: React.FC<CreateGroupProps> = ({
         onSubmit={handleSubmit}
       >
         {(formik) => (
-          <Form className='flex flex-col gap-2 min-w-[18rem] items-center px-4'>
+          <Form className='flex flex-col gap-3 min-w-[18rem] items-center px-4'>
             <div className='flex flex-col w-full'>
               <FormikInputField
-                placeholder='Group name'
+                label='Group Name'
                 id='group_name'
                 name='group_name'
                 formik={formik}
@@ -103,73 +98,78 @@ export const CreateGroup: React.FC<CreateGroupProps> = ({
                 }
               />
             </div>
-            <div className={`relative flex items-center justify-evenly w-full rounded-sm border border-solid p-[3px] border-[#9ca3af] ${(group_code && isDelete) && 'bg-[#f5f5f5]'} ${!!(formik.touched.type && formik.errors.type) && ('!border-red-500')} ${
-              isFocused ? 'bg-[#FFEB80]' : ''}`}
-              onFocus={handleFocus} 
-              onBlur={handleBlur} 
-            >
-              <label
-                className={`flex items-center justify-center text-xs cursor-pointer text-center font-medium ${group_code && isDelete ? 'disabled' : ''}`}
+            <div className='radio_fields relative w-full rounded-sm border border-solid border-[#9ca3af] p-[3px]'>
+              <span
+                className={`label_prefix bg-white px-1 absolute top-0 left-1 -translate-y-1/2 text-xs ${!!(formik.touched.type && formik.errors.type) && '!text-red-700'}`}
               >
-                <Field
-                  type='radio'
-                  name='type'
-                  value='P&L'
-                  id='p_and_l'
-                  className='text-xs mr-1'
-                  required={true}
-                  checked={formik.values.type === 'P&L'}
-                  disabled={group_code && isDelete}
-                  data-prev-field='group_name'
-                  data-next-field='submit_button'
-                  data-side-field='balance_sheet'
-                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                    handleKeyDown(e, formik, {
-                      typeField: 'type',
-                      sideField: 'balance_sheet',
-                    })
-                  }
-                />
-                <span>P & L</span>
-              </label>
-              <label
-                className={`flex items-center justify-center text-xs cursor-pointer text-center font-medium ${group_code && isDelete ? 'disabled' : ''}`}
+                Type
+              </span>
+              <div
+                className={`relative flex items-center justify-evenly w-full p-[3px] ${group_code && isDelete && 'bg-[#f5f5f5]'} ${!!(formik.touched.type && formik.errors.type) && '!border-red-500'}`}
               >
-                <Field
-                  type='radio'
-                  name='type'
-                  value='Balance Sheet'
-                  id='balance_sheet'
-                  className='text-xs mr-1'
-                  checked={formik.values.type === 'Balance Sheet'}
-                  disabled={group_code && isDelete}
-                  data-prev-field='group_name'
-                  data-next-field='submit_button'
-                  data-side-field='p_and_l'
-                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                    handleKeyDown(e, formik, {
-                      typeField: 'type',
-                      sideField: 'p_and_l',
-                    })
-                  }
-                />
-                <span>Bl. Sheet</span>
-              </label>
-              {formik.touched.type && formik.errors.type && (
-                <>
-                  <FaExclamationCircle
-                    data-tooltip-id='typeError'
-                    className='absolute -translate-y-2/4 top-2/4 right-1 text-xs text-red-600'
+                <label
+                  className={`flex items-center justify-center text-xs cursor-pointer text-center font-medium ${group_code && isDelete ? 'disabled' : ''}`}
+                >
+                  <Field
+                    type='radio'
+                    name='type'
+                    value='P&L'
+                    id='p_and_l'
+                    className='text-xs mr-1'
+                    required={true}
+                    checked={formik.values.type === 'P&L'}
+                    disabled={group_code && isDelete}
+                    data-prev-field='group_name'
+                    data-next-field='submit_button'
+                    data-side-field='balance_sheet'
+                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
+                      handleKeyDown(e, formik, {
+                        typeField: 'type',
+                        sideField: 'balance_sheet',
+                      })
+                    }
                   />
-                  <ReactTooltip
-                    id='typeError'
-                    place='bottom'
-                    className=' text-[white] border rounded !text-xs z-10 p-2 border-solid border-[#d8000c] !bg-red-600'
-                  >
-                    {formik.errors.type}
-                  </ReactTooltip>
-                </>
-              )}
+                  <span>P & L</span>
+                </label>
+                <label
+                  className={`flex items-center justify-center text-xs cursor-pointer text-center font-medium ${group_code && isDelete ? 'disabled' : ''}`}
+                >
+                  <Field
+                    type='radio'
+                    name='type'
+                    value='Balance Sheet'
+                    id='balance_sheet'
+                    className='text-xs mr-1'
+                    checked={formik.values.type === 'Balance Sheet'}
+                    disabled={group_code && isDelete}
+                    data-prev-field='group_name'
+                    data-next-field='submit_button'
+                    data-side-field='p_and_l'
+                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
+                      handleKeyDown(e, formik, {
+                        typeField: 'type',
+                        sideField: 'p_and_l',
+                      })
+                    }
+                  />
+                  <span>Bl. Sheet</span>
+                </label>
+                {formik.touched.type && formik.errors.type && (
+                  <>
+                    <FaExclamationCircle
+                      data-tooltip-id='typeError'
+                      className='absolute -translate-y-2/4 top-2/4 right-1 text-xs text-red-600'
+                    />
+                    <ReactTooltip
+                      id='typeError'
+                      place='bottom'
+                      className=' text-[white] border rounded !text-xs z-10 p-2 border-solid border-[#d8000c] !bg-red-600'
+                    >
+                      {formik.errors.type}
+                    </ReactTooltip>
+                  </>
+                )}
+              </div>
             </div>
             <div className='flex justify-between my-4 w-full'>
               <Button
@@ -180,14 +180,22 @@ export const CreateGroup: React.FC<CreateGroupProps> = ({
                 handleOnKeyDown={(e) => {
                   if (e.key === 'Tab') {
                     e.preventDefault();
-                    document.getElementById(`${isDelete ? 'del_button' : 'submit_button'}`)?.focus();
+                    document
+                      .getElementById(
+                        `${isDelete ? 'del_button' : 'submit_button'}`
+                      )
+                      ?.focus();
                   }
                   if (e.key === 'Enter') {
                     e.preventDefault();
                     togglePopup(false);
                   }
                   if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab')) {
-                    document.getElementById(`${isDelete ? 'cancel_button' : 'balance_sheet'}`)?.focus();
+                    document
+                      .getElementById(
+                        `${isDelete ? 'cancel_button' : 'balance_sheet'}`
+                      )
+                      ?.focus();
                   }
                 }}
               >
@@ -202,7 +210,10 @@ export const CreateGroup: React.FC<CreateGroupProps> = ({
                     if (e.key === 'Tab') {
                       e.preventDefault();
                     }
-                    if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab') ) {
+                    if (
+                      e.key === 'ArrowUp' ||
+                      (e.shiftKey && e.key === 'Tab')
+                    ) {
                       document.getElementById('cancel_button')?.focus();
                     }
                   }}
@@ -219,7 +230,10 @@ export const CreateGroup: React.FC<CreateGroupProps> = ({
                       document.getElementById('group_name')?.focus();
                       e.preventDefault();
                     }
-                    if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab') ) {
+                    if (
+                      e.key === 'ArrowUp' ||
+                      (e.shiftKey && e.key === 'Tab')
+                    ) {
                       document.getElementById('cancel_button')?.focus();
                     }
                   }}

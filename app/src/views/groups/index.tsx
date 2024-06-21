@@ -116,13 +116,16 @@ export const Groups = () => {
 
   const handelFormSubmit = (values: GroupFormData) => {
     const mode = values.group_code ? 'update' : 'create';
-    const existingGroup = tableData.find(
-      (group: GroupFormData) => {
-        if (mode === 'create')
-          return (group.group_name.toLowerCase() === values.group_name.toLowerCase())
-        return ((group.group_name.toLowerCase() === values.group_name.toLowerCase()) && (group.group_code !== values.group_code))
-      }
-    );
+    const existingGroup = tableData.find((group: GroupFormData) => {
+      if (mode === 'create')
+        return (
+          group.group_name.toLowerCase() === values.group_name.toLowerCase()
+        );
+      return (
+        group.group_name.toLowerCase() === values.group_name.toLowerCase() &&
+        group.group_code !== values.group_code
+      );
+    });
     if (existingGroup) {
       setPopupState({
         ...popupState,
@@ -132,7 +135,8 @@ export const Groups = () => {
       return;
     }
     if (values.group_name) {
-      values.group_name = values.group_name.charAt(0).toUpperCase() + values.group_name.slice(1);
+      values.group_name =
+        values.group_name.charAt(0).toUpperCase() + values.group_name.slice(1);
     }
     if (values !== initialValue) {
       setPopupState({
@@ -173,8 +177,11 @@ export const Groups = () => {
               });
               node.setDataValue(field, oldValue);
               return;
-            }
-            else if (!newValue || /^\d+$/.test(newValue) || newValue.length > 100) {
+            } else if (
+              !newValue ||
+              /^\d+$/.test(newValue) ||
+              newValue.length > 100
+            ) {
               setPopupState({
                 ...popupState,
                 isAlertOpen: true,
@@ -242,7 +249,10 @@ export const Groups = () => {
           selectedRow &&
           selectedRow.isPredefinedGroup === false
         ) {
-          const isParentGroup = subgroups.some((subgroup: GroupFormData)=> subgroup.parent_code === selectedRow.group_code);
+          const isParentGroup = subgroups.some(
+            (subgroup: GroupFormData) =>
+              subgroup.parent_code === selectedRow.group_code
+          );
           if (isParentGroup) {
             setPopupState({
               ...popupState,
@@ -261,6 +271,12 @@ export const Groups = () => {
             ...popupState,
             isAlertOpen: true,
             message: 'Predefined Groups should not be deleted',
+          });
+        } else if (event.ctrlKey && selectedRow && !!selectedRow.parent_code) {
+          setPopupState({
+            ...popupState,
+            isAlertOpen: true,
+            message: 'This group is already associated with sub group.',
           });
         }
         break;
@@ -365,12 +381,16 @@ export const Groups = () => {
                     message: 'Predefined Groups should not be deleted',
                   });
                 } else {
-                  const isParentGroup = subgroups.some((subgroup: GroupFormData)=> subgroup.parent_code === groupToDelete.group_code);
+                  const isParentGroup = subgroups.some(
+                    (subgroup: GroupFormData) =>
+                      subgroup.parent_code === groupToDelete.group_code
+                  );
                   if (isParentGroup) {
                     setPopupState({
                       ...popupState,
                       isAlertOpen: true,
-                      message: 'This group is associated with sub group',
+                      message:
+                        'This group is already associated with sub group',
                     });
                   } else {
                     handleDelete(groupToDelete);
@@ -385,9 +405,15 @@ export const Groups = () => {
   return (
     <>
       <div className='w-full'>
-        <div className="flex w-full items-center justify-between px-8 py-1">
-          <h1 className="font-bold">Groups</h1>
-          <Button type='highlight' className='' handleOnClick={() => togglePopup(true)}>Add Group</Button>
+        <div className='flex w-full items-center justify-between px-8 py-1'>
+          <h1 className='font-bold'>Groups</h1>
+          <Button
+            type='highlight'
+            className=''
+            handleOnClick={() => togglePopup(true)}
+          >
+            Add Group
+          </Button>
         </div>
         <div id='account_table' className='ag-theme-quartz'>
           {

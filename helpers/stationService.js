@@ -23,3 +23,13 @@ module.exports.getAll = (where = "", sort = "", limit = "") => {
   });
   return data;
 };
+module.exports.getStationIdByName = (stationName) => {
+  try {
+    const stationData = station.getAll('', 'station_name', '', '', '');
+    const stationFound = stationData.find((station) => station.station_name === stationName);
+    return stationFound ? stationFound.station_id : null;
+  } catch (error) {
+    console.error('Error getting station ID:', error);
+    throw error;
+  }
+};
