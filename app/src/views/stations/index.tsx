@@ -8,12 +8,13 @@ import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { StationFormData } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import Button from '../../components/common/button/Button';
+import { sendAPIRequest } from '../../helper/api';
 
 const initialValue = {
   station_id: '',
   station_name: '',
   igst_sale: '',
-  station_state: '',
+  state_code: '',
   station_pinCode: '',
 };
 
@@ -22,12 +23,12 @@ export const Stations = () => {
   const [formData, setFormData] = useState<StationFormData | any>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<StationFormData | any>(null);
-  const [currTableData, setCurrTableData] = useState<StationFormData | any>(null);
-  const [stateData, setStateData] = useState([]);
+  const [currTableData, setCurrTableData] = useState<StationFormData | any>(
+    null
+  );
+  const [stateData, setStateData] = useState<any[]>([]);
   const editing = useRef(false);
   const isDelete = useRef(false);
-
-  const electronAPI = (window as any).electronAPI;
 
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
@@ -47,13 +48,20 @@ export const Stations = () => {
     };
   }, [selectedRow]);
 
-  const getStates = () => {
-    setStateData(electronAPI.getAllStates('', 'state_name', '', '', ''));
+  const getStates = async () => {
+    const states = await sendAPIRequest<any[]>('/state');
+    setStateData(states);
   };
 
-  const getStations = () => {
-    setTableData(electronAPI.getAllStations('', 'station_name', '', '', ''));
-    setCurrTableData(electronAPI.getAllStations('', 'station_name', '', '', ''));
+  const getStations = async () => {
+    const stations = await sendAPIRequest<any[]>('/station');
+    stations.map((station) => {
+      station.state_code = station.State?.state_name;
+      delete station.State;
+    });
+
+    setTableData(stations);
+    setCurrTableData(stations);
   };
 
   const togglePopup = (isOpen: boolean) => {
@@ -72,7 +80,7 @@ export const Stations = () => {
     setPopupState({ ...popupState, isModalOpen: false });
   };
 
-  const handleConfirmPopup = () => {
+  const handleConfirmPopup = async () => {
     setPopupState({ ...popupState, isModalOpen: false });
     if (formData.station_name) {
       formData.station_name =
@@ -80,10 +88,15 @@ export const Stations = () => {
         formData.station_name.slice(1);
     }
     if (formData !== initialValue) {
+      console.log('this formm', formData);
+      formData.state_code = +formData.state_code;
       if (formData.station_id) {
-        electronAPI.updateStation(formData.station_id, formData);
+        await sendAPIRequest(`/station/${formData.station_id}`, {
+          method: 'PUT',
+          body: formData,
+        });
       } else {
-        electronAPI.addStation(formData);
+        await sendAPIRequest('/station', { method: 'POST', body: formData });
       }
       togglePopup(false);
       getStations();
@@ -92,13 +105,18 @@ export const Stations = () => {
 
   const handelFormSubmit = (values: StationFormData) => {
     const mode = values.station_id ? 'update' : 'create';
-    const existingStation = tableData.find(
-      (station: StationFormData) => {
-        if (mode === 'create')
-          return (station.station_name.toLowerCase() === values.station_name.toLowerCase())
-        return ((station.station_name.toLowerCase() === values.station_name.toLowerCase()) && (station.station_id !== values.station_id))
-      }
-    );
+    const existingStation = tableData.find((station: StationFormData) => {
+      if (mode === 'create')
+        return (
+          station.station_name.toLowerCase() ===
+          values.station_name.toLowerCase()
+        );
+      return (
+        station.station_name.toLowerCase() ===
+          values.station_name.toLowerCase() &&
+        station.station_id !== values.station_id
+      );
+    });
     if (existingStation) {
       setPopupState({
         ...popupState,
@@ -107,14 +125,7 @@ export const Stations = () => {
       });
       return;
     }
-    if (values.station_state) {
-      stateData.map((state: any) => {
-        if (values.station_state?.toUpperCase() === state.state_name.toUpperCase()) {
-          values.state_code = Number(`${state.state_code}`);
-          delete values.station_state;
-        }
-      });
-    }
+
     if (values !== initialValue) {
       setPopupState({
         ...popupState,
@@ -125,9 +136,9 @@ export const Stations = () => {
     }
   };
 
-  const deleteAcc = (station_id: string) => {
-    electronAPI.deleteStation(station_id);
+  const deleteAcc = async (station_id: string) => {
     isDelete.current = false;
+    await sendAPIRequest(`/station/${station_id}`, { method: 'DELETE' });
     togglePopup(false);
     getStations();
   };
@@ -181,7 +192,7 @@ export const Stations = () => {
     return mappings[key];
   };
 
-  const handleCellEditingStopped = (e: any) => {
+  const handleCellEditingStopped = async (e: any) => {
     editing.current = false;
     const { data, column, oldValue, valueChanged, node } = e;
     let { newValue } = e;
@@ -202,8 +213,11 @@ export const Stations = () => {
             });
             node.setDataValue(field, oldValue);
             return;
-          }
-          else if (!newValue || /^\d+$/.test(newValue) || newValue.length > 100) {
+          } else if (
+            !newValue ||
+            /^\d+$/.test(newValue) ||
+            newValue.length > 100
+          ) {
             setPopupState({
               ...popupState,
               isAlertOpen: true,
@@ -226,7 +240,7 @@ export const Stations = () => {
           }
         }
         break;
-      case 'station_state':
+      case 'state_code':
         {
           field = 'state_code';
         }
@@ -256,7 +270,12 @@ export const Stations = () => {
       default:
         break;
     }
-    electronAPI.updateStation(data.station_id, { [field]: newValue });
+
+    await sendAPIRequest(`/station/${data.station_id}`, {
+      method: 'PUT',
+      body: { [field]: newValue },
+    });
+
     getStations();
   };
 
@@ -323,7 +342,7 @@ export const Stations = () => {
     },
     {
       headerName: 'Station State',
-      field: 'station_state',
+      field: 'state_code',
       flex: 1,
       filter: true,
       editable: true,
@@ -379,47 +398,53 @@ export const Stations = () => {
 
   return (
     <>
-        <div className='w-full '>
-          <div className="flex w-full items-center justify-between px-8 py-1">
-            <h1 className="font-bold">Stations</h1>
-            <Button type='highlight' className='' handleOnClick={() => togglePopup(true)}>Add Station</Button>
-          </div>
-          <div id='account_table' className='ag-theme-quartz'>
-            {
-              <AgGridReact
-                rowData={tableData}
-                columnDefs={colDefs}
-                defaultColDef={{
-                  floatingFilter: true,
-                }}
-                onCellClicked={onCellClicked}
-                onCellEditingStarted={cellEditingStarted}
-                onCellEditingStopped={handleCellEditingStopped}
-              />
-            }
-          </div>
-          {(popupState.isModalOpen || popupState.isAlertOpen) && (
-            <Confirm_Alert_Popup
-              onClose={handleClosePopup}
-              onConfirm={
-                popupState.isAlertOpen
-                  ? handleAlertCloseModal
-                  : handleConfirmPopup
-              }
-              message={popupState.message}
-              isAlert={popupState.isAlertOpen}
-            />
-          )}
-          {open && (
-            <CreateStation
-              togglePopup={togglePopup}
-              data={formData}
-              handelFormSubmit={handelFormSubmit}
-              isDelete={isDelete.current}
-              deleteAcc={deleteAcc}
-            />
-          )}
+      <div className='w-full '>
+        <div className='flex w-full items-center justify-between px-8 py-1'>
+          <h1 className='font-bold'>Stations</h1>
+          <Button
+            type='highlight'
+            className=''
+            handleOnClick={() => togglePopup(true)}
+          >
+            Add Station
+          </Button>
         </div>
+        <div id='account_table' className='ag-theme-quartz'>
+          {
+            <AgGridReact
+              rowData={tableData}
+              columnDefs={colDefs}
+              defaultColDef={{
+                floatingFilter: true,
+              }}
+              onCellClicked={onCellClicked}
+              onCellEditingStarted={cellEditingStarted}
+              onCellEditingStopped={handleCellEditingStopped}
+            />
+          }
+        </div>
+        {(popupState.isModalOpen || popupState.isAlertOpen) && (
+          <Confirm_Alert_Popup
+            onClose={handleClosePopup}
+            onConfirm={
+              popupState.isAlertOpen
+                ? handleAlertCloseModal
+                : handleConfirmPopup
+            }
+            message={popupState.message}
+            isAlert={popupState.isAlertOpen}
+          />
+        )}
+        {open && (
+          <CreateStation
+            togglePopup={togglePopup}
+            data={formData}
+            handelFormSubmit={handelFormSubmit}
+            isDelete={isDelete.current}
+            deleteAcc={deleteAcc}
+          />
+        )}
+      </div>
     </>
   );
 };

@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+  useMemo,
+} from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { FaEdit } from 'react-icons/fa';
 import { MdDeleteForever } from 'react-icons/md';
@@ -10,6 +16,7 @@ import { useNavigate } from 'react-router-dom';
 import { ValueFormatterParams } from 'ag-grid-community';
 import Button from '../../components/common/button/Button';
 import * as Yup from 'yup';
+import { sendAPIRequest } from '../../helper/api';
 
 const companyValidationSchema = Yup.object().shape({
   companyName: Yup.string()
@@ -37,24 +44,31 @@ export const Company = () => {
   const [tableData, setTableData] = useState<CompanyFormData | any>(null);
   const editing = useRef(false);
   const companyId = useRef('');
-  const electronAPI = (window as any).electronAPI;
   const navigate = useNavigate();
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
     message: '',
   });
-  const allStations = electronAPI.getAllStations(
-    '',
-    'station_name',
-    '',
-    '',
-    ''
-  );
 
-  const getCompanyData = () => {
-    const companyData = electronAPI.getAllCompany('', 'companyName', '');
-    setTableData(companyData);
+  const fetchStations = useCallback(() => {
+    return sendAPIRequest<any[]>('/station');
+  }, []);
+
+  const ledgerStationsMap = useMemo(() => {
+    const map: { [key: number]: string } = {};
+    fetchStations().then((e) =>
+      e.forEach((data: any) => {
+        map[data.station_id] = data.station_name;
+      })
+    );
+    return map;
+  }, [fetchStations()]);
+
+  const getCompanyData = async () => {
+    const data = await sendAPIRequest<any[]>('/company');
+    data.map((e) => (e.stationName = e.Station?.station_name));
+    setTableData(data);
   };
 
   useEffect(() => {
@@ -73,12 +87,6 @@ export const Company = () => {
     Cr: 'Credit',
   };
 
-  const companyStationsMap: { [key: number]: string } = {};
-
-  allStations?.forEach((data: any) => {
-    companyStationsMap[data.station_id] = data.station_name;
-  });
-
   const extractKeys = (mappings: { [key: string]: string }) => {
     return Object.values(mappings);
   };
@@ -88,7 +96,7 @@ export const Company = () => {
   };
 
   const types = extractKey(typeMapping);
-  const companyStations = extractKeys(companyStationsMap);
+  const companyStations = extractKeys(ledgerStationsMap);
 
   const lookupValue = (mappings: { [key: string]: string }, key: string) => {
     return mappings[key];
@@ -102,9 +110,9 @@ export const Company = () => {
     setPopupState({ ...popupState, isModalOpen: false });
   };
 
-  const handleConfirmPopup = () => {
+  const handleConfirmPopup = async () => {
     setPopupState({ ...popupState, isModalOpen: false });
-    electronAPI.deleteCompany(companyId.current);
+    await sendAPIRequest(`/company/${companyId.current}`, { method: 'DELETE' });
     getCompanyData();
   };
 
@@ -123,7 +131,7 @@ export const Company = () => {
   };
 
   const handleUpdate = (oldData: any) => {
-    return navigate(`/company`, { state: oldData });
+    return navigate(`../company`, { state: oldData, replace: true });
   };
 
   const handleCellEditingStopped = async (e: any) => {
@@ -208,7 +216,7 @@ export const Company = () => {
         valueListGap: 8,
       },
       valueFormatter: (params: { value: string }) => {
-        lookupValue(companyStationsMap, params.value);
+        lookupValue(ledgerStationsMap, params.value);
       },
       editable: true,
       headerClass: 'custom-header',
@@ -270,7 +278,10 @@ export const Company = () => {
     <div className='w-full'>
       <div className='flex w-full items-center justify-between px-8 py-1'>
         <h1 className='font-bold'>Company Master</h1>
-        <Button type='highlight' handleOnClick={() => navigate(`/company`)}>
+        <Button
+          type='highlight'
+          handleOnClick={() => navigate('../company', { replace: true })}
+        >
           Add Company
         </Button>
       </div>

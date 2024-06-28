@@ -15,6 +15,8 @@ const partyService = require('./helpers/partyService.js');
 const salesPurchaseService = require('./helpers/salesPurchaseService.js');
 const storeService = require('./helpers/storeService.js');
 const companyService = require('./helpers/companyService.js');
+const itemService = require('./helpers/itemsService.js');
+const userService = require('./helpers/usersService.js');
 
 const station = new Station()
 const account_groups = new Account_groups()
@@ -78,7 +80,15 @@ contextBridge.exposeInMainWorld("electronAPI", {
   addcompany: (companyData) => companyService.addCompany(companyData),
   updatecompany: (companyId, companyData) => companyService.updatecompany(companyId, companyData),
   deleteCompany: (companyId) => companyService.deleteCompany(companyId),
+  
+  //Items
+  getAllItems: (where = "", sort = "", limit = "") => itemService.getAllItems(where, sort, limit),
+  addItem: (itemData) => itemService.addItem(itemData),
 
+  //Users
+  registerUser: (email, password, permissions) => userService.registerUser(email, password, permissions),
+  authenticateUser: (email, password) => userService.authenticateUser(email, password),
+  
   // suggestion List for different inputs 
   addSuggestionList: (where = "", sort = "", limit = "") => partyService.getAllSuggestions(where, sort, limit),
 });

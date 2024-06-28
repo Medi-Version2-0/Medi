@@ -1,159 +1,189 @@
 export interface StationFormData {
-    station_id?: string;
-    station_name: string;
-    igst_sale?: string;
-    station_state?: string;
-    station_pinCode?: string;
-    station_headQuarter?: string;
-    state_code?: Number;
-  }
+  station_id?: string;
+  station_name: string;
+  igst_sale?: string;
+  // station_state?: string;
+  station_pinCode?: string;
+  station_headQuarter?: string;
+  state_code?: string;
+}
 
-  export interface LedgerFormData {
-    party_id?: string;
-    partyName: string;
-    station_name: string;
-    openingBal: string;
-    isPredefinedParty?: boolean, 
-  }
+export interface LedgerFormData {
+  party_id?: string;
+  partyName: string;
+  station_name: string;
+  openingBal: string;
+  isPredefinedLedger?: boolean;
+}
 
-  export interface AccountGroupFormData {
-    head_code?: string;
-    head_name: string;
-    parent_code: string;
-    group_details: any;
-  }
+export interface AccountGroupFormData {
+  head_code?: string;
+  head_name: string;
+  parent_code: string;
+  group_details: any;
+}
 
+export interface GroupFormData {
+  group_code?: string;
+  group_name: string;
+  parent_code: string | null;
+  type: string;
+  isPredefinedGroup?: boolean;
+}
 
-  export interface GroupFormData {
-    group_code?: string;
-    group_name: string;
-    parent_code: string | null;
-    type: string;
-    isPredefinedGroup?: boolean,    
-  }
-  export interface SubGroupFormData {
-    group_code?: string;
-    group_name: string;
-    parent_group?: string;
-    parent_code?: Number;
-    type: string;
-    isPredefinedGroup?: boolean,    
-  }
+export interface ItemGroupFormData {
+  group_code?: string;
+  group_name: string;
+  type: string;
+  isPredefinedGroup?: boolean;
+}
+export interface SubGroupFormData {
+  group_code?: string;
+  group_name: string;
+  parent_group?: string;
+  parent_code?: Number;
+  type: string;
+  isPredefinedGroup?: boolean;
+}
 
-  export interface CreateStationProps {
-    togglePopup: Function;
-    data: StationFormData;
-    handelFormSubmit: any;
-    isDelete: any;
-    deleteAcc: (station_id: string) => void;
-  }
+export interface CreateStationProps {
+  togglePopup: Function;
+  data: StationFormData;
+  handelFormSubmit: any;
+  isDelete: any;
+  deleteAcc: (station_id: string) => void;
+}
 
-  export interface CreateSalePurchaseProps {
-    type?: string;
-    togglePopup: Function;
-    data: SalesPurchaseFormData;
-    handelFormSubmit: any;
-    isDelete: any;
-    deleteAcc: (sp_id: string) => void;
-  }
+export interface CreateSalePurchaseProps {
+  type?: string;
+  togglePopup: Function;
+  data: SalesPurchaseFormData;
+  handelFormSubmit: any;
+  isDelete: any;
+  deleteAcc: (sp_id: string) => void;
+}
 
-  export interface CreateAccountGroupProps {
-    togglePopup: Function;
-    data: AccountGroupFormData;
-    handelFormSubmit: any;
-    isDelete: any;
-    deleteAcc: (station_id: string) => void;
-  }
-  export interface FormDataProps {
-    station_name: string;
-    igst_sale: string;
-    station_state: string;
-    station_pinCode: string;
-    station_headQuarter: string;
-  }
+export interface CreateAccountGroupProps {
+  togglePopup: Function;
+  data: AccountGroupFormData;
+  handelFormSubmit: any;
+  isDelete: any;
+  deleteAcc: (station_id: string) => void;
+}
+export interface FormDataProps {
+  station_name: string;
+  igst_sale: string;
+  state_code: string;
+  station_pinCode: string;
+  station_headQuarter: string;
+}
 
-  export interface GroupFormDataProps {
-    group_name: string;
-    type: string;
-  }
-  export interface SubGroupFormDataProps {
-    group_name: string;
-    parent_group: string;
-    type: string;
-  }
-  export interface CreateGroupProps {
-    togglePopup: Function;
-    data: GroupFormData;
-    handelFormSubmit: any;
-    isDelete: any;
-    deleteAcc: (group_code: string) => void;
-  }
+export interface GroupFormDataProps {
+  group_name: string;
+  type: string;
+}
+export interface ItemGroupFormDataProps {
+  group_name: string;
+  type: string;
+}
 
-  export interface CreateSubGroupProps {
-    togglePopup: Function;
-    data: SubGroupFormData;
-    handelFormSubmit: any;
-    isDelete: any;
-    deleteAcc: (group_code: string) => void;
-  }
+export interface BatchForm {
+  id?: number;
+  itemId: number;
+  batchNo: string;
+  expiryDate: string;
+  opBalance: number | null;
+  opFree: number | null;
+  purPrice: number | null;
+  salePrice: number | null;
+  mrp: number | null;
+  locked: string;
+}
 
+export interface CreateItemGroupProps {
+  togglePopup: Function;
+  data: ItemGroupFormData;
+  handelFormSubmit: any;
+  isDelete: any;
+  deleteAcc: (group_code: string) => void;
+}
+export interface SubGroupFormDataProps {
+  group_name: string;
+  parent_group: string;
+  type: string;
+}
+export interface CreateGroupProps {
+  togglePopup: Function;
+  data: GroupFormData;
+  handelFormSubmit: any;
+  isDelete: any;
+  deleteAcc: (group_code: string) => void;
+}
 
-  export interface PopupProps {
-    togglePopup?: Function;
-    heading: string;
-    children: any;
-    className?: string;
-  }
+export interface CreateSubGroupProps {
+  togglePopup: Function;
+  data: SubGroupFormData;
+  handelFormSubmit: any;
+  isDelete: any;
+  deleteAcc: (group_code: string) => void;
+}
 
-  export interface Confirm_Alert_PopupProps {
-    isAlert?: boolean;
-    onClose?: () => void;
-    onConfirm?: () => void;
-    message: string;
-  }
+export interface PopupProps {
+  togglePopup?: Function;
+  heading: string;
+  children: any;
+  className?: string;
+}
 
-  export interface State {
-    state_code: Number;
-    state_name: string;
-    union_territory: boolean;
+export interface Confirm_Alert_PopupProps {
+  isAlert?: boolean;
+  onClose?: () => void;
+  onConfirm?: () => void;
+  message: string;
+}
+
+export interface State {
+  state_code: Number;
+  state_name: string;
+  union_territory: boolean;
 }
 
 interface Option {
-  value: string | undefined;
+  value: string | undefined | boolean;
   label: string | undefined;
 }
 
 export interface SalesPurchaseFormData {
   sp_id?: string;
-  spType?: string;
+  sptype?: string;
   salesPurchaseType?: string;
   igst?: Number | null | string;
   cgst?: Number;
-  sgst?: Number,    
-  stper?: Number,    
-  surCharge?: Number | string,    
-  spNo?: Number,    
-  column?: Number,    
-  shortName?: string,    
-  shortName2?: string,    
+  sgst?: Number;
+  stper?: Number;
+  surCharge?: Number | string;
+  spNo?: Number;
+  column?: Number;
+  shortName?: string;
+  shortName2?: string;
 }
 
-export interface SalesPurchaseFormProps {  
-  spType?: string;
+export interface SalesPurchaseFormProps {
+  sptype?: string;
   salesPurchaseType?: string;
-  igst?: Number | null |string;
+  igst?: Number | null | string;
   cgst?: Number;
-  sgst?: Number,    
-  stper?: Number,    
-  surCharge?: Number | string,    
-  spNo?: Number,    
-  column?: Number,    
-  shortName?: string,    
-  shortName2?: string,    
+  sgst?: Number;
+  stper?: Number;
+  surCharge?: Number | string;
+  spNo?: Number;
+  column?: Number;
+  shortName?: string;
+  shortName2?: string;
 }
 
 interface SalesPurchaseProps {
-  data?:any;
+  data?: any;
   type?: any;
   formik?: any;
 }
@@ -187,8 +217,39 @@ export interface CreateStoreProps {
 
 export interface CompanyFormData {
   company_id?: string;
-  companyName:string;
   stationName: string;
   openingBal: string;
-  openingBalType:string;
+  openingBalType: string;
+}
+
+export interface BatchForm {
+  id?: number;
+  itemId: number;
+  batchNo: string;
+  expiryDate: string;
+  opBalance: number | null;
+  opFree: number | null;
+  purPrice: number | null;
+  salePrice: number | null;
+  mrp: number | null;
+  locked: string;
+}
+
+export interface itemFormData {
+  id?: string;
+  name: string;
+  service: string;
+  shortName: string;
+  packing: Number;
+  companyId: string;
+  itemGroupCode: string;
+  saleAccId?: string;
+  purAccId?: string;
+}
+
+export interface AccountGroupFormData {
+  head_code?: string;
+  head_name: string;
+  parent_code: string;
+  group_details: any;
 }

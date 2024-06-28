@@ -20,14 +20,15 @@ class AbstractModel {
     //     }
     // }
     
-    getAll(where = '', sort = '', limit = '',) {  
+    getAll(where = '', sort = '', limit = '', params = []) {  
         let sql = `SELECT * FROM ${this.tableName}`;
         if (where) sql += ` WHERE ${where}`;
         if (sort) sql += ` ORDER BY ${sort}`;
         if(limit) sql +=` LIMIT ${limit}`
 
         try {
-            const res = db.prepare(sql).all();
+            const stmt = db.prepare(sql);
+            const res = stmt.all(...params);
             return res;
         } catch (error) {
             console.error("Error executing getAll query:", error);

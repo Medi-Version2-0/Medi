@@ -3,60 +3,46 @@ import { Option } from '../../interface/global';
 import CustomSelect from '../custom_select/CustomSelect';
 import FormikInputField from '../common/FormikInputField';
 import titleCase from '../../utilities/titleCase';
+import { sendAPIRequest } from '../../helper/api';
 
 interface GeneralInfoProps {
   onValueChange?: any;
   formik?: any;
+  selectedGroup: string;
 }
 
 export const GeneralInfo: React.FC<GeneralInfoProps> = ({
   onValueChange,
   formik,
+  selectedGroup,
 }) => {
-  const [accountInputValue, setAccountInputValue] = useState<string>(
-    formik.values.accountGroup || ''
-  );
   const [stationData, setStationData] = useState<any[]>([]);
-  const [, setGroupData] = useState<any[]>([]);
-  const [, setStateData] = useState<any[]>([]);
   const [groupOptions, setGroupOptions] = useState<Option[]>([]);
   const [stationOptions, setStationOptions] = useState<Option[]>([]);
   const isSUNDRY =
-    accountInputValue.toUpperCase() === 'SUNDRY CREDITORS' ||
-    accountInputValue.toUpperCase() === 'SUNDRY DEBTORS';
-  const electronAPI = (window as any).electronAPI;
+    selectedGroup.toUpperCase() === 'SUNDRY CREDITORS' ||
+    selectedGroup.toUpperCase() === 'SUNDRY DEBTORS';
   const [focused, setFocused] = useState('');
 
-  const fetchAllData = () => {
-    const stateList = electronAPI.getAllStations(
-      '',
-      'station_name',
-      '',
-      '',
-      ''
-    );
-    const groupDataList = electronAPI.getAllGroups(
-      '',
-      'group_name',
-      '',
-      '',
-      ''
-    );
-    const statesList = electronAPI.getAllStates('', 'state_name', '', '', '');
+  const fetchAllData = async () => {
+    const stationList =
+      await sendAPIRequest<{ station_id: number; station_name: string }[]>(
+        '/station'
+      );
+    const groupDataList = await sendAPIRequest<any[]>('/group');
 
-    setStationData(stateList);
-    setGroupData(groupDataList);
-    setStateData(statesList);
+    setStationData(stationList);
 
     setStationOptions(
-      stateList.map((station: any) => ({
-        value: titleCase(station.station_name),
+      stationList.map((station: any) => ({
+        value: station.station_id,
         label: titleCase(station.station_name),
       }))
     );
+
     setGroupOptions(
       groupDataList.map((group: any) => ({
-        value: titleCase(group.group_name),
+        value: group.group_code,
         label: titleCase(group.group_name),
       }))
     );
@@ -69,19 +55,27 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
 
   const handleFieldChange = (option: Option | null, id: string) => {
     if (id === 'accountGroup') {
-      setAccountInputValue(option?.value || '');
-      onValueChange(option?.value);
+      onValueChange(option?.label);
+      const groupId = groupOptions.find(
+        (e) => e.label === option?.value
+      )?.value;
+      formik.setFieldValue('account_code', groupId);
+      formik.setFieldValue(id, option?.value);
     }
+    if (id === 'stationName') {
+      formik.setFieldValue('station_id', option?.value);
+    }
+
     formik.setFieldValue(id, option?.value);
   };
 
   useEffect(() => {
     if (formik.values.stationName) {
       const matchingStation = stationData.find(
-        (station) => formik.values.stationName === station.station_name
+        (station) => formik.values.station_id === station.station_id
       );
       const state = matchingStation ? matchingStation.station_state : '';
-      const pinCode = matchingStation ? matchingStation.station_pinCode : '';
+      const pinCode = matchingStation ? matchingStation.station_pinCode : ' ';
       formik.setFieldValue('state', state);
       formik.setFieldValue('pinCode', pinCode);
     }
@@ -143,7 +137,9 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                   formik.values.accountGroup === ''
                     ? null
                     : {
-                        label: formik.values.accountGroup,
+                        label: groupOptions.find(
+                          (e) => e.value === formik.values.accountGroup
+                        )?.label,
                         value: formik.values.accountGroup,
                       }
                 }
@@ -172,11 +168,13 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 id='stationName'
                 labelClass='items-center w-1/3'
                 value={
-                  formik.values.stationName === ''
+                  formik.values.station_id === ''
                     ? null
                     : {
-                        label: formik.values.stationName,
-                        value: formik.values.stationName,
+                        value: formik.values.station_id,
+                        label: stationOptions.find(
+                          (e) => e.value === formik.values.station_id
+                        )?.label,
                       }
                 }
                 onChange={handleFieldChange}
@@ -262,7 +260,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 }}
               />
             </div>
-            {accountInputValue?.toUpperCase() === 'SUNDRY CREDITORS' && (
+            {selectedGroup?.toUpperCase() === 'SUNDRY CREDITORS' && (
               <div className='flex justify-between items-center w-full'>
                 <div className='flex w-[45%]'>
                   <FormikInputField
@@ -288,7 +286,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 </div>
               </div>
             )}
-            {accountInputValue?.toUpperCase() === 'SUNDRY DEBTORS' && (
+            {selectedGroup?.toUpperCase() === 'SUNDRY DEBTORS' && (
               <div className='flex justify-between items-center w-full'>
                 <div className='flex w-[45%]'>
                   <FormikInputField
@@ -316,7 +314,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
             )}
           </div>
         )}
-        {accountInputValue?.toUpperCase() === 'SUNDRY DEBTORS' && (
+        {selectedGroup?.toUpperCase() === 'SUNDRY DEBTORS' && (
           <>
             <div className='flex flex-col m-[1px] w-full gap-2'>
               <div className='flex w-full m-[1px] justify-between'>
@@ -358,14 +356,14 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                   <CustomSelect
                     isPopupOpen={false}
                     label='Party CACR'
-                    id='party_cash_credit_invoice'
+                    id='partyCashCreditInvoice'
                     labelClass='min-w-[90px]'
                     value={
-                      formik.values.party_cash_credit_invoice === ''
+                      formik.values.partyCashCreditInvoice === ''
                         ? null
                         : {
-                            label: formik.values.party_cash_credit_invoice,
-                            value: formik.values.party_cash_credit_invoice,
+                            label: formik.values.partyCashCreditInvoice,
+                            value: formik.values.partyCashCreditInvoice,
                           }
                     }
                     onChange={handleFieldChange}
@@ -409,29 +407,29 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                   className='!h-6 rounded-sm'
                 />
               </div>
-                <div className='flex w-[67%]'>
-                  <FormikInputField
-                    isPopupOpen={false}
-                    label='Mail to'
-                    id='mailTo'
-                    name='mailTo'
-                    formik={formik}
-                    showErrorTooltip={
-                      formik.touched.mailTo && formik.errors.mailTo
+              <div className='flex w-[67%]'>
+                <FormikInputField
+                  isPopupOpen={false}
+                  label='Mail to'
+                  id='mailTo'
+                  name='mailTo'
+                  formik={formik}
+                  showErrorTooltip={
+                    formik.touched.mailTo && formik.errors.mailTo
+                  }
+                  labelClassName='min-w-[90px]'
+                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                    if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                      document.getElementById('address')?.focus();
+                      e.preventDefault();
+                    } else if (e.key === 'ArrowUp') {
+                      document.getElementById('stationName')?.focus();
                     }
-                    labelClassName='min-w-[90px]'
-                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                      if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                        document.getElementById('address')?.focus();
-                        e.preventDefault();
-                      } else if (e.key === 'ArrowUp') {
-                        document.getElementById('stationName')?.focus();
-                      }
-                    }}
-                  />
-                </div>
+                  }}
+                />
+              </div>
             </div>
-            
+
             <div className='flex gap-4 items-center w-full'>
               <CustomSelect
                 isPopupOpen={false}
@@ -495,27 +493,25 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
             </div>
           </>
         )}
-        {accountInputValue?.toUpperCase() === 'SUNDRY CREDITORS' && (
-                  <FormikInputField
-                    isPopupOpen={false}
-                    label='Mail to'
-                    id='mailTo'
-                    name='mailTo'
-                    formik={formik}
-                    showErrorTooltip={
-                      formik.touched.mailTo && formik.errors.mailTo
-                    }
-                    labelClassName='min-w-[90px]'
-                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                      if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                        document.getElementById('address')?.focus();
-                        e.preventDefault();
-                      } else if (e.key === 'ArrowUp') {
-                        document.getElementById('stationName')?.focus();
-                      }
-                    }}
-                  />
-              )}
+        {selectedGroup?.toUpperCase() === 'SUNDRY CREDITORS' && (
+          <FormikInputField
+            isPopupOpen={false}
+            label='Mail to'
+            id='mailTo'
+            name='mailTo'
+            formik={formik}
+            showErrorTooltip={formik.touched.mailTo && formik.errors.mailTo}
+            labelClassName='min-w-[90px]'
+            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+              if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                document.getElementById('address')?.focus();
+                e.preventDefault();
+              } else if (e.key === 'ArrowUp') {
+                document.getElementById('stationName')?.focus();
+              }
+            }}
+          />
+        )}
         <div className='flex m-[1px] items-center w-[42%]'>
           <CustomSelect
             isPopupOpen={false}

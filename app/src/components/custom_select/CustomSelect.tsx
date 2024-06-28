@@ -29,21 +29,23 @@ interface CustomSelectProps extends Omit<SelectProps<Option>, 'onChange'> {
   showErrorTooltip?: boolean;
   noOptionsMsg?: string;
   isPopupOpen?: boolean;
+  nextField?: string;
+  prevField?: string;
 }
 
 const CustomSelect: React.FC<CustomSelectProps> = ({
-  isPopupOpen=true,
+  isPopupOpen = true,
   isDisabled = false,
   label,
   id,
-  name = "",
+  name = '',
   labelClass,
   containerClass,
   options,
   value,
   onChange,
   placeholder = '',
-  isSearchable = true,
+  isSearchable = false,
   disableArrow = true,
   hidePlaceholder = true,
   className = '',
@@ -55,9 +57,13 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   isRequired,
   showErrorTooltip = false,
   noOptionsMsg = 'No Options',
+  nextField,
+  prevField,
   ...props
 }) => {
-  const customComponents = disableArrow ? { DropdownIndicator: () => null, IndicatorSeparator: () => null } : {};
+  const customComponents = disableArrow
+    ? { DropdownIndicator: () => null, IndicatorSeparator: () => null }
+    : {};
   const selectRef = useRef<any>(null);
   const [inputValue, setInputValue] = useState('');
   const [active, setActive] = useState(false);
@@ -78,18 +84,41 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
     }
   }, [isFocused]);
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter' || e.key === 'ArrowDown') {
+      if (nextField) {
+        document.getElementById(nextField)?.focus();
+      }
+    } else if ((e.key === 'Enter' && e.shiftKey) || e.key === 'ArrowUp') {
+      if (prevField) {
+        document.getElementById(prevField)?.focus();
+      }
+    }
+
+    if (onKeyDown) {
+      onKeyDown(e);
+    }
+  };
+
   return (
-    <div className={`${isPopupOpen ? `flex flex-col w-full h-fit relative text-xs${isRequired ? ' starlabel' : ''} ${containerClass}` : `flex flex-row gap-2 justify-center items-center w-full h-fit ${isRequired ? ' starlabel' : ''} ${containerClass}`}`}>
+    <div
+      className={`${isPopupOpen ? `flex flex-col w-full h-fit relative text-xs${isRequired ? ' starlabel' : ''} ${containerClass}` : `flex flex-row gap-2 justify-center items-center w-full h-fit ${isRequired ? ' starlabel' : ''} ${containerClass}`}`}
+    >
       {label && (
-        <label htmlFor={id} className={`${isPopupOpen ? `absolute top-0 left-1 -translate-y-1/2 bg-white px-1 z-10 ${isTouched && error && !active && '!text-red-700'} ${labelClass}` : `flex items-start h-full ${labelClass}`}`}>
+        <label
+          htmlFor={id}
+          className={`${isPopupOpen ? `absolute top-0 left-1 -translate-y-1/2 bg-white px-1 z-10 ${isTouched && error && !active && '!text-red-700'} ${labelClass}` : `flex items-start h-full ${labelClass}`}`}
+        >
           {label}
         </label>
       )}
-      <div className={` ${isPopupOpen ? `w-full relative border border-solid border-[#9ca3af] h-10 rounded-md ${className}  ${isTouched && error && !active && '!border-red-500'} ${active && "!border-2 !border-yellow-500 outline-none"}` : `w-full relative border border-solid border-[#9ca3af] h-fit rounded-md ${className}  ${isTouched && error && !active && '!border-red-500'} ${active && "!border-2 !border-yellow-500 outline-none"}`} `}>
+      <div
+        className={` ${isPopupOpen ? `w-full relative border border-solid border-[#9ca3af] h-10 rounded-md ${className}  ${isTouched && error && !active && '!border-red-500'} ${active && '!border-2 !border-yellow-500 outline-none'}` : `w-full relative border border-solid border-[#9ca3af] h-fit rounded-md ${className}  ${isTouched && error && !active && '!border-red-500'} ${active && '!border-2 !border-yellow-500 outline-none'}`} `}
+      >
         <Select
           ref={selectRef}
-          id={id || ""}
-          name={name || ""}
+          id={id || ''}
+          name={name || ''}
           classNamePrefix='custom-select'
           components={customComponents}
           options={options}
@@ -103,7 +132,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
           isSearchable={isSearchable}
           className={`w-full h-full text-gray-700`}
           {...props}
-          onKeyDown={onKeyDown}
+          onKeyDown={handleKeyDown}
           isDisabled={isDisabled}
           onBlur={handleBlur}
           onFocus={handleFocus}
@@ -111,8 +140,15 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
         />
         {showErrorTooltip && isTouched && error && (
           <>
-            <FaExclamationCircle data-tooltip-id={`${id}-error-tooltip`} className='absolute -translate-y-2/4 top-2/4 right-1 text-red-600' />
-            <ReactTooltip id={`${id}-error-tooltip`} place='bottom' className=' text-[white] border rounded text-sm z-10 p-2 border-solid border-[#d8000c] !bg-red-600'>
+            <FaExclamationCircle
+              data-tooltip-id={`${id}-error-tooltip`}
+              className='absolute -translate-y-2/4 top-2/4 right-1 text-red-600'
+            />
+            <ReactTooltip
+              id={`${id}-error-tooltip`}
+              place='bottom'
+              className=' text-[white] border rounded text-sm z-10 p-2 border-solid border-[#d8000c] !bg-red-600'
+            >
               {error}
             </ReactTooltip>
           </>

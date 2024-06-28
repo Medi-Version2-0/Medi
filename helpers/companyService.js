@@ -20,10 +20,10 @@ module.exports.getAllCompany = (where = "", sort = "", limit = "") => {
     d.openingBalType = d.openingBalType === "Debit" ? "Dr" : "Cr";
     spData.forEach((sp) => {
       if (d.sales_id && d.sales_id === sp.sp_id) {
-        d.sales = sp.spType;
+        d.sales = sp.sptype;
       }
       if (d.purchase_id && d.purchase_id === sp.sp_id) {
-        d.purchase = sp.spType;
+        d.purchase = sp.sptype;
       }
     });
     stationData.forEach((s) => {
@@ -47,7 +47,7 @@ module.exports.addCompany = (companyData) => {
     const ledgerPartyData = {
       partyName: companyData.companyName,
       account_code: 5,
-      isPredefinedParty: 0,
+      isPredefinedLedger: 0,
       station_id: stationId,
       address1: companyData.address1,
       address2: companyData.address2,

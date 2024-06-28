@@ -13,7 +13,7 @@ import Button from '../../components/common/button/Button';
 import { CreateSalePurchase } from './CreateSalePurchase';
 
 const initialValue = {
-  spType: '',
+  sptype: '',
   igst: '0.00',
   surCharge: '',
   shortName: '',
@@ -39,9 +39,9 @@ export const Sales_Table: React.FC<SalesPurchaseTableProps> = ({ type }) => {
   const electronAPI = (window as any).electronAPI;
 
   const getSalesData = async () => {
-    const data = await electronAPI.getSalesPurchase('', 'spType', '', type);
+    const data = await electronAPI.getSalesPurchase('', 'sptype', '', type);
     setTableData(data);
-    setCurrTableData(electronAPI.getSalesPurchase('', 'spType', '', type));
+    setCurrTableData(electronAPI.getSalesPurchase('', 'sptype', '', type));
   };
 
   useEffect(() => {
@@ -78,9 +78,9 @@ export const Sales_Table: React.FC<SalesPurchaseTableProps> = ({ type }) => {
 
   const handleConfirmPopup = () => {
     setPopupState({ ...popupState, isModalOpen: false });
-    if (formData.spType) {
-      formData.spType =
-        formData.spType.charAt(0).toUpperCase() + formData.spType.slice(1);
+    if (formData.sptype) {
+      formData.sptype =
+        formData.sptype.charAt(0).toUpperCase() + formData.sptype.slice(1);
     }
     if (formData !== initialValue) {
       if (formData.sp_id) {
@@ -97,9 +97,9 @@ export const Sales_Table: React.FC<SalesPurchaseTableProps> = ({ type }) => {
     const mode = values.sp_id ? 'update' : 'create';
     const existingSalePurchase = tableData.find((sp: SalesPurchaseFormData) => {
       if (mode === 'create')
-        return sp.spType?.toLowerCase() === values.spType?.toLowerCase();
+        return sp.sptype?.toLowerCase() === values.sptype?.toLowerCase();
       return (
-        sp.spType?.toLowerCase() === values.spType?.toLowerCase() &&
+        sp.sptype?.toLowerCase() === values.sptype?.toLowerCase() &&
         sp.sp_id !== values.sp_id
       );
     });
@@ -111,9 +111,9 @@ export const Sales_Table: React.FC<SalesPurchaseTableProps> = ({ type }) => {
       });
       return;
     }
-    if (values.spType) {
-      values.spType =
-        values.spType.charAt(0).toUpperCase() + values.spType.slice(1);
+    if (values.sptype) {
+      values.sptype =
+        values.sptype.charAt(0).toUpperCase() + values.sptype.slice(1);
     }
     if (mode === 'create') {
       values.salesPurchaseType = type;
@@ -199,9 +199,9 @@ export const Sales_Table: React.FC<SalesPurchaseTableProps> = ({ type }) => {
     if (!valueChanged) return;
     const field = column.colId;
     switch (field) {
-      case 'spType':
+      case 'sptype':
         {
-          const existingSalePurchase = currTableData.find((sp: SalesPurchaseFormData) => sp.spType?.toLowerCase() === newValue?.toLowerCase()
+          const existingSalePurchase = currTableData.find((sp: SalesPurchaseFormData) => sp.sptype?.toLowerCase() === newValue?.toLowerCase()
         );
         if(existingSalePurchase){
           setPopupState({
@@ -283,7 +283,7 @@ export const Sales_Table: React.FC<SalesPurchaseTableProps> = ({ type }) => {
   const colDefs: any[] = [
     {
       headerName: 'Name',
-      field: 'spType',
+      field: 'sptype',
       flex: 1,
       menuTabs: ['filterMenuTab'],
       filter: true,

@@ -77,7 +77,7 @@ function createMainWindow() {
       preload: path.join(__dirname, "./preload.js"),
     },
   });
-  mainWindow.removeMenu()
+  // mainWindow.removeMenu()
   mainWindow.webContents.openDevTools(); // TODO: Remove in prod builds
 
   // const startUrl = url.format({

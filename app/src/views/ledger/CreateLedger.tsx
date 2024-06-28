@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
 import { GeneralInfo } from '../../components/ledger form/GeneralInfo';
@@ -9,12 +9,16 @@ import { ContactDetails } from '../../components/ledger form/ContactDetails';
 import { LicenceDetails } from '../../components/ledger form/LicenceDetails';
 import { TaxDetails } from '../../components/ledger form/TaxDetails';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
+
 import Button from '../../components/common/button/Button';
 import { getLedgerFormValidationSchema } from './validation_schema';
+import { sendAPIRequest } from '../../helper/api';
+import titleCase from '../../utilities/titleCase';
+import { Option } from '../../interface/global';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 
-const initialValue = {
+const initialState = {
   btn_1: false,
   btn_2: false,
   btn_3: false,
@@ -22,30 +26,40 @@ const initialValue = {
 };
 
 export const CreateLedger = () => {
-  const [showActiveElement, setShowActiveElement] = useState(initialValue);
-  const electronAPI = (window as any).electronAPI;
-  const navigate = useNavigate();
-  const location = useLocation();
-  const data = location.state || {};
-  const [valueFromGeneral, setValueFromGeneral] = useState(data?.accountGroup || '');
-  const isSUNDRY = (valueFromGeneral.toUpperCase() === 'SUNDRY CREDITORS' || valueFromGeneral.toUpperCase() === 'SUNDRY DEBTORS');
+  const [showActiveElement, setShowActiveElement] = useState(initialState);
+  const [groupOptions, setGroupOptions] = useState<Option[]>([]);
+  const [isSUNDRY, setIsSUNDRY] = useState(false);
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
     message: '',
   });
 
-  useEffect(() => {
-    ledgerFormInfo.validateForm();
-  }, [valueFromGeneral]);
+  const navigate = useNavigate();
+  const { state: data = {} } = useLocation();
 
-  const ledgerFormInfo = useFormik({
-    initialValues: {
-      // general info
+  const prevClass = useRef('');
+
+  const fetchAllData = async () => {
+    const groupDataList = await sendAPIRequest<any[]>('/group');
+    setGroupOptions(
+      groupDataList.map((group) => ({
+        value: group.group_code,
+        label: titleCase(group.group_name),
+      }))
+    );
+  };
+
+  useEffect(() => {
+    fetchAllData();
+  }, []);
+
+  const initialValues = useMemo(
+    () => ({
       partyName: data?.partyName || '',
-      accountGroup: data?.accountGroup || '',
+      accountGroup: data?.Group?.group_code || '',
       account_code: data?.account_code || '',
-      isPredefinedParty: data?.isPredefinedParty || true,
+      isPredefinedParty: data?.isPredefinedParty ?? true,
       station_id: data?.station_id || '',
       stationName: data?.stationName || '',
       mailTo: data?.mailTo || '',
@@ -60,111 +74,111 @@ export const CreateLedger = () => {
       creditPrivilege: data?.creditPrivilege || '',
       excessRate: data?.excessRate || '',
       routeNo: data?.routeNo || '',
-      party_cash_credit_invoice: data?.party_cash_credit_invoice || '',
+      partyCashCreditInvoice: data?.partyCashCreditInvoice || '',
       deductDiscount: data?.deductDiscount || '',
       stopNrx: data?.stopNrx || '',
       stopHi: data?.stopHi || '',
       notPrinpba: data?.notPrinpba || '',
-
-      // balance info
       openingBal: data?.openingBal || '0.00',
       openingBalType: data?.openingBalType || 'Dr',
       creditDays: data?.creditDays || '0',
       creditLimit: data?.creditLimit || '0',
       partyType: data?.partyType || '',
-
-      // contact info
       phoneNumber: data?.phoneNumber || '',
-
-      // gst data
       gstIn: data?.gstIn || '',
       panCard: data?.panCard || '',
       gstExpiry: data?.gstExpiry || '',
-
-      // personal info
       firstName: data?.firstName || '',
       lastName: data?.lastName || '',
       emailId1: data?.emailId1 || '',
       emailId2: data?.emailId2 || '',
-
-      // licence info
       drugLicenceNo1: data?.drugLicenceNo1 || '',
       drugLicenceNo2: data?.drugLicenceNo2 || '',
       licenceExpiry: data?.licenceExpiry || '',
-
-      // bank details
       accountHolderName: data?.accountHolderName || '',
       accountNumber: data?.accountNumber || '',
       bankName: data?.bankName || '',
       ifscCode: data?.ifscCode || '',
       accountType: data?.accountType || '',
       branchName: data?.branchName || '',
-    },
+    }),
+    [data]
+  );
+
+  const ledgerFormInfo = useFormik({
+    initialValues,
     validationSchema: getLedgerFormValidationSchema(isSUNDRY),
-    onSubmit: (values) => {
+    onSubmit: async (values) => {
       const formattedOpeningBal = parseFloat(values.openingBal).toFixed(2);
       const allData = {
         ...values,
         openingBal: formattedOpeningBal,
+        account_code: values.accountGroup,
+        station_id: values.station_id || null,
       };
-      if (data.party_id) {
-        electronAPI.updateParty(data.party_id, allData);
-      } else {
-        electronAPI.addParty(allData);
-      }
+      delete allData.accountGroup;
+      delete allData.stationName;
+
+      const apiPath = data?.party_id ? `/ledger/${data?.party_id}` : '/ledger';
+      const method = data?.party_id ? 'PUT' : 'POST';
+
+      await sendAPIRequest(apiPath, { method, body: allData });
+      navigate('../ledger_table', { replace: true });
     },
   });
 
-  const handleValueChange = (value: any) => {
-    if (value !== data.accountGroup) {
-      setValueFromGeneral(value);
+  const group = useMemo(
+    () =>
+      groupOptions.find((e) => ledgerFormInfo?.values?.accountGroup === e.value)
+        ?.label || '',
+    [groupOptions, ledgerFormInfo.values?.accountGroup]
+  );
+
+  useEffect(() => {
+    setIsSUNDRY(
+      ['SUNDRY CREDITORS', 'SUNDRY DEBTORS'].includes(group.toUpperCase())
+    );
+  }, [group]);
+
+  const handleValueChange = (value: string) => {
+    if (value !== data?.accountGroup) {
       const newValues: any = {};
-      for (const key in ledgerFormInfo.initialValues) {
-        if (key !== 'partyName') {
-          newValues[key] = '';
-        }
-      }
+      Object.keys(ledgerFormInfo.initialValues).forEach((key) => {
+        if (key !== 'partyName') newValues[key] = '';
+      });
       newValues.partyName = ledgerFormInfo.values.partyName;
       newValues.accountGroup = value;
-      newValues.openingBal = '0.00'; 
-      ((value.toUpperCase() === 'SUNDRY CREDITORS' || value.toUpperCase() === 'SUNDRY DEBTORS')) && (newValues.country = 'India');
-      newValues.openingBalType = "Dr";
+      newValues.openingBal = '0.00';
+      if (
+        ['SUNDRY CREDITORS', 'SUNDRY DEBTORS'].includes(value.toUpperCase())
+      ) {
+        newValues.country = 'India';
+      }
+      newValues.openingBalType = 'Dr';
       ledgerFormInfo.setValues(newValues);
     } else {
-      const initialValues = {
-        ...data,
-        accountGroup: value
-      };
+      const initialValues = { ...data, accountGroup: value };
       ledgerFormInfo.setValues(initialValues);
-      setValueFromGeneral(value);
     }
     ledgerFormInfo.validateForm();
   };
 
-  const prevClass = useRef('');
-
   const handleClick = (clickedClass: string) => {
-    setShowActiveElement({...initialValue, [prevClass.current]: false});
-    const currentActiveBtns = document.getElementsByClassName('active');
-    if (currentActiveBtns.length > 0) {
-      currentActiveBtns[0].classList.remove('active');
-    }
-    const clickedElements = document.getElementsByClassName(clickedClass);
-    if (clickedElements.length > 0) {
-      clickedElements[0].classList.add('active');
-    }
-    setShowActiveElement({...initialValue, [clickedClass]: true});
+    setShowActiveElement({ ...initialState, [prevClass.current]: false });
+    document.querySelector('.active')?.classList.remove('active');
+    document.querySelector(`.${clickedClass}`)?.classList.add('active');
+    setShowActiveElement({ ...initialState, [clickedClass]: true });
     prevClass.current = clickedClass;
   };
 
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
-    return navigate('/ledger_table');
+    navigate('/ledger_table');
   };
 
-  useEffect(()=>{
+  useEffect(() => {
     handleClick('btn_1');
-  },[])
+  }, []);
 
   const handleClosePopup = () => {
     setPopupState({ ...popupState, isModalOpen: false });
@@ -174,46 +188,48 @@ export const CreateLedger = () => {
     <div className='w-full'>
       <div className='flex w-full items-center justify-between px-8 py-1'>
         <h1 className='font-bold'>
-          {!!data.party_id ? 'Update Party' : 'Create Party'}
+          {data?.party_id ? 'Update Party' : 'Create Party'}
         </h1>
         <Button
           type='highlight'
           id='ledger_button'
-          handleOnClick={() => {
-            return navigate(`/ledger_table`);
-          }}
+          handleOnClick={() => navigate('../ledger_table', { replace: true })}
         >
           Back
         </Button>
       </div>
-      <form onSubmit={ledgerFormInfo.handleSubmit} className='flex flex-col w-full'>
+      <form
+        onSubmit={ledgerFormInfo.handleSubmit}
+        className='flex flex-col w-full'
+      >
         <div className='flex flex-row px-4 mx-4 py-2 gap-2'>
           <GeneralInfo
             onValueChange={handleValueChange}
             formik={ledgerFormInfo}
+            selectedGroup={group}
           />
           <div className='flex flex-col gap-6 w-[40%]'>
-            <BalanceDetails
-              accountInputValue={valueFromGeneral}
-              formik={ledgerFormInfo}
-            />
-            <ContactNumbers
-              accountInputValue={valueFromGeneral}
-              formik={ledgerFormInfo}
-            />
+            <BalanceDetails selectedGroupName={group} formik={ledgerFormInfo} />
+            <ContactNumbers selectedGroupName={group} formik={ledgerFormInfo} />
           </div>
         </div>
-        {(valueFromGeneral.toUpperCase() === 'SUNDRY CREDITORS' ||
-          valueFromGeneral.toUpperCase() === 'SUNDRY DEBTORS') && (
-            <div className='shadow-lg mx-8'>
-              <div className='flex flex-row my-1'>
+        {isSUNDRY && (
+          <div className='shadow-lg mx-8'>
+            <div className='flex flex-row my-1'>
+              {[
+                'GST/Tax Details',
+                'Licence Info',
+                'Contact Info',
+                'Bank Details',
+              ].map((label, idx) => (
                 <Button
+                  key={label}
                   type='fog'
                   btnType='button'
-                  id='GST/Tax Details'
+                  id={label.replace(' ', '_')}
                   className={`rounded-none !border-r-[1px] focus:font-black ${!!showActiveElement.btn_1 && 'border-b-blue-500 border-b-[2px]'} text-sm font-medium !py-1`}
-                  handleOnClick={() => handleClick('btn_1')}
-                  handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
+                  handleOnClick={() => handleClick(`btn_${idx + 1}`)}
+                  handleOnKeyDown={(e) => {
                     if (e.key === 'ArrowDown' || e.key === 'Enter') {
                       handleClick('btn_1');
                       document.getElementById('gstIn')?.focus();
@@ -228,111 +244,45 @@ export const CreateLedger = () => {
                     }
                   }}
                 >
-                  GST/Tax Details
+                  {label}
                 </Button>
-                <Button
-                  type='fog'
-                  btnType='button'
-                  id='Licence_Info'
-                  className={`rounded-none !border-x-0 ${!!showActiveElement.btn_2 && 'border-b-blue-500 border-b-[2px]'} $text-sm font-medium !py-1`}
-                  handleOnClick={() => handleClick('btn_2')}
-                  handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
-                    if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                      handleClick('btn_2');
-                      document.getElementById('drugLicenceNo1')?.focus();
-                      e.preventDefault();
-                    } else if (e.key === 'ArrowRight') {
-                      document.getElementById('Contact_Info')?.focus();
-                      e.preventDefault();
-                    }
-                    if (e.key === 'ArrowLeft') {
-                      document.getElementById('GST/Tax Details')?.focus();
-                      e.preventDefault();
-                    }
-                  }}
-                >
-                  Licence Details
-                </Button>
-                <Button
-                  type='fog'
-                  btnType='button'
-                  id='Contact_Info'
-                  className={`rounded-none !border-x-[1px] ${showActiveElement.btn_3 && 'border-b-blue-500 border-b-[2px]'} text-sm font-medium !py-1`}
-                  handleOnClick={() => handleClick('btn_3')}
-                  handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
-                    if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                      handleClick('btn_3');
-                      document.getElementById('firstName')?.focus();
-                      e.preventDefault();
-                    } else if (e.key === 'ArrowRight') {
-                      document.getElementById('Bank_Details')?.focus();
-                      e.preventDefault();
-                    }
-                    if (e.key === 'ArrowLeft') {
-                      document.getElementById('Licence_Info')?.focus();
-                      e.preventDefault();
-                    }
-                  }}
-                >
-                  Contact Details
-                </Button>
-                <Button
-                  type='fog'
-                  btnType='button'
-                  id='Bank_Details'
-                  className={`btn_4 rounded-none !border-l-0 ${showActiveElement.btn_4 && 'border-b-blue-500 border-b-[2px]'} text-sm font-medium !py-1`}
-                  handleOnClick={() => handleClick('btn_4')}
-                  handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
-                    if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                      handleClick('btn_4');
-                      document.getElementById('bankName')?.focus();
-                      e.preventDefault();
-                    } else if (e.key === 'ArrowLeft') {
-                      document.getElementById('Contact_Info')?.focus();
-                      e.preventDefault();
-                    }
-                  }}
-                >
-                  Bank Details
-                </Button>
-              </div>
-              <div className=''>
-                {showActiveElement.btn_1 && (
-                  <TaxDetails formik={ledgerFormInfo} />
-                )}
-                {showActiveElement.btn_3 && (
-                  <ContactDetails formik={ledgerFormInfo} />
-                )}
-                {showActiveElement.btn_2 && (
-                  <LicenceDetails formik={ledgerFormInfo} />
-                )}
-                {showActiveElement.btn_4 && (
-                  <BankDetails formik={ledgerFormInfo} />
-                )}
-              </div>
+              ))}
             </div>
-          )}
+            {showActiveElement.btn_1 && <TaxDetails formik={ledgerFormInfo} />}
+            {showActiveElement.btn_2 && (
+              <LicenceDetails formik={ledgerFormInfo} />
+            )}
+            {showActiveElement.btn_3 && (
+              <ContactDetails formik={ledgerFormInfo} />
+            )}
+            {showActiveElement.btn_4 && <BankDetails formik={ledgerFormInfo} />}
+          </div>
+        )}
         <div className='w-full px-8 py-2'>
           <Button
             type='fill'
             padding='px-4 py-2'
             id='submit_all'
-            disable={!(ledgerFormInfo.isValid)}
+            disable={!ledgerFormInfo.isValid}
             handleOnClick={() => {
               setPopupState({
                 ...popupState,
                 isAlertOpen: true,
-                message: `Ledger ${!!data.party_id ? 'updated' : 'created'} successfully`,
+                message: `Ledger ${!!data?.party_id ? 'updated' : 'created'} successfully`,
               });
             }}
             handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
               if (e.key === 'ArrowUp') {
-                document.getElementById(isSUNDRY ? 'accountHolderName' : 'openingBalType')?.focus();
+                document
+                  .getElementById(
+                    isSUNDRY ? 'accountHolderName' : 'openingBalType'
+                  )
+                  ?.focus();
                 e.preventDefault();
               }
             }}
           >
-            {!!data.party_id ? 'Update' : 'Submit'}
+            {data?.party_id ? 'Update Party' : 'Create Party'}
           </Button>
         </div>
       </form>

@@ -39,10 +39,10 @@ module.exports.updateSalesPurchase = (sp_id, spData) => {
     throw error;
   }
 };
-module.exports.getSalesPurchaseIdByType = (spType) => {
+module.exports.getSalesPurchaseIdByType = (sptype) => {
   try {
     const spData = salesPurchase.getAll('', '', '');
-    const spFound = spData.find((sp) => sp.spType === spType);
+    const spFound = spData.find((sp) => sp.sptype === sptype);
     return spFound ? spFound.sp_id : null;
   } catch (error) {
     console.error('Error getting sales/purchase ID:', error);

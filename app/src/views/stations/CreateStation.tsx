@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { Formik, Form, Field, FormikProps } from 'formik';
-import { CreateStationProps, FormDataProps, Option, State, StationFormData } from '../../interface/global';
+import {
+  CreateStationProps,
+  FormDataProps,
+  Option,
+  State,
+  StationFormData,
+} from '../../interface/global';
 import { Popup } from '../../components/popup/Popup';
 import * as Yup from 'yup';
 import CustomSelect from '../../components/custom_select/CustomSelect';
@@ -20,7 +26,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
   const electronAPI = (window as any).electronAPI;
   const formikRef = useRef<FormikProps<FormDataProps>>(null);
   const [stateOptions, setStateOptions] = useState<Option[]>([]);
-  const [focused, setFocused] = useState("");
+  const [focused, setFocused] = useState('');
 
   const validationSchema = Yup.object({
     station_name: Yup.string()
@@ -31,15 +37,14 @@ export const CreateStation: React.FC<CreateStationProps> = ({
         'Station name can contain alphanumeric characters, "-", "_", and spaces only'
       )
       .max(100, 'Station name cannot exceeds 100 characters'),
-    station_state: Yup.string().required("Station state is required"),
+    state_code: Yup.string().required('Station state is required'),
     station_pinCode: Yup.string()
-      .required("Station pincode is required")
-      .matches(/^[0-9]+$/, "Station pincode must contain only numbers")
-      .min(6, "Station pincode must be at least 6 characters long")
-      .max(6, "Station pincode cannot exceed 6 characters"),
-      igst_sale: Yup.string().required("CST sale is required"),
+      .required('Station pincode is required')
+      .matches(/^[0-9]+$/, 'Station pincode must contain only numbers')
+      .min(6, 'Station pincode must be at least 6 characters long')
+      .max(6, 'Station pincode cannot exceed 6 characters'),
+    igst_sale: Yup.string().required('CST sale is required'),
   });
-
 
   useEffect(() => {
     const focusTarget = !isDelete
@@ -52,7 +57,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
     const statesList = electronAPI.getAllStates('', 'state_name', '', '', '');
     setStateOptions(
       statesList.map((state: State) => ({
-        value: titleCase(state.state_name),
+        value: state.state_code,
         label: titleCase(state.state_name),
       }))
     );
@@ -71,7 +76,11 @@ export const CreateStation: React.FC<CreateStationProps> = ({
     handelFormSubmit(formData);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, formik?: FormikProps<StationFormData>, radioField?: any) => {
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    formik?: FormikProps<StationFormData>,
+    radioField?: any
+  ) => {
     onKeyDown({
       e,
       formik: formik,
@@ -91,15 +100,21 @@ export const CreateStation: React.FC<CreateStationProps> = ({
     if (filteredValue.length <= 6) {
       formikRef.current?.setFieldValue(e.target.name, filteredValue);
     } else {
-      formikRef.current?.setFieldValue(e.target.name, filteredValue.slice(0, 6));
+      formikRef.current?.setFieldValue(
+        e.target.name,
+        filteredValue.slice(0, 6)
+      );
     }
   };
   return (
     <Popup
       togglePopup={togglePopup}
-      heading={station_id && isDelete ? 'Delete Station'
-        : station_id ? 'Update Station'
-          : 'Create Station'
+      heading={
+        station_id && isDelete
+          ? 'Delete Station'
+          : station_id
+            ? 'Update Station'
+            : 'Create Station'
       }
     >
       <Formik
@@ -107,9 +122,9 @@ export const CreateStation: React.FC<CreateStationProps> = ({
         initialValues={{
           station_name: data?.station_name || '',
           igst_sale: data?.igst_sale || '',
-          station_state: data?.station_state || '',
+          state_code: data?.state_code || '',
           station_pinCode: data?.station_pinCode || '',
-          station_headQuarter: data?.station_headQuarter || "",
+          station_headQuarter: data?.station_headQuarter || '',
         }}
         validationSchema={validationSchema}
         onSubmit={handleSubmit}
@@ -117,15 +132,15 @@ export const CreateStation: React.FC<CreateStationProps> = ({
         {(formik) => (
           <Form className='flex flex-col gap-3 min-w-[18rem] items-start px-4'>
             <FormikInputField
-            label='Station Name'
+              label='Station Name'
               id='station_name'
               name='station_name'
               formik={formik}
               className='!gap-0'
               isDisabled={isDelete && station_id}
-              nextField='station_state'
+              nextField='state_code'
               prevField='station_name'
-              sideField='station_state'
+              sideField='state_code'
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                 handleKeyDown(e)
               }
@@ -135,18 +150,21 @@ export const CreateStation: React.FC<CreateStationProps> = ({
             />
             <div className='flex flex-col w-full '>
               {stateOptions.length > 0 && (
-                <Field name='station_state'>
+                <Field name='state_code'>
                   {() => (
                     <CustomSelect
-                    label='State'
-                      id='station_state'
-                      name='station_state'
+                      label='State'
+                      id='state_code'
+                      name='state_code'
                       value={
-                        formik.values.station_state === ''
+                        formik.values.state_code === ''
                           ? null
                           : {
-                              label: formik.values.station_state,
-                              value: formik.values.station_state,
+                              label:
+                                stateOptions.find(
+                                  (e) => e.value === formik.values.state_code
+                                )?.label || '',
+                              value: formik.values.state_code,
                             }
                       }
                       onChange={handleFieldChange}
@@ -155,19 +173,16 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                       disableArrow={true}
                       hidePlaceholder={false}
                       className='!h-6 rounded-sm text-xs'
-                      isFocused={focused === 'station_state'}
-                      error={formik.errors.station_state}
+                      isFocused={focused === 'state_code'}
+                      error={formik.errors.state_code}
                       isDisabled={isDelete && station_id}
-                      isTouched={formik.touched.station_state}
+                      isTouched={formik.touched.state_code}
                       onBlur={() => {
-                        formik.setFieldTouched('station_state', true);
+                        formik.setFieldTouched('state_code', true);
                         setFocused('');
                       }}
                       onKeyDown={(e: any) => {
-                        if (
-                          e.key === 'Enter' ||
-                          e.key === 'Tab'
-                        ) {
+                        if (e.key === 'Enter' || e.key === 'Tab') {
                           const dropdown = document.querySelector(
                             '.custom-select__menu'
                           );
@@ -189,7 +204,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
             </div>
 
             <FormikInputField
-            label='Pin Code'
+              label='Pin Code'
               id='station_pinCode'
               name='station_pinCode'
               formik={formik}
@@ -197,7 +212,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
               isDisabled={isDelete && station_id}
               sideField='igst_sale'
               nextField='igst_sale'
-              prevField='station_state'
+              prevField='state_code'
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                 handleKeyDown(e)
               }
@@ -214,7 +229,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
               <Field name='igst_sale'>
                 {() => (
                   <CustomSelect
-                  label='IGST Sale'
+                    label='IGST Sale'
                     id='igst_sale'
                     name='igst_sale'
                     value={
@@ -269,10 +284,14 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                 handleOnClick={() => togglePopup(false)}
                 handleOnKeyDown={(e) => {
                   if (e.key === 'Tab') {
-                    document.getElementById(`${isDelete ? 'del_button' : 'submit_button'}`)?.focus();
+                    document
+                      .getElementById(
+                        `${isDelete ? 'del_button' : 'submit_button'}`
+                      )
+                      ?.focus();
                     e.preventDefault();
-                  } 
-                  if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab') ) {
+                  }
+                  if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab')) {
                     e.preventDefault();
                     setFocused('igst_sale');
                   }
@@ -294,7 +313,10 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                     if (e.key === 'Tab') {
                       e.preventDefault();
                     }
-                    if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab') ) {
+                    if (
+                      e.key === 'ArrowUp' ||
+                      (e.shiftKey && e.key === 'Tab')
+                    ) {
                       document.getElementById('cancel_button')?.focus();
                     }
                   }}
@@ -312,7 +334,10 @@ export const CreateStation: React.FC<CreateStationProps> = ({
                       document.getElementById('station_name')?.focus();
                       e.preventDefault();
                     }
-                    if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab') ) {
+                    if (
+                      e.key === 'ArrowUp' ||
+                      (e.shiftKey && e.key === 'Tab')
+                    ) {
                       document.getElementById('cancel_button')?.focus();
                     }
                   }}

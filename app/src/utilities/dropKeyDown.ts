@@ -10,17 +10,13 @@ const onDropKeyDown = ({ e, focusedSetter }: HandleSelectKeyDownParams) => {
   !dropdown && e.preventDefault();
 
   if ((key === 'Enter' || key === 'Tab') && !shiftPressed) {
-
     const nextField = e.currentTarget.getAttribute('data-next-field') || '';
     document.getElementById(nextField)?.focus();
     focusedSetter && focusedSetter(nextField);
-
   } else if (key === 'Tab' && shiftPressed) {
-
     const prevField = e.currentTarget.getAttribute('data-prev-field') || '';
     document.getElementById(prevField)?.focus();
     focusedSetter && focusedSetter(prevField);
-    
   }
 };
 

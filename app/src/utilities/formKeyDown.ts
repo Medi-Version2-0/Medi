@@ -1,4 +1,4 @@
-import { FormikProps } from "formik";
+import { FormikProps } from 'formik';
 
 type FormikPropsType = FormikProps<any>;
 
@@ -12,7 +12,12 @@ interface HandleKeyDownParams {
   };
 }
 
-const onKeyDown = ({ e, formik, focusedSetter, radioField }: HandleKeyDownParams) => {
+const onKeyDown = ({
+  e,
+  formik,
+  focusedSetter,
+  radioField,
+}: HandleKeyDownParams) => {
   const key = e.key;
   const shiftPressed = e.shiftKey;
 
@@ -41,15 +46,21 @@ const onKeyDown = ({ e, formik, focusedSetter, radioField }: HandleKeyDownParams
     case 'Tab':
       {
         if (shiftPressed) {
-          const prevField = e.currentTarget.getAttribute('data-prev-field') || '';
+          const prevField =
+            e.currentTarget.getAttribute('data-prev-field') || '';
           document.getElementById(prevField)?.focus();
           focusedSetter && focusedSetter(prevField);
           e.preventDefault();
         } else {
-          const sideField = e.currentTarget.getAttribute('data-side-field') || e.currentTarget.getAttribute('data-next-field') || '';
+          const sideField =
+            e.currentTarget.getAttribute('data-side-field') ||
+            e.currentTarget.getAttribute('data-next-field') ||
+            '';
           document.getElementById(sideField)?.focus();
           if (radioField?.typeField) {
-            const value = (document.getElementById(sideField) as HTMLInputElement)?.value;
+            const value = (
+              document.getElementById(sideField) as HTMLInputElement
+            )?.value;
             formik && formik.setFieldValue(radioField.typeField, value);
           }
           focusedSetter && focusedSetter(sideField);

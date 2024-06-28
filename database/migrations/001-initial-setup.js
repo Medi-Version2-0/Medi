@@ -3,11 +3,13 @@ const { groups } = require("../models/groups");
 const { PartyList } = require("../models/party");
 const { SalesPurchasePred } = require("../models/sales_purchase_pred");
 
-const insertStatements = (statesList.sort((a, b) => a.state_code - b.state_code)).map((state) => {
-  const { state_code, state_name, union_territory } = state;
-  const unionTerritoryValue = union_territory ? 1 : 0;
-  return `(${state_code}, '${state_name}', ${unionTerritoryValue})`;
-});
+const insertStatements = statesList
+  .sort((a, b) => a.state_code - b.state_code)
+  .map((state) => {
+    const { state_code, state_name, union_territory } = state;
+    const unionTerritoryValue = union_territory ? 1 : 0;
+    return `(${state_code}, '${state_name}', ${unionTerritoryValue})`;
+  });
 
 const insertGroups = groups.map((group) => {
   const { group_code, group_name, parent_code, type, isPredefinedGroup } =
@@ -17,24 +19,44 @@ const insertGroups = groups.map((group) => {
 });
 
 const insertPartyAccountGroup = PartyList.map((party) => {
-  let { party_name, account_group, isPredefinedParty, account_code } = party;
+  let { party_name, account_group, isPredefinedLedger, account_code } = party;
   groups.map((group) => {
     const { group_code, group_name } = group;
     if (account_group.toLowerCase() === group_name.toLowerCase()) {
       account_code = group_code;
     }
-  })
-  const isPredefinedPartyValue = isPredefinedParty ? 1 : 0;
-  return `('${party_name}', ${account_code},${isPredefinedPartyValue} )`;
+  });
+  const isPredefinedLedgerValue = isPredefinedLedger ? 1 : 0;
+  return `('${party_name}', ${account_code},${isPredefinedLedgerValue} )`;
 });
 
 const insertSalesPurchase = SalesPurchasePred.map((sp) => {
-  let { spType, igst, cgst, sgst, salesPurchaseType } = sp;
-  return `('${spType}', ${igst}, ${cgst}, ${sgst}, '${salesPurchaseType}')`;
-})
+  let { sptype, igst, cgst, sgst, salesPurchaseType } = sp;
+  return `('${sptype}', ${igst}, ${cgst}, ${sgst}, '${salesPurchaseType}')`;
+});
 
 module.exports = {
   up: [
+    `CREATE TABLE IF NOT EXISTS organizations (
+        id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL
+    )`,
+    
+    `CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY,
+        email TEXT NOT NULL UNIQUE,
+        password TEXT NOT NULL,
+        permissions TEXT
+    )`,
+    
+    `CREATE TABLE IF NOT EXISTS userOrganizations (
+        userId INTEGER,
+        organizationId INTEGER,
+        PRIMARY KEY (userId, organizationId),
+        FOREIGN KEY (userId) REFERENCES users(id),
+        FOREIGN KEY (organizationId) REFERENCES organizations(id)
+    )`,
+
     `CREATE TABLE IF NOT EXISTS states (
         state_code INTEGER PRIMARY KEY,
         state_name TEXT NOT NULL,
@@ -67,7 +89,7 @@ module.exports = {
           party_id INTEGER PRIMARY KEY,
           partyName TEXT NOT NULL,
           account_code INTEGER NOT NULL,
-          isPredefinedParty BOOLEAN NOT NULL,
+          isPredefinedLedger BOOLEAN NOT NULL,
           station_id INTEGER,
           mailTo TEXT,
           address1 TEXT,
@@ -111,7 +133,7 @@ module.exports = {
         )`,
     `CREATE TABLE IF NOT EXISTS sales_purchase (
           sp_id INTEGER PRIMARY KEY,
-          spType TEXT NOT NULL,
+          sptype TEXT NOT NULL,
           salesPurchaseType TEXT NOT NULL,
           igst TEXT,
           cgst TEXT,
@@ -158,17 +180,104 @@ module.exports = {
           purSaleAc BOOLEAN DEFAULT FALSE, 
           twoPrice INTEGER
         )`,
+
+    `CREATE TABLE IF NOT EXISTS items (
+          id INTEGER PRIMARY KEY,
+          name TEXT,
+          company TEXT,
+          margin REAL,
+          discountPer REAL,
+          icharges REAL,
+          mfg TEXT,
+          selected TEXT,
+          saleAC INTEGER,
+          purAC INTEGER,
+          cstSale INTEGER,
+          qtyRate REAL,
+          unit TEXT,
+          packingPC INTEGER,
+          weight REAL,
+          excisePC REAL,
+          exciseType TEXT,
+          groupcode INTEGER,
+          itemDesc1 TEXT,
+          itemDesc2 TEXT,
+          taxonSPmrp INTEGER,
+          inclusive BOOLEAN,
+          minstock INTEGER,
+          maxstock INTEGER,
+          saleTax REAL,
+          narcotic BOOLEAN,
+          bigunit REAL,
+          upccode TEXT,
+          location TEXT,
+          depcact BOOLEAN,
+          honeschedu BOOLEAN,
+          iuccode TEXT,
+          sapcode TEXT,
+          barcode TEXT,
+          hsncode TEXT,
+          additionCE REAL,
+          service BOOLEAN
+        )`,
+
+    `CREATE TABLE IF NOT EXISTS item_batch (
+          id INTEGER PRIMARY KEY,
+          item_id INTEGER,
+          stock INTEGER,
+          mfg TEXT,
+          netRate REAL,
+          batchIndex INTEGER,
+          salePrice REAL,
+          purPrice REAL,
+          expiryDate TEXT,
+          batchNo TEXT,
+          batchCode INTEGER,
+          opBalance REAL,
+          mrp REAL,
+          opFree REAL,
+          closeAmount REAL,
+          saleAmount REAL,
+          priceToRet REAL,
+          basicPrice REAL,
+          excise REAL,
+          mfgDate TEXT,
+          locked TEXT,
+          purptr REAL,
+          opGodown0 REAL,
+          opGodown1 REAL,
+          opGodown2 REAL,
+          opGodown3 REAL,
+          opGodown4 REAL,
+          opGodown5 REAL,
+          opGodown6 REAL,
+          opGodown7 REAL,
+          opGodown8 REAL,
+          opGodown9 REAL,
+          clGodown0 REAL,
+          clGodown1 REAL,
+          clGodown2 REAL,
+          clGodown3 REAL,
+          clGodown4 REAL,
+          clGodown5 REAL,
+          clGodown6 REAL,
+          clGodown7 REAL,
+          clGodown8 REAL,
+          clGodown9 REAL,
+          FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE
+        )`,
+
     `INSERT INTO states (state_code, state_name, union_territory) VALUES ${insertStatements.join(
-      ", "
+      ", ",
     )};`,
     `INSERT INTO groups (group_code, group_name, parent_code, type, isPredefinedGroup) VALUES ${insertGroups.join(
-      ", "
+      ", ",
     )};`,
-    `INSERT INTO party_table (partyName, account_code, isPredefinedParty) VALUES ${insertPartyAccountGroup.join(
-      ", "
+    `INSERT INTO party_table (partyName, account_code, isPredefinedLedger) VALUES ${insertPartyAccountGroup.join(
+      ", ",
     )};`,
-    `INSERT INTO sales_purchase (spType, igst, cgst, sgst, salesPurchaseType) VALUES ${insertSalesPurchase.join(
-      ", "
+    `INSERT INTO sales_purchase (sptype, igst, cgst, sgst, salesPurchaseType) VALUES ${insertSalesPurchase.join(
+      ", ",
     )};`,
   ],
   down: [
@@ -179,6 +288,6 @@ module.exports = {
     "DROP TABLE IF EXISTS party_table",
     "DROP TABLE IF EXISTS sales_purchase",
     "DROP TABLE IF EXISTS store",
-    "DROP TABLE IF EXISTS company"
+    "DROP TABLE IF EXISTS company",
   ],
 };

@@ -23,14 +23,14 @@ export const CreateSalePurchase: React.FC<CreateSalePurchaseProps> = ({
   const formikRef = useRef<FormikProps<SalesPurchaseFormProps>>(null);
 
   const validationSchema = Yup.object({
-    spType: Yup.string()
+    sptype: Yup.string()
       .max(100, `${type} account name must be 100 characters or less`)
       .required(`${type} account name is required`),
   });
 
   useEffect(() => {
     const focusTarget = !isDelete
-      ? document.getElementById('spType')
+      ? document.getElementById('sptype')
       : document.getElementById('cancel_button');
     focusTarget?.focus();
   }, []);
@@ -86,7 +86,7 @@ export const CreateSalePurchase: React.FC<CreateSalePurchaseProps> = ({
       <Formik
         innerRef={formikRef}
         initialValues={{
-          spType: data?.spType || '',
+          sptype: data?.sptype || '',
           igst: data?.igst || '0.00',
           surCharge: data?.surCharge || '',
           shortName: data?.shortName || '',
@@ -99,19 +99,19 @@ export const CreateSalePurchase: React.FC<CreateSalePurchaseProps> = ({
           <Form className='flex flex-col gap-3 min-w-[18rem] items-start px-4'>
             <FormikInputField
             label='Sp Type'
-              id='spType'
-              name='spType'
+              id='sptype'
+              name='sptype'
               formik={formik}
               className='!gap-0'
               isDisabled={isDelete && sp_id}
               nextField='igst'
-              prevField='spType'
+              prevField='sptype'
               sideField='igst'
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                 handleKeyDown(e)
               }
               showErrorTooltip={
-                !!(formik.touched.spType && formik.errors.spType)
+                !!(formik.touched.sptype && formik.errors.sptype)
               }
             />
             <FormikInputField
@@ -122,7 +122,7 @@ export const CreateSalePurchase: React.FC<CreateSalePurchaseProps> = ({
               className='!gap-0'
               isDisabled={isDelete && sp_id}
               nextField='surCharge'
-              prevField='spType'
+              prevField='sptype'
               sideField='surCharge'
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 handleChange(e,formik)}
@@ -238,7 +238,7 @@ export const CreateSalePurchase: React.FC<CreateSalePurchaseProps> = ({
                   autoFocus={true}
                   handleOnKeyDown={(e) => {
                     if (e.key === 'Tab') {
-                      document.getElementById('spType')?.focus();
+                      document.getElementById('sptype')?.focus();
                       e.preventDefault();
                     }
                     if (

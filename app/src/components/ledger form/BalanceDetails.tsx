@@ -4,14 +4,14 @@ import CustomSelect from '../custom_select/CustomSelect';
 import { Option } from '../../interface/global';
 
 interface BalanceDetailsProps {
-  accountInputValue?: string;
+  selectedGroupName: string;
   formik?: any;
 }
 
-export const BalanceDetails: React.FC<BalanceDetailsProps> = ({
-  accountInputValue,
+export const BalanceDetails = ({
+  selectedGroupName,
   formik,
-}) => {
+}: BalanceDetailsProps) => {
   const handleOpeningBalInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
     if (/^\d*\.?\d{0,2}$/.test(value)) {
@@ -37,11 +37,13 @@ export const BalanceDetails: React.FC<BalanceDetailsProps> = ({
 
   return (
     <div className='relative border border-solid border-gray-400 '>
-      <div className='absolute top-[-14px] left-2 px-2 w-max bg-[#f3f3f3]'>Balance</div>
+      <div className='absolute top-[-14px] left-2 px-2 w-max bg-[#f3f3f3]'>
+        Balance
+      </div>
       <div className='flex flex-col gap-2 w-full p-4 text-xs text-gray-600 leading-3'>
         <div className='flex flex-row gap-2 items-center w-full'>
           <FormikInputField
-          isPopupOpen={false}
+            isPopupOpen={false}
             label={`Opening Balance ₹`}
             id='openingBal'
             name='openingBal'
@@ -59,13 +61,13 @@ export const BalanceDetails: React.FC<BalanceDetailsProps> = ({
               } else if (e.key === 'ArrowUp') {
                 document
                   .getElementById(
-                    accountInputValue?.toUpperCase() === 'CURRENT ASSETS' ||
-                      accountInputValue?.toUpperCase() ===
-                      'CURRENT LIABILITIES' ||
-                      accountInputValue?.toUpperCase() === 'PROVISIONS' ||
-                      accountInputValue?.toUpperCase() === 'SECURED LOANS' ||
-                      accountInputValue?.toUpperCase() === 'SUNDRY CREDITORS' ||
-                      accountInputValue?.toUpperCase() === 'SUNDRY DEBTORS'
+                    selectedGroupName.toUpperCase() === 'CURRENT ASSETS' ||
+                      selectedGroupName.toUpperCase() ===
+                        'CURRENT LIABILITIES' ||
+                      selectedGroupName.toUpperCase() === 'PROVISIONS' ||
+                      selectedGroupName.toUpperCase() === 'SECURED LOANS' ||
+                      selectedGroupName.toUpperCase() === 'SUNDRY CREDITORS' ||
+                      selectedGroupName.toUpperCase() === 'SUNDRY DEBTORS'
                       ? 'balancingMethod'
                       : 'parentLedger'
                   )
@@ -75,11 +77,14 @@ export const BalanceDetails: React.FC<BalanceDetailsProps> = ({
             }}
           />
           <CustomSelect
-          isPopupOpen={false}
+            isPopupOpen={false}
             value={
-              formik.values.openingBalType === '' ? null : {
-                label: formik.values.openingBalType, value: formik.values.openingBalType,
-              }
+              formik.values.openingBalType === ''
+                ? null
+                : {
+                    label: formik.values.openingBalType,
+                    value: formik.values.openingBalType,
+                  }
             }
             id='openingBalType'
             onChange={handleFieldChange}
@@ -96,66 +101,69 @@ export const BalanceDetails: React.FC<BalanceDetailsProps> = ({
           />
         </div>
         <CustomSelect
-        isPopupOpen={false}
-        label={`Party Type`}
-            value={
-              formik.values.partyType === '' ? null : {
-                label: formik.values.partyType, value: formik.values.partyType,
-              }
-            }
-            id='partyType'
-            onChange={handleFieldChange}
-            options={[
-              { value: 'P & L', label: 'P & L' },
-              { value: 'Balance Sheet', label: 'Balance Sheet' },
-            ]}
-            isSearchable={false}
-            placeholder='Type'
-            disableArrow={false}
-            hidePlaceholder={false}
-            containerClass='!w-1/3'
-            className='!rounded-none !h-6'
-          />
-        {(accountInputValue?.toUpperCase() === 'SUNDRY CREDITORS' ||
-          accountInputValue?.toUpperCase() === 'SUNDRY DEBTORS') && (
-            <div className='flex flex-col gap-1'>
-              <FormikInputField
+          isPopupOpen={false}
+          label={`Party Type`}
+          value={
+            formik.values.partyType === ''
+              ? null
+              : {
+                  label: formik.values.partyType,
+                  value: formik.values.partyType,
+                }
+          }
+          id='partyType'
+          onChange={handleFieldChange}
+          options={[
+            { value: 'P & L', label: 'P & L' },
+            { value: 'Balance Sheet', label: 'Balance Sheet' },
+          ]}
+          isSearchable={false}
+          placeholder='Type'
+          disableArrow={false}
+          hidePlaceholder={false}
+          containerClass='!w-1/3'
+          className='!rounded-none !h-6'
+        />
+        {(selectedGroupName.toUpperCase() === 'SUNDRY CREDITORS' ||
+          selectedGroupName.toUpperCase() === 'SUNDRY DEBTORS') && (
+          <div className='flex flex-col gap-1'>
+            <FormikInputField
               isPopupOpen={false}
-                label='Credit Limit'
-                id='creditLimit'
-                name='creditLimit'
-                labelClassName='w-1/3'
-                inputClassName='text-right'
-                formik={formik}
-                placeholder='0'
-                className=''
-                onChange={handleCreditInput}
-                onClick={resetField}
-              />
-              <FormikInputField
+              label='Credit Limit'
+              id='creditLimit'
+              name='creditLimit'
+              labelClassName='w-1/3'
+              inputClassName='text-right'
+              formik={formik}
+              placeholder='0'
+              className=''
+              onChange={handleCreditInput}
+              onClick={resetField}
+            />
+            <FormikInputField
               isPopupOpen={false}
-                label='Credit Days'
-                id='creditDays'
-                name='creditDays'
-                formik={formik}
-                placeholder='0'
-                maxLength={3}
-                labelClassName='w-1/3'
-                inputClassName='text-right'
-                onChange={handleCreditInput}
-                onClick={resetField}
-                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                  if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                    document.getElementById('phone1')?.focus();
-                    e.preventDefault();
-                  } else if (e.key === 'ArrowUp') {
-                    document.getElementById('openingBalType')?.focus();
-                    e.preventDefault();
-                  }
-                }}
-              />
-            </div>
-          )}
+              label='Credit Days'
+              id='creditDays'
+              name='creditDays'
+              formik={formik}
+              placeholder='0'
+              maxLength={3}
+              labelClassName='w-1/3'
+              inputClassName='text-right'
+              onChange={handleCreditInput}
+              onClick={resetField}
+              onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                  document.getElementById('phone1')?.focus();
+                  e.preventDefault();
+                } else if (e.key === 'ArrowUp') {
+                  document.getElementById('openingBalType')?.focus();
+                  e.preventDefault();
+                }
+              }}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
