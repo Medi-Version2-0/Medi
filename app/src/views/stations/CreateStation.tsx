@@ -4,7 +4,6 @@ import {
   CreateStationProps,
   FormDataProps,
   Option,
-  State,
   StationFormData,
 } from '../../interface/global';
 import { Popup } from '../../components/popup/Popup';
@@ -14,6 +13,7 @@ import Button from '../../components/common/button/Button';
 import onKeyDown from '../../utilities/formKeyDown';
 import FormikInputField from '../../components/common/FormikInputField';
 import titleCase from '../../utilities/titleCase';
+import { sendAPIRequest } from '../../helper/api';
 
 export const CreateStation: React.FC<CreateStationProps> = ({
   togglePopup,
@@ -23,7 +23,6 @@ export const CreateStation: React.FC<CreateStationProps> = ({
   deleteAcc,
 }) => {
   const { station_id } = data;
-  const electronAPI = (window as any).electronAPI;
   const formikRef = useRef<FormikProps<FormDataProps>>(null);
   const [stateOptions, setStateOptions] = useState<Option[]>([]);
   const [focused, setFocused] = useState('');
@@ -53,10 +52,10 @@ export const CreateStation: React.FC<CreateStationProps> = ({
     focusTarget?.focus();
   }, []);
 
-  const getStates = () => {
-    const statesList = electronAPI.getAllStates('', 'state_name', '', '', '');
+  const getStates = async () => {
+    const statesList = await sendAPIRequest<any[]>('/state');
     setStateOptions(
-      statesList.map((state: State) => ({
+      statesList.map((state) => ({
         value: state.state_code,
         label: titleCase(state.state_name),
       }))

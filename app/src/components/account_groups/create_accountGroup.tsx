@@ -4,6 +4,7 @@ import * as Yup from 'yup';
 import { CreateAccountGroupProps, FormDataProps } from '../../interface/global';
 import { Popup } from '../popup/Popup';
 import '../stations/stations.css';
+import { sendAPIRequest } from '../../helper/api';
 
 export const CreateGroup: React.FC<CreateAccountGroupProps> = ({
   togglePopup,
@@ -22,10 +23,8 @@ export const CreateGroup: React.FC<CreateAccountGroupProps> = ({
     data?.group_details?.group_name || ''
   );
   const [groupData, setGroupData] = useState([]);
-  const electronAPI = (window as any).electronAPI;
-
-  const getGroups = () => {
-    setGroupData(electronAPI.getAllSubGroups('', '', '', '', ''));
+  const getGroups = async () => {
+    setGroupData(await sendAPIRequest('/group/sub'));
   };
 
   useEffect(() => {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useUser } from '../UserContext';
-import userlogo from '../assets/icons/user.png';
 import { useNavigate } from 'react-router-dom';
+import userlogo from '../assets/icons/user.png';
 
 export const TopBar = () => {
   const [isPopupVisible, setPopupVisible] = useState(false);
@@ -35,10 +35,10 @@ export const TopBar = () => {
   }, []);
 
   return (
-    <div className='fixed top-0 right-0 z-10 p-4'>
+    <div className='fixed top-1 right-0 z-10 p-1'>
       <div className='relative flex items-center'>
         <img
-          className='h-10 w-10 rounded-full cursor-pointer border-2 border-gray-300'
+          className='h-12 w-12 rounded-full cursor-pointer border-2 border-gray-300  bg-cyan-100'
           src={userlogo}
           alt='profile'
           onClick={togglePopup}
@@ -56,7 +56,7 @@ export const TopBar = () => {
               <div className='w=full flex flex-col gap-4'>
                 <button
                   type='button'
-                  className='py-1 px-1 w-full inline-flex justify-center items-center gap-x-2 text-sm border-gray-500 font-semibold rounded-lg border border-transparent text-blue-500 hover:bg-yellow-100 hover:text-yellow-800 disabled:opacity-50 disabled:pointer-events-none dark:hover:bg-yellow-800/30 dark:hover:text-yellow-400'
+                  className='py-1 px-1 w-full inline-flex justify-center items-center gap-x-2 text-sm border-gray-500 font-semibold rounded-lg border border-transparent text-blue-500 hover:bg-cyan-900 hover:text-cyan-800 disabled:opacity-50 disabled:pointer-events-none dark:hover:bg-yellow-800/30 dark:hover:text-cyan-600'
                   onClick={() => navigate('/redirecttocompany')}
                 >
                   Switch Company

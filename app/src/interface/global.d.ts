@@ -2,7 +2,6 @@ export interface StationFormData {
   station_id?: string;
   station_name: string;
   igst_sale?: string;
-  // station_state?: string;
   station_pinCode?: string;
   station_headQuarter?: string;
   state_code?: string;
@@ -40,8 +39,7 @@ export interface ItemGroupFormData {
 export interface SubGroupFormData {
   group_code?: string;
   group_name: string;
-  parent_group?: string;
-  parent_code?: Number;
+  parent_code?: string;
   type: string;
   isPredefinedGroup?: boolean;
 }
@@ -109,7 +107,7 @@ export interface CreateItemGroupProps {
 }
 export interface SubGroupFormDataProps {
   group_name: string;
-  parent_group: string;
+  parent_code: string;
   type: string;
 }
 export interface CreateGroupProps {

@@ -22,11 +22,10 @@ const Items = () => {
   const [itemGroupData, setItemGroupData] = useState<ItemGroupFormData | any>(
     []
   );
-  const [salesData, setSalesData] = useState([]);
-  const [purchaseData, setPurchaseData] = useState([]);
+  const [salesData, setSalesData] = useState<any[]>([]);
+  const [purchaseData, setPurchaseData] = useState<any[]>([]);
   const editing = useRef(false);
   const id = useRef('');
-  const electronAPI = (window as any).electronAPI;
   const navigate = useNavigate();
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
@@ -35,9 +34,9 @@ const Items = () => {
   });
 
   const getItemData = async () => {
-    const itemData = (
-      await sendAPIRequest<{ data: itemFormData }>('/item', { method: 'GET' })
-    );
+    const itemData = await sendAPIRequest<{ data: itemFormData }>('/item', {
+      method: 'GET',
+    });
     setTableData(itemData);
   };
 
@@ -48,7 +47,6 @@ const Items = () => {
       })
     ).data;
     setCompanyData(companyData);
-    // setCompanyData(electronAPI.getAllCompany('', 'companyName', '', '', ''));
   };
 
   const getGroups = async () => {
@@ -59,11 +57,11 @@ const Items = () => {
     setItemGroupData(itemGroup);
   };
 
-  const getSales = () => {
-    setSalesData(electronAPI.getSalesPurchase('', 'sptype', '', 'Sales'));
+  const getSales = async () => {
+    setSalesData(await sendAPIRequest<any[]>('/sale'));
   };
-  const getPurchases = () => {
-    setPurchaseData(electronAPI.getSalesPurchase('', 'sptype', '', 'Purchase'));
+  const getPurchases = async () => {
+    setPurchaseData(await sendAPIRequest<any[]>('/purchase'));
   };
 
   useEffect(() => {

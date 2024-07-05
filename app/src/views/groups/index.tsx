@@ -9,6 +9,7 @@ import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { ColDef, ColGroupDef } from 'ag-grid-community';
 import { CreateGroup } from './CreateGroup';
 import Button from '../../components/common/button/Button';
+import { sendAPIRequest } from '../../helper/api';
 
 const initialValue = {
   group_code: '',
@@ -23,7 +24,6 @@ export const Groups = () => {
   const [formData, setFormData] = useState<GroupFormData>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<GroupFormData | any>(null);
-  const [currTableData, setCurrTableData] = useState<GroupFormData | any>(null);
   const editing = useRef(false);
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
@@ -31,8 +31,15 @@ export const Groups = () => {
     message: '',
   });
 
-  const electronAPI = (window as any).electronAPI;
-  const subgroups = electronAPI.getAllSubGroups('', '', '');
+  const [subgroups, setSubgroups] = useState<GroupFormData[]>([]);
+
+  useEffect(() => {
+    const fetchSubgroups = async () => {
+      const subgroups = await sendAPIRequest<GroupFormData[]>('/group/sub');
+      setSubgroups(subgroups);
+    };
+    fetchSubgroups();
+  }, []);
 
   const typeMapping = {
     p_and_l: 'P&L',
@@ -60,7 +67,7 @@ export const Groups = () => {
     setPopupState({ ...popupState, isModalOpen: false });
   };
 
-  const handleConfirmPopup = () => {
+  const handleConfirmPopup = async () => {
     setPopupState({ ...popupState, isModalOpen: false });
     if (formData.group_name) {
       formData.group_name =
@@ -69,9 +76,15 @@ export const Groups = () => {
     }
     if (formData !== initialValue) {
       if (formData.group_code) {
-        electronAPI.updateGroup(formData.group_code, formData);
+        await sendAPIRequest(`/group/${formData.group_code}`, {
+          method: 'PUT',
+          body: formData,
+        });
       } else {
-        electronAPI.addGroup(formData);
+        await sendAPIRequest<any[]>('/group', {
+          method: 'POST',
+          body: formData,
+        });
       }
       togglePopup(false);
       getGroups();
@@ -87,14 +100,14 @@ export const Groups = () => {
     setOpen(isOpen);
   };
 
-  const getGroups = () => {
-    setTableData(electronAPI.getAllGroups('', '', '', '', ''));
-    setCurrTableData(electronAPI.getAllGroups('', '', '', '', ''));
+  const getGroups = async () => {
+    const groups = await sendAPIRequest<any[]>('/group');
+    setTableData(groups);
   };
 
-  const deleteAcc = (group_code: string) => {
-    electronAPI.deleteGroup(group_code);
+  const deleteAcc = async (group_code: string) => {
     isDelete.current = false;
+    sendAPIRequest(`/group/${group_code}`, { method: 'DELETE' });
     togglePopup(false);
     getGroups();
   };
@@ -148,7 +161,7 @@ export const Groups = () => {
     }
   };
 
-  const handleCellEditingStopped = (e: {
+  const handleCellEditingStopped = async (e: {
     data?: any;
     column?: any;
     oldValue?: any;
@@ -165,23 +178,7 @@ export const Groups = () => {
       switch (field) {
         case 'group_name':
           {
-            const existingGroups = currTableData.find(
-              (group: GroupFormData) =>
-                group.group_name?.toLowerCase() === newValue?.toLowerCase()
-            );
-            if (existingGroups) {
-              setPopupState({
-                ...popupState,
-                isAlertOpen: true,
-                message: 'Group with this name already exists!',
-              });
-              node.setDataValue(field, oldValue);
-              return;
-            } else if (
-              !newValue ||
-              /^\d+$/.test(newValue) ||
-              newValue.length > 100
-            ) {
+            if (!newValue || /^\d+$/.test(newValue) || newValue.length > 100) {
               setPopupState({
                 ...popupState,
                 isAlertOpen: true,
@@ -208,7 +205,10 @@ export const Groups = () => {
         default:
           break;
       }
-      electronAPI.updateGroup(data.group_code, { [field]: newValue });
+      await sendAPIRequest(`/group/${data.group_code}`, {
+        method: 'PUT',
+        body: { [field]: newValue },
+      });
       getGroups();
     } else {
       const { column, oldValue, node } = e;

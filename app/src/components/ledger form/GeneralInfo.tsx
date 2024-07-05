@@ -59,7 +59,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
       const groupId = groupOptions.find(
         (e) => e.label === option?.value
       )?.value;
-      formik.setFieldValue('account_code', groupId);
+      formik.setFieldValue('accountCode', groupId);
       formik.setFieldValue(id, option?.value);
     }
     if (id === 'stationName') {

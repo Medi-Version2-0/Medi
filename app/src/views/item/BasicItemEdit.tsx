@@ -103,7 +103,6 @@ const Container: React.FC<ContainerProps> = ({ title, fields, formik }) => {
 };
 
 const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
-  const electronAPI = (window as any).electronAPI;
   const [options, setOptions] = useState<{
     companiesOptions: Option[];
     salesOptions: Option[];
@@ -118,8 +117,8 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
 
   const fetchAllData = async () => {
     const companies = await sendAPIRequest<any[]>('/company');
-    const salesList = electronAPI.getSalesPurchase('', '', '', 'Sales');
-    const purchaseList = electronAPI.getSalesPurchase('', '', '', 'Purchase');
+    const salesList = await sendAPIRequest<any[]>('/sale');
+    const purchaseList = await sendAPIRequest<any[]>('/purchase');
     const groups = await sendAPIRequest<ItemGroupFormData[]>('/itemGroup', {
       method: 'GET',
     });

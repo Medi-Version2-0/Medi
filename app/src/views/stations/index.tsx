@@ -23,9 +23,6 @@ export const Stations = () => {
   const [formData, setFormData] = useState<StationFormData | any>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<StationFormData | any>(null);
-  const [currTableData, setCurrTableData] = useState<StationFormData | any>(
-    null
-  );
   const [stateData, setStateData] = useState<any[]>([]);
   const editing = useRef(false);
   const isDelete = useRef(false);
@@ -57,11 +54,9 @@ export const Stations = () => {
     const stations = await sendAPIRequest<any[]>('/station');
     stations.map((station) => {
       station.state_code = station.State?.state_name;
-      delete station.State;
     });
 
     setTableData(stations);
-    setCurrTableData(stations);
   };
 
   const togglePopup = (isOpen: boolean) => {
@@ -88,7 +83,6 @@ export const Stations = () => {
         formData.station_name.slice(1);
     }
     if (formData !== initialValue) {
-      console.log('this formm', formData);
       formData.state_code = +formData.state_code;
       if (formData.station_id) {
         await sendAPIRequest(`/station/${formData.station_id}`, {
@@ -138,7 +132,7 @@ export const Stations = () => {
 
   const deleteAcc = async (station_id: string) => {
     isDelete.current = false;
-    await sendAPIRequest(`/station/${station_id}`, { method: 'DELETE' });
+    sendAPIRequest(`/station/${station_id}`, { method: 'DELETE' });
     togglePopup(false);
     getStations();
   };
@@ -151,6 +145,7 @@ export const Stations = () => {
   };
 
   const handleUpdate = (oldData: StationFormData) => {
+    console.log("old",oldData);
     setFormData(oldData);
     isDelete.current = false;
     editing.current = true;
@@ -201,19 +196,7 @@ export const Stations = () => {
     switch (field) {
       case 'station_name':
         {
-          const existingStation = currTableData.find(
-            (station: StationFormData) =>
-              station.station_name?.toLowerCase() === newValue?.toLowerCase()
-          );
-          if (existingStation) {
-            setPopupState({
-              ...popupState,
-              isAlertOpen: true,
-              message: 'Station with this name already exists!',
-            });
-            node.setDataValue(field, oldValue);
-            return;
-          } else if (
+          if (
             !newValue ||
             /^\d+$/.test(newValue) ||
             newValue.length > 100

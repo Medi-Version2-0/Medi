@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-// import { useNavigate } from 'react-router-dom';
 import { AgGridReact } from 'ag-grid-react';
 import { FaEdit } from 'react-icons/fa';
 import { MdDeleteForever } from 'react-icons/md';
@@ -11,8 +10,9 @@ import { ValueFormatterParams } from 'ag-grid-community';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import Button from '../../components/common/button/Button';
 import { CreateSalePurchase } from './CreateSalePurchase';
+import { sendAPIRequest } from '../../helper/api';
 
-const initialValue = {
+const initialValue: SalesPurchaseFormData = {
   sptype: '',
   igst: '0.00',
   surCharge: '',
@@ -20,13 +20,67 @@ const initialValue = {
   shortName2: '',
 };
 
-export const Sales_Table: React.FC<SalesPurchaseTableProps> = ({ type }) => {
+const useSalesData = (type: string) => {
+  const [tableData, setTableData] = useState<SalesPurchaseFormData[]>([]);
+
+  const getSalesData = async () => {
+    const endpoint = type === 'Sales' ? '/sale' : '/purchase';
+    const data = await sendAPIRequest<SalesPurchaseFormData[]>(endpoint);
+    setTableData(data);
+  };
+
+  useEffect(() => {
+    getSalesData();
+  }, [type]);
+
+  return { tableData, getSalesData };
+};
+
+const useKeyboardEvents = (
+  togglePopup: (isOpen: boolean) => void,
+  selectedRow: any,
+  handleUpdate: (data: any) => void,
+  handleDelete: (data: any) => void
+) => {
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      switch (event.key) {
+        case 'Escape':
+          togglePopup(false);
+          break;
+        case 'n':
+        case 'N':
+          if (event.ctrlKey) {
+            togglePopup(true);
+          }
+          break;
+        case 'd':
+        case 'D':
+          if (event.ctrlKey && selectedRow) {
+            handleDelete(selectedRow);
+          }
+          break;
+        case 'e':
+        case 'E':
+          if (event.ctrlKey && selectedRow) {
+            handleUpdate(selectedRow);
+          }
+          break;
+        default:
+          break;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedRow, togglePopup, handleUpdate, handleDelete]);
+};
+
+export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
   const [open, setOpen] = useState<boolean>(false);
-  const [tableData, setTableData] = useState<SalesPurchaseFormData | any>(null);
-  const [currTableData, setCurrTableData] = useState<SalesPurchaseFormData | any>(null);
-  const [formData, setFormData] = useState<SalesPurchaseFormData | any>(
-    initialValue
-  );
+  const [formData, setFormData] = useState<SalesPurchaseFormData>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
@@ -36,24 +90,7 @@ export const Sales_Table: React.FC<SalesPurchaseTableProps> = ({ type }) => {
   const editing = useRef(false);
   const isDelete = useRef(false);
 
-  const electronAPI = (window as any).electronAPI;
-
-  const getSalesData = async () => {
-    const data = await electronAPI.getSalesPurchase('', 'sptype', '', type);
-    setTableData(data);
-    setCurrTableData(electronAPI.getSalesPurchase('', 'sptype', '', type));
-  };
-
-  useEffect(() => {
-    getSalesData();
-  }, [type]);
-
-  useEffect(() => {
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [type, selectedRow]);
+  const { tableData, getSalesData } = useSalesData(type);
 
   const togglePopup = (isOpen: boolean) => {
     if (!isOpen) {
@@ -63,7 +100,9 @@ export const Sales_Table: React.FC<SalesPurchaseTableProps> = ({ type }) => {
     setOpen(isOpen);
   };
 
-  const decimalFormatter = (params: ValueFormatterParams): any => {
+  const decimalFormatter = (
+    params: ValueFormatterParams
+  ): string | undefined => {
     if (!params.value) return;
     return parseFloat(params.value).toFixed(2);
   };
@@ -76,18 +115,20 @@ export const Sales_Table: React.FC<SalesPurchaseTableProps> = ({ type }) => {
     setPopupState({ ...popupState, isModalOpen: false });
   };
 
-  const handleConfirmPopup = () => {
+  const handleConfirmPopup = async () => {
     setPopupState({ ...popupState, isModalOpen: false });
     if (formData.sptype) {
       formData.sptype =
         formData.sptype.charAt(0).toUpperCase() + formData.sptype.slice(1);
     }
     if (formData !== initialValue) {
-      if (formData.sp_id) {
-        electronAPI.updateSalesPurchase(formData.sp_id, formData);
-      } else {
-        electronAPI.addSalesPurchase(formData);
-      }
+      const endPoint = type === 'Sales' ? '/sale' : '/purchase';
+      const endpoint = formData.sp_id
+        ? `${endPoint}/${formData.sp_id}`
+        : `${endPoint}`;
+      const method = formData.sp_id ? 'PUT' : 'POST';
+
+      await sendAPIRequest(endpoint, { method, body: formData });
       togglePopup(false);
       getSalesData();
     }
@@ -128,7 +169,7 @@ export const Sales_Table: React.FC<SalesPurchaseTableProps> = ({ type }) => {
     }
   };
 
-  const handleUpdate = (oldData: any) => {
+  const handleUpdate = (oldData: SalesPurchaseFormData) => {
     setFormData(oldData);
     isDelete.current = false;
     editing.current = true;
@@ -136,18 +177,23 @@ export const Sales_Table: React.FC<SalesPurchaseTableProps> = ({ type }) => {
     setSelectedRow(null);
   };
 
-  const deleteAcc = (sp_id: string) => {
-    electronAPI.deleteSalesPurchase(sp_id);
+  const deleteAcc = async (sp_id: string) => {
     isDelete.current = false;
+    const endPoint = type === 'Sales' ? '/sale' : '/purchase';
+    const endpoint = `${endPoint}/${sp_id}`;
+    sendAPIRequest(endpoint, { method: 'DELETE' });
     togglePopup(false);
     getSalesData();
   };
-  const handleDelete = (oldData: any) => {
+
+  const handleDelete = (oldData: SalesPurchaseFormData) => {
     setFormData(oldData);
     isDelete.current = true;
     togglePopup(true);
     setSelectedRow(null);
   };
+
+  useKeyboardEvents(togglePopup, selectedRow, handleUpdate, handleDelete);
 
   const onCellClicked = (params: { data: any }) => {
     setSelectedRow(selectedRow !== null ? null : params.data);
@@ -157,126 +203,48 @@ export const Sales_Table: React.FC<SalesPurchaseTableProps> = ({ type }) => {
     editing.current = true;
   };
 
-  const handleKeyDown = (event: KeyboardEvent) => {
-    switch (event.key) {
-      case 'Escape':
-        togglePopup(false);
-        break;
-      case 'n':
-      case 'N':
-        if (event.ctrlKey) {
-          togglePopup(true);
-        }
-        break;
-      case 'd':
-      case 'D':
-        if (event.ctrlKey && selectedRow) {
-          handleDelete(selectedRow);
-        }
-        break;
-      case 'e':
-      case 'E':
-        if (event.ctrlKey && selectedRow) {
-          handleUpdate(selectedRow);
-        }
-        break;
-      default:
-        break;
-    }
-  };
-
-  const handleCellEditingStopped = (e: {
-    data?: any;
-    column?: any;
-    oldValue?: any;
-    valueChanged?: any;
-    node?: any;
-    newValue?: any;
-  }) => {
+  const handleCellEditingStopped = async (e: any) => {
     editing.current = false;
     const { data, column, oldValue, valueChanged, node } = e;
-    let { newValue } = e;
+    const { newValue } = e;
     if (!valueChanged) return;
     const field = column.colId;
-    switch (field) {
-      case 'sptype':
-        {
-          const existingSalePurchase = currTableData.find((sp: SalesPurchaseFormData) => sp.sptype?.toLowerCase() === newValue?.toLowerCase()
-        );
-        if(existingSalePurchase){
-          setPopupState({
-           ...popupState,
-            isAlertOpen: true,
-            message: `${type} with this name already exists!`,
-          });
-          node.setDataValue(field, oldValue);
-          return;
-        }
-          else if (!newValue || /^\d+$/.test(newValue) || newValue.length > 100) {
-            setPopupState({
-              ...popupState,
-              isAlertOpen: true,
-              message: !newValue
-                ? `${type} Type is required`
-                : /^\d+$/.test(newValue)
-                ? `Only numbers not allowed`
-                : `${type} Type must be 100 characters or less`,
-            });
-            node.setDataValue(field, oldValue);
-            return;
-          }
-          newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
-        }
-        break;
-      case 'igst':
-        {
-          if (!newValue) {
-            setPopupState({
-              ...popupState,
-              isAlertOpen: true,
-              message: `IGST is required`,
-            });
-            node.setDataValue(field, oldValue);
-            return;
-          }
-        }
-        break;
-      case 'cgst':
-        {
-          if (!newValue) {
-            setPopupState({
-              ...popupState,
-              isAlertOpen: true,
-              message: `CGST is required`,
-            });
-            node.setDataValue(field, oldValue);
-            return;
-          }
-        }
-        break;
-      case 'sgst':
-        {
-          if (!newValue) {
-            setPopupState({
-              ...popupState,
-              isAlertOpen: true,
-              message: `SGST is required`,
-            });
-            node.setDataValue(field, oldValue);
-            return;
-          }
-        }
-        break;
-      default:
-        break;
+
+    const validationErrors: any = {
+      sptype: !newValue
+        ? `${type} Type is required`
+        : /^\d+$/.test(newValue)
+          ? `Only numbers not allowed`
+          : newValue.length > 100
+            ? `${type} Type must be 100 characters or less`
+            : '',
+      igst: !newValue
+        ? `IGST is required`
+        : /[^0-9.]/.test(newValue)
+          ? 'Only numbers allowed'
+          : '',
+    };
+
+    if (validationErrors[field]) {
+      setPopupState({
+        ...popupState,
+        isAlertOpen: true,
+        message: validationErrors[field],
+      });
+      node.setDataValue(field, oldValue);
+      return;
     }
+
     if (field === 'igst') {
       data.cgst = newValue / 2;
       data.sgst = newValue / 2;
-      electronAPI.updateSalesPurchase(data.sp_id, data);
-    } else {
-      electronAPI.updateSalesPurchase(data.sp_id, { [field]: newValue });
     }
+    const endPoint = type === 'Sales' ? '/sale' : '/purchase';
+    const endpoint = `${endPoint}/${data.sp_id}`;
+    await sendAPIRequest(endpoint, {
+      method: 'PUT',
+      body: { ...data, [field]: newValue },
+    });
     getSalesData();
   };
 
@@ -285,7 +253,6 @@ export const Sales_Table: React.FC<SalesPurchaseTableProps> = ({ type }) => {
       headerName: 'Name',
       field: 'sptype',
       flex: 1,
-      menuTabs: ['filterMenuTab'],
       filter: true,
       editable: true,
       suppressMovable: true,
@@ -355,12 +322,9 @@ export const Sales_Table: React.FC<SalesPurchaseTableProps> = ({ type }) => {
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
             onClick={() => handleUpdate(params.data)}
           />
-
           <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
-            onClick={() => {
-              handleDelete(params.data);
-            }}
+            onClick={() => handleDelete(params.data)}
           />
         </div>
       ),
@@ -368,60 +332,50 @@ export const Sales_Table: React.FC<SalesPurchaseTableProps> = ({ type }) => {
   ];
 
   return (
-    <>
-      <div className='w-full'>
-        <div className='flex w-full items-center justify-between px-8 py-1'>
-          <h1 className='font-bold'>{type} Account</h1>
-          <Button
-            type='highlight'
-            id='sp_button'
-            handleOnClick={() => {
-              return togglePopup(true);
-            }}
-          >
-            Add {type}
-          </Button>
-        </div>
-        <div
-          id='account_table'
-          className='ag-theme-quartz bg-[white] h-[calc(100vh_-_7.4rem)] mx-[1rem] my-0 rounded-[1.4rem]'
+    <div className='w-full'>
+      <div className='flex w-full items-center justify-between px-8 py-1'>
+        <h1 className='font-bold'>{type} Account</h1>
+        <Button
+          type='highlight'
+          id='sp_button'
+          handleOnClick={() => togglePopup(true)}
         >
-          {
-            <AgGridReact
-              rowData={tableData}
-              columnDefs={colDefs}
-              defaultColDef={{
-                floatingFilter: true,
-              }}
-              onCellClicked={onCellClicked}
-              onCellEditingStarted={cellEditingStarted}
-              onCellEditingStopped={handleCellEditingStopped}
-            />
-          }
-        </div>
-        {(popupState.isModalOpen || popupState.isAlertOpen) && (
-          <Confirm_Alert_Popup
-            onClose={handleClosePopup}
-            onConfirm={
-              popupState.isAlertOpen
-                ? handleAlertCloseModal
-                : handleConfirmPopup
-            }
-            message={popupState.message}
-            isAlert={popupState.isAlertOpen}
-          />
-        )}
-        {open && (
-          <CreateSalePurchase
-            togglePopup={togglePopup}
-            data={formData}
-            handelFormSubmit={handelFormSubmit}
-            isDelete={isDelete.current}
-            deleteAcc={deleteAcc}
-            type={type}
-          />
-        )}
+          Add {type}
+        </Button>
       </div>
-    </>
+      <div
+        id='account_table'
+        className='ag-theme-quartz bg-[white] h-[calc(100vh_-_7.4rem)] mx-[1rem] my-0 rounded-[1.4rem]'
+      >
+        <AgGridReact
+          rowData={tableData}
+          columnDefs={colDefs}
+          defaultColDef={{ floatingFilter: true }}
+          onCellClicked={onCellClicked}
+          onCellEditingStarted={cellEditingStarted}
+          onCellEditingStopped={handleCellEditingStopped}
+        />
+      </div>
+      {(popupState.isModalOpen || popupState.isAlertOpen) && (
+        <Confirm_Alert_Popup
+          onClose={handleClosePopup}
+          onConfirm={
+            popupState.isAlertOpen ? handleAlertCloseModal : handleConfirmPopup
+          }
+          message={popupState.message}
+          isAlert={popupState.isAlertOpen}
+        />
+      )}
+      {open && (
+        <CreateSalePurchase
+          togglePopup={togglePopup}
+          data={formData}
+          handelFormSubmit={handelFormSubmit}
+          isDelete={isDelete.current}
+          deleteAcc={deleteAcc}
+          type={type}
+        />
+      )}
+    </div>
   );
 };

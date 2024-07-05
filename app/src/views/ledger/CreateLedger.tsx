@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useFormik } from 'formik';
 import { GeneralInfo } from '../../components/ledger form/GeneralInfo';
 import { BalanceDetails } from '../../components/ledger form/BalanceDetails';
@@ -26,6 +26,7 @@ const initialState = {
 };
 
 export const CreateLedger = () => {
+  const { companyId } = useParams();
   const [showActiveElement, setShowActiveElement] = useState(initialState);
   const [groupOptions, setGroupOptions] = useState<Option[]>([]);
   const [isSUNDRY, setIsSUNDRY] = useState(false);
@@ -58,7 +59,7 @@ export const CreateLedger = () => {
     () => ({
       partyName: data?.partyName || '',
       accountGroup: data?.Group?.group_code || '',
-      account_code: data?.account_code || '',
+      accountCode: data?.accountCode || '',
       isPredefinedParty: data?.isPredefinedParty ?? true,
       station_id: data?.station_id || '',
       stationName: data?.stationName || '',
@@ -113,13 +114,16 @@ export const CreateLedger = () => {
       const allData = {
         ...values,
         openingBal: formattedOpeningBal,
-        account_code: values.accountGroup,
+        accountCode: values.accountGroup,
         station_id: values.station_id || null,
       };
       delete allData.accountGroup;
       delete allData.stationName;
 
-      const apiPath = data?.party_id ? `/ledger/${data?.party_id}` : '/ledger';
+      const apiPath = data?.party_id
+        ? `/${companyId}/ledger/${data?.party_id}`
+        : `/${companyId}/ledger`;
+
       const method = data?.party_id ? 'PUT' : 'POST';
 
       await sendAPIRequest(apiPath, { method, body: allData });

@@ -280,7 +280,7 @@ export const Company = () => {
         <h1 className='font-bold'>Company Master</h1>
         <Button
           type='highlight'
-          handleOnClick={() => navigate('../company', { replace: true })}
+          handleOnClick={() => navigate('../company/new', { replace: true })}
         >
           Add Company
         </Button>

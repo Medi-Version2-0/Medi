@@ -13,6 +13,7 @@ import onKeyDown from '../../utilities/formKeyDown';
 import FormikInputField from '../../components/common/FormikInputField';
 import { FaExclamationCircle } from 'react-icons/fa';
 import { Tooltip as ReactTooltip } from 'react-tooltip';
+import { sendAPIRequest } from '../../helper/api';
 
 export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
   togglePopup,
@@ -22,7 +23,6 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
   deleteAcc,
 }) => {
   const { group_code } = data;
-  const electronAPI = (window as any).electronAPI;
   const formikRef = useRef<FormikProps<SubGroupFormDataProps>>(null);
   const [parentGrpOptions, setParentGrpOptions] = useState<Option[]>([]);
   const [focused, setFocused] = useState("");
@@ -35,11 +35,11 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
     focusTarget?.focus();
   }, []);
 
-  const getGroups = () => {
-    const grpList = electronAPI.getAllGroups('', '', '', '', '');
+  const getGroups = async() => {
+    const grpList = await sendAPIRequest<any[]>('/group');
     setParentGrpOptions(
       grpList.map((grp: any) => ({
-        value: grp.group_name.toUpperCase(),
+        value: grp.group_code,
         label: grp.group_name.toUpperCase(),
       }))
     );
@@ -50,7 +50,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
   }, []);
 
   const handleParentChange = (option: Option | null) => {
-    formikRef.current?.setFieldValue('parent_group', option?.value);
+    formikRef.current?.setFieldValue('parent_code', option?.value);
   };
 
   const validationSchema = Yup.object({
@@ -62,7 +62,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
         'Group name can contain alphanumeric characters, "-", "_", and spaces only'
       )
       .max(100, 'Group name cannot exceeds 100 characters'),
-    parent_group: Yup.string().required('Parent Group is required'),
+    parent_code: Yup.string().required('Parent Group is required'),
     type: Yup.string().required("Type is required")
 
   });
@@ -102,7 +102,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
         innerRef={formikRef}
         initialValues={{
           group_name: data?.group_name || '',
-          parent_group: data?.parent_group || '',
+          parent_code: data?.parent_code || '',
           type: data?.type || '',
         }}
         validationSchema={validationSchema}
@@ -117,9 +117,9 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
               formik={formik}
               className='!gap-0'
               isDisabled={isDelete && group_code}
-              nextField='parent_group'
+              nextField='parent_code'
               prevField='group_name'
-              sideField='parent_group'
+              sideField='parent_code'
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                 handleKeyDown(e)
               }
@@ -128,13 +128,13 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
 
             <div className="flex flex-col w-full">
               {parentGrpOptions.length > 0 && (
-                <Field name="parent_group" className="">
+                <Field name="parent_code" className="">
                   {() => (
                     <CustomSelect
                     label='Parent Group'
-                      id="parent_group"
-                      name='parent_group'
-                      value={formik.values.parent_group === '' ? null : { label: formik.values.parent_group, value: formik.values.parent_group }}
+                      id="parent_code"
+                      name='parent_code'
+                      value={formik.values.parent_code === '' ? null : { label: parentGrpOptions.find((e)=> e.value === formik.values.parent_code)?.label || '', value: formik.values.parent_code }}
                       onChange={handleParentChange}
                       options={parentGrpOptions}
                       isSearchable={true}
@@ -142,10 +142,10 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                       disableArrow={true}
                       hidePlaceholder={false}
                       className='!h-6 rounded-sm text-xs'
-                      isFocused={focused === "parent_group"}
-                      error={formik.errors.parent_group}
-                      isTouched={formik.touched.parent_group}
-                      onBlur={() => { formik.setFieldTouched('parent_group', true); setFocused(""); }}
+                      isFocused={focused === "parent_code"}
+                      error={formik.errors.parent_code}
+                      isTouched={formik.touched.parent_code}
+                      onBlur={() => { formik.setFieldTouched('parent_code', true); setFocused(""); }}
                       onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
                         const dropdown = document.querySelector('.custom-select__menu');
                         if (e.key === 'Enter' || e.key === 'Tab') {
@@ -181,7 +181,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                     checked={formik.values.type === 'P&L'}
                     disabled={group_code && isDelete}
                     data-next-field='submit_button'
-                    data-prev-field='parent_group'
+                    data-prev-field='parent_code'
                     data-side-field='balance_sheet'
                     onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                       handleKeyDown(e, formik, { typeField: 'type', sideField: 'balance_sheet' })
@@ -199,7 +199,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                     checked={formik.values.type === 'Balance Sheet'}
                     disabled={group_code && isDelete}
                     data-next-field='submit_button'
-                    data-prev-field='parent_group'
+                    data-prev-field='parent_code'
                     data-side-field='p_and_l'
                     onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                       handleKeyDown(e, formik, { typeField: 'type', sideField: 'p_and_l' })

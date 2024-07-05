@@ -120,7 +120,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               url='/company'
               label='Company'
               icon={<FaPlus className='fill-yellow-900' />}
-              onClickIcon={() => navigate(`${selectedCompany}/company`, { state: 'Purchase' })}
+              onClickIcon={() => navigate(`/${selectedCompany}/company/new`, { state: 'Purchase' })}
             />
             {showSubElements.setup && <></>}
           </>

@@ -8,6 +8,7 @@ import { StoreFormData } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import Button from '../../components/common/button/Button';
 import { CreateStore } from './CreateStore';
+import { sendAPIRequest } from '../../helper/api';
 
 const initialValue = {
   store_code: '',
@@ -30,8 +31,6 @@ export const Store = () => {
   const editing = useRef(false);
   const isDelete = useRef(false);
 
-  const electronAPI = (window as any).electronAPI;
-
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
@@ -49,8 +48,9 @@ export const Store = () => {
     };
   }, [selectedRow]);
 
-  const getStores = () => {
-    setTableData(electronAPI.getAllStores('', 'store_name', '', '', ''));
+  const getStores = async () => {
+    const stores = await sendAPIRequest('/store');
+    setTableData(stores);
   };
 
   const togglePopup = (isOpen: boolean) => {
@@ -69,7 +69,7 @@ export const Store = () => {
     setPopupState({ ...popupState, isModalOpen: false });
   };
 
-  const handleConfirmPopup = () => {
+  const handleConfirmPopup = async () => {
     setPopupState({ ...popupState, isModalOpen: false });
     if (formData.store_name) {
       formData.store_name =
@@ -78,9 +78,12 @@ export const Store = () => {
     }
     if (formData !== initialValue) {
       if (formData.store_code) {
-        electronAPI.updateStore(formData.store_code, formData);
+        await sendAPIRequest(`/store/${formData.store_code}`, {
+          method: 'PUT',
+          body: formData,
+        });
       } else {
-        electronAPI.addStore(formData);
+        await sendAPIRequest('/store', { method: 'POST', body: formData });
       }
       togglePopup(false);
       getStores();
@@ -89,13 +92,18 @@ export const Store = () => {
 
   const handelFormSubmit = (values: StoreFormData) => {
     const mode = values.store_code ? 'update' : 'create';
-    const existingStore = tableData.find(
-      (store: StoreFormData) => {
-        if (mode === 'create')
-          return (store.store_name.toLowerCase() === values.store_name.toLowerCase())
-        return ((store.store_name.toLowerCase() === values.store_name.toLowerCase()) && (store.store_code !== values.store_code))
+    const existingStore = tableData.find((store: StoreFormData) => {
+      if (mode === 'create') {
+        return (
+          store.store_name.toLowerCase() === values.store_name.toLowerCase()
+        );
       }
-    );
+      return (
+        store.store_name.toLowerCase() === values.store_name.toLowerCase() &&
+        store.store_code !== values.store_code
+      );
+    });
+
     if (existingStore) {
       setPopupState({
         ...popupState,
@@ -104,7 +112,7 @@ export const Store = () => {
       });
       return;
     }
-  
+
     if (values.store_name) {
       values.store_name =
         values.store_name.charAt(0).toUpperCase() + values.store_name.slice(1);
@@ -119,10 +127,10 @@ export const Store = () => {
     }
   };
 
-  const deleteAcc = (store_code: string) => {
-    electronAPI.deleteStore(store_code);
+  const deleteAcc = async (store_code: string) => {
     isDelete.current = false;
     togglePopup(false);
+    await sendAPIRequest(`/store/${store_code}`, { method: 'DELETE' });
     getStores();
   };
 
@@ -141,7 +149,7 @@ export const Store = () => {
     setSelectedRow(null);
   };
 
-  const handleCellEditingStopped = (e: any) => {
+  const handleCellEditingStopped = async (e: any) => {
     editing.current = false;
     const { data, column, oldValue, valueChanged, node } = e;
     let { newValue } = e;
@@ -150,11 +158,12 @@ export const Store = () => {
     switch (field) {
       case 'store_name':
         {
-          const existingStore = tableData.find(
+          const existingStore = tableData.filter(
             (store: StoreFormData) =>
               store.store_name.toLowerCase() === newValue.toLowerCase()
           );
-          if (existingStore) {
+
+          if (existingStore.length > 1) {
             setPopupState({
               ...popupState,
               isAlertOpen: true,
@@ -185,7 +194,10 @@ export const Store = () => {
       default:
         break;
     }
-    electronAPI.updateStore(data.store_code, { [field]: newValue });
+    await sendAPIRequest(`/store/${data.store_code}`, {
+      method: 'PUT',
+      body: { [field]: newValue },
+    });
     getStores();
   };
 
@@ -232,14 +244,13 @@ export const Store = () => {
 
   const handleCellKeyDown = (event: any) => {
     const { node } = event;
-  
+
     if (event.event.key === 'ArrowDown' || event.event.key === 'ArrowUp') {
-      const nextRowIndex = event.event.key === 'ArrowDown'
-        ? node.rowIndex + 1
-        : node.rowIndex - 1;
-  
+      const nextRowIndex =
+        event.event.key === 'ArrowDown' ? node.rowIndex + 1 : node.rowIndex - 1;
+
       const nextRowNode = event.api.getDisplayedRowAtIndex(nextRowIndex);
-  
+
       if (nextRowNode) {
         const nextRowData = nextRowNode.data;
         setSelectedRow(nextRowData);
@@ -251,7 +262,6 @@ export const Store = () => {
       }
     }
   };
-  
 
   const colDefs: any[] = [
     {

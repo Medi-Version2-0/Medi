@@ -12,7 +12,7 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { LedgerFormData } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { ValueFormatterParams } from 'ag-grid-community';
 import Button from '../../components/common/button/Button';
 import * as Yup from 'yup';
@@ -41,6 +41,7 @@ const validateField = async (field: string, value: any) => {
 
 export const Ledger = () => {
   const [selectedRow, setSelectedRow] = useState<any>(null);
+  const { companyId } = useParams();
   const [tableData, setTableData] = useState<LedgerFormData[]>([]);
   const editing = useRef(false);
   const partyId = useRef('');
@@ -52,11 +53,11 @@ export const Ledger = () => {
   });
 
   const fetchStations = useCallback(() => {
-    return sendAPIRequest<any[]>('/station');
+    return sendAPIRequest<any[]>(`/station`);
   }, []);
 
   const fetchLedgerData = useCallback(async () => {
-    const data = await sendAPIRequest<any[]>('/ledger', {
+    const data = await sendAPIRequest<any[]>(`/${companyId}/ledger`, {
       method: 'GET',
     });
     data.map((e) => (e.stationName = e.Station?.station_name || ''));
@@ -138,7 +139,7 @@ export const Ledger = () => {
 
   const handleConfirmPopup = async () => {
     setPopupState({ ...popupState, isModalOpen: false });
-    await sendAPIRequest(`/ledger/${partyId.current}`, { method: 'DELETE' });
+    await sendAPIRequest(`/${companyId}/ledger/${partyId.current}`, { method: 'DELETE' });
     fetchLedgerData();
   };
 
@@ -180,7 +181,7 @@ export const Ledger = () => {
       if (field === 'partyName')
         newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
       node.setDataValue(field, newValue);
-      await sendAPIRequest(`/ledger/${data.party_id}`, {
+      await sendAPIRequest(`/${companyId}/ledger/${data.party_id}`, {
         method: 'PUT',
         body: { [field]: newValue },
       });

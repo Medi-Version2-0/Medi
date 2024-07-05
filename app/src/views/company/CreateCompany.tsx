@@ -14,7 +14,6 @@ import titleCase from '../../utilities/titleCase';
 import { sendAPIRequest } from '../../helper/api';
 
 export const CreateCompany = () => {
-  const electronAPI = (window as any).electronAPI;
   const navigate = useNavigate();
   const location = useLocation();
   const data = location.state || {};
@@ -74,24 +73,26 @@ export const CreateCompany = () => {
 
   const fetchAllData = async () => {
     const stateList = await sendAPIRequest<any[]>('/station');
-    const salesList = electronAPI.getSalesPurchase('', '', '', 'Sales');
-    const purchaseList = electronAPI.getSalesPurchase('', '', '', 'Purchase');
+    const salesList = await sendAPIRequest<any[]>('/sale');
+    const purchaseList = await sendAPIRequest<any[]>('/purchase');
     setStationOptions(
       stateList.map((station: any) => ({
         value: station.station_id,
         label: titleCase(station.station_name),
       }))
     );
+    //Check This .....
     setSalesOptions(
       salesList.map((sales: any) => ({
         value: sales.sp_id,
-        label: titleCase(sales.sptype),
+        label: titleCase(sales.spType),
       }))
     );
+
     setPurchaseOptions(
       purchaseList.map((purchase: any) => ({
         value: purchase.sp_id,
-        label: titleCase(purchase.sptype),
+        label: titleCase(purchase.spType),
       }))
     );
   };

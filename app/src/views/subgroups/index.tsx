@@ -9,12 +9,13 @@ import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { ColDef, ColGroupDef } from 'ag-grid-community';
 import { CreateSubGroup } from './CreateSubGroup';
 import Button from '../../components/common/button/Button';
+import { sendAPIRequest } from '../../helper/api';
 
 const initialValue = {
   group_code: '',
   group_name: '',
   type: '',
-  parent_group: '',
+  parent_code: '',
   isPredefinedGroup: true,
 };
 
@@ -23,8 +24,6 @@ export const SubGroups = () => {
   const [formData, setFormData] = useState<SubGroupFormData>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<SubGroupFormData | any>(null);
-  const [currTableData, setCurrTableData] = useState<SubGroupFormData | any>(null);
-  const [groupData, setGroupData] = useState([]);
   const editing = useRef(false);
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
@@ -50,14 +49,6 @@ export const SubGroups = () => {
     return mappings[key];
   };
 
-  const getGroups = () => {
-    setGroupData(electronAPI.getAllGroups('', '', '', '', ''));
-  };
-
-  useEffect(() => {
-    getGroups();
-  }, []);
-
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
   };
@@ -66,7 +57,7 @@ export const SubGroups = () => {
     setPopupState({ ...popupState, isModalOpen: false });
   };
 
-  const handleConfirmPopup = () => {
+  const handleConfirmPopup = async() => {
     setPopupState({ ...popupState, isModalOpen: false });
     if (formData.group_name) {
       formData.group_name =
@@ -75,15 +66,17 @@ export const SubGroups = () => {
     }
     if (formData !== initialValue) {
       if (formData.group_code) {
-        electronAPI.updateSubGroup(formData.group_code, formData);
+        await sendAPIRequest(`/group/sub/${formData.group_code}`, {
+          method: 'PUT',
+          body: formData,
+        });
       } else {
-        electronAPI.addSubGroup(formData);
+        await sendAPIRequest<any[]>('/group/sub', {method: 'POST', body: formData});
       }
       togglePopup(false);
       getSubGroups();
     }
   };
-  const electronAPI = (window as any).electronAPI;
   const isDelete = useRef(false);
 
   const togglePopup = (isOpen: boolean) => {
@@ -94,14 +87,14 @@ export const SubGroups = () => {
     setOpen(isOpen);
   };
 
-  const getSubGroups = () => {
-    setTableData(electronAPI.getAllSubGroups('', '', ''));
-    setCurrTableData(electronAPI.getAllSubGroups('', '', ''));
+  const getSubGroups = async() => {
+    const subGroups = await sendAPIRequest<any[]>('/group/sub');
+    setTableData(subGroups);
   };
 
   const deleteAcc = (group_code: string) => {
-    electronAPI.deleteSubGroup(group_code);
     isDelete.current = false;
+    sendAPIRequest(`/group/sub/${group_code}`, { method: 'DELETE' });
     togglePopup(false);
     getSubGroups();
   };
@@ -142,14 +135,6 @@ export const SubGroups = () => {
       values.group_name =
         values.group_name.charAt(0).toUpperCase() + values.group_name.slice(1);
     }
-    if (values.parent_group) {
-      groupData.map((group: any) => {
-        if (values.parent_group?.toLowerCase() === group.group_name?.toLowerCase()) {
-          values.parent_code = Number(`${group.group_code}`);
-          delete values.parent_group;
-        }
-      });
-    }
     if (values !== initialValue) {
       setPopupState({
         ...popupState,
@@ -160,7 +145,7 @@ export const SubGroups = () => {
     }
   };
 
-  const handleCellEditingStopped = (e: {
+  const handleCellEditingStopped = async(e: {
     data?: any;
     column?: any;
     oldValue?: any;
@@ -177,20 +162,7 @@ export const SubGroups = () => {
       switch (field) {
         case 'group_name':
           {
-            const existingGroups = currTableData.find(
-              (group: SubGroupFormData) =>
-                group.group_name?.toLowerCase() === newValue?.toLowerCase()
-            );
-            if (existingGroups) {
-              setPopupState({
-                ...popupState,
-                isAlertOpen: true,
-                message: 'Sub Group with this name already exists!',
-              });
-              node.setDataValue(field, oldValue);
-              return;
-            }
-            else if (!newValue || /^\d+$/.test(newValue) || newValue.length > 100) {
+            if (!newValue || /^\d+$/.test(newValue) || newValue.length > 100) {
               setPopupState({
                 ...popupState,
                 isAlertOpen: true,
@@ -217,7 +189,10 @@ export const SubGroups = () => {
         default:
           break;
       }
-      electronAPI.updateSubGroup(data.group_code, { [field]: newValue });
+      await sendAPIRequest(`/group/sub/${data.group_code}`, {
+        method: 'PUT',
+        body: { [field]: newValue },
+      });
       getSubGroups();
     } else {
       const { column, oldValue, node } = e;
