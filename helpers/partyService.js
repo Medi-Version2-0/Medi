@@ -15,7 +15,7 @@ module.exports.getAllLedgerData = (where = "", sort = "", limit = "") => {
 
   data.forEach((d) => {
     groupData.forEach((g) => {
-      if (d.account_code && d.account_code === g.group_code) {
+      if (d.accountCode && d.accountCode === g.group_code) {
         d.accountGroup = g.group_name;
       }
     });
@@ -77,7 +77,7 @@ module.exports.addParty = (partyData) => {
     // if (partyData) {
     //   groupData.forEach((s) => {
     //     if (partyData.accountGroup.toLowerCase() === s.group_name.toLowerCase()) {
-    //       partyData.account_code = s.group_code;
+    //       partyData.accountCode = s.group_code;
     //     }
     //   });
 
@@ -149,7 +149,7 @@ module.exports.getAllSuggestions = (where = "", sort = "", limit = "") => {
   const finalData = [];
   data.map((d) => {
     groupData.map((g) => {
-      if (d.account_code === g.group_code) {
+      if (d.accountCode === g.group_code) {
         finalData.push({
           party_code: d.party_id,
           partyName: d.partyName,

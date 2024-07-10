@@ -10,6 +10,7 @@ import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useParams } from 'react-router-dom';
 
 const initialValue = {
   station_id: '',
@@ -36,6 +37,7 @@ const initialValue = {
 // };
 
 export const Stations = () => {
+  const { companyId } = useParams();
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<StationFormData | any>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
@@ -78,7 +80,7 @@ export const Stations = () => {
   };
 
   const getStations = async () => {
-    const stations = await sendAPIRequest<any[]>('/station');
+    const stations = await sendAPIRequest<any[]>(`/${companyId}/station`);
     setTableData(stations);
   };
 
@@ -109,12 +111,15 @@ export const Stations = () => {
     if (formData !== initialValue) {
       formData.state_code = +formData.state_code;
       if (formData.station_id) {
-        await sendAPIRequest(`/station/${formData.station_id}`, {
+        await sendAPIRequest(`/${companyId}/station/${formData.station_id}`, {
           method: 'PUT',
           body: formData,
         });
       } else {
-        await sendAPIRequest('/station', { method: 'POST', body: formData });
+        await sendAPIRequest(`/${companyId}/station`, {
+          method: 'POST',
+          body: formData,
+        });
       }
 
       togglePopup(false);
@@ -158,7 +163,9 @@ export const Stations = () => {
   const deleteAcc = async (station_id: string) => {
     isDelete.current = false;
     togglePopup(false);
-    await sendAPIRequest(`/station/${station_id}`, { method: 'DELETE' });
+    await sendAPIRequest(`/${companyId}/station/${station_id}`, {
+      method: 'DELETE',
+    });
     queryClient.invalidateQueries({ queryKey: ['get-stations'] });
   };
 
@@ -298,7 +305,7 @@ export const Stations = () => {
         break;
     }
 
-    await sendAPIRequest(`/station/${data.station_id}`, {
+    await sendAPIRequest(`/${companyId}/station/${data.station_id}`, {
       method: 'PUT',
       body: { [field]: newValue },
     });
@@ -433,14 +440,14 @@ export const Stations = () => {
   //   eWayBillNo = true;
   //   priceListM = false;
 
-    // updateControls(
-    //   multiplePriceList,
-    //   printPartyBalance,
-    //   priceListLock,
-    //   purchaseTC,
-    //   eWayBillNo,
-    //   priceListM,
-    // )
+  // updateControls(
+  //   multiplePriceList,
+  //   printPartyBalance,
+  //   priceListLock,
+  //   purchaseTC,
+  //   eWayBillNo,
+  //   priceListM,
+  // )
   //   setcc(controlRoomSettings);
   //   console.log("cc ---> ", cc)
   //   console.log("button after click")
@@ -466,7 +473,7 @@ export const Stations = () => {
             Add Station
           </Button>
         </div>
-    {/* {
+        {/* {
       cc && cc.forEach((element: any) => {
         <div>element : {element.multiplePriceList}</div>
       })

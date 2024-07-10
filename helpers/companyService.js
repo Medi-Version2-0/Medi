@@ -46,7 +46,7 @@ module.exports.addCompany = (companyData) => {
 
     const ledgerPartyData = {
       partyName: companyData.companyName,
-      account_code: 5,
+      accountCode: 5,
       isPredefinedLedger: 0,
       station_id: stationId,
       address1: companyData.address1,
@@ -160,7 +160,7 @@ module.exports.getAllSuggestions = (where = "", sort = "", limit = "") => {
   const finalData = [];
   data.map((d) => {
     groupData.map((g) => {
-      if (d.account_code === g.group_code) {
+      if (d.accountCode === g.group_code) {
         finalData.push({
           company_code: d.company_id,
           companyName: d.companyName,

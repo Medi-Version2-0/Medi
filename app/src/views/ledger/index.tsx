@@ -12,7 +12,6 @@ import Button from '../../components/common/button/Button';
 import { IoSettingsOutline } from 'react-icons/io5';
 import * as Yup from 'yup';
 import { sendAPIRequest } from '../../helper/api';
-import { CreateLedger } from './CreateLedger';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 const ledgerValidationSchema = Yup.object().shape({
@@ -55,7 +54,7 @@ export const Ledger = () => {
 
   const { data } = useQuery<LedgerFormData[]>({
     queryKey: ['get-ledger'],
-    queryFn: () => sendAPIRequest<LedgerFormData[]>(`/${companyId}/ledger`),
+    queryFn: () => sendAPIRequest<LedgerFormData[]>(`/${companyId}/station`),
     initialData: [],
   });
 

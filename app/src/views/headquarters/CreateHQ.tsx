@@ -1,22 +1,28 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { Formik, Form, Field, FormikProps } from 'formik';
-import { CreateStationProps, Option, StationFormData } from '../../interface/global';
+import {
+  CreateStationProps,
+  Option,
+  StationFormData,
+} from '../../interface/global';
 import { Popup } from '../../components/popup/Popup';
 import CustomSelect from '../../components/custom_select/CustomSelect';
 import Button from '../../components/common/button/Button';
 import * as Yup from 'yup';
 import titleCase from '../../utilities/titleCase';
 import { sendAPIRequest } from '../../helper/api';
+import { useParams } from 'react-router-dom';
 
 const useStations = () => {
+  const { companyId } = useParams();
   const [stations, setStations] = useState<StationFormData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchStations = useCallback(async () => {
     try {
-      const stationsData = await sendAPIRequest<any[]>('/station');
-      const transformedStations = stationsData.map(station => ({
+      const stationsData = await sendAPIRequest<any[]>(`/${companyId}/station`);
+      const transformedStations = stationsData.map((station) => ({
         ...station,
         state_code: station.State?.state_name,
       }));
@@ -38,7 +44,7 @@ const useStations = () => {
 const useOptions = (stations: StationFormData[]) => {
   const hqOptions = useMemo(
     () =>
-      stations.map(station => ({
+      stations.map((station) => ({
         value: station.station_id,
         label: titleCase(station.station_name),
       })),
@@ -48,8 +54,8 @@ const useOptions = (stations: StationFormData[]) => {
   const stationOptions = useMemo(
     () =>
       stations
-        .filter(station => station.station_headQuarter === null)
-        .map(station => ({
+        .filter((station) => station.station_headQuarter === null)
+        .map((station) => ({
           value: titleCase(station.station_name),
           label: titleCase(station.station_name),
         })),
@@ -68,7 +74,9 @@ const validationSchema = Yup.object({
       'Station name can contain alphanumeric characters, "-", "_", and spaces only'
     )
     .max(100, 'Station name cannot exceed 100 characters'),
-  station_headQuarter: Yup.string().required('Station HeadQuarter is required.'),
+  station_headQuarter: Yup.string().required(
+    'Station HeadQuarter is required.'
+  ),
 });
 
 export const CreateHQ = ({
@@ -83,7 +91,7 @@ export const CreateHQ = ({
   const { stations, loading, error } = useStations();
   const { hqOptions, stationOptions } = useOptions(stations);
   const formikRef = useRef<FormikProps<StationFormData>>(null);
-  const [focused, setFocused] = useState("station_name");
+  const [focused, setFocused] = useState('station_name');
 
   const handleFieldChange = useCallback((option: Option | null, id: string) => {
     formikRef.current?.setFieldValue(id, option?.value);
@@ -98,7 +106,9 @@ export const CreateHQ = ({
 
   const fetchType = useCallback(
     (isDelete: boolean, station_id?: string) => {
-      const selectedHq = stations.find((item: StationFormData) => item.station_id === station_id);
+      const selectedHq = stations.find(
+        (item: StationFormData) => item.station_id === station_id
+      );
       if (!selectedHq) {
         return isDelete ? 'Delete' : 'Create';
       }
@@ -142,33 +152,48 @@ export const CreateHQ = ({
       >
         {(formik) => (
           <Form className='flex flex-col gap-3 min-w-[18rem] items-center px-4 '>
-            <div className="flex flex-col w-full ">
-              <Field name="station_name">
+            <div className='flex flex-col w-full '>
+              <Field name='station_name'>
                 {() => (
                   <CustomSelect
                     label='Station Name'
-                    id="station_name"
+                    id='station_name'
                     name='station_name'
-                    value={formik.values.station_name === '' ? null : { label: formik.values.station_name, value: formik.values.station_name }}
+                    value={
+                      formik.values.station_name === ''
+                        ? null
+                        : {
+                            label: formik.values.station_name,
+                            value: formik.values.station_name,
+                          }
+                    }
                     onChange={handleFieldChange}
                     options={stationOptions}
                     isSearchable={true}
                     disableArrow={true}
                     hidePlaceholder={false}
                     className='!h-6 rounded-sm text-xs'
-                    isFocused={focused === "station_name"}
+                    isFocused={focused === 'station_name'}
                     error={formik.errors.station_name}
-                    isDisabled={fetchType(isDelete, station_id) === 'Delete' || fetchType(isDelete, station_id) === 'Update'}
+                    isDisabled={
+                      fetchType(isDelete, station_id) === 'Delete' ||
+                      fetchType(isDelete, station_id) === 'Update'
+                    }
                     isTouched={formik.touched.station_name}
-                    onBlur={() => { formik.setFieldTouched('station_name', true); setFocused(""); }}
-                    noOptionsMsg="No station found, create one..."
+                    onBlur={() => {
+                      formik.setFieldTouched('station_name', true);
+                      setFocused('');
+                    }}
+                    noOptionsMsg='No station found, create one...'
                     onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-                      const dropdown = document.querySelector('.custom-select__menu');
+                      const dropdown = document.querySelector(
+                        '.custom-select__menu'
+                      );
                       if (e.key === 'Enter' || e.key === 'Tab') {
                         if (!dropdown) {
                           e.preventDefault();
                         }
-                        setFocused("station_headQuarter");
+                        setFocused('station_headQuarter');
                       }
                       if (e.shiftKey && e.key === 'Tab') {
                         if (!dropdown) {
@@ -182,32 +207,52 @@ export const CreateHQ = ({
                 )}
               </Field>
             </div>
-            <div className="flex flex-col w-full ">
-              <Field name="station_headQuarter">
+            <div className='flex flex-col w-full '>
+              <Field name='station_headQuarter'>
                 {() => (
                   <CustomSelect
                     label='Headquarter'
-                    id="station_headQuarter"
+                    id='station_headQuarter'
                     name='station_headQuarter'
-                    value={formik.values.station_headQuarter === '' ? null : { label: hqOptions?.find((e) => e.value === formik.values.station_headQuarter)?.label || '', value: formik.values.station_headQuarter }}
+                    value={
+                      formik.values.station_headQuarter === ''
+                        ? null
+                        : {
+                            label:
+                              hqOptions?.find(
+                                (e) =>
+                                  e.value === formik.values.station_headQuarter
+                              )?.label || '',
+                            value: formik.values.station_headQuarter,
+                          }
+                    }
                     onChange={handleFieldChange}
                     options={hqOptions}
                     isSearchable={true}
                     disableArrow={true}
                     hidePlaceholder={false}
                     className='!h-6 rounded-sm text-xs'
-                    isFocused={focused === "station_headQuarter"}
+                    isFocused={focused === 'station_headQuarter'}
                     error={formik.errors.station_headQuarter}
                     isDisabled={isDelete && station_id}
                     isTouched={formik.touched.station_headQuarter}
-                    onBlur={() => { formik.setFieldTouched('station_headQuarter', true); setFocused(""); }}
+                    onBlur={() => {
+                      formik.setFieldTouched('station_headQuarter', true);
+                      setFocused('');
+                    }}
                     onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-                      const dropdown = document.querySelector('.custom-select__menu');
+                      const dropdown = document.querySelector(
+                        '.custom-select__menu'
+                      );
                       if (e.key === 'Enter' || e.key === 'Tab') {
                         if (!dropdown) {
                           e.preventDefault();
                         }
-                        document.getElementById(`${e.key === 'Tab' ? "cancel_button" : "submit_button"}`)?.focus();
+                        document
+                          .getElementById(
+                            `${e.key === 'Tab' ? 'cancel_button' : 'submit_button'}`
+                          )
+                          ?.focus();
                       }
                       if (e.shiftKey && e.key === 'Tab') {
                         if (!dropdown) {
@@ -222,7 +267,10 @@ export const CreateHQ = ({
               </Field>
             </div>
             <div className='flex justify-between my-4 w-full'>
-              <Button type='fog' id='cancel_button' handleOnClick={() => togglePopup(false)}
+              <Button
+                type='fog'
+                id='cancel_button'
+                handleOnClick={() => togglePopup(false)}
                 handleOnKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
@@ -237,12 +285,18 @@ export const CreateHQ = ({
                 Cancel
               </Button>
               {isDelete ? (
-                <Button id='del_button' type='fill' handleOnClick={() => station_id && deleteAcc(station_id)}
+                <Button
+                  id='del_button'
+                  type='fill'
+                  handleOnClick={() => station_id && deleteAcc(station_id)}
                   handleOnKeyDown={(e) => {
                     if (e.key === 'Tab') {
                       e.preventDefault();
                     }
-                    if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab')) {
+                    if (
+                      e.key === 'ArrowUp' ||
+                      (e.shiftKey && e.key === 'Tab')
+                    ) {
                       document.getElementById('cancel_button')?.focus();
                     }
                   }}
@@ -250,19 +304,27 @@ export const CreateHQ = ({
                   Delete
                 </Button>
               ) : (
-                <Button id="submit_button" type="fill" autoFocus={true}
+                <Button
+                  id='submit_button'
+                  type='fill'
+                  autoFocus={true}
                   handleOnKeyDown={(e) => {
                     if (e.key === 'Tab') {
                       setFocused('station_name');
                       e.preventDefault();
                     }
-                    if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab')) {
+                    if (
+                      e.key === 'ArrowUp' ||
+                      (e.shiftKey && e.key === 'Tab')
+                    ) {
                       document.getElementById('cancel_button')?.focus();
                       e.preventDefault();
                     }
                   }}
                 >
-                  {fetchType(isDelete, station_id) === 'Update' ? 'Update' : 'Add'}
+                  {fetchType(isDelete, station_id) === 'Update'
+                    ? 'Update'
+                    : 'Add'}
                 </Button>
               )}
             </div>

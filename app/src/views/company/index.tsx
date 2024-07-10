@@ -6,7 +6,7 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { CompanyFormData } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { ValueFormatterParams } from 'ag-grid-community';
 import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
@@ -15,6 +15,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const Company = () => {
   const [view, setView] = useState<string>('');
+  const { companyId: organizationId } = useParams();
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<CompanyFormData | any>(null);
   const [stationData, setStationData] = useState<any[]>([]);
@@ -31,7 +32,7 @@ export const Company = () => {
 
   const { data } = useQuery<CompanyFormData[]>({
     queryKey: ['get-companies'],
-    queryFn: () => sendAPIRequest<CompanyFormData[]>('/company'),
+    queryFn: () => sendAPIRequest<any[]>(`/${organizationId}/station`),
   });
 
   const fetchStations = async () => {
@@ -45,7 +46,7 @@ export const Company = () => {
     ledgerStationsMap[station.station_id] = station.station_name;
   });
   const getCompanyData = async () => {
-    const data = await sendAPIRequest<any[]>('/company');
+    const data = await sendAPIRequest<any[]>(`/${organizationId}/company`);
     setTableData(data);
   };
 
@@ -109,7 +110,9 @@ export const Company = () => {
 
   const handleConfirmPopup = async () => {
     setPopupState({ ...popupState, isModalOpen: false });
-    await sendAPIRequest(`/company/${companyId.current}`, { method: 'DELETE' });
+    await sendAPIRequest(`/${organizationId}/company/${companyId.current}`, {
+      method: 'DELETE',
+    });
     await queryClient.invalidateQueries({ queryKey: ['get-companies'] });
   };
 
@@ -134,7 +137,7 @@ export const Company = () => {
   const handleCellEditingStopped = async (e: any) => {
     currTable = [];
     editing.current = false;
-    const { column, oldValue, valueChanged, node,data } = e;
+    const { column, oldValue, valueChanged, node, data } = e;
     let { newValue } = e;
     if (!valueChanged) return;
     const field = column.colId;
@@ -188,8 +191,7 @@ export const Company = () => {
       default:
         break;
     }
-    console.log(field, newValue, oldValue);
-    await sendAPIRequest(`/company/${data.company_id}`, {
+    await sendAPIRequest(`/${organizationId}/company/${data.company_id}`, {
       method: 'PUT',
       body: { [field]: newValue },
     });

@@ -4,6 +4,7 @@ import CustomSelect from '../custom_select/CustomSelect';
 import FormikInputField from '../common/FormikInputField';
 import titleCase from '../../utilities/titleCase';
 import { sendAPIRequest } from '../../helper/api';
+import { useParams } from 'react-router-dom';
 
 interface GeneralInfoProps {
   onValueChange?: any;
@@ -16,6 +17,7 @@ export const GeneralInfo = ({
   formik,
   selectedGroup,
 }: GeneralInfoProps) => {
+  const { companyId } = useParams();
   const [stationData, setStationData] = useState<any[]>([]);
   const [groupOptions, setGroupOptions] = useState<Option[]>([]);
   const [stationOptions, setStationOptions] = useState<Option[]>([]);
@@ -27,7 +29,7 @@ export const GeneralInfo = ({
   const fetchAllData = async () => {
     const stationList =
       await sendAPIRequest<{ station_id: number; station_name: string }[]>(
-        '/station'
+        `/${companyId}/station`
       );
     const groupDataList = await sendAPIRequest<any[]>('/group');
 

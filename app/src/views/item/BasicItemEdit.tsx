@@ -4,6 +4,7 @@ import CustomSelect from '../../components/custom_select/CustomSelect';
 import FormikInputField from '../../components/common/FormikInputField';
 import { ItemGroupFormData, Option } from '../../interface/global';
 import { sendAPIRequest } from '../../helper/api';
+import { useParams } from 'react-router-dom';
 
 interface BasicItemEditProps {
   formik: ItemFormInfoType;
@@ -103,6 +104,7 @@ const Container: React.FC<ContainerProps> = ({ title, fields, formik }) => {
 };
 
 const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
+  const { companyId } = useParams();
   const [options, setOptions] = useState<{
     companiesOptions: Option[];
     salesOptions: Option[];
@@ -116,7 +118,7 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
   });
 
   const fetchAllData = async () => {
-    const companies = await sendAPIRequest<any[]>('/company');
+    const companies = await sendAPIRequest<any[]>(`/${companyId}/company`);
     const salesList = await sendAPIRequest<any[]>('/sale');
     const purchaseList = await sendAPIRequest<any[]>('/purchase');
     const groups = await sendAPIRequest<ItemGroupFormData[]>('/itemGroup', {

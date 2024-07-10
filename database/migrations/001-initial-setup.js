@@ -19,15 +19,15 @@ const insertGroups = groups.map((group) => {
 });
 
 const insertPartyAccountGroup = PartyList.map((party) => {
-  let { party_name, account_group, isPredefinedLedger, account_code } = party;
+  let { party_name, account_group, isPredefinedLedger, accountCode } = party;
   groups.map((group) => {
     const { group_code, group_name } = group;
     if (account_group.toLowerCase() === group_name.toLowerCase()) {
-      account_code = group_code;
+      accountCode = group_code;
     }
   });
   const isPredefinedLedgerValue = isPredefinedLedger ? 1 : 0;
-  return `('${party_name}', ${account_code},${isPredefinedLedgerValue} )`;
+  return `('${party_name}', ${accountCode},${isPredefinedLedgerValue} )`;
 });
 
 const insertSalesPurchase = SalesPurchasePred.map((sp) => {
@@ -88,7 +88,7 @@ module.exports = {
     `CREATE TABLE IF NOT EXISTS party_table (
           party_id INTEGER PRIMARY KEY,
           partyName TEXT NOT NULL,
-          account_code INTEGER NOT NULL,
+          accountCode INTEGER NOT NULL,
           isPredefinedLedger BOOLEAN NOT NULL,
           station_id INTEGER,
           mailTo TEXT,
@@ -273,7 +273,7 @@ module.exports = {
     `INSERT INTO groups (group_code, group_name, parent_code, type, isPredefinedGroup) VALUES ${insertGroups.join(
       ", ",
     )};`,
-    `INSERT INTO party_table (partyName, account_code, isPredefinedLedger) VALUES ${insertPartyAccountGroup.join(
+    `INSERT INTO party_table (partyName, accountCode, isPredefinedLedger) VALUES ${insertPartyAccountGroup.join(
       ", ",
     )};`,
     `INSERT INTO sales_purchase (sptype, igst, cgst, sgst, salesPurchaseType) VALUES ${insertSalesPurchase.join(

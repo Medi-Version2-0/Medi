@@ -9,6 +9,7 @@ import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import Button from '../../components/common/button/Button';
 import { CreateStore } from './CreateStore';
 import { sendAPIRequest } from '../../helper/api';
+import { useParams } from 'react-router-dom';
 
 const initialValue = {
   store_code: '',
@@ -19,6 +20,7 @@ const initialValue = {
 };
 
 export const Store = () => {
+  const { companyId } = useParams();
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<StoreFormData | any>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
@@ -49,7 +51,7 @@ export const Store = () => {
   }, [selectedRow]);
 
   const getStores = async () => {
-    const stores = await sendAPIRequest('/store');
+    const stores = await sendAPIRequest(`/${companyId}/store`);
     setTableData(stores);
   };
 
@@ -78,12 +80,15 @@ export const Store = () => {
     }
     if (formData !== initialValue) {
       if (formData.store_code) {
-        await sendAPIRequest(`/store/${formData.store_code}`, {
+        await sendAPIRequest(`/${companyId}/store/${formData.store_code}`, {
           method: 'PUT',
           body: formData,
         });
       } else {
-        await sendAPIRequest('/store', { method: 'POST', body: formData });
+        await sendAPIRequest(`/${companyId}/store`, {
+          method: 'POST',
+          body: formData,
+        });
       }
       togglePopup(false);
       getStores();
@@ -130,7 +135,7 @@ export const Store = () => {
   const deleteAcc = async (store_code: string) => {
     isDelete.current = false;
     togglePopup(false);
-    await sendAPIRequest(`/store/${store_code}`, { method: 'DELETE' });
+    await sendAPIRequest(`/${companyId}/store/${store_code}`, { method: 'DELETE' });
     getStores();
   };
 
@@ -194,7 +199,7 @@ export const Store = () => {
       default:
         break;
     }
-    await sendAPIRequest(`/store/${data.store_code}`, {
+    await sendAPIRequest(`/${companyId}/store/${data.store_code}`, {
       method: 'PUT',
       body: { [field]: newValue },
     });

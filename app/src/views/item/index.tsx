@@ -8,10 +8,9 @@ import {
   CompanyFormData,
   itemFormData,
   ItemGroupFormData,
-  SalesPurchaseFormData,
 } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
 import { ICellRendererParams } from 'ag-grid-community';
@@ -21,11 +20,12 @@ import { Batch } from '../itembatch';
 
 const Items = () => {
   const [view, setView] = useState<string>('');
+  const { companyId } = useParams();
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<itemFormData | any>(null);
   const [companyData, setCompanyData] = useState<CompanyFormData | any>(null);
   const [itemGroupData, setItemGroupData] = useState<ItemGroupFormData | any>(
-   null
+    null
   );
   const [salesData, setSalesData] = useState<any[]>([]);
   const [purchaseData, setPurchaseData] = useState<any[]>([]);
@@ -51,10 +51,11 @@ const Items = () => {
   };
 
   const getCompany = async () => {
-    const companyData = (
-      await sendAPIRequest<{ data: CompanyFormData }>('/company', {
+    const companyData = await sendAPIRequest<{ data: CompanyFormData }>(
+      `/${companyId}/company`,
+      {
         method: 'GET',
-      })
+      }
     );
     setCompanyData(companyData);
   };
@@ -282,7 +283,7 @@ const Items = () => {
         valueListMaxWidth: 172,
         valueListGap: 8,
       },
-      valueFormatter: (params: { value: string | number }) =>{
+      valueFormatter: (params: { value: string | number }) => {
         return lookupValue(companyCodeMap, params.value);
       },
       ...commonColDefConfig,
@@ -297,7 +298,7 @@ const Items = () => {
         valueListMaxWidth: 172,
         valueListGap: 8,
       },
-      valueFormatter: (params: { value: string | number }) =>{
+      valueFormatter: (params: { value: string | number }) => {
         return lookupValue(groupCodeMap, params.value);
       },
       ...commonColDefConfig,

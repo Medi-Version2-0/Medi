@@ -18,8 +18,8 @@ export const CreateSalePurchase = ({
   isDelete,
   deleteAcc,
   type,
-  className
-}:CreateSalePurchaseProps) => {
+  className,
+}: CreateSalePurchaseProps) => {
   const { sp_id } = data;
   const formikRef = useRef<FormikProps<SalesPurchaseFormProps>>(null);
 
@@ -27,16 +27,15 @@ export const CreateSalePurchase = ({
     sptype: Yup.string()
       .max(100, `${type} account name must be 100 characters or less`)
       .required(`${type} account name is required`),
-      igst: Yup.number()
+    igst: Yup.number()
       .min(1, 'IGST must be greater than 0')
       .required('IGST is required'),
-      surCharge: Yup.number()
-      .required('Cess% is required'),
-      shortName: Yup.string()
-        .max(20, `Short name must be 20 characters or less`)
-        .required(`Short name is required`),
+    surCharge: Yup.number().required('Cess% is required'),
+    shortName: Yup.string()
+      .max(20, `Short name must be 20 characters or less`)
+      .required(`Short name is required`),
   });
-  
+
   useEffect(() => {
     const focusTarget = !isDelete
       ? document.getElementById('sptype')

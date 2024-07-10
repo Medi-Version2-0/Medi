@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useUser } from '../UserContext';
+import userlogo from '../../src/assets/icons/user.png';
 import { useNavigate } from 'react-router-dom';
-import userlogo from '../assets/icons/user.png';
 
 export const TopBar = () => {
   const [isPopupVisible, setPopupVisible] = useState(false);

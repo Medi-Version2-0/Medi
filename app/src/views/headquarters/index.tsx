@@ -10,6 +10,7 @@ import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { CreateHQ } from './CreateHQ';
 import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
+import { useParams } from 'react-router-dom';
 
 const initialValue: StationFormData = {
   station_id: '',
@@ -18,6 +19,7 @@ const initialValue: StationFormData = {
 };
 
 export const Headquarters = () => {
+  const { companyId } = useParams();
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState<StationFormData>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
@@ -33,7 +35,7 @@ export const Headquarters = () => {
   });
 
   const getStations = useCallback(async () => {
-    const stations = await sendAPIRequest<any[]>('/station');
+    const stations = await sendAPIRequest<any[]>(`/${companyId}/station`);
     setAllStations(stations);
   }, []);
   const handleDelete = (oldData: StationFormData) => {
@@ -52,7 +54,7 @@ export const Headquarters = () => {
   };
   const getHeadquarters = useCallback(async () => {
     const headQuarter = await sendAPIRequest<StationFormData[]>(
-      '/station/headQuarter'
+      `/${companyId}/station/headQuarter`
     );
     setTableData(headQuarter);
   }, []);
@@ -137,12 +139,15 @@ export const Headquarters = () => {
         }
       });
       if (mode === false) {
-        await sendAPIRequest(`/station/headQuarter/${id}`, {
-          method: 'PUT',
-          body: formData,
-        });
+        await sendAPIRequest(
+          `/${companyId}/station/headQuarter/${formData.station_id}/${id}`,
+          {
+            method: 'PUT',
+            body: formData,
+          }
+        );
       } else {
-        await sendAPIRequest('/station/headQuarter', {
+        await sendAPIRequest(`/${companyId}/station/headQuarter`, {
           method: 'POST',
           body: formData,
         });
@@ -179,7 +184,7 @@ export const Headquarters = () => {
   const deleteAcc = async (station_id: string) => {
     isDelete.current = false;
     togglePopup(false);
-    await sendAPIRequest(`/station/headQuarter/${station_id}`, {
+    await sendAPIRequest(`/${companyId}/station/headQuarter/${station_id}`, {
       method: 'DELETE',
     });
     getHeadquarters();
@@ -253,10 +258,13 @@ export const Headquarters = () => {
 
     const field = column.colId;
     const newValue = e.newValue;
-    await sendAPIRequest(`/station/headQuarter/${data.station_id}`, {
-      method: 'PUT',
-      body: { [field]: +newValue },
-    });
+    await sendAPIRequest(
+      `/${companyId}/station/headQuarter/${data.station_id}`,
+      {
+        method: 'PUT',
+        body: { [field]: +newValue },
+      }
+    );
     getHeadquarters();
   };
 

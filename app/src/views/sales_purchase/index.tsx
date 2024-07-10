@@ -11,6 +11,7 @@ import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import Button from '../../components/common/button/Button';
 import { CreateSalePurchase } from './CreateSalePurchase';
 import { sendAPIRequest } from '../../helper/api';
+import { useParams } from 'react-router-dom';
 
 const initialValue: SalesPurchaseFormData = {
   sptype: '',
@@ -20,11 +21,12 @@ const initialValue: SalesPurchaseFormData = {
   shortName2: '',
 };
 
-const useSalesData = (type: string) => {
+const useSalesData = (type: string, companyId?: string) => {
   const [tableData, setTableData] = useState<SalesPurchaseFormData[]>([]);
 
   const getSalesData = async () => {
-    const endpoint = type === 'Sales' ? '/sale' : '/purchase';
+    const endpoint =
+      type === 'Sales' ? `/${companyId}/sale` : `/${companyId}/purchase`;
     const data = await sendAPIRequest<SalesPurchaseFormData[]>(endpoint);
     setTableData(data);
   };
@@ -42,7 +44,7 @@ const useKeyboardEvents = (
   handleUpdate: (data: any) => void,
   handleDelete: (data: any) => void
 ) => {
-  useEffect(() => { 
+  useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       switch (event.key) {
         case 'Escape':
@@ -79,6 +81,7 @@ const useKeyboardEvents = (
 };
 
 export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
+  const { companyId } = useParams();
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<SalesPurchaseFormData>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
@@ -90,7 +93,7 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
   const editing = useRef(false);
   const isDelete = useRef(false);
 
-  const { tableData, getSalesData } = useSalesData(type);
+  const { tableData, getSalesData } = useSalesData(type, companyId);
 
   const togglePopup = (isOpen: boolean) => {
     if (!isOpen) {
@@ -122,7 +125,8 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
         formData.sptype.charAt(0).toUpperCase() + formData.sptype.slice(1);
     }
     if (formData !== initialValue) {
-      const endPoint = type === 'Sales' ? '/sale' : '/purchase';
+      const endPoint =
+        type === 'Sales' ? `/${companyId}/sale` : `/${companyId}/purchase`;
       const endpoint = formData.sp_id
         ? `${endPoint}/${formData.sp_id}`
         : `${endPoint}`;
@@ -180,7 +184,8 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
   const deleteAcc = async (sp_id: string) => {
     isDelete.current = false;
     togglePopup(false);
-    const endPoint = type === 'Sales' ? '/sale' : '/purchase';
+    const endPoint =
+      type === 'Sales' ? `/${companyId}/sale` : `/${companyId}/purchase`;
     const endpoint = `${endPoint}/${sp_id}`;
     togglePopup(false);
     await sendAPIRequest(endpoint, { method: 'DELETE' });
@@ -240,7 +245,8 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
       data.cgst = newValue / 2;
       data.sgst = newValue / 2;
     }
-    const endPoint = type === 'Sales' ? '/sale' : '/purchase';
+    const endPoint =
+      type === 'Sales' ? `/${companyId}/sale` : `/${companyId}/purchase`;
     const endpoint = `${endPoint}/${data.sp_id}`;
     await sendAPIRequest(endpoint, {
       method: 'PUT',

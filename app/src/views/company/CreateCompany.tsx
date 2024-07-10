@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import { FormikProps, useFormik } from 'formik';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import Button from '../../components/common/button/Button';
@@ -7,14 +7,15 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import FormikInputField from '../../components/common/FormikInputField';
 import { getCompanyFormSchema } from './validation_schema';
-import { CompanyFormData, Option, SalesPurchaseFormData } from '../../interface/global';
+import { CompanyFormData, Option } from '../../interface/global';
 import CustomSelect from '../../components/custom_select/CustomSelect';
 import onKeyDown from '../../utilities/formKeyDown';
 import titleCase from '../../utilities/titleCase';
 import { sendAPIRequest } from '../../helper/api';
 import { useQueryClient } from '@tanstack/react-query';
 
-export const CreateCompany = ({ setView }: any) => {
+export const CreateCompany  = ({ setView }: any) => {
+  const { companyId } = useParams();
   const location = useLocation();
   const data = location.state || {};
   const [stationOptions, setStationOptions] = useState<Option[]>([]);
@@ -65,19 +66,22 @@ export const CreateCompany = ({ setView }: any) => {
       const allData = { ...values };
 
       if (data.company_id) {
-        await sendAPIRequest(`/company/${data.company_id}`, {
+        await sendAPIRequest(`/${companyId}/company/${data.company_id}`, {
           method: 'PUT',
           body: allData,
         });
       } else {
-        await sendAPIRequest('/company', { method: 'POST', body: allData });
+        await sendAPIRequest(`/${companyId}/company`, {
+          method: 'POST',
+          body: allData,
+        });
       }
       queryClient.invalidateQueries({ queryKey: ['get-companies'] });
     },
   });
 
   const fetchAllData = async () => {
-    const stations = await sendAPIRequest<any[]>('/station');
+    const stations = await sendAPIRequest<any[]>(`/${companyId}/station`);
     const salesList = await sendAPIRequest<any[]>('/sale');
     const purchaseList = await sendAPIRequest<any[]>('/purchase');
     setStationOptions(
@@ -86,7 +90,7 @@ export const CreateCompany = ({ setView }: any) => {
         label: titleCase(station.station_name),
       }))
     );
-    //Check This .....
+
     setSalesOptions(
       salesList.map((sales: any) => ({
         value: sales.sp_id,
