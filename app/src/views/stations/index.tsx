@@ -19,6 +19,22 @@ const initialValue = {
   station_pinCode: '',
 };
 
+// const initialValue2: {
+//   multiplePriceList: boolean;
+//   printPartyBalance: boolean;
+//   priceListLock: boolean;
+//   purchaseTC: boolean;
+//   eWayBillNo: boolean;
+//   priceListM: boolean;
+// } = {
+//   multiplePriceList: false,
+//   printPartyBalance: false,
+//   priceListLock: false,
+//   purchaseTC: false,
+//   eWayBillNo: false,
+//   priceListM: false,
+// };
+
 export const Stations = () => {
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<StationFormData | any>(initialValue);
@@ -30,6 +46,8 @@ export const Stations = () => {
   let currTable: any[] = [];
 
   const isDelete = useRef(false);
+  // const {getControls, controlRoomSettings ,updateControls} = useControls();
+  // const [cc, setcc] = useState<any>();
 
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
@@ -60,7 +78,8 @@ export const Stations = () => {
   };
 
   const getStations = async () => {
-    setTableData(data);
+    const stations = await sendAPIRequest<any[]>('/station');
+    setTableData(stations);
   };
 
   const togglePopup = (isOpen: boolean) => {
@@ -200,12 +219,12 @@ export const Stations = () => {
   };
 
   const handleCellEditingStopped = async (e: any) => {
+    currTable = [];
     editing.current = false;
     const { data, column, oldValue, valueChanged, node } = e;
     let { newValue } = e;
     if (!valueChanged) return;
     const field = column.colId;
-    currTable = [];
 
     switch (field) {
       case 'station_name':
@@ -253,7 +272,6 @@ export const Stations = () => {
           }
         }
         break;
-
       case 'station_pinCode':
         {
           const value = `${newValue}`;
@@ -405,11 +423,41 @@ export const Stations = () => {
     },
   ];
 
+  // const contexthandle = (values: any) => {
+  //   console.log('button is clicked --> ');
+  //   let {multiplePriceList, printPartyBalance, priceListLock, purchaseTC, eWayBillNo, priceListM} = values;
+  //   multiplePriceList = true;
+  //   printPartyBalance = false;
+  //   priceListLock = true;
+  //   purchaseTC = false;
+  //   eWayBillNo = true;
+  //   priceListM = false;
+
+    // updateControls(
+    //   multiplePriceList,
+    //   printPartyBalance,
+    //   priceListLock,
+    //   purchaseTC,
+    //   eWayBillNo,
+    //   priceListM,
+    // )
+  //   setcc(controlRoomSettings);
+  //   console.log("cc ---> ", cc)
+  //   console.log("button after click")
+  // }
+
   return (
     <>
       <div className='w-full relative'>
         <div className='flex w-full items-center justify-between px-8 py-1'>
           <h1 className='font-bold'>Stations</h1>
+          {/* <Button
+            type='highlight'
+            className=''
+            handleOnClick={() => contexthandle(initialValue2)}
+          >
+           context
+          </Button> */}
           <Button
             type='highlight'
             className=''
@@ -418,6 +466,11 @@ export const Stations = () => {
             Add Station
           </Button>
         </div>
+    {/* {
+      cc && cc.forEach((element: any) => {
+        <div>element : {element.multiplePriceList}</div>
+      })
+    } */}
         <div id='account_table' className='ag-theme-quartz'>
           {
             <AgGridReact

@@ -45,11 +45,12 @@ export const Company = () => {
     ledgerStationsMap[station.station_id] = station.station_name;
   });
   const getCompanyData = async () => {
-    data?.map((e: any) => (e.stationName = e.Station?.station_name));
+    const data = await sendAPIRequest<any[]>('/company');
     setTableData(data);
   };
 
   useEffect(() => {
+    fetchStations();
     getCompanyData();
     fetchStations();
   }, [data]);
@@ -84,6 +85,7 @@ export const Company = () => {
 
   const types = extractKey(typeMapping);
   const companyStations = extractKeys(ledgerStationsMap);
+  // console.log("companyStations", companyStations)
 
   const lookupValue = (
     mappings: {

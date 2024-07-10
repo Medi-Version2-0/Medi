@@ -5,6 +5,7 @@ import { App } from './App';
 import reportWebVitals from './reportWebVitals';
 import { UserProvider } from './UserContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ControlRoomProvider } from './ControlRoomContext';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -21,7 +22,9 @@ const queryClient = new QueryClient({
 root.render(
   <QueryClientProvider client={queryClient}>
     <UserProvider>
-      <App />
+      <ControlRoomProvider>
+        <App />
+      </ControlRoomProvider>
     </UserProvider>
   </QueryClientProvider>
 );

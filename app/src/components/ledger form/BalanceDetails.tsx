@@ -105,11 +105,11 @@ export const BalanceDetails = ({
           label={`Party Type`}
           value={
             formik.values.partyType === ''
-              ? null
-              : {
-                  label: formik.values.partyType,
-                  value: formik.values.partyType,
-                }
+            ? null
+            : {
+              label: formik.values.partyType,
+              value: formik.values.partyType,
+            }
           }
           id='partyType'
           onChange={handleFieldChange}

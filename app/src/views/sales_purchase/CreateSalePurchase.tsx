@@ -11,15 +11,15 @@ import Button from '../../components/common/button/Button';
 import onKeyDown from '../../utilities/formKeyDown';
 import FormikInputField from '../../components/common/FormikInputField';
 
-export const CreateSalePurchase: React.FC<CreateSalePurchaseProps> = ({
+export const CreateSalePurchase = ({
   togglePopup,
   data,
   handelFormSubmit,
   isDelete,
   deleteAcc,
   type,
-  className,
-}) => {
+  className
+}:CreateSalePurchaseProps) => {
   const { sp_id } = data;
   const formikRef = useRef<FormikProps<SalesPurchaseFormProps>>(null);
 

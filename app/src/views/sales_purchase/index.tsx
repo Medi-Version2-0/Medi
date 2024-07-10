@@ -42,7 +42,7 @@ const useKeyboardEvents = (
   handleUpdate: (data: any) => void,
   handleDelete: (data: any) => void
 ) => {
-  useEffect(() => {
+  useEffect(() => { 
     const handleKeyDown = (event: KeyboardEvent) => {
       switch (event.key) {
         case 'Escape':
@@ -148,7 +148,7 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
       setPopupState({
         ...popupState,
         isAlertOpen: true,
-        message: 'Type with this name already exists!',
+        message: `${type} account with this name already exists!`,
       });
       return;
     }
@@ -179,6 +179,7 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
 
   const deleteAcc = async (sp_id: string) => {
     isDelete.current = false;
+    togglePopup(false);
     const endPoint = type === 'Sales' ? '/sale' : '/purchase';
     const endpoint = `${endPoint}/${sp_id}`;
     togglePopup(false);
@@ -212,11 +213,11 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
 
     const validationErrors: any = {
       sptype: !newValue
-        ? `${type} Type is required`
+        ? `${type} account name is required`
         : /^\d+$/.test(newValue)
           ? `Only numbers not allowed`
           : newValue.length > 100
-            ? `${type} Type must be 100 characters or less`
+            ? `${type} account name must be 100 characters or less`
             : '',
       igst: !newValue
         ? `IGST is required`

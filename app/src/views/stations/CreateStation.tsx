@@ -15,14 +15,14 @@ import FormikInputField from '../../components/common/FormikInputField';
 import titleCase from '../../utilities/titleCase';
 import { sendAPIRequest } from '../../helper/api';
 
-export const CreateStation: React.FC<CreateStationProps> = ({
+export const CreateStation = ({
   togglePopup,
   data,
   handelFormSubmit,
   isDelete,
   deleteAcc,
-  className,
-}) => {
+  className
+}:CreateStationProps) => {
   const { station_id } = data;
   const formikRef = useRef<FormikProps<FormDataProps>>(null);
   const [stateOptions, setStateOptions] = useState<Option[]>([]);

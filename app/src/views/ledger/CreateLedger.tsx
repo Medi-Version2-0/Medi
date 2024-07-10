@@ -29,7 +29,6 @@ const initialState = {
 export const CreateLedger = ({ setView }: any) => {
   const { companyId } = useParams();
   const [stationData, setStationData] = useState<any[]>([]);
-
   const [showActiveElement, setShowActiveElement] = useState(initialState);
   const [groupOptions, setGroupOptions] = useState<Option[]>([]);
   const [isSUNDRY, setIsSUNDRY] = useState(false);

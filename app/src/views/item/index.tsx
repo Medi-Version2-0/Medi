@@ -8,6 +8,7 @@ import {
   CompanyFormData,
   itemFormData,
   ItemGroupFormData,
+  SalesPurchaseFormData,
 } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { useNavigate } from 'react-router-dom';
@@ -24,7 +25,7 @@ const Items = () => {
   const [tableData, setTableData] = useState<itemFormData | any>(null);
   const [companyData, setCompanyData] = useState<CompanyFormData | any>(null);
   const [itemGroupData, setItemGroupData] = useState<ItemGroupFormData | any>(
-    []
+   null
   );
   const [salesData, setSalesData] = useState<any[]>([]);
   const [purchaseData, setPurchaseData] = useState<any[]>([]);
@@ -54,7 +55,7 @@ const Items = () => {
       await sendAPIRequest<{ data: CompanyFormData }>('/company', {
         method: 'GET',
       })
-    ).data;
+    );
     setCompanyData(companyData);
   };
 
@@ -281,7 +282,7 @@ const Items = () => {
         valueListMaxWidth: 172,
         valueListGap: 8,
       },
-      valueFormatter: (params: { value: string | number }) => {
+      valueFormatter: (params: { value: string | number }) =>{
         return lookupValue(companyCodeMap, params.value);
       },
       ...commonColDefConfig,
@@ -296,8 +297,9 @@ const Items = () => {
         valueListMaxWidth: 172,
         valueListGap: 8,
       },
-      valueFormatter: (params: { value: string | number }) =>
-        lookupValue(groupCodeMap, params.value),
+      valueFormatter: (params: { value: string | number }) =>{
+        return lookupValue(groupCodeMap, params.value);
+      },
       ...commonColDefConfig,
     },
     {

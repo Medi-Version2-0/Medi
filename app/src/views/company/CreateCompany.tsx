@@ -7,7 +7,7 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import FormikInputField from '../../components/common/FormikInputField';
 import { getCompanyFormSchema } from './validation_schema';
-import { CompanyFormData, Option } from '../../interface/global';
+import { CompanyFormData, Option, SalesPurchaseFormData } from '../../interface/global';
 import CustomSelect from '../../components/custom_select/CustomSelect';
 import onKeyDown from '../../utilities/formKeyDown';
 import titleCase from '../../utilities/titleCase';
@@ -301,14 +301,15 @@ export const CreateCompany = ({ setView }: any) => {
                       label={`Opening Balance ₹`}
                       id='openingBal'
                       name='openingBal'
+                      // onClick={resetField}
                       formik={formik}
                       placeholder='0.00'
+                      maxLength={12}
                       className='!mb-0'
                       inputClassName='h-9 text-right w-[105px]'
                       labelClassName='min-w-[110px]'
                       prevField='stationId'
                       nextField='openingBalType'
-                      maxLength={12}
                       onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                         handleKeyDown(e)
                       }
@@ -451,12 +452,12 @@ export const CreateCompany = ({ setView }: any) => {
                 <div className='w-[4/12] mr-3'>
                   <FormikInputField
                     isPopupOpen={false}
-                    label='GST In'
+                    label='GSTIN'
                     id='gstIn'
                     name='gstIn'
                     inputClassName='w-[170px]'
-                    formik={formik}
                     isTitleCase={false}
+                    formik={formik}
                     className='!mb-0'
                     maxLength={15}
                     labelClassName='min-w-[110px]'
@@ -786,7 +787,7 @@ export const CreateCompany = ({ setView }: any) => {
             </div>
           </div>
         </div>
-        <div className='w-full px-8 py-2'>
+        <div className='w-full px-8 py-2'>  
           <Button
             type='fill'
             padding='px-4 py-2'

@@ -10,14 +10,14 @@ import FormikInputField from '../../components/common/FormikInputField';
 import { FaExclamationCircle } from 'react-icons/fa';
 import { Tooltip as ReactTooltip } from 'react-tooltip';
 
-export const CreateGroup: React.FC<CreateGroupProps> = ({
+export const CreateGroup = ({
   togglePopup,
   data,
   handelFormSubmit,
   isDelete,
   deleteAcc,
-  className,
-}) => {
+  className
+}:CreateGroupProps) => {
   const { group_code } = data;
 
   useEffect(() => {
