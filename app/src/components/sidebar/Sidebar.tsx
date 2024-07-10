@@ -4,21 +4,32 @@ import { CiSearch } from 'react-icons/ci';
 import { MdLibraryBooks, MdNavigateNext } from 'react-icons/md';
 import { IoChevronDownSharp } from 'react-icons/io5';
 import { FaPlus } from 'react-icons/fa6';
-import { FaCircleArrowRight } from 'react-icons/fa6';
-import { FaCircleArrowLeft } from 'react-icons/fa6';
+import { FaCircleArrowRight, FaCircleArrowLeft } from 'react-icons/fa6';
 import MenuItem from './MenuItem';
 import { useUser } from '../../UserContext';
+import { Groups } from '../../views/groups';
+import { SubGroups } from '../../views/subgroups';
+import { ItemGroups } from '../../views/itemGroups';
+import Items from '../../views/item';
+import { Stations } from '../../views/stations';
+import { Headquarters } from '../../views/headquarters';
+import { Sales_Purchase_Table } from '../sales_purchase/sales_purchase_table';
+import { Store } from '../../views/Stores';
+import { Company } from '../../views/company';
+import { Ledger } from '../../views/ledger';
 
 type SubElementKey = 'master' | 'setup';
 
 interface SidebarProps {
   isGroup?: boolean;
   isSubGroup?: boolean;
+  openTab?: (title: string, component: React.ReactNode) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
   isGroup = false,
   isSubGroup = false,
+  openTab,
 }) => {
   const [showSubElements, setShowSubElements] = useState({
     master: false,
@@ -93,34 +104,72 @@ const Sidebar: React.FC<SidebarProps> = ({
               url='/ledger_table'
               label='Ledger'
               icon={<FaPlus className='fill-red-900' />}
+              onClick={() => openTab?.('Ledger', <Ledger />)}
               onClickIcon={() => navigate(`/${selectedCompany}/ledger`)}
             />
-            <MenuItem url='/groups' label='Groups' />
-            <MenuItem url='/subgroups' label='Sub Groups' />
-            <MenuItem url='/itemGroup' label='Item Groups' />
-            <MenuItem url='/items' label='Items' />
-            <MenuItem url='/stations' label='Station Setup' />
-            <MenuItem url='/headquarters' label='Headquarters' />
             <MenuItem
-              url='/sales_purchase_table'
-              label='Sales Account'
+              url='/groups'
+              label='Groups'
+              onClick={() => openTab?.('Groups', <Groups />)}
+            />
+            <MenuItem
+              url='/subgroups'
+              label='Sub Groups'
+              onClick={() => openTab?.('Sub Groups', <SubGroups />)}
+            />
+            <MenuItem
+              url='/itemGroup'
+              label='Item Groups'
+              onClick={() => openTab?.('Item Groups', <ItemGroups />)}
+            />
+            <MenuItem
+              url='/items'
+              label='Items'
+              onClick={() => openTab?.('Items', <Items />)}
+            />
+            <MenuItem
+              url='/stations'
+              label='Station Setup'
+              onClick={() => openTab?.('Station Setup', <Stations />)}
+            />
+            <MenuItem
+              url='/headquarters'
+              label='Headquarters'
+              onClick={() => openTab?.('Headquarters', <Headquarters />)}
             />
             <MenuItem
               url='/sales_purchase_table'
               label='Sales Account'
-              // icon={<FaPlus className='fill-blue-900'/>} onClickIcon={() => navigate('/sales_purchase', {state: "Sales"})}
+              onClick={() =>
+                openTab?.(
+                  'Sales Account',
+                  <Sales_Purchase_Table type='Sales' />
+                )
+              }
             />
             <MenuItem
               url='/sales_purchase_table'
               label='Purchase Account'
-              //  icon={<FaPlus className='fill-green-900'/>} onClickIcon={() => navigate('/sales_purchase', {state: "Purchase"})}
+              onClick={() =>
+                openTab?.(
+                  'Purchase Account',
+                  <Sales_Purchase_Table type='Purchase' />
+                )
+              }
             />
-            <MenuItem url='/stores' label='Store' />
+            <MenuItem
+              url='/stores'
+              label='Store'
+              onClick={() => openTab?.('Store', <Store />)}
+            />
             <MenuItem
               url='/company'
               label='Company'
               icon={<FaPlus className='fill-yellow-900' />}
-              onClickIcon={() => navigate(`/${selectedCompany}/company/new`, { state: 'Purchase' })}
+              onClick={() => openTab?.('Company', <Company />)}
+              onClickIcon={() =>
+                navigate(`${selectedCompany}/company`, { state: 'Purchase' })
+              }
             />
             {showSubElements.setup && <></>}
           </>
@@ -135,24 +184,22 @@ const Sidebar: React.FC<SidebarProps> = ({
         <div className='flex justify-between bg-[#EAFBFCFF] cursor-pointer text-base p-2 border border-solid border-[#009196FF]'>
           <span className='flex items-center gap-2'>
             <MdLibraryBooks />
-            {'  '}Purchase
+            Purchases
           </span>
-          <span className=''>{<MdNavigateNext />}</span>
+          <MdNavigateNext />
         </div>
       </div>
     </div>
   ) : (
-    <div className='w-[35px] h-screen border transition-[width] duration-[0.3s] ease-[ease] pt-2.5 pb-0 px-0 border-solid border-[black]'>
-      <div className='relative h-32'>
-        <span
-          onClick={() => {
-            setIsSidebar(true);
-          }}
-          className='absolute flex items-center justify-center bg-white z-[2] text-[1.9rem] rounded-[50%] left-[60%] top-[33%] cursor-pointer'
-        >
-          <FaCircleArrowRight />
-        </span>
-      </div>
+    <div className='w-[70px] relative h-screen border border-solid border-black'>
+      <span
+        className='absolute flex items-center justify-center bg-white z-[2] text-[1.9rem] rounded-[50%] right-[-10px] top-[33%] cursor-pointer'
+        onClick={() => {
+          setIsSidebar(true);
+        }}
+      >
+        <FaCircleArrowRight />
+      </span>
     </div>
   );
 };

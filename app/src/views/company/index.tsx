@@ -1,10 +1,4 @@
-import React, {
-  useEffect,
-  useState,
-  useRef,
-  useCallback,
-  useMemo,
-} from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { FaEdit } from 'react-icons/fa';
 import { MdDeleteForever } from 'react-icons/md';
@@ -15,65 +9,50 @@ import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { useNavigate } from 'react-router-dom';
 import { ValueFormatterParams } from 'ag-grid-community';
 import Button from '../../components/common/button/Button';
-import * as Yup from 'yup';
 import { sendAPIRequest } from '../../helper/api';
-
-const companyValidationSchema = Yup.object().shape({
-  companyName: Yup.string()
-    .required('Company Name is required')
-    .matches(/^\D+$/, 'Only Numbers not allowed')
-    .max(100, 'Company name cannot exceed 100 characters'),
-  stationName: Yup.string(),
-  openingBal: Yup.number()
-    .required('Opening Balance is required')
-    .positive('Opening Balance must be greater than 0'),
-  openingBalType: Yup.string(),
-});
-
-const validateField = async (field: string, value: any) => {
-  try {
-    await companyValidationSchema.validateAt(field, { [field]: value });
-    return null;
-  } catch (error: any) {
-    return error.message;
-  }
-};
+import { CreateCompany } from './CreateCompany';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const Company = () => {
+  const [view, setView] = useState<string>('');
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<CompanyFormData | any>(null);
+  const [stationData, setStationData] = useState<any[]>([]);
   const editing = useRef(false);
   const companyId = useRef('');
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  let currTable: any[] = [];
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
     message: '',
   });
 
-  const fetchStations = useCallback(() => {
-    return sendAPIRequest<any[]>('/station');
-  }, []);
+  const { data } = useQuery<CompanyFormData[]>({
+    queryKey: ['get-companies'],
+    queryFn: () => sendAPIRequest<CompanyFormData[]>('/company'),
+  });
 
-  const ledgerStationsMap = useMemo(() => {
-    const map: { [key: number]: string } = {};
-    fetchStations().then((e) =>
-      e.forEach((data: any) => {
-        map[data.station_id] = data.station_name;
-      })
-    );
-    return map;
-  }, [fetchStations()]);
+  const fetchStations = async () => {
+    const stations = await sendAPIRequest<any[]>('/station');
+    setStationData(stations);
+  };
 
+  const ledgerStationsMap: { [key: number]: string } = {};
+
+  stationData?.forEach((station: any) => {
+    ledgerStationsMap[station.station_id] = station.station_name;
+  });
   const getCompanyData = async () => {
-    const data = await sendAPIRequest<any[]>('/company');
-    data.map((e) => (e.stationName = e.Station?.station_name));
+    data?.map((e: any) => (e.stationName = e.Station?.station_name));
     setTableData(data);
   };
 
   useEffect(() => {
     getCompanyData();
-  }, []);
+    fetchStations();
+  }, [data]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
@@ -87,18 +66,34 @@ export const Company = () => {
     Cr: 'Credit',
   };
 
-  const extractKeys = (mappings: { [key: string]: string }) => {
-    return Object.values(mappings);
+  const extractKey = (mappings: {
+    [x: number]: string;
+    Dr?: string;
+    Cr?: string;
+  }) => {
+    return Object.keys(mappings);
   };
 
-  const extractKey = (mappings: { [key: string]: string }) => {
-    return Object.keys(mappings);
+  const extractKeys = (mappings: {
+    [x: number]: string;
+    Dr?: string;
+    Cr?: string;
+  }) => {
+    return Object.keys(mappings).map((key) => Number(key));
   };
 
   const types = extractKey(typeMapping);
   const companyStations = extractKeys(ledgerStationsMap);
 
-  const lookupValue = (mappings: { [key: string]: string }, key: string) => {
+  const lookupValue = (
+    mappings: {
+      [x: string]: any;
+      [x: number]: string;
+      Dr?: string;
+      Cr?: string;
+    },
+    key: string | number
+  ) => {
     return mappings[key];
   };
 
@@ -113,7 +108,7 @@ export const Company = () => {
   const handleConfirmPopup = async () => {
     setPopupState({ ...popupState, isModalOpen: false });
     await sendAPIRequest(`/company/${companyId.current}`, { method: 'DELETE' });
-    getCompanyData();
+    await queryClient.invalidateQueries({ queryKey: ['get-companies'] });
   };
 
   const decimalFormatter = (params: ValueFormatterParams): any => {
@@ -131,32 +126,72 @@ export const Company = () => {
   };
 
   const handleUpdate = (oldData: any) => {
-    return navigate(`../company`, { state: oldData, replace: true });
+    return navigate(`..`, { state: oldData, replace: true });
   };
 
   const handleCellEditingStopped = async (e: any) => {
+    currTable = [];
     editing.current = false;
-    const { column, oldValue, valueChanged, node } = e;
+    const { column, oldValue, valueChanged, node,data } = e;
     let { newValue } = e;
     if (!valueChanged) return;
     const field = column.colId;
 
-    const errorMessage = await validateField(field, newValue);
-    if (errorMessage) {
-      setPopupState({
-        ...popupState,
-        isAlertOpen: true,
-        message: errorMessage,
-      });
-      node.setDataValue(field, oldValue);
-      return;
-    }
+    switch (field) {
+      case 'companyName':
+        {
+          if (!newValue || /^\d+$/.test(newValue) || newValue.length > 100) {
+            setPopupState({
+              ...popupState,
+              isAlertOpen: true,
+              message: !newValue
+                ? 'company Name is required'
+                : /^\d+$/.test(newValue)
+                  ? 'Only Numbers not allowed'
+                  : 'company name cannot exceed 100 characters',
+            });
+            node.setDataValue(field, oldValue);
+            return;
+          }
+          newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
+          tableData.forEach((data: any) => {
+            if (data.company_id !== e.data.company_id) {
+              currTable.push(data);
+            }
+          });
 
-    if (field === 'companyName') {
-      newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
+          const existingCompany = currTable.find(
+            (company: CompanyFormData) =>
+              company.companyName.toLowerCase() === newValue.toLowerCase()
+          );
+
+          if (existingCompany) {
+            setPopupState({
+              ...popupState,
+              isAlertOpen: true,
+              message: 'Company with this name already exists!',
+            });
+            node.setDataValue(field, oldValue);
+            return;
+          }
+        }
+        break;
+      case 'openingBalType':
+        {
+          if (!['Dr', 'Cr'].includes(newValue)) {
+            return node.setDataValue(field, oldValue);
+          }
+        }
+        break;
+      default:
+        break;
     }
-    node.setDataValue(field, newValue);
-    getCompanyData();
+    console.log(field, newValue, oldValue);
+    await sendAPIRequest(`/company/${data.company_id}`, {
+      method: 'PUT',
+      body: { [field]: newValue },
+    });
+    queryClient.invalidateQueries({ queryKey: ['get-companies'] });
   };
 
   const onCellClicked = (params: { data: any }) => {
@@ -172,7 +207,7 @@ export const Company = () => {
       case 'n':
       case 'N':
         if (event.ctrlKey) {
-          return navigate(`/company`);
+          return setView('add');
         }
         break;
       case 'd':
@@ -205,7 +240,7 @@ export const Company = () => {
     },
     {
       headerName: 'Station',
-      field: 'stationName',
+      field: 'stationId',
       flex: 1,
       filter: true,
       cellEditor: 'agSelectCellEditor',
@@ -215,8 +250,8 @@ export const Company = () => {
         valueListMaxWidth: 192,
         valueListGap: 8,
       },
-      valueFormatter: (params: { value: string }) => {
-        lookupValue(ledgerStationsMap, params.value);
+      valueFormatter: (params: { value: string | number }) => {
+        return lookupValue(ledgerStationsMap, params.value);
       },
       editable: true,
       headerClass: 'custom-header',
@@ -263,7 +298,10 @@ export const Company = () => {
         <div className='table_edit_buttons'>
           <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
-            onClick={() => handleUpdate(params.data)}
+            onClick={() => {
+              setView('add');
+              handleUpdate(params.data);
+            }}
           />
           <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
@@ -273,42 +311,58 @@ export const Company = () => {
       ),
     },
   ];
-
-  return (
-    <div className='w-full'>
-      <div className='flex w-full items-center justify-between px-8 py-1'>
-        <h1 className='font-bold'>Company Master</h1>
-        <Button
-          type='highlight'
-          handleOnClick={() => navigate('../company/new', { replace: true })}
-        >
-          Add Company
-        </Button>
-      </div>
-      <div id='account_table' className='ag-theme-quartz'>
-        {
-          <AgGridReact
-            rowData={tableData}
-            columnDefs={colDefs}
-            defaultColDef={{
-              floatingFilter: true,
+  const company = () => {
+    return (
+      <>
+        <div className='flex w-full items-center justify-between px-8 py-1'>
+          <h1 className='font-bold'>Company Master</h1>
+          <Button
+            type='highlight'
+            handleOnClick={() => {
+              setView('add');
             }}
-            onCellClicked={onCellClicked}
-            onCellEditingStarted={cellEditingStarted}
-            onCellEditingStopped={handleCellEditingStopped}
-          />
-        }
-      </div>
-      {(popupState.isModalOpen || popupState.isAlertOpen) && (
-        <Confirm_Alert_Popup
-          onClose={handleClosePopup}
-          onConfirm={
-            popupState.isAlertOpen ? handleAlertCloseModal : handleConfirmPopup
+          >
+            Add Company
+          </Button>
+        </div>
+        <div id='account_table' className='ag-theme-quartz'>
+          {
+            <AgGridReact
+              rowData={tableData}
+              columnDefs={colDefs}
+              defaultColDef={{
+                floatingFilter: true,
+              }}
+              onCellClicked={onCellClicked}
+              onCellEditingStarted={cellEditingStarted}
+              onCellEditingStopped={handleCellEditingStopped}
+            />
           }
-          message={popupState.message}
-          isAlert={popupState.isAlertOpen}
-        />
-      )}
-    </div>
-  );
+        </div>
+        {(popupState.isModalOpen || popupState.isAlertOpen) && (
+          <Confirm_Alert_Popup
+            onClose={handleClosePopup}
+            onConfirm={
+              popupState.isAlertOpen
+                ? handleAlertCloseModal
+                : handleConfirmPopup
+            }
+            message={popupState.message}
+            isAlert={popupState.isAlertOpen}
+          />
+        )}
+      </>
+    );
+  };
+
+  const renderView = () => {
+    switch (view) {
+      case 'add':
+        return <CreateCompany setView={setView} />;
+      default:
+        return company();
+    }
+  };
+
+  return <div className='w-full'>{renderView()}</div>;
 };

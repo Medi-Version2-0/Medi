@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Confirm_Alert_Popup from '../popup/Confirm_Alert_Popup';
 import { Sales_Table } from '../../views/sales_purchase/index';
 
-export const Sales_Purchase_Table: React.FC<any> = () => {
-  const location = useLocation();
-  const selection = location.state || {};
+export const Sales_Purchase_Table = ({ type }: { type: string }) => {
   const navigate = useNavigate();
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
@@ -15,12 +13,14 @@ export const Sales_Purchase_Table: React.FC<any> = () => {
 
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
-    return navigate('/sales_purchase_table' , {state: selection === 'Sales Account' ? 'Sales' : 'Purchase'});
+    return navigate('/sales_purchase_table', {
+      state: type,
+    });
   };
 
   return (
     <div>
-      {<Sales_Table type={selection === 'Sales Account' ? 'Sales' : 'Purchase'} />}
+      {<Sales_Table type={type} />}
       {popupState.isAlertOpen && (
         <Confirm_Alert_Popup
           onConfirm={handleAlertCloseModal}

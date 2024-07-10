@@ -1,6 +1,6 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useUser } from '../../UserContext';
+// import { useNavigate } from 'react-router-dom';
+// import { useUser } from '../../UserContext';
 
 interface MenuItemProps {
   id?: string;
@@ -10,25 +10,23 @@ interface MenuItemProps {
   iconClassName?: string;
   icon?: React.ReactElement;
   onClickIcon?: () => void;
+  onClick?: () => void;
 }
 
 const MenuItem = ({
   id,
   label,
-  url,
+  // url,
   className,
   icon,
   iconClassName,
   onClickIcon,
+  onClick,
 }: MenuItemProps) => {
-  const navigate = useNavigate();
-  const { selectedCompany } = useUser();
   const handleClick = () => {
-    if (label === 'Sales Account' || label === 'Purchase Account') {
-      navigate(`/${selectedCompany}${url}`, { state: label });
-    } else {
-      navigate(`/${selectedCompany}${url}`);
-    }
+    if (onClick) {
+      onClick();
+    } 
   };
 
   const handleIconClick = (e: React.MouseEvent<HTMLSpanElement>) => {

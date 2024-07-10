@@ -11,11 +11,11 @@ interface GeneralInfoProps {
   selectedGroup: string;
 }
 
-export const GeneralInfo: React.FC<GeneralInfoProps> = ({
+export const GeneralInfo = ({
   onValueChange,
   formik,
   selectedGroup,
-}) => {
+}: GeneralInfoProps) => {
   const [stationData, setStationData] = useState<any[]>([]);
   const [groupOptions, setGroupOptions] = useState<Option[]>([]);
   const [stationOptions, setStationOptions] = useState<Option[]>([]);
@@ -91,17 +91,6 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
     }
   };
 
-  const handleAddressInputKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>
-  ) => {
-    if (e.key === 'ArrowDown' || e.key === 'Enter') {
-      document.getElementById('state')?.focus();
-      e.preventDefault();
-    } else if (e.key === 'ArrowUp') {
-      document.getElementById('mailTo')?.focus();
-    }
-  };
-
   return (
     <div className='relative border w-3/5 h-full pt-4 border-solid border-gray-400'>
       <div className='absolute top-[-14px] left-2  px-2 w-max bg-[#f3f3f3]'>
@@ -117,12 +106,7 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
           className='!mb-0'
           labelClassName='min-w-[90px] '
           isRequired={true}
-          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-            if (e.key === 'ArrowDown' || e.key === 'Enter') {
-              e.preventDefault();
-              setFocused('accountGroup');
-            }
-          }}
+          nextField='accountGroup'
           showErrorTooltip={formik.touched.partyName && formik.errors.partyName}
         />
         <div className='flex justify-between m-[1px] w-full items-center'>
@@ -155,6 +139,18 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 isTouched={formik.touched.accountGroup}
                 onBlur={() => {
                   formik.setFieldTouched('accountGroup', true);
+                  setFocused('');
+                }}
+                onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+                  const dropdown = document.querySelector(
+                    '.custom-select__menu'
+                  );
+                  if (e.key === 'Enter') {
+                    !dropdown && e.preventDefault();
+                    isSUNDRY
+                      ? document.getElementById('stationName')?.focus()
+                      : document.getElementById('stateInout')?.focus();
+                  }
                 }}
                 showErrorTooltip={true}
               />
@@ -189,6 +185,16 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 isTouched={formik.touched.stationName}
                 onBlur={() => {
                   formik.setFieldTouched('stationName', true);
+                  setFocused('');
+                }}
+                onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+                  const dropdown = document.querySelector(
+                    '.custom-select__menu'
+                  );
+                  if (e.key === 'Enter') {
+                    !dropdown && e.preventDefault();
+                    document.getElementById('address1')?.focus();
+                  }
                 }}
                 showErrorTooltip={true}
                 noOptionsMsg='No station found,create one...'
@@ -209,7 +215,8 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 name='address1'
                 formik={formik}
                 className='!mb-0'
-                onKeyDown={handleAddressInputKeyDown}
+                prevField='stationName'
+                nextField='address2'
               />
               <FormikInputField
                 isPopupOpen={false}
@@ -218,7 +225,8 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 name='address2'
                 formik={formik}
                 className='!mb-0'
-                onKeyDown={handleAddressInputKeyDown}
+                prevField='address1'
+                nextField='address3'
               />
               <FormikInputField
                 isPopupOpen={false}
@@ -227,7 +235,12 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 name='address3'
                 formik={formik}
                 className='!mb-0'
-                onKeyDown={handleAddressInputKeyDown}
+                prevField='address2'
+                nextField={
+                  selectedGroup?.toUpperCase() === 'SUNDRY CREDITORS'
+                    ? 'transport'
+                    : 'excessRate'
+                }
               />
             </div>
           </div>
@@ -251,13 +264,12 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 className=''
                 isDisabled={true}
                 onChange={handleChange}
-                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                  if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                    e.preventDefault();
-                  } else if (e.key === 'ArrowUp') {
-                    document.getElementById('city')?.focus();
-                  }
-                }}
+                prevField='address3'
+                nextField={
+                  selectedGroup?.toUpperCase() === 'SUNDRY CREDITORS'
+                    ? 'transport'
+                    : 'excessRate'
+                }
               />
             </div>
             {selectedGroup?.toUpperCase() === 'SUNDRY CREDITORS' && (
@@ -271,6 +283,8 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                     inputClassName='w-5/12'
                     labelClassName='w-1/3'
                     formik={formik}
+                    prevField='pinCode'
+                    nextField='creditPrivilege'
                   />
                 </div>
                 <div className='flex w-[45%]'>
@@ -282,6 +296,12 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                     labelClassName='min-w-[90px]'
                     inputClassName='w-5/12'
                     formik={formik}
+                    prevField='transport'
+                    nextField={
+                      selectedGroup?.toUpperCase() === 'SUNDRY DEBTORS'
+                        ? 'excessRate'
+                        : 'mailTo'
+                    }
                   />
                 </div>
               </div>
@@ -297,6 +317,8 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                     inputClassName='w-5/12'
                     labelClassName='min-w-[90px]'
                     formik={formik}
+                    prevField='creditPrivilege'
+                    nextField='graceDay'
                   />
                 </div>
                 <div className='flex w-[45%]'>
@@ -308,6 +330,12 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                     inputClassName='w-5/12'
                     labelClassName='min-w-[90px]'
                     formik={formik}
+                    prevField='excessRate'
+                    nextField={
+                      selectedGroup?.toUpperCase() === 'SUNDRY DEBTORS'
+                        ? 'manualLedger1'
+                        : 'mailTo'
+                    }
                   />
                 </div>
               </div>
@@ -326,6 +354,8 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                     name='manualLedger1'
                     labelClassName='min-w-[90px]'
                     formik={formik}
+                    prevField='graceDay'
+                    nextField='manualLedger2'
                   />
                 </div>
                 <div className='flex w-[42%]'>
@@ -336,6 +366,8 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                     name='manualLedger2'
                     labelClassName='min-w-1/3'
                     formik={formik}
+                    prevField='manualLedger1'
+                    nextField='routeNo'
                   />
                 </div>
               </div>
@@ -349,6 +381,8 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                     inputClassName='w-[51.7%]'
                     labelClassName='min-w-[90px]'
                     formik={formik}
+                    prevField='manualLedger2'
+                    nextField='partyCashCreditInvoice'
                   />
                 </div>
 
@@ -376,6 +410,19 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                     disableArrow={false}
                     hidePlaceholder={false}
                     className='!h-6 rounded-sm'
+                    onBlur={() => {
+                      formik.setFieldTouched('partyCashCreditInvoice', true);
+                      setFocused('');
+                    }}
+                    onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+                      const dropdown = document.querySelector(
+                        '.custom-select__menu'
+                      );
+                      if (e.key === 'Enter') {
+                        !dropdown && e.preventDefault();
+                        document.getElementById('deductDiscount')?.focus();
+                      }
+                    }}
                   />
                 </div>
               </div>
@@ -405,6 +452,19 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                   disableArrow={false}
                   hidePlaceholder={false}
                   className='!h-6 rounded-sm'
+                  onBlur={() => {
+                    formik.setFieldTouched('deductDiscount', true);
+                    setFocused('');
+                  }}
+                  onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+                    const dropdown = document.querySelector(
+                      '.custom-select__menu'
+                    );
+                    if (e.key === 'Enter') {
+                      !dropdown && e.preventDefault();
+                      document.getElementById('mailTo')?.focus();
+                    }
+                  }}
                 />
               </div>
               <div className='flex w-[67%]'>
@@ -413,19 +473,14 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                   label='Mail to'
                   id='mailTo'
                   name='mailTo'
+                  isTitleCase={false}
                   formik={formik}
                   showErrorTooltip={
                     formik.touched.mailTo && formik.errors.mailTo
                   }
                   labelClassName='min-w-[90px]'
-                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                    if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                      document.getElementById('address')?.focus();
-                      e.preventDefault();
-                    } else if (e.key === 'ArrowUp') {
-                      document.getElementById('stationName')?.focus();
-                    }
-                  }}
+                  prevField='deductDiscount'
+                  nextField='stopNrx'
                 />
               </div>
             </div>
@@ -455,6 +510,19 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 hidePlaceholder={false}
                 containerClass='w-max'
                 className='!h-6 rounded-sm w-max'
+                onBlur={() => {
+                  formik.setFieldTouched('stopNrx', true);
+                  setFocused('');
+                }}
+                onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+                  const dropdown = document.querySelector(
+                    '.custom-select__menu'
+                  );
+                  if (e.key === 'Enter') {
+                    !dropdown && e.preventDefault();
+                    document.getElementById('stopHi')?.focus();
+                  }
+                }}
               />
               <CustomSelect
                 isPopupOpen={false}
@@ -480,6 +548,19 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 hidePlaceholder={false}
                 containerClass='w-min'
                 className='!h-6 rounded-sm w-max'
+                onBlur={() => {
+                  formik.setFieldTouched('stopHi', true);
+                  setFocused('');
+                }}
+                onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+                  const dropdown = document.querySelector(
+                    '.custom-select__menu'
+                  );
+                  if (e.key === 'Enter') {
+                    !dropdown && e.preventDefault();
+                    document.getElementById('notPrinpba')?.focus();
+                  }
+                }}
               />
               <FormikInputField
                 isPopupOpen={false}
@@ -489,6 +570,12 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
                 labelClassName=''
                 className='w-auto'
                 formik={formik}
+                prevField='stopHi'
+                nextField={
+                  selectedGroup?.toUpperCase() === 'SUNDRY CREDITORS'
+                    ? 'mailTo'
+                    : 'stateInout'
+                }
               />
             </div>
           </>
@@ -499,17 +586,12 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
             label='Mail to'
             id='mailTo'
             name='mailTo'
+            isTitleCase={false}
             formik={formik}
             showErrorTooltip={formik.touched.mailTo && formik.errors.mailTo}
             labelClassName='min-w-[90px]'
-            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-              if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                document.getElementById('address')?.focus();
-                e.preventDefault();
-              } else if (e.key === 'ArrowUp') {
-                document.getElementById('stationName')?.focus();
-              }
-            }}
+            prevField='notPrinpba'
+            nextField='stateInout'
           />
         )}
         <div className='flex m-[1px] items-center w-[42%]'>
@@ -536,6 +618,17 @@ export const GeneralInfo: React.FC<GeneralInfoProps> = ({
             disableArrow={false}
             hidePlaceholder={false}
             className='!h-6 rounded-sm'
+            onBlur={() => {
+              formik.setFieldTouched('stateInout', true);
+              setFocused('');
+            }}
+            onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+              const dropdown = document.querySelector('.custom-select__menu');
+              if (e.key === 'Enter') {
+                !dropdown && e.preventDefault();
+                document.getElementById('stateInout')?.focus();
+              }
+            }}
           />
         </div>
       </div>

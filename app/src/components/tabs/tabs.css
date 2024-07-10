@@ -1,0 +1,3 @@
+.rc-dyn-tabs-tablist-view .rc-dyn-tabs-tablist-container {
+  overflow: scroll !important;
+}

@@ -10,6 +10,7 @@ import { ColDef, ColGroupDef } from 'ag-grid-community';
 import { CreateItemGroup } from './createItemGroup';
 import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 const initialValue = {
   group_code: '',
@@ -23,12 +24,18 @@ export const ItemGroups = () => {
   const [formData, setFormData] = useState<ItemGroupFormData>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<ItemGroupFormData | any>(null);
+  const queryClient = useQueryClient();
   //   const [currTableData, setCurrTableData] = useState<ItemGroupFormData | any>(null);
   const editing = useRef(false);
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
     message: '',
+  });
+
+  const { data } = useQuery<{ data: ItemGroupFormData }>({
+    queryKey: ['get-itemGroups'],
+    queryFn: () => sendAPIRequest<{ data: ItemGroupFormData }>('/itemGroup'),
   });
 
   const typeMapping = {
@@ -77,7 +84,7 @@ export const ItemGroups = () => {
         });
       }
       togglePopup(false);
-      getGroups();
+      queryClient.invalidateQueries({ queryKey: ['get-itemGroups'] });
     }
   };
   const isDelete = useRef(false);
@@ -91,19 +98,16 @@ export const ItemGroups = () => {
   };
 
   const getGroups = async () => {
-    const itemGroup = await sendAPIRequest<{ data: ItemGroupFormData }>(
-      '/itemGroup',
-      { method: 'GET' }
-    );
-    setTableData(itemGroup);
+    setTableData(data);
     // setCurrTableData(itemGroup.data);
   };
 
   const deleteAcc = async (group_code: string) => {
-    await sendAPIRequest(`/itemGroup/${group_code}`, { method: 'DELETE' });
-    isDelete.current = false;
     togglePopup(false);
-    getGroups();
+    isDelete.current = false;
+
+    await sendAPIRequest(`/itemGroup/${group_code}`, { method: 'DELETE' });
+    queryClient.invalidateQueries({ queryKey: ['get-itemGroups'] });
   };
 
   const handleDelete = (oldData: ItemGroupFormData) => {
@@ -202,7 +206,7 @@ export const ItemGroups = () => {
       method: 'PUT',
       body: { [field]: newValue },
     });
-    getGroups();
+    queryClient.invalidateQueries({ queryKey: ['get-itemGroups'] });
   };
 
   const onCellClicked = (params: { data: any }) => {
@@ -250,7 +254,7 @@ export const ItemGroups = () => {
 
   useEffect(() => {
     getGroups();
-  }, []);
+  }, [data]);
 
   const colDefs: (ColDef<any, any> | ColGroupDef<any>)[] | null | undefined[] =
     [
@@ -311,7 +315,7 @@ export const ItemGroups = () => {
     ];
   return (
     <>
-      <div className='w-full'>
+      <div className='w-full relative'>
         <div className='flex w-full items-center justify-between px-8 py-1'>
           <h1 className='font-bold'>Item Groups</h1>
           <Button
@@ -346,6 +350,7 @@ export const ItemGroups = () => {
             }
             message={popupState.message}
             isAlert={popupState.isAlertOpen}
+            className='absolute'
           />
         )}
         {open && (
@@ -355,6 +360,7 @@ export const ItemGroups = () => {
             handelFormSubmit={handelFormSubmit}
             isDelete={isDelete.current}
             deleteAcc={deleteAcc}
+            className='absolute'
           />
         )}
       </div>

@@ -7,9 +7,7 @@ interface BankDetailsProps {
   formik?: any;
 }
 
-export const BankDetails: React.FC<BankDetailsProps> = ({
-  formik,
-}) => {
+export const BankDetails: React.FC<BankDetailsProps> = ({ formik }) => {
   const [focused, setFocused] = useState('');
   const handleFieldChange = (option: Option | null, id: string) => {
     formik.setFieldValue(id, option?.value);
@@ -18,56 +16,37 @@ export const BankDetails: React.FC<BankDetailsProps> = ({
   return (
     <div className='grid grid-cols-2 gap-x-4 gap-y-2 m-2 px-2 text-xs leading-3 text-gray-600'>
       <FormikInputField
-      isPopupOpen={false}
+        isPopupOpen={false}
         labelClassName='min-w-[90px]'
         label='Bank Name'
         id='bankName'
         name='bankName'
         formik={formik}
-        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-          if (e.key === 'ArrowDown' || e.key === 'Enter') {
-            document.getElementById('accountNumber')?.focus();
-            e.preventDefault();
-          } else if (e.key === 'ArrowUp') {
-            document.getElementById('Bank_Details')?.focus();
-          }
-        }}
+        prevField=''
+        nextField='accountNumber'
       />
       <FormikInputField
-      isPopupOpen={false}
+        isPopupOpen={false}
         labelClassName='min-w-[90px]'
         label='A/C No.'
         id='accountNumber'
         name='accountNumber'
         formik={formik}
-        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-          if (e.key === 'ArrowDown' || e.key === 'Enter') {
-            document.getElementById('branchName')?.focus();
-            e.preventDefault();
-          } else if (e.key === 'ArrowUp') {
-            document.getElementById('bankName')?.focus();
-            e.preventDefault();
-          }
-        }}
+        prevField='bankName'
+        nextField='branchName'
       />
       <FormikInputField
-      isPopupOpen={false}
+        isPopupOpen={false}
         labelClassName='min-w-[90px]'
         label='Branch'
         id='branchName'
         name='branchName'
         formik={formik}
-        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-          if (e.key === 'ArrowDown' || e.key === 'Enter') {
-            setFocused('accountType');
-            e.preventDefault();
-          } else if (e.key === 'ArrowUp') {
-            document.getElementById('accountNumber')?.focus();
-          }
-        }}
+        prevField='accountNumber'
+        nextField='accountType'
       />
       <CustomSelect
-      isPopupOpen={false}
+        isPopupOpen={false}
         label='A/C Type'
         id='accountType'
         labelClass='min-w-[90px]'
@@ -75,19 +54,19 @@ export const BankDetails: React.FC<BankDetailsProps> = ({
           formik.values.accountType === ''
             ? null
             : {
-              label: formik.values.accountType,
-              value: formik.values.accountType,
-            }
+                label: formik.values.accountType,
+                value: formik.values.accountType,
+              }
         }
         onChange={handleFieldChange}
         options={[
           {
             value: 'Saving Account',
-            label: 'Saving Account'
+            label: 'Saving Account',
           },
           {
             value: 'Current Account',
-            label: 'Current Account'
+            label: 'Current Account',
           },
         ]}
         isSearchable={false}
@@ -95,7 +74,9 @@ export const BankDetails: React.FC<BankDetailsProps> = ({
         disableArrow={false}
         hidePlaceholder={false}
         isFocused={focused === 'accountType'}
-        onBlur={() => { setFocused(""); }}
+        onBlur={() => {
+          setFocused('');
+        }}
         className='!rounded-none'
         onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
           if (e.key === 'Enter') {
@@ -104,7 +85,7 @@ export const BankDetails: React.FC<BankDetailsProps> = ({
         }}
       />
       <FormikInputField
-      isPopupOpen={false}
+        isPopupOpen={false}
         labelClassName='min-w-[90px]'
         label='IFSC'
         id='ifscCode'
@@ -112,31 +93,19 @@ export const BankDetails: React.FC<BankDetailsProps> = ({
         maxLength={11}
         formik={formik}
         className=''
-        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-          if (e.key === 'ArrowDown' || e.key === 'Enter') {
-            document.getElementById('accountHolderName')?.focus();
-            e.preventDefault();
-          } else if (e.key === 'ArrowUp') {
-            setFocused('accountType');
-          }
-        }}
+        prevField='accountType'
+        nextField='accountHolderName'
       />
       <FormikInputField
-      isPopupOpen={false}
+        isPopupOpen={false}
         labelClassName='min-w-[90px]'
         label='A/C Holder Name'
         id='accountHolderName'
         name='accountHolderName'
         formik={formik}
         className=''
-        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-          if (e.key === 'ArrowDown' || e.key === 'Enter') {
-            document.getElementById('submit_all')?.focus();
-            e.preventDefault();
-          } else if (e.key === 'ArrowUp') {
-            document.getElementById('ifscCode')?.focus();
-          }
-        }}
+        prevField='ifscCode'
+        nextField=''
       />
     </div>
   );

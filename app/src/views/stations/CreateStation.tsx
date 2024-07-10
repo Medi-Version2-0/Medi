@@ -21,6 +21,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
   handelFormSubmit,
   isDelete,
   deleteAcc,
+  className,
 }) => {
   const { station_id } = data;
   const formikRef = useRef<FormikProps<FormDataProps>>(null);
@@ -115,6 +116,7 @@ export const CreateStation: React.FC<CreateStationProps> = ({
             ? 'Update Station'
             : 'Create Station'
       }
+      className={className}
     >
       <Formik
         innerRef={formikRef}

@@ -17,6 +17,7 @@ export const CreateStore: React.FC<CreateStoreProps> = ({
   handelFormSubmit,
   isDelete,
   deleteAcc,
+  className,
 }) => {
   const { store_code } = data;
   const formikRef = useRef<FormikProps<StoreFormDataProps>>(null);
@@ -33,10 +34,9 @@ export const CreateStore: React.FC<CreateStoreProps> = ({
   });
 
   useEffect(() => {
-    const focusTarget =
-      !isDelete
-        ? document.getElementById('store_name')
-        : document.getElementById('cancel_button');
+    const focusTarget = !isDelete
+      ? document.getElementById('store_name')
+      : document.getElementById('cancel_button');
     focusTarget?.focus();
   }, []);
 
@@ -51,7 +51,7 @@ export const CreateStore: React.FC<CreateStoreProps> = ({
 
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
-    formik?: FormikProps<StoreFormData>,
+    formik?: FormikProps<StoreFormData>
   ) => {
     onKeyDown({
       e,
@@ -69,6 +69,7 @@ export const CreateStore: React.FC<CreateStoreProps> = ({
             ? 'Update Store'
             : 'Create Store'
       }
+      className={className}
     >
       <Formik
         innerRef={formikRef}
@@ -84,7 +85,7 @@ export const CreateStore: React.FC<CreateStoreProps> = ({
         {(formik) => (
           <Form className='flex flex-col gap-3 min-w-[18rem] items-start px-4'>
             <FormikInputField
-            label='store Name'
+              label='store Name'
               id='store_name'
               name='store_name'
               formik={formik}
@@ -96,7 +97,9 @@ export const CreateStore: React.FC<CreateStoreProps> = ({
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                 handleKeyDown(e)
               }
-              showErrorTooltip={!!(formik.touched.store_name && formik.errors.store_name)}
+              showErrorTooltip={
+                !!(formik.touched.store_name && formik.errors.store_name)
+              }
             />
             <FormikInputField
               label='Address line1'
@@ -151,10 +154,14 @@ export const CreateStore: React.FC<CreateStoreProps> = ({
                     togglePopup(false);
                   }
                   if (e.key === 'Tab') {
-                    document.getElementById(`${isDelete ? 'del_button' : 'submit_button'}`)?.focus();
+                    document
+                      .getElementById(
+                        `${isDelete ? 'del_button' : 'submit_button'}`
+                      )
+                      ?.focus();
                     e.preventDefault();
-                  } 
-                  if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab') ) {
+                  }
+                  if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab')) {
                     e.preventDefault();
                     document.getElementById('address3')?.focus();
                   }
@@ -172,7 +179,10 @@ export const CreateStore: React.FC<CreateStoreProps> = ({
                     if (e.key === 'Tab') {
                       e.preventDefault();
                     }
-                    if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab') ) {
+                    if (
+                      e.key === 'ArrowUp' ||
+                      (e.shiftKey && e.key === 'Tab')
+                    ) {
                       document.getElementById('cancel_button')?.focus();
                     }
                   }}
@@ -190,7 +200,10 @@ export const CreateStore: React.FC<CreateStoreProps> = ({
                       document.getElementById('store_name')?.focus();
                       e.preventDefault();
                     }
-                    if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab') ) {
+                    if (
+                      e.key === 'ArrowUp' ||
+                      (e.shiftKey && e.key === 'Tab')
+                    ) {
                       document.getElementById('cancel_button')?.focus();
                     }
                   }}

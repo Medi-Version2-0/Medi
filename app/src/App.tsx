@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import {
-  BrowserRouter,
+  HashRouter,
   Navigate,
   Route,
   Routes,
@@ -25,31 +25,27 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { AuthRoute } from './components/AuthRoute';
 import RedirectToCompany from './components/RedirectToCompany';
 import Items from './views/item';
-import { Batch } from './views/itembatch';
 import { ItemGroups } from './views/itemGroups';
 
 export const App = () => {
   return (
-    <React.StrictMode>
-      <BrowserRouter>
+    <React.StrictMode>  
+      <HashRouter>
         <Routes>
           <Route path='/login' element={<AuthForm isLogin={true} />} />
           <Route path='/register' element={<AuthForm isLogin={false} />} />
 
           <Route element={<AuthRoute />}>
+            <Route path='/redirecttocompany' element={<RedirectToCompany />} />
             <Route path='/' element={<Home />}>
-              <Route
-                path='/redirecttocompany'
-                element={<RedirectToCompany />}
-              />
               <Route path='/:companyId/*' element={<AppRoot />} />
             </Route>
           </Route>
 
           <Route path='/not-authorized' element={<NotAuthorized />} />
-          <Route path='*' element={<Navigate to='/' />} />
+          <Route path='*' element={<Navigate to='/redirecttocompany' />} />
         </Routes>
-      </BrowserRouter>
+      </HashRouter>
     </React.StrictMode>
   );
 };
@@ -57,7 +53,6 @@ export const App = () => {
 const AppRoot = () => {
   const { companyId } = useParams();
   const { user, setSelectedOrganization } = useUser();
-
   useEffect(() => {
     if (companyId) {
       setSelectedOrganization(+companyId);
@@ -91,7 +86,7 @@ const AppRoot = () => {
         path='/sales_purchase_table'
         element={
           <ProtectedRoute
-            element={<Sales_Purchase_Table />}
+            element={<Sales_Purchase_Table type="Sales" />}
             requiredPermissions={['admin']}
           />
         }
@@ -108,12 +103,12 @@ const AppRoot = () => {
           <ProtectedRoute element={<Items />} requiredPermissions={['admin']} />
         }
       />
-      <Route
+      {/* <Route
         path='/items/:itemId/batch'
         element={
           <ProtectedRoute element={<Batch />} requiredPermissions={['admin']} />
         }
-      />
+      /> */}
     </Routes>
   );
 };

@@ -8,6 +8,14 @@ export const ContactNumbers: React.FC<ContactNumbersProps> = ({
   selectedGroupName,
   formik,
 }) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const id = e.target.id;
+    const value = e.target.value;
+    const filteredValue = value.replace(/[^0-9]/g, '');
+    if (id === 'phoneNumber') {
+      formik.setFieldValue('phoneNumber', filteredValue.slice(0, 15));
+    }
+  };
   return (
     <>
       {(selectedGroupName.toUpperCase() === 'SUNDRY CREDITORS' ||
@@ -25,6 +33,7 @@ export const ContactNumbers: React.FC<ContactNumbersProps> = ({
             formik={formik}
             inputClassName='!ml-0 border-l-0'
             labelClassName='mr-4 min-w-[90px]'
+            onChange={handleChange}
             className='!gap-0 text-xs text-gray-600'
             isRequired={true}
             children={

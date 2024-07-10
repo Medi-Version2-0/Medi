@@ -34,13 +34,22 @@ export const Headquarters = () => {
 
   const getStations = useCallback(async () => {
     const stations = await sendAPIRequest<any[]>('/station');
-    stations.forEach((station) => {
-      station.state_code = station.State?.state_name;
-      delete station.State;
-    });
     setAllStations(stations);
   }, []);
+  const handleDelete = (oldData: StationFormData) => {
+    isDelete.current = true;
+    setFormData(oldData);
+    togglePopup(true);
+    setSelectedRow(null);
+  };
 
+  const handleUpdate = (oldData: StationFormData) => {
+    setFormData(oldData);
+    isDelete.current = false;
+    editing.current = true;
+    togglePopup(true);
+    setSelectedRow(null);
+  };
   const getHeadquarters = useCallback(async () => {
     const headQuarter = await sendAPIRequest<StationFormData[]>(
       '/station/headQuarter'
@@ -112,8 +121,23 @@ export const Headquarters = () => {
         formData.station_name.slice(1);
     }
     if (formData !== initialValue) {
-      if (formData.station_id) {
-        await sendAPIRequest(`/station/headQuarter/${formData.station_id}`, {
+      let id = 0;
+      const mode = allStations.some((station: any) => {
+        if (
+          station.station_name === formData.station_name &&
+          station.station_headQuarter === null
+        ) {
+          return true;
+        } else if (
+          station.station_name === formData.station_name &&
+          station.station_headQuarter !== null
+        ) {
+          id = +station.station_id;
+          return false;
+        }
+      });
+      if (mode === false) {
+        await sendAPIRequest(`/station/headQuarter/${id}`, {
           method: 'PUT',
           body: formData,
         });
@@ -129,12 +153,24 @@ export const Headquarters = () => {
   };
 
   const handleFormSubmit = (values: StationFormData) => {
-    const mode = values.station_headQuarter ? 'update' : 'create';
+    const mode = allStations.some((station: any) => {
+      if (
+        station.station_name === values.station_name &&
+        station.station_headQuarter === null
+      ) {
+        return true;
+      } else if (
+        station.station_name === values.station_name &&
+        station.station_headQuarter !== null
+      ) {
+        return false;
+      }
+    });
     if (values !== initialValue) {
       setPopupState({
         ...popupState,
         isModalOpen: true,
-        message: `Are you sure you want to ${mode} this Headquarter?`,
+        message: `Are you sure you want to ${mode === false ? 'update' : 'create'} this Headquarter?`,
       });
       setFormData(values);
     }
@@ -147,21 +183,6 @@ export const Headquarters = () => {
       method: 'DELETE',
     });
     getHeadquarters();
-  };
-
-  const handleDelete = (oldData: StationFormData) => {
-    isDelete.current = true;
-    setFormData(oldData);
-    togglePopup(true);
-    setSelectedRow(null);
-  };
-
-  const handleUpdate = (oldData: StationFormData) => {
-    setFormData(oldData);
-    isDelete.current = false;
-    editing.current = true;
-    togglePopup(true);
-    setSelectedRow(null);
   };
 
   const stationHeadquarterMap: { [key: number]: string } = {};
@@ -190,6 +211,9 @@ export const Headquarters = () => {
       cellEditor: 'agSelectCellEditor',
       cellEditorParams: {
         values: Object.keys(stationHeadquarterMap).map((key) => Number(key)),
+        valueListMaxHeight: 120,
+        valueListMaxWidth: 330,
+        valueListGap: 8,
       },
       valueFormatter: (params) =>
         stationHeadquarterMap[Number(params.value)] || params.value,
@@ -245,44 +269,54 @@ export const Headquarters = () => {
   };
 
   return (
-    <div className='w-full'>
-      <div className='flex w-full items-center justify-between px-8 py-1'>
-        <h1 className='font-bold'>Headquarters</h1>
-        <Button type='highlight' handleOnClick={() => togglePopup(true)}>
-          Add Headquarter
-        </Button>
+    <>
+      <div className='w-full relative'>
+        <div className='flex w-full items-center justify-between px-8 py-1'>
+          <h1 className='font-bold'>Headquarters</h1>
+          <Button
+            type='highlight'
+            className=''
+            handleOnClick={() => togglePopup(true)}
+          >
+            Add Headquarter
+          </Button>
+        </div>
+        <div id='account_table' className='ag-theme-quartz'>
+          <AgGridReact
+            rowData={tableData}
+            columnDefs={colDefs}
+            defaultColDef={{
+              floatingFilter: true,
+            }}
+            onCellClicked={onCellClicked}
+            onCellEditingStarted={cellEditingStarted}
+            onCellEditingStopped={handleCellEditingStopped}
+          />
+        </div>
+        {(popupState.isModalOpen || popupState.isAlertOpen) && (
+          <Confirm_Alert_Popup
+            onClose={handleClosePopup}
+            onConfirm={
+              popupState.isAlertOpen
+                ? handleAlertCloseModal
+                : handleConfirmPopup
+            }
+            message={popupState.message}
+            isAlert={popupState.isAlertOpen}
+            className='absolute'
+          />
+        )}
+        {open && (
+          <CreateHQ
+            togglePopup={togglePopup}
+            data={formData}
+            handelFormSubmit={handleFormSubmit}
+            isDelete={isDelete.current}
+            deleteAcc={deleteAcc}
+            className='absolute'
+          />
+        )}
       </div>
-      <div id='account_table' className='ag-theme-quartz'>
-        <AgGridReact
-          rowData={tableData}
-          columnDefs={colDefs}
-          defaultColDef={{
-            floatingFilter: true,
-          }}
-          onCellClicked={onCellClicked}
-          onCellEditingStarted={cellEditingStarted}
-          onCellEditingStopped={handleCellEditingStopped}
-        />
-      </div>
-      {(popupState.isModalOpen || popupState.isAlertOpen) && (
-        <Confirm_Alert_Popup
-          onClose={handleClosePopup}
-          onConfirm={
-            popupState.isAlertOpen ? handleAlertCloseModal : handleConfirmPopup
-          }
-          message={popupState.message}
-          isAlert={popupState.isAlertOpen}
-        />
-      )}
-      {open && (
-        <CreateHQ
-          togglePopup={togglePopup}
-          data={formData}
-          handelFormSubmit={handleFormSubmit}
-          isDelete={isDelete.current}
-          deleteAcc={deleteAcc}
-        />
-      )}
-    </div>
+    </>
   );
 };

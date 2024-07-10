@@ -18,6 +18,7 @@ export const CreateSalePurchase: React.FC<CreateSalePurchaseProps> = ({
   isDelete,
   deleteAcc,
   type,
+  className,
 }) => {
   const { sp_id } = data;
   const formikRef = useRef<FormikProps<SalesPurchaseFormProps>>(null);
@@ -26,8 +27,16 @@ export const CreateSalePurchase: React.FC<CreateSalePurchaseProps> = ({
     sptype: Yup.string()
       .max(100, `${type} account name must be 100 characters or less`)
       .required(`${type} account name is required`),
+      igst: Yup.number()
+      .min(1, 'IGST must be greater than 0')
+      .required('IGST is required'),
+      surCharge: Yup.number()
+      .required('Cess% is required'),
+      shortName: Yup.string()
+        .max(20, `Short name must be 20 characters or less`)
+        .required(`Short name is required`),
   });
-
+  
   useEffect(() => {
     const focusTarget = !isDelete
       ? document.getElementById('sptype')
@@ -60,7 +69,10 @@ export const CreateSalePurchase: React.FC<CreateSalePurchaseProps> = ({
     });
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>,formik:  FormikProps<SalesPurchaseFormData>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    formik: FormikProps<SalesPurchaseFormData>
+  ) => {
     const { id, value } = e.target;
     if (/^\d*\.?\d{0,2}$/.test(value)) {
       formik.setFieldValue(id, value);
@@ -82,6 +94,7 @@ export const CreateSalePurchase: React.FC<CreateSalePurchaseProps> = ({
             ? `Update ${type} Account`
             : `Add ${type} Account`
       }
+      className={className}
     >
       <Formik
         innerRef={formikRef}
@@ -98,7 +111,7 @@ export const CreateSalePurchase: React.FC<CreateSalePurchaseProps> = ({
         {(formik: FormikProps<SalesPurchaseFormData>) => (
           <Form className='flex flex-col gap-3 min-w-[18rem] items-start px-4'>
             <FormikInputField
-            label='Sp Type'
+              label='Sp Type'
               id='sptype'
               name='sptype'
               formik={formik}
@@ -115,7 +128,7 @@ export const CreateSalePurchase: React.FC<CreateSalePurchaseProps> = ({
               }
             />
             <FormikInputField
-            label='IGST %'
+              label='IGST %'
               id='igst'
               name='igst'
               formik={formik}
@@ -125,7 +138,8 @@ export const CreateSalePurchase: React.FC<CreateSalePurchaseProps> = ({
               prevField='sptype'
               sideField='surCharge'
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                handleChange(e,formik)}
+                handleChange(e, formik)
+              }
               onClick={resetField}
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                 handleKeyDown(e)
@@ -133,7 +147,7 @@ export const CreateSalePurchase: React.FC<CreateSalePurchaseProps> = ({
               showErrorTooltip={!!(formik.touched.igst && formik.errors.igst)}
             />
             <FormikInputField
-            label='Cess %'
+              label='Cess %'
               id='surCharge'
               name='surCharge'
               formik={formik}
@@ -143,7 +157,8 @@ export const CreateSalePurchase: React.FC<CreateSalePurchaseProps> = ({
               nextField='shortName'
               prevField='igst'
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                handleChange(e,formik)}
+                handleChange(e, formik)
+              }
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                 handleKeyDown(e)
               }
@@ -152,7 +167,7 @@ export const CreateSalePurchase: React.FC<CreateSalePurchaseProps> = ({
               }
             />
             <FormikInputField
-            label='ShortName'
+              label='ShortName'
               id='shortName'
               name='shortName'
               formik={formik}
@@ -169,7 +184,7 @@ export const CreateSalePurchase: React.FC<CreateSalePurchaseProps> = ({
               }
             />
             <FormikInputField
-            label='shortName2'
+              label='shortName2'
               id='shortName2'
               name='shortName2'
               formik={formik}

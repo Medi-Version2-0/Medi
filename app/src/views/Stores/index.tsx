@@ -304,7 +304,7 @@ export const Store = () => {
 
   return (
     <>
-      <div className='w-full '>
+      <div className='w-full relative'>
         <div className='flex w-full items-center justify-between px-8 py-1'>
           <h1 className='font-bold'>Store List</h1>
           <Button
@@ -351,6 +351,7 @@ export const Store = () => {
             }
             message={popupState.message}
             isAlert={popupState.isAlertOpen}
+            className='absolute'
           />
         )}
         {open && (
@@ -360,6 +361,7 @@ export const Store = () => {
             handelFormSubmit={handelFormSubmit}
             isDelete={isDelete.current}
             deleteAcc={deleteAcc}
+            className='absolute'
           />
         )}
       </div>

@@ -15,19 +15,19 @@ export const itemFormValidations = () =>
     shortName: Yup.string()
       .max(8, 'MFG code must be 8 characters or less')
       .required('MFG code is required'),
-    hsnCode: Yup.number()
-      // .max(8, 'HSN code must be 8 characters or less')
+    hsnCode: Yup.string()
+      .max(8, 'HSN code must be 8 characters or less')
       .required('HSN code is required'),
-    discountPer: Yup.number().required('Discount Percentage is required'),
-    minQty: Yup.number()
-      .max(999999, 'Minimum Quantity must be 6 digits or less')
+    discountPer: Yup.string().required('Discount Percentage is required'),
+    minQty: Yup.string()
       .required('Minimum Quantity is required'),
-    maxQty: Yup.number()
+    maxQty: Yup.string()
       .max(999999, 'Maximum Quantity must be 6 digits or less')
-      .moreThan(
-        Yup.ref('minQty'),
-        'Maximum Quantity must be more than Minimum Quantity'
-      )
+      .test('more-than-min-qty', 'Maximum Quantity must be more than Minimum Quantity', function (value) {
+        const minQty = this.parent.minQty;
+        return value !== undefined && Number(value) > Number(minQty);
+
+      })
       .required('Maximum Quantity is required'),
     location: Yup.string().max(10, 'Location must be 10 characters or less'),
   });

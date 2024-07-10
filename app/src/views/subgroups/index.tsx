@@ -25,6 +25,7 @@ export const SubGroups = () => {
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<SubGroupFormData | any>(null);
   const editing = useRef(false);
+  let currTable: any[] = [];
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
@@ -57,7 +58,7 @@ export const SubGroups = () => {
     setPopupState({ ...popupState, isModalOpen: false });
   };
 
-  const handleConfirmPopup = async() => {
+  const handleConfirmPopup = async () => {
     setPopupState({ ...popupState, isModalOpen: false });
     if (formData.group_name) {
       formData.group_name =
@@ -71,7 +72,10 @@ export const SubGroups = () => {
           body: formData,
         });
       } else {
-        await sendAPIRequest<any[]>('/group/sub', {method: 'POST', body: formData});
+        await sendAPIRequest<any[]>('/group/sub', {
+          method: 'POST',
+          body: formData,
+        });
       }
       togglePopup(false);
       getSubGroups();
@@ -87,15 +91,15 @@ export const SubGroups = () => {
     setOpen(isOpen);
   };
 
-  const getSubGroups = async() => {
+  const getSubGroups = async () => {
     const subGroups = await sendAPIRequest<any[]>('/group/sub');
     setTableData(subGroups);
   };
 
-  const deleteAcc = (group_code: string) => {
+  const deleteAcc = async (group_code: string) => {
     isDelete.current = false;
-    sendAPIRequest(`/group/sub/${group_code}`, { method: 'DELETE' });
     togglePopup(false);
+    await sendAPIRequest(`/group/sub/${group_code}`, { method: 'DELETE' });
     getSubGroups();
   };
 
@@ -116,13 +120,16 @@ export const SubGroups = () => {
 
   const handelFormSubmit = (values: SubGroupFormData) => {
     const mode = values.group_code ? 'update' : 'create';
-    const existingGroup = tableData.find(
-      (group: SubGroupFormData) => {
-        if (mode === 'create')
-          return (group.group_name.toLowerCase() === values.group_name.toLowerCase())
-        return ((group.group_name.toLowerCase() === values.group_name.toLowerCase()) && (group.group_code !== values.group_code))
-      }
-    );
+    const existingGroup = tableData.find((group: SubGroupFormData) => {
+      if (mode === 'create')
+        return (
+          group.group_name.toLowerCase() === values.group_name.toLowerCase()
+        );
+      return (
+        group.group_name.toLowerCase() === values.group_name.toLowerCase() &&
+        group.group_code !== values.group_code
+      );
+    });
     if (existingGroup) {
       setPopupState({
         ...popupState,
@@ -145,7 +152,7 @@ export const SubGroups = () => {
     }
   };
 
-  const handleCellEditingStopped = async(e: {
+  const handleCellEditingStopped = async (e: {
     data?: any;
     column?: any;
     oldValue?: any;
@@ -154,6 +161,7 @@ export const SubGroups = () => {
     newValue?: any;
   }) => {
     if (e?.data?.isPredefinedGroup === false) {
+      currTable = [];
       editing.current = false;
       const { data, column, oldValue, valueChanged, node } = e;
       let { newValue } = e;
@@ -176,6 +184,26 @@ export const SubGroups = () => {
               return;
             }
             newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
+            tableData.forEach((data: any) => {
+              if (data.group_code !== e.data.group_code) {
+                currTable.push(data);
+              }
+            });
+
+            const existingGroup = currTable.find(
+              (group: SubGroupFormData) =>
+                group.group_name.toLowerCase() === newValue.toLowerCase()
+            );
+
+            if (existingGroup) {
+              setPopupState({
+                ...popupState,
+                isAlertOpen: true,
+                message: 'Sub Group with this name already exists!',
+              });
+              node.setDataValue(field, oldValue);
+              return;
+            }
           }
           break;
         case 'igst_sale':
@@ -356,10 +384,16 @@ export const SubGroups = () => {
     ];
   return (
     <>
-      <div className='w-full'>
-        <div className="flex w-full items-center justify-between px-8 py-1">
-          <h1 className="font-bold">Sub Groups</h1>
-          <Button id='account_button' handleOnClick={() => togglePopup(true)} type='highlight'>Add Subgroup</Button>
+      <div className='w-full relative'>
+        <div className='flex w-full items-center justify-between px-8 py-1'>
+          <h1 className='font-bold'>Sub Groups</h1>
+          <Button
+            id='account_button'
+            handleOnClick={() => togglePopup(true)}
+            type='highlight'
+          >
+            Add Subgroup
+          </Button>
         </div>
         <div id='account_table' className='ag-theme-quartz'>
           {
@@ -385,6 +419,7 @@ export const SubGroups = () => {
             }
             message={popupState.message}
             isAlert={popupState.isAlertOpen}
+            className='absolute'
           />
         )}
         {open && (
@@ -394,10 +429,10 @@ export const SubGroups = () => {
             handelFormSubmit={handelFormSubmit}
             isDelete={isDelete.current}
             deleteAcc={deleteAcc}
+            className='absolute'
           />
         )}
       </div>
-
     </>
   );
 };

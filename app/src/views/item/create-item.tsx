@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { FormikProps, useFormik } from 'formik';
 import Button from '../../components/common/button/Button';
 import { itemFormValidations } from './validation_schema';
@@ -8,6 +8,7 @@ import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { sendAPIRequest } from '../../helper/api';
+import { useQueryClient } from '@tanstack/react-query';
 
 export interface ItemFormValues {
   name: string;
@@ -32,17 +33,15 @@ export interface ItemFormValues {
 
 export type ItemFormInfoType = FormikProps<ItemFormValues>;
 
-const CreateItem = () => {
-  const navigate = useNavigate();
+const CreateItem = ({ setView }: any) => {
   const location = useLocation();
-  const {companyId}= useParams();
   const data = location.state || {};
+  const queryClient = useQueryClient();
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
     message: '',
   });
-
 
   const itemFormInfo: ItemFormInfoType = useFormik({
     initialValues: {
@@ -70,10 +69,15 @@ const CreateItem = () => {
     onSubmit: async (values) => {
       try {
         if (data.id) {
-          await sendAPIRequest(`/item/${data.id}`, {method: 'PUT', body: values})
+          await sendAPIRequest(`/item/${data.id}`, {
+            method: 'PUT',
+            body: values,
+          });
         } else {
-          await sendAPIRequest('/item', {method: 'POST', body: values});
+          await sendAPIRequest('/item', { method: 'POST', body: values });
         }
+        await queryClient.invalidateQueries({ queryKey: ['get-items'] });
+
         setPopupState({
           isModalOpen: false,
           isAlertOpen: true,
@@ -89,21 +93,21 @@ const CreateItem = () => {
     },
   });
 
-  const handleAlertCloseModal = useCallback(() => {
+  const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
-    navigate('/'+companyId+'/items');
-  }, [popupState, navigate]);
+    setView('');
+  };
 
   return (
     <div className='w-full'>
       <div className='flex w-full items-center justify-between px-8 py-1'>
-        <h1 className='font-bold'>
-          {data.id ? 'Update Item' : 'Create Item'}
-        </h1>
+        <h1 className='font-bold'>{data.id ? 'Update Item' : 'Create Item'}</h1>
         <Button
           type='highlight'
           id='item_button'
-          handleOnClick={() => navigate('/'+companyId+`/items`)}
+          handleOnClick={() => {
+            setView('');
+          }}
         >
           Back
         </Button>

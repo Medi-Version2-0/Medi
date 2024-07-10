@@ -16,6 +16,7 @@ export const CreateGroup: React.FC<CreateGroupProps> = ({
   handelFormSubmit,
   isDelete,
   deleteAcc,
+  className,
 }) => {
   const { group_code } = data;
 
@@ -61,6 +62,7 @@ export const CreateGroup: React.FC<CreateGroupProps> = ({
   return (
     <Popup
       togglePopup={togglePopup}
+      className={className}
       heading={
         group_code && isDelete
           ? 'Delete Group'

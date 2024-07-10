@@ -17,31 +17,20 @@ export const LicenceDetails: React.FC<LicenceDetailsProps> = ({ formik }) => {
         labelClassName='min-w-[90px]'
         className='!w-2/3'
         formik={formik}
-        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-          if (e.key === 'ArrowDown' || e.key === 'Enter') {
-            document.getElementById(licenseId2 ? 'drugLicenceNo2' : 'Contact_Info')?.focus();
-            e.preventDefault();
-          } else if (e.key === 'ArrowUp') {
-            document.getElementById('Licence_Info')?.focus();
-          }
-        }}
+        prevField=''
+        nextField='licenceExpiry'
       />
       <FormikInputField
       isPopupOpen={false}
+      type='date'
         label='Expiry Date'
         id='licenceExpiry'
         name='licenceExpiry'
         labelClassName='min-w-[90px]'
         className='!w-2/3'
         formik={formik}
-        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-          if (e.key === 'ArrowDown' || e.key === 'Enter') {
-            document.getElementById(licenseId2 ? 'drugLicenceNo2' : 'Contact_Info')?.focus();
-            e.preventDefault();
-          } else if (e.key === 'ArrowUp') {
-            document.getElementById('drugLicenceNo1')?.focus();
-          }
-        }}
+        prevField='drugLicenceNo1'
+        nextField={(licenseId2 || (formik.values.drugLicenceNo2 !== '')) ? 'drugLicenceNo2' : ''}
       />
       <div className='flex gap-2 '>
         {(licenseId2 || (formik.values.drugLicenceNo2 !== '')) &&

@@ -2,7 +2,10 @@ import React from 'react';
 import { useEffect } from 'react';
 import { Formik, Form, Field, FormikProps } from 'formik';
 import * as Yup from 'yup';
-import { CreateItemGroupProps, ItemGroupFormDataProps } from '../../interface/global';
+import {
+  CreateItemGroupProps,
+  ItemGroupFormDataProps,
+} from '../../interface/global';
 import { Popup } from '../../components/popup/Popup';
 import Button from '../../components/common/button/Button';
 import onKeyDown from '../../utilities/formKeyDown';
@@ -16,6 +19,7 @@ export const CreateItemGroup: React.FC<CreateItemGroupProps> = ({
   handelFormSubmit,
   isDelete,
   deleteAcc,
+  className,
 }) => {
   const { group_code } = data;
 
@@ -68,6 +72,7 @@ export const CreateItemGroup: React.FC<CreateItemGroupProps> = ({
             ? 'Update Group'
             : 'Create Group'
       }
+      className={className}
     >
       <Formik
         initialValues={{

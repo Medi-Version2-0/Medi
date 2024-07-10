@@ -181,8 +181,8 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
     isDelete.current = false;
     const endPoint = type === 'Sales' ? '/sale' : '/purchase';
     const endpoint = `${endPoint}/${sp_id}`;
-    sendAPIRequest(endpoint, { method: 'DELETE' });
     togglePopup(false);
+    await sendAPIRequest(endpoint, { method: 'DELETE' });
     getSalesData();
   };
 
@@ -332,50 +332,58 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
   ];
 
   return (
-    <div className='w-full'>
-      <div className='flex w-full items-center justify-between px-8 py-1'>
-        <h1 className='font-bold'>{type} Account</h1>
-        <Button
-          type='highlight'
-          id='sp_button'
-          handleOnClick={() => togglePopup(true)}
+    <>
+      <div className='w-full relative'>
+        <div className='flex w-full items-center justify-between px-8 py-1'>
+          <h1 className='font-bold'>{type} Account</h1>
+          <Button
+            type='highlight'
+            id='sp_button'
+            handleOnClick={() => togglePopup(true)}
+          >
+            Add {type}
+          </Button>
+        </div>
+        <div
+          id='account_table'
+          className='ag-theme-quartz bg-[white] h-[calc(100vh_-_7.4rem)] mx-[1rem] my-0 rounded-[1.4rem]'
         >
-          Add {type}
-        </Button>
+          <AgGridReact
+            rowData={tableData}
+            columnDefs={colDefs}
+            defaultColDef={{
+              floatingFilter: true,
+            }}
+            onCellClicked={onCellClicked}
+            onCellEditingStarted={cellEditingStarted}
+            onCellEditingStopped={handleCellEditingStopped}
+          />
+        </div>
+        {(popupState.isModalOpen || popupState.isAlertOpen) && (
+          <Confirm_Alert_Popup
+            onClose={handleClosePopup}
+            onConfirm={
+              popupState.isAlertOpen
+                ? handleAlertCloseModal
+                : handleConfirmPopup
+            }
+            message={popupState.message}
+            isAlert={popupState.isAlertOpen}
+            className='absolute'
+          />
+        )}
+        {open && (
+          <CreateSalePurchase
+            togglePopup={togglePopup}
+            data={formData}
+            handelFormSubmit={handelFormSubmit}
+            isDelete={isDelete.current}
+            deleteAcc={deleteAcc}
+            type={type}
+            className='absolute'
+          />
+        )}
       </div>
-      <div
-        id='account_table'
-        className='ag-theme-quartz bg-[white] h-[calc(100vh_-_7.4rem)] mx-[1rem] my-0 rounded-[1.4rem]'
-      >
-        <AgGridReact
-          rowData={tableData}
-          columnDefs={colDefs}
-          defaultColDef={{ floatingFilter: true }}
-          onCellClicked={onCellClicked}
-          onCellEditingStarted={cellEditingStarted}
-          onCellEditingStopped={handleCellEditingStopped}
-        />
-      </div>
-      {(popupState.isModalOpen || popupState.isAlertOpen) && (
-        <Confirm_Alert_Popup
-          onClose={handleClosePopup}
-          onConfirm={
-            popupState.isAlertOpen ? handleAlertCloseModal : handleConfirmPopup
-          }
-          message={popupState.message}
-          isAlert={popupState.isAlertOpen}
-        />
-      )}
-      {open && (
-        <CreateSalePurchase
-          togglePopup={togglePopup}
-          data={formData}
-          handelFormSubmit={handelFormSubmit}
-          isDelete={isDelete.current}
-          deleteAcc={deleteAcc}
-          type={type}
-        />
-      )}
-    </div>
+    </>
   );
 };

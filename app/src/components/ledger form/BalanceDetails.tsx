@@ -12,17 +12,22 @@ export const BalanceDetails = ({
   selectedGroupName,
   formik,
 }: BalanceDetailsProps) => {
-  const handleOpeningBalInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = e.target;
-    if (/^\d*\.?\d{0,2}$/.test(value)) {
-      formik.setFieldValue('openingBal', value);
-    }
-  };
-
-  const handleCreditInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
-    if (/^\d*$/.test(value)) {
-      formik.setFieldValue(id, value);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const id = e.target.id;
+    const value = e.target.value;
+    const filteredValue = value.replace(/[^0-9]/g, '');
+    if (id === 'openingBal') {
+      if (filteredValue.length <= 12) {
+        formik.setFieldValue('openingBal', filteredValue);
+      } else {
+        formik.setFieldValue('openingBal', filteredValue.slice(0, 12));
+      }
+    } else if (id === 'creditLimit' || id === 'creditDays') {
+      if (filteredValue.length <= 3) {
+        formik.setFieldValue(id, filteredValue);
+      } else {
+        formik.setFieldValue(id, filteredValue.slice(0, 3));
+      }
     }
   };
 
@@ -48,33 +53,18 @@ export const BalanceDetails = ({
             id='openingBal'
             name='openingBal'
             formik={formik}
-            onChange={handleOpeningBalInput}
+            onChange={handleChange}
             placeholder='0.00'
             onClick={resetField}
             className='!mb-0'
             inputClassName='h-9 text-right'
             labelClassName='w-fit text-nowrap'
-            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-              if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                document.getElementById('openingBalType')?.focus();
-                e.preventDefault();
-              } else if (e.key === 'ArrowUp') {
-                document
-                  .getElementById(
-                    selectedGroupName.toUpperCase() === 'CURRENT ASSETS' ||
-                      selectedGroupName.toUpperCase() ===
-                        'CURRENT LIABILITIES' ||
-                      selectedGroupName.toUpperCase() === 'PROVISIONS' ||
-                      selectedGroupName.toUpperCase() === 'SECURED LOANS' ||
-                      selectedGroupName.toUpperCase() === 'SUNDRY CREDITORS' ||
-                      selectedGroupName.toUpperCase() === 'SUNDRY DEBTORS'
-                      ? 'balancingMethod'
-                      : 'parentLedger'
-                  )
-                  ?.focus();
-                e.preventDefault();
-              }
-            }}
+            prevField=''
+            nextField='openingBalType'
+            maxLength={12}
+            showErrorTooltip={
+              formik.touched.openingBal && formik.errors.openingBal
+            }
           />
           <CustomSelect
             isPopupOpen={false}
@@ -98,6 +88,16 @@ export const BalanceDetails = ({
             hidePlaceholder={false}
             containerClass='!w-1/3'
             className='!rounded-none !h-6'
+            onBlur={() => {
+              formik.setFieldTouched('openingBalType', true);
+            }}
+            onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+              const dropdown = document.querySelector('.custom-select__menu');
+              if (e.key === 'Enter') {
+                !dropdown && e.preventDefault();
+                document.getElementById('partyType')?.focus();
+              }
+            }}
           />
         </div>
         <CustomSelect
@@ -123,6 +123,18 @@ export const BalanceDetails = ({
           hidePlaceholder={false}
           containerClass='!w-1/3'
           className='!rounded-none !h-6'
+          onBlur={() => {
+            formik.setFieldTouched('partyType', true);
+          }}
+          onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+            const dropdown = document.querySelector('.custom-select__menu');
+            if (e.key === 'Enter') {
+              !dropdown && e.preventDefault();
+              (selectedGroupName.toUpperCase() === 'SUNDRY CREDITORS' ||
+                selectedGroupName.toUpperCase() === 'SUNDRY DEBTORS') &&
+                document.getElementById('creditLimit')?.focus();
+            }
+          }}
         />
         {(selectedGroupName.toUpperCase() === 'SUNDRY CREDITORS' ||
           selectedGroupName.toUpperCase() === 'SUNDRY DEBTORS') && (
@@ -133,12 +145,15 @@ export const BalanceDetails = ({
               id='creditLimit'
               name='creditLimit'
               labelClassName='w-1/3'
+              onChange={handleChange}
               inputClassName='text-right'
               formik={formik}
               placeholder='0'
               className=''
-              onChange={handleCreditInput}
+              maxLength={3}
               onClick={resetField}
+              prevField='partyType'
+              nextField='creditDays'
             />
             <FormikInputField
               isPopupOpen={false}
@@ -147,20 +162,13 @@ export const BalanceDetails = ({
               name='creditDays'
               formik={formik}
               placeholder='0'
-              maxLength={3}
               labelClassName='w-1/3'
               inputClassName='text-right'
-              onChange={handleCreditInput}
+              onChange={handleChange}
               onClick={resetField}
-              onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                  document.getElementById('phone1')?.focus();
-                  e.preventDefault();
-                } else if (e.key === 'ArrowUp') {
-                  document.getElementById('openingBalType')?.focus();
-                  e.preventDefault();
-                }
-              }}
+              maxLength={3}
+              prevField='creditLimit'
+              nextField=''
             />
           </div>
         )}

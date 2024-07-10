@@ -10,12 +10,16 @@ import {
   ItemGroupFormData,
 } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
 import { ICellRendererParams } from 'ag-grid-community';
+import CreateItem from './create-item';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Batch } from '../itembatch';
 
 const Items = () => {
+  const [view, setView] = useState<string>('');
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<itemFormData | any>(null);
   const [companyData, setCompanyData] = useState<CompanyFormData | any>(null);
@@ -24,20 +28,25 @@ const Items = () => {
   );
   const [salesData, setSalesData] = useState<any[]>([]);
   const [purchaseData, setPurchaseData] = useState<any[]>([]);
+  const [showBatch, setShowBatch] = useState<any>(null);
+
   const editing = useRef(false);
   const id = useRef('');
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
     message: '',
   });
 
+  const { data } = useQuery<{ data: itemFormData }>({
+    queryKey: ['get-items'],
+    queryFn: () => sendAPIRequest<{ data: itemFormData }>('/item'),
+  });
+
   const getItemData = async () => {
-    const itemData = await sendAPIRequest<{ data: itemFormData }>('/item', {
-      method: 'GET',
-    });
-    setTableData(itemData);
+    setTableData(data);
   };
 
   const getCompany = async () => {
@@ -70,7 +79,7 @@ const Items = () => {
     getGroups();
     getCompany();
     getItemData();
-  }, []);
+  }, [data]);
 
   const companyCodeMap: { [key: number]: string } = {};
   const groupCodeMap: { [key: number]: string } = {};
@@ -129,7 +138,7 @@ const Items = () => {
   const handleConfirmPopup = async () => {
     setPopupState({ ...popupState, isModalOpen: false });
     await sendAPIRequest(`/item/${id.current}`, { method: 'DELETE' });
-    getItemData();
+    queryClient.invalidateQueries({ queryKey: ['get-items'] });
   };
 
   const handleDelete = (oldData: any) => {
@@ -142,7 +151,7 @@ const Items = () => {
   };
 
   const handleUpdate = (oldData: any) => {
-    return navigate(`${oldData.id}/edit`, { state: oldData });
+    return navigate(`..`, { state: oldData });
   };
 
   const handleCellEditingStopped = async (e: any) => {
@@ -171,14 +180,6 @@ const Items = () => {
           newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
         }
         break;
-      case 'compId':
-      case 'itemGroupCode':
-      case 'saleAccId':
-      case 'purAccId':
-        {
-          newValue = Number(newValue);
-        }
-        break;
       case 'shortName':
         {
           if (!newValue) {
@@ -193,11 +194,12 @@ const Items = () => {
         }
         break;
     }
+
     await sendAPIRequest(`/item/${data.id}`, {
       method: 'PUT',
       body: { [field]: newValue },
     });
-    getItemData();
+    queryClient.invalidateQueries({ queryKey: ['get-items'] });
   };
 
   const onCellClicked = (params: { data: any }) => {
@@ -212,9 +214,7 @@ const Items = () => {
     switch (event.key) {
       case 'n':
       case 'N':
-        if (event.ctrlKey) {
-          return navigate('new');
-        }
+        if (event.ctrlKey) setView('add');
         break;
       case 'd':
       case 'D':
@@ -232,6 +232,15 @@ const Items = () => {
         break;
     }
   };
+
+  const BatchCellRenderer = (props: ICellRendererParams) => {
+    const handleClick = () => {
+      setShowBatch(props.data);
+    };
+
+    return <div onClick={handleClick}>{props.value}</div>;
+  };
+
   const commonColDefConfig = {
     flex: 1,
     filter: true,
@@ -243,9 +252,12 @@ const Items = () => {
     {
       headerName: 'Item Name',
       field: 'name',
-      cellRenderer: (params: ICellRendererParams) => (
-        <Link to={`${params.data.id}/batch`}> {params.value}</Link>
-      ),
+      cellRenderer: BatchCellRenderer,
+
+      // cellRenderer: (params: ICellRendererParams) => (
+      //   <Batch params={params.data}/>
+      //   // <Link to={`${params.data.id}/batch`}> {params.value}</Link>
+      // ),
       menuTabs: ['filterMenuTab'],
       ...commonColDefConfig,
     },
@@ -331,7 +343,10 @@ const Items = () => {
         <div className='table_edit_buttons'>
           <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
-            onClick={() => handleUpdate(params.data)}
+            onClick={() => {
+              setView('add');
+              handleUpdate(params.data);
+            }}
           />
 
           <MdDeleteForever
@@ -343,40 +358,65 @@ const Items = () => {
     },
   ];
 
-  return (
-    <div className='w-full'>
-      <div className='flex w-full items-center justify-between px-8 py-1'>
-        <h1 className='font-bold'>Item Master</h1>
-        <Button type='highlight' handleOnClick={() => navigate('new')}>
-          Add Item
-        </Button>
-      </div>
-      <div id='account_table' className='ag-theme-quartz'>
-        {
-          <AgGridReact
-            rowData={tableData}
-            columnDefs={colDefs}
-            defaultColDef={{
-              floatingFilter: true,
-            }}
-            onCellClicked={onCellClicked}
-            onCellEditingStarted={cellEditingStarted}
-            onCellEditingStopped={handleCellEditingStopped}
-          />
-        }
-      </div>
-      {(popupState.isModalOpen || popupState.isAlertOpen) && (
-        <Confirm_Alert_Popup
-          onClose={handleClosePopup}
-          onConfirm={
-            popupState.isAlertOpen ? handleAlertCloseModal : handleConfirmPopup
-          }
-          message={popupState.message}
-          isAlert={popupState.isAlertOpen}
-        />
-      )}
-    </div>
-  );
+  const items = () => {
+    return (
+      <>
+        {showBatch ? (
+          <Batch params={{ showBatch, setShowBatch }} />
+        ) : (
+          <div className='w-full'>
+            <div className='flex w-full items-center justify-between px-8 py-1'>
+              <h1 className='font-bold'>Item Master</h1>
+              <Button
+                type='highlight'
+                handleOnClick={() => {
+                  setView('add');
+                }}
+              >
+                Add Item
+              </Button>
+            </div>
+
+            <div id='account_table' className='ag-theme-quartz'>
+              <AgGridReact
+                rowData={tableData}
+                columnDefs={colDefs}
+                defaultColDef={{
+                  floatingFilter: true,
+                }}
+                onCellClicked={onCellClicked}
+                onCellEditingStarted={cellEditingStarted}
+                onCellEditingStopped={handleCellEditingStopped}
+              />
+            </div>
+            {(popupState.isModalOpen || popupState.isAlertOpen) && (
+              <Confirm_Alert_Popup
+                onClose={handleClosePopup}
+                onConfirm={
+                  popupState.isAlertOpen
+                    ? handleAlertCloseModal
+                    : handleConfirmPopup
+                }
+                message={popupState.message}
+                isAlert={popupState.isAlertOpen}
+              />
+            )}
+          </div>
+        )}
+      </>
+    );
+  };
+
+  const renderView = () => {
+    switch (view) {
+      case 'add':
+        return <CreateItem setView={setView} />;
+      default:
+        return items();
+    }
+  };
+
+  return <div className='w-full'>{renderView()}</div>;
 };
 
 export default Items;

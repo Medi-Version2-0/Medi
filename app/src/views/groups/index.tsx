@@ -10,6 +10,7 @@ import { ColDef, ColGroupDef } from 'ag-grid-community';
 import { CreateGroup } from './CreateGroup';
 import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 const initialValue = {
   group_code: '',
@@ -23,8 +24,10 @@ export const Groups = () => {
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<GroupFormData>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
-  const [tableData, setTableData] = useState<GroupFormData | any>(null);
+  const [tableData, setTableData] = useState<GroupFormData[]>([]);
   const editing = useRef(false);
+  let currTable: any[] = [];
+  const queryClient = useQueryClient();
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
@@ -32,6 +35,12 @@ export const Groups = () => {
   });
 
   const [subgroups, setSubgroups] = useState<GroupFormData[]>([]);
+
+  const { data } = useQuery<GroupFormData[]>({
+    queryKey: ['get-groups'],
+    queryFn: () => sendAPIRequest<GroupFormData[]>('/group'),
+    initialData: [],
+  });
 
   useEffect(() => {
     const fetchSubgroups = async () => {
@@ -87,7 +96,7 @@ export const Groups = () => {
         });
       }
       togglePopup(false);
-      getGroups();
+      queryClient.invalidateQueries({ queryKey: ['get-groups'] });
     }
   };
   const isDelete = useRef(false);
@@ -100,16 +109,11 @@ export const Groups = () => {
     setOpen(isOpen);
   };
 
-  const getGroups = async () => {
-    const groups = await sendAPIRequest<any[]>('/group');
-    setTableData(groups);
-  };
-
   const deleteAcc = async (group_code: string) => {
     isDelete.current = false;
-    sendAPIRequest(`/group/${group_code}`, { method: 'DELETE' });
     togglePopup(false);
-    getGroups();
+    await sendAPIRequest(`/group/${group_code}`, { method: 'DELETE' });
+    queryClient.invalidateQueries({ queryKey: ['get-groups'] });
   };
 
   const handleDelete = (oldData: GroupFormData) => {
@@ -170,6 +174,7 @@ export const Groups = () => {
     newValue?: any;
   }) => {
     if (e?.data?.isPredefinedGroup === false) {
+      currTable = [];
       editing.current = false;
       const { data, column, oldValue, valueChanged, node } = e;
       let { newValue } = e;
@@ -192,6 +197,26 @@ export const Groups = () => {
               return;
             }
             newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
+            tableData.forEach((data: any) => {
+              if (data.group_code !== e.data.group_code) {
+                currTable.push(data);
+              }
+            });
+
+            const existingGroup = currTable.find(
+              (group: GroupFormData) =>
+                group.group_name.toLowerCase() === newValue.toLowerCase()
+            );
+
+            if (existingGroup) {
+              setPopupState({
+                ...popupState,
+                isAlertOpen: true,
+                message: 'Group with this name already exists!',
+              });
+              node.setDataValue(field, oldValue);
+              return;
+            }
           }
           break;
         case 'igst_sale':
@@ -209,7 +234,7 @@ export const Groups = () => {
         method: 'PUT',
         body: { [field]: newValue },
       });
-      getGroups();
+      queryClient.invalidateQueries({ queryKey: ['get-groups'] });
     } else {
       const { column, oldValue, node } = e;
       const field = column.colId;
@@ -313,8 +338,12 @@ export const Groups = () => {
   }, [selectedRow]);
 
   useEffect(() => {
-    getGroups();
-  }, []);
+    fetchGroupData();
+  }, [data]);
+
+  const fetchGroupData = async () => {
+    setTableData(data);
+  };
 
   const colDefs: (ColDef<any, any> | ColGroupDef<any>)[] | null | undefined[] =
     [
@@ -402,9 +431,10 @@ export const Groups = () => {
         ),
       },
     ];
+
   return (
     <>
-      <div className='w-full'>
+      <div className='w-full relative'>
         <div className='flex w-full items-center justify-between px-8 py-1'>
           <h1 className='font-bold'>Groups</h1>
           <Button
@@ -439,6 +469,7 @@ export const Groups = () => {
             }
             message={popupState.message}
             isAlert={popupState.isAlertOpen}
+            className='absolute'
           />
         )}
         {open && (
@@ -448,6 +479,7 @@ export const Groups = () => {
             handelFormSubmit={handelFormSubmit}
             isDelete={isDelete.current}
             deleteAcc={deleteAcc}
+            className='absolute'
           />
         )}
       </div>

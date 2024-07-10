@@ -50,6 +50,7 @@ export interface CreateStationProps {
   handelFormSubmit: any;
   isDelete: any;
   deleteAcc: (station_id: string) => void;
+  className?: string;
 }
 
 export interface CreateSalePurchaseProps {
@@ -59,6 +60,7 @@ export interface CreateSalePurchaseProps {
   handelFormSubmit: any;
   isDelete: any;
   deleteAcc: (sp_id: string) => void;
+  className?: string;
 }
 
 export interface CreateAccountGroupProps {
@@ -104,6 +106,7 @@ export interface CreateItemGroupProps {
   handelFormSubmit: any;
   isDelete: any;
   deleteAcc: (group_code: string) => void;
+  className?: string;
 }
 export interface SubGroupFormDataProps {
   group_name: string;
@@ -116,6 +119,7 @@ export interface CreateGroupProps {
   handelFormSubmit: any;
   isDelete: any;
   deleteAcc: (group_code: string) => void;
+  className?: string;
 }
 
 export interface CreateSubGroupProps {
@@ -124,6 +128,7 @@ export interface CreateSubGroupProps {
   handelFormSubmit: any;
   isDelete: any;
   deleteAcc: (group_code: string) => void;
+  className?: string;
 }
 
 export interface PopupProps {
@@ -138,16 +143,17 @@ export interface Confirm_Alert_PopupProps {
   onClose?: () => void;
   onConfirm?: () => void;
   message: string;
+  className?: string;
 }
 
 export interface State {
-  state_code: Number;
+  state_code: number;
   state_name: string;
   union_territory: boolean;
 }
 
 interface Option {
-  value: string | undefined | boolean;
+  value: string | undefined | boolean | number;
   label: string | undefined;
 }
 
@@ -211,10 +217,12 @@ export interface CreateStoreProps {
   handelFormSubmit: any;
   isDelete: any;
   deleteAcc: (store_code: string) => void;
+  className?: string;
 }
 
 export interface CompanyFormData {
   company_id?: string;
+  companyName: string;
   stationName: string;
   openingBal: string;
   openingBalType: string;

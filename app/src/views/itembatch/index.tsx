@@ -8,7 +8,7 @@ import Button from '../../components/common/button/Button';
 import { ColDef } from 'ag-grid-community';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { sendAPIRequest } from '../../helper/api';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 const expiryFormatRegex = /^(0[1-9]|1[0-2])\/\d{4}$/;
 
@@ -18,11 +18,18 @@ const parseMonthYear = (dateString: string) => {
   return date;
 };
 
-export const Batch = () => {
-  const { itemId, companyId } = useParams();
+export const Batch = ({
+  params,
+}: {
+  params: {
+    showBatch: any;
+    setShowBatch: React.Dispatch<React.SetStateAction<any>>;
+  };
+}) => {
+  const { id } = params.showBatch;
 
   const pinnedRow: BatchForm = {
-    itemId: itemId ? +itemId : 0,
+    itemId: id ? +id : 0,
     batchNo: '',
     expiryDate: '',
     opBalance: null,
@@ -32,12 +39,12 @@ export const Batch = () => {
     mrp: null,
     locked: '',
   };
+  const queryClient = useQueryClient();
 
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [inputRow, setInputRow] = useState<BatchForm>(pinnedRow);
   const [tableData, setTableData] = useState<BatchForm | any>(null);
   const [currTableData, setCurrTableData] = useState<BatchForm | any>(null);
-  const navigate = useNavigate();
   const editing = useRef(false);
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
@@ -46,18 +53,14 @@ export const Batch = () => {
   });
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const { data } = useQuery<{ data: BatchForm }>({
+    queryKey: ['get-itemBatches'],
+    queryFn: () => sendAPIRequest<{ data: BatchForm }>(`/item/${id}/batch`),
+  });
 
   const getBatch = async () => {
-    const fetchedData = (
-      await sendAPIRequest<{ data: BatchForm }>(`/item/${itemId}/batch`, {
-        method: 'GET',
-      })
-    ).data;
-
-    setCurrTableData(
-      await sendAPIRequest(`/item/${itemId}/batch`, { method: 'GET' })
-    );
-    setTableData(fetchedData);
+    setCurrTableData(data);
+    setTableData(data);
   };
 
   const isPinnedRowDataCompleted = (params: any) => {
@@ -98,11 +101,11 @@ export const Batch = () => {
       char.toUpperCase()
     );
     batch.locked = batch.locked.toUpperCase();
-    await sendAPIRequest(`/item/${itemId}/batch`, {
+    await sendAPIRequest(`/item/${id}/batch`, {
       method: 'POST',
       body: batch,
     });
-    getBatch();
+    queryClient.invalidateQueries({ queryKey: ['get-itemBatches'] });
     setInputRow({
       ...pinnedRow,
       locked: '',
@@ -141,7 +144,7 @@ export const Batch = () => {
       editing.current = false;
       const { data, column, oldValue, valueChanged, node } = e;
       const batchId = data.id;
-      const { newValue } = e;
+      let { newValue } = e;
       if (!valueChanged) return;
       const field = column.colId;
 
@@ -197,8 +200,7 @@ export const Batch = () => {
                 });
                 node.setDataValue(field, oldValue);
                 return;
-              }
-              else if (!newValue || newValue.length > 100) {
+              } else if (!newValue || newValue.length > 100) {
                 setPopupState({
                   ...popupState,
                   isAlertOpen: true,
@@ -307,21 +309,21 @@ export const Batch = () => {
                   message:
                     'Please enter either "y" for Yes or "n" for "No" for Locked field.',
                 });
-                return;
-              } else {
                 node.setDataValue(field, oldValue);
+                return;
               }
+              newValue = newValue.toUpperCase();
             }
             break;
           default:
             break;
         }
-        await sendAPIRequest(`/item/${itemId}/batch/${batchId}`, {
+        await sendAPIRequest(`/item/${id}/batch/${batchId}`, {
           method: 'PUT',
           body: { ...data, [field]: newValue },
         });
 
-        getBatch();
+        queryClient.invalidateQueries({ queryKey: ['get-itemBatches'] });
       }
     },
     [tableData, inputRow]
@@ -344,7 +346,7 @@ export const Batch = () => {
   };
   useEffect(() => {
     getBatch();
-  }, []);
+  }, [data]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
@@ -507,9 +509,9 @@ export const Batch = () => {
       <div className='w-full'>
         <div className='flex w-full items-center justify-between px-8 py-1'>
           <h1 className='font-bold'>Batches</h1>
-          <Button type='highlight' handleOnClick={() => navigate('/'+companyId+'/items')}>
-          Back
-        </Button>
+          <Button type='highlight' handleOnClick={() => params.setShowBatch(null)}>
+            Back
+          </Button>
         </div>
         <div id='account_table' className='ag-theme-quartz'>
           {

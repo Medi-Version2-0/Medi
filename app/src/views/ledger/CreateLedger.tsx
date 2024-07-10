@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import { useFormik } from 'formik';
 import { GeneralInfo } from '../../components/ledger form/GeneralInfo';
 import { BalanceDetails } from '../../components/ledger form/BalanceDetails';
@@ -17,6 +17,7 @@ import titleCase from '../../utilities/titleCase';
 import { Option } from '../../interface/global';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
+import { useQueryClient } from '@tanstack/react-query';
 
 const initialState = {
   btn_1: false,
@@ -25,24 +26,30 @@ const initialState = {
   btn_4: false,
 };
 
-export const CreateLedger = () => {
+export const CreateLedger = ({ setView }: any) => {
   const { companyId } = useParams();
+  const [stationData, setStationData] = useState<any[]>([]);
+
   const [showActiveElement, setShowActiveElement] = useState(initialState);
   const [groupOptions, setGroupOptions] = useState<Option[]>([]);
   const [isSUNDRY, setIsSUNDRY] = useState(false);
+  const queryClient = useQueryClient();
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
     message: '',
   });
-
-  const navigate = useNavigate();
   const { state: data = {} } = useLocation();
 
   const prevClass = useRef('');
 
   const fetchAllData = async () => {
     const groupDataList = await sendAPIRequest<any[]>('/group');
+    const stationList =
+      await sendAPIRequest<{ station_id: number; station_name: string }[]>(
+        '/station'
+      );
+      setStationData(stationList);
     setGroupOptions(
       groupDataList.map((group) => ({
         value: group.group_code,
@@ -67,7 +74,7 @@ export const CreateLedger = () => {
       address1: data?.address1 || '',
       address2: data?.address2 || '',
       address3: data?.address3 || '',
-      country: data?.country || 'India',
+      country: data?.country || 'INDIA',
       state: data?.state || '',
       pinCode: data?.pinCode || '',
       stateInout: data?.stateInout || '',
@@ -111,11 +118,15 @@ export const CreateLedger = () => {
     validationSchema: getLedgerFormValidationSchema(isSUNDRY),
     onSubmit: async (values) => {
       const formattedOpeningBal = parseFloat(values.openingBal).toFixed(2);
+      const matchingStation = stationData.find(
+        (station) => values.station_id === station.station_id
+      );
       const allData = {
         ...values,
         openingBal: formattedOpeningBal,
         accountCode: values.accountGroup,
         station_id: values.station_id || null,
+        state: matchingStation ? matchingStation.state_code : ''
       };
       delete allData.accountGroup;
       delete allData.stationName;
@@ -127,7 +138,7 @@ export const CreateLedger = () => {
       const method = data?.party_id ? 'PUT' : 'POST';
 
       await sendAPIRequest(apiPath, { method, body: allData });
-      navigate('../ledger_table', { replace: true });
+      await queryClient.invalidateQueries({ queryKey: ['get-ledger'] });
     },
   });
 
@@ -177,7 +188,7 @@ export const CreateLedger = () => {
 
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
-    navigate('/ledger_table');
+    setView('');
   };
 
   useEffect(() => {
@@ -197,7 +208,7 @@ export const CreateLedger = () => {
         <Button
           type='highlight'
           id='ledger_button'
-          handleOnClick={() => navigate('../ledger_table', { replace: true })}
+          handleOnClick={() => setView('')}
         >
           Back
         </Button>

@@ -77,6 +77,7 @@ export const CreateHQ = ({
   handelFormSubmit,
   isDelete,
   deleteAcc,
+  className,
 }: CreateStationProps) => {
   const { station_id } = data;
   const { stations, loading, error } = useStations();
@@ -127,7 +128,8 @@ export const CreateHQ = ({
   return (
     <Popup
       togglePopup={togglePopup}
-      heading={`${fetchType(isDelete, station_id)} Headquarter`}
+      heading={`${fetchType(isDelete,station_id)} Headquarter`}
+      className={className}
     >
       <Formik
         innerRef={formikRef}

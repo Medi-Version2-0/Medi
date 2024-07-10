@@ -9,6 +9,7 @@ import { StationFormData } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 const initialValue = {
   station_id: '',
@@ -23,8 +24,11 @@ export const Stations = () => {
   const [formData, setFormData] = useState<StationFormData | any>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<StationFormData | any>(null);
+  const queryClient = useQueryClient();
   const [stateData, setStateData] = useState<any[]>([]);
   const editing = useRef(false);
+  let currTable: any[] = [];
+
   const isDelete = useRef(false);
 
   const [popupState, setPopupState] = useState({
@@ -33,10 +37,15 @@ export const Stations = () => {
     message: '',
   });
 
+  const { data } = useQuery<StationFormData[]>({
+    queryKey: ['get-stations'],
+    queryFn: () => sendAPIRequest<StationFormData[]>('/station'),
+  });
+
   useEffect(() => {
     getStates();
     getStations();
-  }, []);
+  }, [data]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
@@ -51,12 +60,7 @@ export const Stations = () => {
   };
 
   const getStations = async () => {
-    const stations = await sendAPIRequest<any[]>('/station');
-    stations.map((station) => {
-      station.state_code = station.State?.state_name;
-    });
-
-    setTableData(stations);
+    setTableData(data);
   };
 
   const togglePopup = (isOpen: boolean) => {
@@ -82,6 +86,7 @@ export const Stations = () => {
         formData.station_name.charAt(0).toUpperCase() +
         formData.station_name.slice(1);
     }
+
     if (formData !== initialValue) {
       formData.state_code = +formData.state_code;
       if (formData.station_id) {
@@ -92,8 +97,9 @@ export const Stations = () => {
       } else {
         await sendAPIRequest('/station', { method: 'POST', body: formData });
       }
+
       togglePopup(false);
-      getStations();
+      queryClient.invalidateQueries({ queryKey: ['get-stations'] });
     }
   };
 
@@ -132,9 +138,9 @@ export const Stations = () => {
 
   const deleteAcc = async (station_id: string) => {
     isDelete.current = false;
-    sendAPIRequest(`/station/${station_id}`, { method: 'DELETE' });
     togglePopup(false);
-    getStations();
+    await sendAPIRequest(`/station/${station_id}`, { method: 'DELETE' });
+    queryClient.invalidateQueries({ queryKey: ['get-stations'] });
   };
 
   const handleDelete = (oldData: StationFormData) => {
@@ -145,7 +151,6 @@ export const Stations = () => {
   };
 
   const handleUpdate = (oldData: StationFormData) => {
-    console.log("old",oldData);
     setFormData(oldData);
     isDelete.current = false;
     editing.current = true;
@@ -164,15 +169,22 @@ export const Stations = () => {
     stateCodeMap[state.state_code] = state.state_name;
   });
 
-  const extractKeys = (mappings: {
+  const extractKey = (mappings: {
     [x: number]: string;
     Yes?: string;
     No?: string;
   }) => {
     return Object.keys(mappings);
   };
+  const extractKeys = (mappings: {
+    [x: number]: string;
+    Yes?: string;
+    No?: string;
+  }) => {
+    return Object.keys(mappings).map((key) => Number(key));
+  };
 
-  const types = extractKeys(typeMapping);
+  const types = extractKey(typeMapping);
   const states = extractKeys(stateCodeMap);
 
   const lookupValue = (
@@ -192,15 +204,13 @@ export const Stations = () => {
     const { data, column, oldValue, valueChanged, node } = e;
     let { newValue } = e;
     if (!valueChanged) return;
-    let field = column.colId;
+    const field = column.colId;
+    currTable = [];
+
     switch (field) {
       case 'station_name':
         {
-          if (
-            !newValue ||
-            /^\d+$/.test(newValue) ||
-            newValue.length > 100
-          ) {
+          if (!newValue || /^\d+$/.test(newValue) || newValue.length > 100) {
             setPopupState({
               ...popupState,
               isAlertOpen: true,
@@ -214,6 +224,26 @@ export const Stations = () => {
             return;
           }
           newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
+          tableData.forEach((data: any) => {
+            if (data.station_id !== e.data.station_id) {
+              currTable.push(data);
+            }
+          });
+
+          const existingStation = currTable.find(
+            (station: StationFormData) =>
+              station.station_name.toLowerCase() === newValue.toLowerCase()
+          );
+
+          if (existingStation) {
+            setPopupState({
+              ...popupState,
+              isAlertOpen: true,
+              message: 'Station with this name already exists!',
+            });
+            node.setDataValue(field, oldValue);
+            return;
+          }
         }
         break;
       case 'igst_sale':
@@ -223,11 +253,7 @@ export const Stations = () => {
           }
         }
         break;
-      case 'state_code':
-        {
-          field = 'state_code';
-        }
-        break;
+
       case 'station_pinCode':
         {
           const value = `${newValue}`;
@@ -259,7 +285,7 @@ export const Stations = () => {
       body: { [field]: newValue },
     });
 
-    getStations();
+    queryClient.invalidateQueries({ queryKey: ['get-stations'] });
   };
 
   const onCellClicked = (params: { data: any }) => {
@@ -381,7 +407,7 @@ export const Stations = () => {
 
   return (
     <>
-      <div className='w-full '>
+      <div className='w-full relative'>
         <div className='flex w-full items-center justify-between px-8 py-1'>
           <h1 className='font-bold'>Stations</h1>
           <Button
@@ -416,6 +442,7 @@ export const Stations = () => {
             }
             message={popupState.message}
             isAlert={popupState.isAlertOpen}
+            className='absolute'
           />
         )}
         {open && (
@@ -425,6 +452,7 @@ export const Stations = () => {
             handelFormSubmit={handelFormSubmit}
             isDelete={isDelete.current}
             deleteAcc={deleteAcc}
+            className='absolute'
           />
         )}
       </div>
