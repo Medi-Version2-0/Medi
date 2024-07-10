@@ -1,0 +1,261 @@
+export interface StationFormData {
+  station_id?: string;
+  station_name: string;
+  igst_sale?: string;
+  station_pinCode?: string;
+  station_headQuarter?: string;
+  state_code?: string;
+}
+
+export interface LedgerFormData {
+  party_id?: string;
+  partyName: string;
+  station_name: string;
+  openingBal: string;
+  isPredefinedLedger?: boolean;
+}
+
+export interface AccountGroupFormData {
+  head_code?: string;
+  head_name: string;
+  parent_code: string;
+  group_details: any;
+}
+
+export interface GroupFormData {
+  group_code?: string;
+  group_name: string;
+  parent_code: string | null;
+  type: string;
+  isPredefinedGroup?: boolean;
+}
+
+export interface ItemGroupFormData {
+  group_code?: string;
+  group_name: string;
+  type: string;
+  isPredefinedGroup?: boolean;
+}
+export interface SubGroupFormData {
+  group_code?: string;
+  group_name: string;
+  parent_code?: string;
+  type: string;
+  isPredefinedGroup?: boolean;
+}
+
+export interface CreateStationProps {
+  togglePopup: Function;
+  data: StationFormData;
+  handelFormSubmit: any;
+  isDelete: any;
+  deleteAcc: (station_id: string) => void;
+  className?: string;
+}
+
+export interface CreateSalePurchaseProps {
+  type?: string;
+  togglePopup: Function;
+  data: SalesPurchaseFormData;
+  handelFormSubmit: any;
+  isDelete: any;
+  deleteAcc: (sp_id: string) => void;
+  className?: string;
+}
+
+export interface CreateAccountGroupProps {
+  togglePopup: Function;
+  data: AccountGroupFormData;
+  handelFormSubmit: any;
+  isDelete: any;
+  deleteAcc: (station_id: string) => void;
+}
+export interface FormDataProps {
+  station_name: string;
+  igst_sale: string;
+  state_code: string;
+  station_pinCode: string;
+  station_headQuarter: string;
+}
+
+export interface GroupFormDataProps {
+  group_name: string;
+  type: string;
+}
+export interface ItemGroupFormDataProps {
+  group_name: string;
+  type: string;
+}
+
+export interface BatchForm {
+  id?: number;
+  itemId: number;
+  batchNo: string;
+  expiryDate: string;
+  opBalance: number | null;
+  opFree: number | null;
+  purPrice: number | null;
+  salePrice: number | null;
+  mrp: number | null;
+  locked: string;
+}
+
+export interface CreateItemGroupProps {
+  togglePopup: Function;
+  data: ItemGroupFormData;
+  handelFormSubmit: any;
+  isDelete: any;
+  deleteAcc: (group_code: string) => void;
+  className?: string;
+}
+export interface SubGroupFormDataProps {
+  group_name: string;
+  parent_code: string;
+  type: string;
+}
+export interface CreateGroupProps {
+  togglePopup: Function;
+  data: GroupFormData;
+  handelFormSubmit: any;
+  isDelete: any;
+  deleteAcc: (group_code: string) => void;
+  className?: string;
+}
+
+export interface CreateSubGroupProps {
+  togglePopup: Function;
+  data: SubGroupFormData;
+  handelFormSubmit: any;
+  isDelete: any;
+  deleteAcc: (group_code: string) => void;
+  className?: string;
+}
+
+export interface PopupProps {
+  togglePopup?: Function;
+  heading: string;
+  children: any;
+  className?: string;
+}
+
+export interface Confirm_Alert_PopupProps {
+  isAlert?: boolean;
+  onClose?: () => void;
+  onConfirm?: () => void;
+  message: string;
+  className?: string;
+}
+
+export interface State {
+  state_code: number;
+  state_name: string;
+  union_territory: boolean;
+}
+
+interface Option {
+  value: string | undefined | boolean | number;
+  label: string | undefined;
+}
+
+export interface SalesPurchaseFormData {
+  sp_id?: string;
+  sptype?: string;
+  salesPurchaseType?: string;
+  igst?: Number | null | string;
+  cgst?: Number;
+  sgst?: Number;
+  stper?: Number;
+  surCharge?: Number | string;
+  spNo?: Number;
+  column?: Number;
+  shortName?: string;
+  shortName2?: string;
+}
+
+export interface SalesPurchaseFormProps {
+  sptype?: string;
+  salesPurchaseType?: string;
+  igst?: Number | null | string;
+  cgst?: Number;
+  sgst?: Number;
+  stper?: Number;
+  surCharge?: Number | string;
+  spNo?: Number;
+  column?: Number;
+  shortName?: string;
+  shortName2?: string;
+}
+
+interface SalesPurchaseProps {
+  data?: any;
+  type?: any;
+  formik?: any;
+}
+interface SalesPurchaseTableProps {
+  type?: any;
+}
+interface SpSubSectionProps {
+  type?: any;
+  formik: any;
+}
+export interface StoreFormData {
+  store_code?: string;
+  store_name: string;
+  address1: string;
+  address2: string;
+  address3: string;
+}
+export interface StoreFormDataProps {
+  store_name: string;
+  address1: string;
+  address2: string;
+  address3: string;
+}
+export interface CreateStoreProps {
+  togglePopup: Function;
+  data: StoreFormData;
+  handelFormSubmit: any;
+  isDelete: any;
+  deleteAcc: (store_code: string) => void;
+  className?: string;
+}
+
+export interface CompanyFormData {
+  company_id?: string;
+  companyName: string;
+  stationName: string;
+  openingBal: string;
+  openingBalType: string;
+}
+
+export interface BatchForm {
+  id?: number;
+  itemId: number;
+  batchNo: string;
+  expiryDate: string;
+  opBalance: number | null;
+  opFree: number | null;
+  purPrice: number | null;
+  salePrice: number | null;
+  mrp: number | null;
+  locked: string;
+}
+
+export interface itemFormData {
+  id?: string;
+  name: string;
+  service: string;
+  shortName: string;
+  packing: Number;
+  companyId: string;
+  itemGroupCode: string;
+  saleAccId?: string;
+  purAccId?: string;
+}
+
+export interface AccountGroupFormData {
+  head_code?: string;
+  head_name: string;
+  parent_code: string;
+  group_details: any;
+}
