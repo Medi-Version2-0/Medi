@@ -1,0 +1,521 @@
+import React, { useEffect, useState, useRef } from 'react';
+import { AgGridReact } from 'ag-grid-react';
+import { FaEdit } from 'react-icons/fa';
+import { MdDeleteForever } from 'react-icons/md';
+import { CreateStation } from './CreateStation';
+import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-quartz.css';
+import { StationFormData } from '../../interface/global';
+import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
+import Button from '../../components/common/button/Button';
+import { sendAPIRequest } from '../../helper/api';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useParams } from 'react-router-dom';
+
+const initialValue = {
+  station_id: '',
+  station_name: '',
+  igst_sale: '',
+  state_code: '',
+  station_pinCode: '',
+};
+
+// const initialValue2: {
+//   multiplePriceList: boolean;
+//   printPartyBalance: boolean;
+//   priceListLock: boolean;
+//   purchaseTC: boolean;
+//   eWayBillNo: boolean;
+//   priceListM: boolean;
+// } = {
+//   multiplePriceList: false,
+//   printPartyBalance: false,
+//   priceListLock: false,
+//   purchaseTC: false,
+//   eWayBillNo: false,
+//   priceListM: false,
+// };
+
+export const Stations = () => {
+  const { companyId } = useParams();
+  const [open, setOpen] = useState<boolean>(false);
+  const [formData, setFormData] = useState<StationFormData | any>(initialValue);
+  const [selectedRow, setSelectedRow] = useState<any>(null);
+  const [tableData, setTableData] = useState<StationFormData | any>(null);
+  const queryClient = useQueryClient();
+  const [stateData, setStateData] = useState<any[]>([]);
+  const editing = useRef(false);
+  let currTable: any[] = [];
+
+  const isDelete = useRef(false);
+  // const {getControls, controlRoomSettings ,updateControls} = useControls();
+  // const [cc, setcc] = useState<any>();
+
+  const [popupState, setPopupState] = useState({
+    isModalOpen: false,
+    isAlertOpen: false,
+    message: '',
+  });
+
+  const { data } = useQuery<StationFormData[]>({
+    queryKey: ['get-stations'],
+    queryFn: () => sendAPIRequest<StationFormData[]>('/station'),
+  });
+
+  useEffect(() => {
+    getStates();
+    getStations();
+  }, [data]);
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedRow]);
+
+  const getStates = async () => {
+    const states = await sendAPIRequest<any[]>('/state');
+    setStateData(states);
+  };
+
+  const getStations = async () => {
+    const stations = await sendAPIRequest<any[]>(`/${companyId}/station`);
+    setTableData(stations);
+  };
+
+  const togglePopup = (isOpen: boolean) => {
+    if (!isOpen) {
+      setFormData(initialValue);
+      isDelete.current = false;
+    }
+    setOpen(isOpen);
+  };
+
+  const handleAlertCloseModal = () => {
+    setPopupState({ ...popupState, isAlertOpen: false });
+  };
+
+  const handleClosePopup = () => {
+    setPopupState({ ...popupState, isModalOpen: false });
+  };
+
+  const handleConfirmPopup = async () => {
+    setPopupState({ ...popupState, isModalOpen: false });
+    if (formData.station_name) {
+      formData.station_name =
+        formData.station_name.charAt(0).toUpperCase() +
+        formData.station_name.slice(1);
+    }
+
+    if (formData !== initialValue) {
+      formData.state_code = +formData.state_code;
+      if (formData.station_id) {
+        await sendAPIRequest(`/${companyId}/station/${formData.station_id}`, {
+          method: 'PUT',
+          body: formData,
+        });
+      } else {
+        await sendAPIRequest(`/${companyId}/station`, {
+          method: 'POST',
+          body: formData,
+        });
+      }
+
+      togglePopup(false);
+      queryClient.invalidateQueries({ queryKey: ['get-stations'] });
+    }
+  };
+
+  const handelFormSubmit = (values: StationFormData) => {
+    const mode = values.station_id ? 'update' : 'create';
+    const existingStation = tableData.find((station: StationFormData) => {
+      if (mode === 'create')
+        return (
+          station.station_name.toLowerCase() ===
+          values.station_name.toLowerCase()
+        );
+      return (
+        station.station_name.toLowerCase() ===
+          values.station_name.toLowerCase() &&
+        station.station_id !== values.station_id
+      );
+    });
+    if (existingStation) {
+      setPopupState({
+        ...popupState,
+        isAlertOpen: true,
+        message: 'Station with this name already exists!',
+      });
+      return;
+    }
+
+    if (values !== initialValue) {
+      setPopupState({
+        ...popupState,
+        isModalOpen: true,
+        message: `Are you sure you want to ${mode} this Station?`,
+      });
+      setFormData(values);
+    }
+  };
+
+  const deleteAcc = async (station_id: string) => {
+    isDelete.current = false;
+    togglePopup(false);
+    await sendAPIRequest(`/${companyId}/station/${station_id}`, {
+      method: 'DELETE',
+    });
+    queryClient.invalidateQueries({ queryKey: ['get-stations'] });
+  };
+
+  const handleDelete = (oldData: StationFormData) => {
+    isDelete.current = true;
+    setFormData(oldData);
+    togglePopup(true);
+    setSelectedRow(null);
+  };
+
+  const handleUpdate = (oldData: StationFormData) => {
+    setFormData(oldData);
+    isDelete.current = false;
+    editing.current = true;
+    togglePopup(true);
+    setSelectedRow(null);
+  };
+
+  const typeMapping = {
+    Yes: 'Yes',
+    No: 'No',
+  };
+
+  const stateCodeMap: { [key: number]: string } = {};
+
+  stateData?.forEach((state: any) => {
+    stateCodeMap[state.state_code] = state.state_name;
+  });
+
+  const extractKey = (mappings: {
+    [x: number]: string;
+    Yes?: string;
+    No?: string;
+  }) => {
+    return Object.keys(mappings);
+  };
+  const extractKeys = (mappings: {
+    [x: number]: string;
+    Yes?: string;
+    No?: string;
+  }) => {
+    return Object.keys(mappings).map((key) => Number(key));
+  };
+
+  const types = extractKey(typeMapping);
+  const states = extractKeys(stateCodeMap);
+
+  const lookupValue = (
+    mappings: {
+      [x: string]: any;
+      [x: number]: string;
+      Yes?: string;
+      No?: string;
+    },
+    key: string | number
+  ) => {
+    return mappings[key];
+  };
+
+  const handleCellEditingStopped = async (e: any) => {
+    currTable = [];
+    editing.current = false;
+    const { data, column, oldValue, valueChanged, node } = e;
+    let { newValue } = e;
+    if (!valueChanged) return;
+    const field = column.colId;
+
+    switch (field) {
+      case 'station_name':
+        {
+          if (!newValue || /^\d+$/.test(newValue) || newValue.length > 100) {
+            setPopupState({
+              ...popupState,
+              isAlertOpen: true,
+              message: !newValue
+                ? 'Station Name is required'
+                : /^\d+$/.test(newValue)
+                  ? 'Only Numbers not allowed'
+                  : 'Station name cannot exceed 100 characters',
+            });
+            node.setDataValue(field, oldValue);
+            return;
+          }
+          newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
+          tableData.forEach((data: any) => {
+            if (data.station_id !== e.data.station_id) {
+              currTable.push(data);
+            }
+          });
+
+          const existingStation = currTable.find(
+            (station: StationFormData) =>
+              station.station_name.toLowerCase() === newValue.toLowerCase()
+          );
+
+          if (existingStation) {
+            setPopupState({
+              ...popupState,
+              isAlertOpen: true,
+              message: 'Station with this name already exists!',
+            });
+            node.setDataValue(field, oldValue);
+            return;
+          }
+        }
+        break;
+      case 'igst_sale':
+        {
+          if (!['yes', 'no'].includes(newValue.toLowerCase())) {
+            return node.setDataValue(field, oldValue);
+          }
+        }
+        break;
+      case 'station_pinCode':
+        {
+          const value = `${newValue}`;
+          if (
+            !value ||
+            (!!value && value.length !== 6) ||
+            (!!value && value[0] === '0')
+          ) {
+            setPopupState({
+              ...popupState,
+              isAlertOpen: true,
+              message: !newValue
+                ? 'PIN code is required'
+                : value.length !== 6
+                  ? `Length of PIN code must be exactly 6 digits`
+                  : `PIN code doesn't start from zero`,
+            });
+            node.setDataValue(field, oldValue);
+            return;
+          }
+        }
+        break;
+      default:
+        break;
+    }
+
+    await sendAPIRequest(`/${companyId}/station/${data.station_id}`, {
+      method: 'PUT',
+      body: { [field]: newValue },
+    });
+
+    queryClient.invalidateQueries({ queryKey: ['get-stations'] });
+  };
+
+  const onCellClicked = (params: { data: any }) => {
+    setSelectedRow(selectedRow !== null ? null : params.data);
+  };
+
+  const cellEditingStarted = () => {
+    editing.current = true;
+  };
+
+  const handleKeyDown = (event: KeyboardEvent) => {
+    switch (event.key) {
+      case 'Escape':
+        togglePopup(false);
+        break;
+      case 'n':
+      case 'N':
+        if (event.ctrlKey) {
+          togglePopup(true);
+        }
+        break;
+      case 'd':
+      case 'D':
+        if (event.ctrlKey && selectedRow) {
+          handleDelete(selectedRow);
+        }
+        break;
+      case 'e':
+      case 'E':
+        if (event.ctrlKey && selectedRow) {
+          handleUpdate(selectedRow);
+        }
+        break;
+      default:
+        break;
+    }
+  };
+
+  const colDefs: any[] = [
+    {
+      headerName: 'Station Name',
+      field: 'station_name',
+      flex: 1,
+      filter: true,
+      editable: true,
+      headerClass: 'custom-header',
+      suppressMovable: true,
+    },
+    {
+      headerName: 'IGST Sale',
+      field: 'igst_sale',
+      flex: 1,
+      filter: true,
+      editable: true,
+      cellEditor: 'agSelectCellEditor',
+      cellEditorParams: {
+        values: types,
+      },
+      valueFormatter: (params: { value: string | number }) =>
+        lookupValue(typeMapping, params.value),
+      headerClass: 'custom-header custom_header_class',
+      suppressMovable: true,
+    },
+    {
+      headerName: 'Station State',
+      field: 'state_code',
+      flex: 1,
+      filter: true,
+      editable: true,
+      cellEditor: 'agSelectCellEditor',
+      cellEditorParams: {
+        values: states,
+        valueListMaxHeight: 120,
+        valueListMaxWidth: 192,
+        valueListGap: 8,
+      },
+      valueFormatter: (params: { value: string | number }) =>
+        lookupValue(stateCodeMap, params.value),
+      headerClass: 'custom-header custom_header_class',
+      suppressMovable: true,
+    },
+    {
+      headerName: 'Pin Code',
+      field: 'station_pinCode',
+      flex: 1,
+      filter: true,
+      editable: true,
+      headerClass: 'custom-header custom_header_class',
+      suppressMovable: true,
+    },
+    {
+      headerName: 'Actions',
+      headerClass: 'custom-header-class custom-header',
+      sortable: false,
+      suppressMovable: true,
+      flex: 1,
+      cellStyle: {
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+      },
+      cellRenderer: (params: { data: StationFormData }) => (
+        <div className='table_edit_buttons'>
+          <FaEdit
+            style={{ cursor: 'pointer', fontSize: '1.1rem' }}
+            onClick={() => handleUpdate(params.data)}
+          />
+
+          <MdDeleteForever
+            style={{ cursor: 'pointer', fontSize: '1.2rem' }}
+            onClick={() => {
+              handleDelete(params.data);
+            }}
+          />
+        </div>
+      ),
+    },
+  ];
+
+  // const contexthandle = (values: any) => {
+  //   console.log('button is clicked --> ');
+  //   let {multiplePriceList, printPartyBalance, priceListLock, purchaseTC, eWayBillNo, priceListM} = values;
+  //   multiplePriceList = true;
+  //   printPartyBalance = false;
+  //   priceListLock = true;
+  //   purchaseTC = false;
+  //   eWayBillNo = true;
+  //   priceListM = false;
+
+  // updateControls(
+  //   multiplePriceList,
+  //   printPartyBalance,
+  //   priceListLock,
+  //   purchaseTC,
+  //   eWayBillNo,
+  //   priceListM,
+  // )
+  //   setcc(controlRoomSettings);
+  //   console.log("cc ---> ", cc)
+  //   console.log("button after click")
+  // }
+
+  return (
+    <>
+      <div className='w-full relative'>
+        <div className='flex w-full items-center justify-between px-8 py-1'>
+          <h1 className='font-bold'>Stations</h1>
+          {/* <Button
+            type='highlight'
+            className=''
+            handleOnClick={() => contexthandle(initialValue2)}
+          >
+           context
+          </Button> */}
+          <Button
+            type='highlight'
+            className=''
+            handleOnClick={() => togglePopup(true)}
+          >
+            Add Station
+          </Button>
+        </div>
+        {/* {
+      cc && cc.forEach((element: any) => {
+        <div>element : {element.multiplePriceList}</div>
+      })
+    } */}
+        <div id='account_table' className='ag-theme-quartz'>
+          {
+            <AgGridReact
+              rowData={tableData}
+              columnDefs={colDefs}
+              defaultColDef={{
+                floatingFilter: true,
+              }}
+              onCellClicked={onCellClicked}
+              onCellEditingStarted={cellEditingStarted}
+              onCellEditingStopped={handleCellEditingStopped}
+            />
+          }
+        </div>
+        {(popupState.isModalOpen || popupState.isAlertOpen) && (
+          <Confirm_Alert_Popup
+            onClose={handleClosePopup}
+            onConfirm={
+              popupState.isAlertOpen
+                ? handleAlertCloseModal
+                : handleConfirmPopup
+            }
+            message={popupState.message}
+            isAlert={popupState.isAlertOpen}
+            className='absolute'
+          />
+        )}
+        {open && (
+          <CreateStation
+            togglePopup={togglePopup}
+            data={formData}
+            handelFormSubmit={handelFormSubmit}
+            isDelete={isDelete.current}
+            deleteAcc={deleteAcc}
+            className='absolute'
+          />
+        )}
+      </div>
+    </>
+  );
+};
