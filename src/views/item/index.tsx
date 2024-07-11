@@ -8,9 +8,10 @@ import {
   CompanyFormData,
   itemFormData,
   ItemGroupFormData,
+  View,
 } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
 import { ICellRendererParams } from 'ag-grid-community';
@@ -19,7 +20,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Batch } from '../itembatch';
 
 const Items = () => {
-  const [view, setView] = useState<string>('');
+  const [view, setView] = useState<View>({ type: '', data: {} });
   const { organizationId } = useParams();
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<itemFormData | any>(null);
@@ -33,7 +34,6 @@ const Items = () => {
 
   const editing = useRef(false);
   const id = useRef('');
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
@@ -152,9 +152,6 @@ const Items = () => {
     id.current = oldData.id;
   };
 
-  const handleUpdate = (oldData: any) => {
-    return navigate(`..`, { state: oldData });
-  };
 
   const handleCellEditingStopped = async (e: any) => {
     editing.current = false;
@@ -216,7 +213,7 @@ const Items = () => {
     switch (event.key) {
       case 'n':
       case 'N':
-        if (event.ctrlKey) setView('add');
+        if (event.ctrlKey) setView({type : 'add' , data : {}});
         break;
       case 'd':
       case 'D':
@@ -227,7 +224,7 @@ const Items = () => {
       case 'e':
       case 'E':
         if (event.ctrlKey && selectedRow) {
-          handleUpdate(selectedRow);
+          setView({type : 'add' , data : selectedRow})
         }
         break;
       default:
@@ -347,8 +344,7 @@ const Items = () => {
           <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
             onClick={() => {
-              setView('add');
-              handleUpdate(params.data);
+              setView({type : 'add', data : params.data});
             }}
           />
 
@@ -373,7 +369,7 @@ const Items = () => {
               <Button
                 type='highlight'
                 handleOnClick={() => {
-                  setView('add');
+                  setView({type : 'add' , data : {}})
                 }}
               >
                 Add Item
@@ -411,9 +407,9 @@ const Items = () => {
   };
 
   const renderView = () => {
-    switch (view) {
+    switch (view.type) {
       case 'add':
-        return <CreateItem setView={setView} />;
+        return <CreateItem setView={setView} data={view.data} />;
       default:
         return items();
     }

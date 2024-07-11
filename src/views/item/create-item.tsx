@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useLocation, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { FormikProps, useFormik } from 'formik';
 import Button from '../../components/common/button/Button';
 import { itemFormValidations } from './validation_schema';
@@ -33,10 +33,8 @@ export interface ItemFormValues {
 
 export type ItemFormInfoType = FormikProps<ItemFormValues>;
 
-const CreateItem = ({ setView }: any) => {
+const CreateItem = ({ setView , data }: any) => {
   const { organizationId } = useParams();
-  const location = useLocation();
-  const data = location.state || {};
   const queryClient = useQueryClient();
   const [popupState, setPopupState] = useState({
     isModalOpen: false,

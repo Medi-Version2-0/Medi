@@ -14,7 +14,6 @@ import { SubGroups } from './views/subgroups';
 import { CreateLedger } from './views/ledger/CreateLedger';
 import { Ledger } from './views/ledger';
 import { Headquarters } from './views/headquarters';
-import { Sales_Purchase_Table } from './components/sales_purchase/sales_purchase_table';
 import { Store } from './views/Stores';
 import { Company } from './views/company';
 import { CreateCompany } from './views/company/CreateCompany';
@@ -26,6 +25,7 @@ import { AuthRoute } from './components/AuthRoute';
 import RedirectToCompany from './components/RedirectToCompany';
 import Items from './views/item';
 import { ItemGroups } from './views/itemGroups';
+import { Sales_Table } from './views/sales_purchase';
 
 export const App = () => {
   return (
@@ -86,7 +86,7 @@ const AppRoot = () => {
         path='/sales_purchase_table'
         element={
           <ProtectedRoute
-            element={<Sales_Purchase_Table type="Sales" />}
+            element={<Sales_Table type="Sales" />}
             requiredPermissions={['admin']}
           />
         }

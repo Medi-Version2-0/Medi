@@ -259,3 +259,8 @@ export interface AccountGroupFormData {
   parent_code: string;
   group_details: any;
 }
+
+export interface View  {
+  type : string,
+  data : Record<string , string | number>
+}
