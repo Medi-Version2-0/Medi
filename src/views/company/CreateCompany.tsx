@@ -14,7 +14,7 @@ import titleCase from '../../utilities/titleCase';
 import { sendAPIRequest } from '../../helper/api';
 import { useQueryClient } from '@tanstack/react-query';
 
-export const CreateCompany  = ({ setView }: any) => {
+export const CreateCompany = ({ setView }: any) => {
   const { companyId } = useParams();
   const location = useLocation();
   const data = location.state || {};
@@ -82,8 +82,8 @@ export const CreateCompany  = ({ setView }: any) => {
 
   const fetchAllData = async () => {
     const stations = await sendAPIRequest<any[]>(`/${companyId}/station`);
-    const salesList = await sendAPIRequest<any[]>('/sale');
-    const purchaseList = await sendAPIRequest<any[]>('/purchase');
+    const salesList = await sendAPIRequest<any[]>(`/${companyId}/sale`);
+    const purchaseList = await sendAPIRequest<any[]>(`/${companyId}/purchase`);
     setStationOptions(
       stations.map((station: any) => ({
         value: station.station_id,
@@ -791,7 +791,7 @@ export const CreateCompany  = ({ setView }: any) => {
             </div>
           </div>
         </div>
-        <div className='w-full px-8 py-2'>  
+        <div className='w-full px-8 py-2'>
           <Button
             type='fill'
             padding='px-4 py-2'

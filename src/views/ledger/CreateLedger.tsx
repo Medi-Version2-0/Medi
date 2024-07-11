@@ -44,11 +44,10 @@ export const CreateLedger = ({ setView }: any) => {
 
   const fetchAllData = async () => {
     const groupDataList = await sendAPIRequest<any[]>('/group');
-    const stationList =
-      await sendAPIRequest<{ station_id: number; station_name: string }[]>(
-        '/station'
-      );
-      setStationData(stationList);
+    const stationList = await sendAPIRequest<
+      { station_id: number; station_name: string }[]
+    >(`/${companyId}/station`);
+    setStationData(stationList);
     setGroupOptions(
       groupDataList.map((group) => ({
         value: group.group_code,
@@ -125,7 +124,7 @@ export const CreateLedger = ({ setView }: any) => {
         openingBal: formattedOpeningBal,
         accountCode: values.accountGroup,
         station_id: values.station_id || null,
-        state: matchingStation ? matchingStation.state_code : ''
+        state: matchingStation ? matchingStation.state_code : '',
       };
       delete allData.accountGroup;
       delete allData.stationName;

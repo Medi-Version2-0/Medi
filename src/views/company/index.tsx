@@ -32,11 +32,11 @@ export const Company = () => {
 
   const { data } = useQuery<CompanyFormData[]>({
     queryKey: ['get-companies'],
-    queryFn: () => sendAPIRequest<any[]>(`/${organizationId}/station`),
+    queryFn: () => sendAPIRequest<any[]>(`/${organizationId}/company`),
   });
 
   const fetchStations = async () => {
-    const stations = await sendAPIRequest<any[]>('/station');
+    const stations = await sendAPIRequest<any[]>(`/${organizationId}/station`);
     setStationData(stations);
   };
 
@@ -86,7 +86,6 @@ export const Company = () => {
 
   const types = extractKey(typeMapping);
   const companyStations = extractKeys(ledgerStationsMap);
-  // console.log("companyStations", companyStations)
 
   const lookupValue = (
     mappings: {

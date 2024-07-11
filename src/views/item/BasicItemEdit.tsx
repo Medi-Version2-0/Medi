@@ -119,8 +119,8 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
 
   const fetchAllData = async () => {
     const companies = await sendAPIRequest<any[]>(`/${companyId}/company`);
-    const salesList = await sendAPIRequest<any[]>('/sale');
-    const purchaseList = await sendAPIRequest<any[]>('/purchase');
+    const salesList = await sendAPIRequest<any[]>(`/${companyId}/sale`);
+    const purchaseList = await sendAPIRequest<any[]>(`/${companyId}/purchase`);
     const groups = await sendAPIRequest<ItemGroupFormData[]>('/itemGroup', {
       method: 'GET',
     });
