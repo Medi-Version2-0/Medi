@@ -13,10 +13,10 @@ import { ItemGroups } from '../../views/itemGroups';
 import Items from '../../views/item';
 import { Stations } from '../../views/stations';
 import { Headquarters } from '../../views/headquarters';
-import { Sales_Purchase_Table } from '../sales_purchase/sales_purchase_table';
 import { Store } from '../../views/Stores';
 import { Company } from '../../views/company';
 import { Ledger } from '../../views/ledger';
+import { Sales_Table } from '../../views/sales_purchase';
 
 type SubElementKey = 'master' | 'setup';
 
@@ -143,7 +143,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               onClick={() =>
                 openTab?.(
                   'Sales Account',
-                  <Sales_Purchase_Table type='Sales' />
+                  <Sales_Table type={'Sales'}/>
                 )
               }
             />
@@ -153,7 +153,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               onClick={() =>
                 openTab?.(
                   'Purchase Account',
-                  <Sales_Purchase_Table type='Purchase' />
+                  <Sales_Table type='Purchase' />
                 )
               }
             />
@@ -168,7 +168,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               icon={<FaPlus className='fill-yellow-900' />}
               onClick={() => openTab?.('Company', <Company />)}
               onClickIcon={() =>
-                navigate(`${selectedCompany}/company`, { state: 'Purchase' })
+                navigate(`${selectedCompany}/company`)
               }
             />
             {showSubElements.setup && <></>}
