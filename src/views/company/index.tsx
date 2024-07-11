@@ -15,7 +15,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const Company = () => {
   const [view, setView] = useState<string>('');
-  const { companyId: organizationId } = useParams();
+  const { organizationId } = useParams();
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<CompanyFormData | any>(null);
   const [stationData, setStationData] = useState<any[]>([]);

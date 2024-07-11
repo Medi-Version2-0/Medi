@@ -21,12 +21,12 @@ const initialValue: SalesPurchaseFormData = {
   shortName2: '',
 };
 
-const useSalesData = (type: string, companyId?: string) => {
+const useSalesData = (type: string, organizationId?: string) => {
   const [tableData, setTableData] = useState<SalesPurchaseFormData[]>([]);
 
   const getSalesData = async () => {
     const endpoint =
-      type === 'Sales' ? `/${companyId}/sale` : `/${companyId}/purchase`;
+      type === 'Sales' ? `/${organizationId}/sale` : `/${organizationId}/purchase`;
     const data = await sendAPIRequest<SalesPurchaseFormData[]>(endpoint);
     setTableData(data);
   };
@@ -81,7 +81,7 @@ const useKeyboardEvents = (
 };
 
 export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
-  const { companyId } = useParams();
+  const { organizationId } = useParams();
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<SalesPurchaseFormData>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
@@ -93,7 +93,7 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
   const editing = useRef(false);
   const isDelete = useRef(false);
 
-  const { tableData, getSalesData } = useSalesData(type, companyId);
+  const { tableData, getSalesData } = useSalesData(type, organizationId);
 
   const togglePopup = (isOpen: boolean) => {
     if (!isOpen) {
@@ -126,7 +126,7 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
     }
     if (formData !== initialValue) {
       const endPoint =
-        type === 'Sales' ? `/${companyId}/sale` : `/${companyId}/purchase`;
+        type === 'Sales' ? `/${organizationId}/sale` : `/${organizationId}/purchase`;
       const endpoint = formData.sp_id
         ? `${endPoint}/${formData.sp_id}`
         : `${endPoint}`;
@@ -185,7 +185,7 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
     isDelete.current = false;
     togglePopup(false);
     const endPoint =
-      type === 'Sales' ? `/${companyId}/sale` : `/${companyId}/purchase`;
+      type === 'Sales' ? `/${organizationId}/sale` : `/${organizationId}/purchase`;
     const endpoint = `${endPoint}/${sp_id}`;
     togglePopup(false);
     await sendAPIRequest(endpoint, { method: 'DELETE' });
@@ -246,7 +246,7 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
       data.sgst = newValue / 2;
     }
     const endPoint =
-      type === 'Sales' ? `/${companyId}/sale` : `/${companyId}/purchase`;
+      type === 'Sales' ? `/${organizationId}/sale` : `/${organizationId}/purchase`;
     const endpoint = `${endPoint}/${data.sp_id}`;
     await sendAPIRequest(endpoint, {
       method: 'PUT',

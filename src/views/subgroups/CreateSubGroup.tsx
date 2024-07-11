@@ -14,6 +14,7 @@ import FormikInputField from '../../components/common/FormikInputField';
 import { FaExclamationCircle } from 'react-icons/fa';
 import { Tooltip as ReactTooltip } from 'react-tooltip';
 import { sendAPIRequest } from '../../helper/api';
+import { useParams } from 'react-router-dom';
 
 export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
   togglePopup,
@@ -23,6 +24,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
   deleteAcc,
   className,
 }) => {
+  const { organizationId } = useParams();
   const { group_code } = data;
   const formikRef = useRef<FormikProps<SubGroupFormDataProps>>(null);
   const [parentGrpOptions, setParentGrpOptions] = useState<Option[]>([]);
@@ -36,9 +38,9 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
   }, []);
 
   const getGroups = async () => {
-    const grpList = await sendAPIRequest<any[]>('/group');
+    const groupList = await sendAPIRequest<any[]>(`/${organizationId}/group`);
     setParentGrpOptions(
-      grpList.map((grp: any) => ({
+      groupList.map((grp: any) => ({
         value: grp.group_code,
         label: grp.group_name.toUpperCase(),
       }))

@@ -15,7 +15,7 @@ import { sendAPIRequest } from '../../helper/api';
 import { useQueryClient } from '@tanstack/react-query';
 
 export const CreateCompany = ({ setView }: any) => {
-  const { companyId } = useParams();
+  const { organizationId } = useParams();
   const location = useLocation();
   const data = location.state || {};
   const [stationOptions, setStationOptions] = useState<Option[]>([]);
@@ -66,12 +66,12 @@ export const CreateCompany = ({ setView }: any) => {
       const allData = { ...values };
 
       if (data.company_id) {
-        await sendAPIRequest(`/${companyId}/company/${data.company_id}`, {
+        await sendAPIRequest(`/${organizationId}/company/${data.company_id}`, {
           method: 'PUT',
           body: allData,
         });
       } else {
-        await sendAPIRequest(`/${companyId}/company`, {
+        await sendAPIRequest(`/${organizationId}/company`, {
           method: 'POST',
           body: allData,
         });
@@ -81,9 +81,9 @@ export const CreateCompany = ({ setView }: any) => {
   });
 
   const fetchAllData = async () => {
-    const stations = await sendAPIRequest<any[]>(`/${companyId}/station`);
-    const salesList = await sendAPIRequest<any[]>(`/${companyId}/sale`);
-    const purchaseList = await sendAPIRequest<any[]>(`/${companyId}/purchase`);
+    const stations = await sendAPIRequest<any[]>(`/${organizationId}/station`);
+    const salesList = await sendAPIRequest<any[]>(`/${organizationId}/sale`);
+    const purchaseList = await sendAPIRequest<any[]>(`/${organizationId}/purchase`);
     setStationOptions(
       stations.map((station: any) => ({
         value: station.station_id,

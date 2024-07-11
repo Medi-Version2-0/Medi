@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import { FormikProps, useFormik } from 'formik';
 import Button from '../../components/common/button/Button';
 import { itemFormValidations } from './validation_schema';
@@ -34,6 +34,7 @@ export interface ItemFormValues {
 export type ItemFormInfoType = FormikProps<ItemFormValues>;
 
 const CreateItem = ({ setView }: any) => {
+  const { organizationId } = useParams();
   const location = useLocation();
   const data = location.state || {};
   const queryClient = useQueryClient();
@@ -69,12 +70,15 @@ const CreateItem = ({ setView }: any) => {
     onSubmit: async (values) => {
       try {
         if (data.id) {
-          await sendAPIRequest(`/item/${data.id}`, {
+          await sendAPIRequest(`/${organizationId}/item/${data.id}`, {
             method: 'PUT',
             body: values,
           });
         } else {
-          await sendAPIRequest('/item', { method: 'POST', body: values });
+          await sendAPIRequest(`/${organizationId}/item`, {
+            method: 'POST',
+            body: values,
+          });
         }
         await queryClient.invalidateQueries({ queryKey: ['get-items'] });
 

@@ -5,6 +5,7 @@ import { CreateAccountGroupProps, FormDataProps } from '../../interface/global';
 import { Popup } from '../popup/Popup';
 import '../stations/stations.css';
 import { sendAPIRequest } from '../../helper/api';
+import { useParams } from 'react-router-dom';
 
 export const CreateGroup: React.FC<CreateAccountGroupProps> = ({
   togglePopup,
@@ -13,6 +14,7 @@ export const CreateGroup: React.FC<CreateAccountGroupProps> = ({
   isDelete,
   deleteAcc,
 }) => {
+  const { organizationId } = useParams();
   const { head_code } = data;
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -24,7 +26,7 @@ export const CreateGroup: React.FC<CreateAccountGroupProps> = ({
   );
   const [groupData, setGroupData] = useState([]);
   const getGroups = async () => {
-    setGroupData(await sendAPIRequest('/group/sub'));
+    setGroupData(await sendAPIRequest(`/${organizationId}/group/sub`));
   };
 
   useEffect(() => {
@@ -157,7 +159,7 @@ export const CreateGroup: React.FC<CreateAccountGroupProps> = ({
               <ErrorMessage
                 name='head_name'
                 component='div'
-                className="text-red-600 font-xs ml-[1px]  "
+                className='text-red-600 font-xs ml-[1px]  '
               />
             </div>
 
@@ -201,7 +203,7 @@ export const CreateGroup: React.FC<CreateAccountGroupProps> = ({
               <ErrorMessage
                 name='parent_code'
                 component='div'
-                className="text-red-600 font-xs ml-[1px]  "
+                className='text-red-600 font-xs ml-[1px]  '
               />
             </div>
 

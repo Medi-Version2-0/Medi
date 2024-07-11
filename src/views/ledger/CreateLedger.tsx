@@ -27,7 +27,7 @@ const initialState = {
 };
 
 export const CreateLedger = ({ setView }: any) => {
-  const { companyId } = useParams();
+  const { organizationId } = useParams();
   const [stationData, setStationData] = useState<any[]>([]);
   const [showActiveElement, setShowActiveElement] = useState(initialState);
   const [groupOptions, setGroupOptions] = useState<Option[]>([]);
@@ -43,10 +43,10 @@ export const CreateLedger = ({ setView }: any) => {
   const prevClass = useRef('');
 
   const fetchAllData = async () => {
-    const groupDataList = await sendAPIRequest<any[]>('/group');
+    const groupDataList = await sendAPIRequest<any[]>(`/${organizationId}/group`);
     const stationList = await sendAPIRequest<
       { station_id: number; station_name: string }[]
-    >(`/${companyId}/station`);
+    >(`/${organizationId}/station`);
     setStationData(stationList);
     setGroupOptions(
       groupDataList.map((group) => ({
@@ -130,8 +130,8 @@ export const CreateLedger = ({ setView }: any) => {
       delete allData.stationName;
 
       const apiPath = data?.party_id
-        ? `/${companyId}/ledger/${data?.party_id}`
-        : `/${companyId}/ledger`;
+        ? `/${organizationId}/ledger/${data?.party_id}`
+        : `/${organizationId}/ledger`;
 
       const method = data?.party_id ? 'PUT' : 'POST';
 

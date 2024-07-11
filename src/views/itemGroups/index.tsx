@@ -11,6 +11,7 @@ import { CreateItemGroup } from './createItemGroup';
 import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useParams } from 'react-router-dom';
 
 const initialValue = {
   group_code: '',
@@ -20,12 +21,12 @@ const initialValue = {
 };
 
 export const ItemGroups = () => {
+  const { organizationId } = useParams();
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<ItemGroupFormData>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<ItemGroupFormData | any>(null);
   const queryClient = useQueryClient();
-  //   const [currTableData, setCurrTableData] = useState<ItemGroupFormData | any>(null);
   const editing = useRef(false);
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
@@ -35,7 +36,7 @@ export const ItemGroups = () => {
 
   const { data } = useQuery<{ data: ItemGroupFormData }>({
     queryKey: ['get-itemGroups'],
-    queryFn: () => sendAPIRequest<{ data: ItemGroupFormData }>('/itemGroup'),
+    queryFn: () => sendAPIRequest<{ data: ItemGroupFormData }>(`/${organizationId}/itemGroup`),
   });
 
   const typeMapping = {
@@ -73,12 +74,12 @@ export const ItemGroups = () => {
     }
     if (formData !== initialValue) {
       if (formData.group_code) {
-        await sendAPIRequest(`/itemGroup/${formData.group_code}`, {
+        await sendAPIRequest(`/${organizationId}/itemGroup/${formData.group_code}`, {
           method: 'PUT',
           body: formData,
         });
       } else {
-        await sendAPIRequest('/itemGroup', {
+        await sendAPIRequest(`/${organizationId}/itemGroup`, {
           method: 'POST',
           body: formData,
         });
@@ -106,7 +107,7 @@ export const ItemGroups = () => {
     togglePopup(false);
     isDelete.current = false;
 
-    await sendAPIRequest(`/itemGroup/${group_code}`, { method: 'DELETE' });
+    await sendAPIRequest(`/${organizationId}/itemGroup/${group_code}`, { method: 'DELETE' });
     queryClient.invalidateQueries({ queryKey: ['get-itemGroups'] });
   };
 
@@ -202,7 +203,7 @@ export const ItemGroups = () => {
       default:
         break;
     }
-    await sendAPIRequest(`/itemGroup/${data.group_code}`, {
+    await sendAPIRequest(`/${organizationId}/itemGroup/${data.group_code}`, {
       method: 'PUT',
       body: { [field]: newValue },
     });
