@@ -4,9 +4,9 @@ import { FaEdit } from 'react-icons/fa';
 import { MdDeleteForever } from 'react-icons/md';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
-import { CompanyFormData } from '../../interface/global';
+import { CompanyFormData, View } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { ValueFormatterParams } from 'ag-grid-community';
 import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
@@ -14,14 +14,13 @@ import { CreateCompany } from './CreateCompany';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const Company = () => {
-  const [view, setView] = useState<string>('');
+  const [view, setView] = useState<View>({ type: '', data: {} });
   const { organizationId } = useParams();
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<CompanyFormData | any>(null);
   const [stationData, setStationData] = useState<any[]>([]);
   const editing = useRef(false);
   const companyId = useRef('');
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   let currTable: any[] = [];
   const [popupState, setPopupState] = useState({
@@ -129,10 +128,6 @@ export const Company = () => {
     companyId.current = oldData.company_id;
   };
 
-  const handleUpdate = (oldData: any) => {
-    return navigate(`..`, { state: oldData, replace: true });
-  };
-
   const handleCellEditingStopped = async (e: any) => {
     currTable = [];
     editing.current = false;
@@ -210,7 +205,7 @@ export const Company = () => {
       case 'n':
       case 'N':
         if (event.ctrlKey) {
-          return setView('add');
+          return setView({type : 'add' , data : {}});
         }
         break;
       case 'd':
@@ -222,7 +217,7 @@ export const Company = () => {
       case 'e':
       case 'E':
         if (event.ctrlKey && selectedRow) {
-          handleUpdate(selectedRow);
+          setView({type : 'add' , data : selectedRow})
         }
         break;
       default:
@@ -302,8 +297,7 @@ export const Company = () => {
           <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
             onClick={() => {
-              setView('add');
-              handleUpdate(params.data);
+              setView({type : 'add' , data : params.data});
             }}
           />
           <MdDeleteForever
@@ -322,7 +316,7 @@ export const Company = () => {
           <Button
             type='highlight'
             handleOnClick={() => {
-              setView('add');
+              setView({type : 'add' , data : {}});
             }}
           >
             Add Company
@@ -359,9 +353,9 @@ export const Company = () => {
   };
 
   const renderView = () => {
-    switch (view) {
+    switch (view.type) {
       case 'add':
-        return <CreateCompany setView={setView} />;
+        return <CreateCompany setView={setView} data={view.data} />;
       default:
         return company();
     }

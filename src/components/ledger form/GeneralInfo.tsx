@@ -10,16 +10,17 @@ interface GeneralInfoProps {
   onValueChange?: any;
   formik?: any;
   selectedGroup: string;
+  groupOptions : Option[];
 }
 
 export const GeneralInfo = ({
   onValueChange,
   formik,
   selectedGroup,
+  groupOptions,
 }: GeneralInfoProps) => {
   const { organizationId } = useParams();
   const [stationData, setStationData] = useState<any[]>([]);
-  const [groupOptions, setGroupOptions] = useState<Option[]>([]);
   const [stationOptions, setStationOptions] = useState<Option[]>([]);
   const isSUNDRY =
     selectedGroup.toUpperCase() === 'SUNDRY CREDITORS' ||
@@ -31,7 +32,6 @@ export const GeneralInfo = ({
       { station_id: number; station_name: string }[]
     >(`/${organizationId}/station`);
 
-    const groups = await sendAPIRequest<any[]>(`/${organizationId}/group`);
 
     setStationData(stationList);
 
@@ -42,12 +42,6 @@ export const GeneralInfo = ({
       }))
     );
 
-    setGroupOptions(
-      groups.map((group: any) => ({
-        value: group.group_code,
-        label: titleCase(group.group_name),
-      }))
-    );
   };
 
   useEffect(() => {

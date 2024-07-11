@@ -1,6 +1,4 @@
 import React from 'react';
-// import { useNavigate } from 'react-router-dom';
-// import { useUser } from '../../UserContext';
 
 interface MenuItemProps {
   id?: string;

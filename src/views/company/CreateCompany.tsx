@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useLocation, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { FormikProps, useFormik } from 'formik';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import Button from '../../components/common/button/Button';
@@ -14,10 +14,8 @@ import titleCase from '../../utilities/titleCase';
 import { sendAPIRequest } from '../../helper/api';
 import { useQueryClient } from '@tanstack/react-query';
 
-export const CreateCompany = ({ setView }: any) => {
+export const CreateCompany = ({ setView , data }: any) => {
   const { organizationId } = useParams();
-  const location = useLocation();
-  const data = location.state || {};
   const [stationOptions, setStationOptions] = useState<Option[]>([]);
   const [salesOptions, setSalesOptions] = useState<Option[]>([]);
   const [purchaseOptions, setPurchaseOptions] = useState<Option[]>([]);
@@ -113,7 +111,7 @@ export const CreateCompany = ({ setView }: any) => {
 
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
-    setView('');
+    setView({type : '' , data : {}});
   };
 
   const handleClosePopup = () => {
@@ -149,7 +147,7 @@ export const CreateCompany = ({ setView }: any) => {
           type='highlight'
           id='company_button'
           handleOnClick={() => {
-            setView('');
+            setView({type : '' , data : {}});
           }}
         >
           Back

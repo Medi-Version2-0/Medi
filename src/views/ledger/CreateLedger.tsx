@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useFormik } from 'formik';
 import { GeneralInfo } from '../../components/ledger form/GeneralInfo';
 import { BalanceDetails } from '../../components/ledger form/BalanceDetails';
@@ -26,7 +26,7 @@ const initialState = {
   btn_4: false,
 };
 
-export const CreateLedger = ({ setView }: any) => {
+export const CreateLedger = ({ setView , data }: any) => {
   const { organizationId } = useParams();
   const [stationData, setStationData] = useState<any[]>([]);
   const [showActiveElement, setShowActiveElement] = useState(initialState);
@@ -38,7 +38,6 @@ export const CreateLedger = ({ setView }: any) => {
     isAlertOpen: false,
     message: '',
   });
-  const { state: data = {} } = useLocation();
 
   const prevClass = useRef('');
 
@@ -140,6 +139,8 @@ export const CreateLedger = ({ setView }: any) => {
     },
   });
 
+  console.log(ledgerFormInfo.errors)
+
   const group = useMemo(
     () =>
       groupOptions.find((e) => ledgerFormInfo?.values?.accountGroup === e.value)
@@ -186,7 +187,7 @@ export const CreateLedger = ({ setView }: any) => {
 
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
-    setView('');
+    setView({type : '' , data : {}});
   };
 
   useEffect(() => {
@@ -206,7 +207,7 @@ export const CreateLedger = ({ setView }: any) => {
         <Button
           type='highlight'
           id='ledger_button'
-          handleOnClick={() => setView('')}
+          handleOnClick={() => setView({type  : '' , data : {}})}
         >
           Back
         </Button>
@@ -220,10 +221,11 @@ export const CreateLedger = ({ setView }: any) => {
             onValueChange={handleValueChange}
             formik={ledgerFormInfo}
             selectedGroup={group}
+            groupOptions={groupOptions}
           />
           <div className='flex flex-col gap-6 w-[40%]'>
-            <BalanceDetails selectedGroupName={group} formik={ledgerFormInfo} />
-            <ContactNumbers selectedGroupName={group} formik={ledgerFormInfo} />
+            <BalanceDetails selectedGroupName={group} formik={ledgerFormInfo}/>
+            <ContactNumbers selectedGroupName={group} formik={ledgerFormInfo}/>
           </div>
         </div>
         {isSUNDRY && (
