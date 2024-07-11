@@ -59,7 +59,7 @@ export const Stations = () => {
 
   const { data } = useQuery<StationFormData[]>({
     queryKey: ['get-stations'],
-    queryFn: () => sendAPIRequest<StationFormData[]>('/station'),
+    queryFn: () => sendAPIRequest<StationFormData[]>(`/${companyId}/station`),
   });
 
   useEffect(() => {
