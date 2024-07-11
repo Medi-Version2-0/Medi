@@ -69,10 +69,10 @@ const Items = () => {
   };
 
   const getSales = async () => {
-    setSalesData(await sendAPIRequest<any[]>('/sale'));
+    setSalesData(await sendAPIRequest<any[]>(`/${companyId}/sale`));
   };
   const getPurchases = async () => {
-    setPurchaseData(await sendAPIRequest<any[]>('/purchase'));
+    setPurchaseData(await sendAPIRequest<any[]>(`/${companyId}/purchase`));
   };
 
   useEffect(() => {

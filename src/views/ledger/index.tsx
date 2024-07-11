@@ -13,6 +13,7 @@ import { IoSettingsOutline } from 'react-icons/io5';
 import * as Yup from 'yup';
 import { sendAPIRequest } from '../../helper/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { CreateLedger } from './CreateLedger';
 
 const ledgerValidationSchema = Yup.object().shape({
   partyName: Yup.string()
@@ -41,7 +42,6 @@ export const Ledger = () => {
   const [stationData, setStationData] = useState<any[]>([]);
   const { companyId } = useParams();
   const [tableData, setTableData] = useState<LedgerFormData[]>([]);
-  const [open, setOpen] = useState<boolean>(false);
   const editing = useRef(false);
   const partyId = useRef('');
   const navigate = useNavigate();
@@ -63,13 +63,13 @@ export const Ledger = () => {
     setTableData(data);
   };
 
-  const togglePopup = (isOpen: boolean) => {
-    if (!isOpen) {
-      // setFormData(initialValue);
-      // isDelete.current = false;
-    }
-    setOpen(isOpen);
-  };
+  // const togglePopup = (isOpen: boolean) => {
+  //   if (!isOpen) {
+  //     // setFormData(initialValue);
+  //     // isDelete.current = false;
+  //   }
+  //   setOpen(isOpen);
+  // };
 
   useEffect(() => {
     fetchLedgerData();
@@ -121,7 +121,7 @@ export const Ledger = () => {
     fetchStations();
   }, []);
   const fetchStations = async () => {
-    const stations = await sendAPIRequest<any[]>('/station');
+    const stations = await sendAPIRequest<any[]>(`/${companyId}/station`);
     setStationData(stations);
   };
 
@@ -326,40 +326,37 @@ export const Ledger = () => {
     },
   ];
 
-  return (
-    <div className='w-full'>
-      <div className='flex w-full items-center justify-between px-8 py-1'>
-        <h1 className='font-bold'>Ledger Master</h1>
-        <div className='flex gap-5'>
-          <Button
-            type='highlight'
-            handleOnClick={() => {
-              // setIsPdf(true);
-              togglePopup(true);
-              console.log('setting buttons is clicked ---> ');
-            }}
-          >
-            <IoSettingsOutline />
-          </Button>
-          <Button
-            type='highlight'
-            handleOnClick={() => setView('add')}
-          >
-            Add Ledger
-          </Button>
+  const ledger = () => {
+    return (
+      <>
+        <div className='flex w-full items-center justify-between px-8 py-1'>
+          <h1 className='font-bold'>Ledger Master</h1>
+          <div className='flex gap-5'>
+            <Button
+              type='highlight'
+              handleOnClick={() => {
+                // setIsPdf(true);
+                // togglePopup(true);
+              }}
+            >
+              <IoSettingsOutline />
+            </Button>
+            <Button type='highlight' handleOnClick={() => setView('add')}>
+              Add Ledger
+            </Button>
+          </div>
         </div>
-      </div>
-      <div id='account_table' className='ag-theme-quartz'>
-        <AgGridReact
-          rowData={tableData}
-          columnDefs={colDefs}
-          defaultColDef={{ floatingFilter: true }}
-          onCellClicked={onCellClicked}
-          onCellEditingStarted={cellEditingStarted}
-          onCellEditingStopped={handleCellEditingStopped}
-        />
-      </div>
-      {/* {open && (
+        <div id='account_table' className='ag-theme-quartz'>
+          <AgGridReact
+            rowData={tableData}
+            columnDefs={colDefs}
+            defaultColDef={{ floatingFilter: true }}
+            onCellClicked={onCellClicked}
+            onCellEditingStarted={cellEditingStarted}
+            onCellEditingStopped={handleCellEditingStopped}
+          />
+        </div>
+        {/* {open && (
           <LedgerSetting
             togglePopup={togglePopup}
             data={formData}
@@ -368,16 +365,42 @@ export const Ledger = () => {
             deleteAcc={deleteAcc}
           />
         )} */}
-      {(popupState.isModalOpen || popupState.isAlertOpen) && (
-        <Confirm_Alert_Popup
-          onClose={handleClosePopup}
-          onConfirm={
-            popupState.isAlertOpen ? handleAlertCloseModal : handleConfirmPopup
-          }
-          message={popupState.message}
-          isAlert={popupState.isAlertOpen}
-        />
-      )}
-    </div>
-  );
+        {(popupState.isModalOpen || popupState.isAlertOpen) && (
+          <Confirm_Alert_Popup
+            onClose={handleClosePopup}
+            onConfirm={
+              popupState.isAlertOpen
+                ? handleAlertCloseModal
+                : handleConfirmPopup
+            }
+            message={popupState.message}
+            isAlert={popupState.isAlertOpen}
+          />
+        )}
+      </>
+    );
+  };
+
+  const renderView = () => {
+    switch (view) {
+      case 'add':
+        return <CreateLedger setView={setView} />;
+      default:
+        return ledger();
+    }
+  };
+
+  return <div className='w-full'>{renderView()}</div>;
 };
+
+
+
+
+
+
+
+
+
+
+
+
