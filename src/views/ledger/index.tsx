@@ -40,7 +40,7 @@ export const Ledger = () => {
   const [view, setView] = useState<string>('');
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [stationData, setStationData] = useState<any[]>([]);
-  const { companyId } = useParams();
+  const { organizationId } = useParams();
   const [tableData, setTableData] = useState<LedgerFormData[]>([]);
   const editing = useRef(false);
   const partyId = useRef('');
@@ -54,7 +54,7 @@ export const Ledger = () => {
 
   const { data } = useQuery<LedgerFormData[]>({
     queryKey: ['get-ledger'],
-    queryFn: () => sendAPIRequest<LedgerFormData[]>(`/${companyId}/station`),
+    queryFn: () => sendAPIRequest<LedgerFormData[]>(`/${organizationId}/ledger`),
     initialData: [],
   });
 
@@ -121,7 +121,7 @@ export const Ledger = () => {
     fetchStations();
   }, []);
   const fetchStations = async () => {
-    const stations = await sendAPIRequest<any[]>(`/${companyId}/station`);
+    const stations = await sendAPIRequest<any[]>(`/${organizationId}/station`);
     setStationData(stations);
   };
 
@@ -161,7 +161,7 @@ export const Ledger = () => {
   };
   const handleConfirmPopup = async () => {
     setPopupState({ ...popupState, isModalOpen: false });
-    await sendAPIRequest(`/${companyId}/ledger/${partyId.current}`, {
+    await sendAPIRequest(`/${organizationId}/ledger/${partyId.current}`, {
       method: 'DELETE',
     });
     queryClient.invalidateQueries({ queryKey: ['get-ledger'] });
@@ -205,7 +205,7 @@ export const Ledger = () => {
       if (field === 'partyName')
         newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
       node.setDataValue(field, newValue);
-      await sendAPIRequest(`/${companyId}/ledger/${data.party_id}`, {
+      await sendAPIRequest(`/${organizationId}/ledger/${data.party_id}`, {
         method: 'PUT',
         body: { [field]: newValue },
       });

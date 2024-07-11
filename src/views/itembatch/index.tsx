@@ -9,6 +9,7 @@ import { ColDef } from 'ag-grid-community';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { sendAPIRequest } from '../../helper/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useParams } from 'react-router-dom';
 
 const expiryFormatRegex = /^(0[1-9]|1[0-2])\/\d{4}$/;
 
@@ -40,7 +41,7 @@ export const Batch = ({
     locked: '',
   };
   const queryClient = useQueryClient();
-
+  const { organizationId } = useParams();
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [inputRow, setInputRow] = useState<BatchForm>(pinnedRow);
   const [tableData, setTableData] = useState<BatchForm | any>(null);
@@ -55,7 +56,8 @@ export const Batch = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const { data } = useQuery<{ data: BatchForm }>({
     queryKey: ['get-itemBatches'],
-    queryFn: () => sendAPIRequest<{ data: BatchForm }>(`/item/${id}/batch`),
+    queryFn: () =>
+      sendAPIRequest<{ data: BatchForm }>(`/${organizationId}/item/${id}/batch`),
   });
 
   const getBatch = async () => {
@@ -101,7 +103,7 @@ export const Batch = ({
       char.toUpperCase()
     );
     batch.locked = batch.locked.toUpperCase();
-    await sendAPIRequest(`/item/${id}/batch`, {
+    await sendAPIRequest(`/${organizationId}/item/${id}/batch`, {
       method: 'POST',
       body: batch,
     });
@@ -318,7 +320,7 @@ export const Batch = ({
           default:
             break;
         }
-        await sendAPIRequest(`/item/${id}/batch/${batchId}`, {
+        await sendAPIRequest(`/${organizationId}/item/${id}/batch/${batchId}`, {
           method: 'PUT',
           body: { ...data, [field]: newValue },
         });
@@ -509,7 +511,10 @@ export const Batch = ({
       <div className='w-full'>
         <div className='flex w-full items-center justify-between px-8 py-1'>
           <h1 className='font-bold'>Batches</h1>
-          <Button type='highlight' handleOnClick={() => params.setShowBatch(null)}>
+          <Button
+            type='highlight'
+            handleOnClick={() => params.setShowBatch(null)}
+          >
             Back
           </Button>
         </div>

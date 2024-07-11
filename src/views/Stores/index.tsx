@@ -20,7 +20,7 @@ const initialValue = {
 };
 
 export const Store = () => {
-  const { companyId } = useParams();
+  const { organizationId } = useParams();
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<StoreFormData | any>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
@@ -51,7 +51,7 @@ export const Store = () => {
   }, [selectedRow]);
 
   const getStores = async () => {
-    const stores = await sendAPIRequest(`/${companyId}/store`);
+    const stores = await sendAPIRequest(`/${organizationId}/store`);
     setTableData(stores);
   };
 
@@ -80,12 +80,12 @@ export const Store = () => {
     }
     if (formData !== initialValue) {
       if (formData.store_code) {
-        await sendAPIRequest(`/${companyId}/store/${formData.store_code}`, {
+        await sendAPIRequest(`/${organizationId}/store/${formData.store_code}`, {
           method: 'PUT',
           body: formData,
         });
       } else {
-        await sendAPIRequest(`/${companyId}/store`, {
+        await sendAPIRequest(`/${organizationId}/store`, {
           method: 'POST',
           body: formData,
         });
@@ -135,7 +135,7 @@ export const Store = () => {
   const deleteAcc = async (store_code: string) => {
     isDelete.current = false;
     togglePopup(false);
-    await sendAPIRequest(`/${companyId}/store/${store_code}`, { method: 'DELETE' });
+    await sendAPIRequest(`/${organizationId}/store/${store_code}`, { method: 'DELETE' });
     getStores();
   };
 
@@ -199,7 +199,7 @@ export const Store = () => {
       default:
         break;
     }
-    await sendAPIRequest(`/${companyId}/store/${data.store_code}`, {
+    await sendAPIRequest(`/${organizationId}/store/${data.store_code}`, {
       method: 'PUT',
       body: { [field]: newValue },
     });

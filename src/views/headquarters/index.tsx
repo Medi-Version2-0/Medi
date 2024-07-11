@@ -19,7 +19,7 @@ const initialValue: StationFormData = {
 };
 
 export const Headquarters = () => {
-  const { companyId } = useParams();
+  const { organizationId } = useParams();
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState<StationFormData>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
@@ -35,7 +35,7 @@ export const Headquarters = () => {
   });
 
   const getStations = useCallback(async () => {
-    const stations = await sendAPIRequest<any[]>(`/${companyId}/station`);
+    const stations = await sendAPIRequest<any[]>(`/${organizationId}/station`);
     setAllStations(stations);
   }, []);
   const handleDelete = (oldData: StationFormData) => {
@@ -54,7 +54,7 @@ export const Headquarters = () => {
   };
   const getHeadquarters = useCallback(async () => {
     const headQuarter = await sendAPIRequest<StationFormData[]>(
-      `/${companyId}/station/headQuarter`
+      `/${organizationId}/station/headQuarter`
     );
     setTableData(headQuarter);
   }, []);
@@ -140,14 +140,14 @@ export const Headquarters = () => {
       });
       if (mode === false) {
         await sendAPIRequest(
-          `/${companyId}/station/headQuarter/${formData.station_id}/${id}`,
+          `/${organizationId}/station/headQuarter/${formData.station_id}/${id}`,
           {
             method: 'PUT',
             body: formData,
           }
         );
       } else {
-        await sendAPIRequest(`/${companyId}/station/headQuarter`, {
+        await sendAPIRequest(`/${organizationId}/station/headQuarter`, {
           method: 'POST',
           body: formData,
         });
@@ -184,7 +184,7 @@ export const Headquarters = () => {
   const deleteAcc = async (station_id: string) => {
     isDelete.current = false;
     togglePopup(false);
-    await sendAPIRequest(`/${companyId}/station/headQuarter/${station_id}`, {
+    await sendAPIRequest(`/${organizationId}/station/headQuarter/${station_id}`, {
       method: 'DELETE',
     });
     getHeadquarters();
@@ -259,7 +259,7 @@ export const Headquarters = () => {
     const field = column.colId;
     const newValue = e.newValue;
     await sendAPIRequest(
-      `/${companyId}/station/headQuarter/${data.station_id}`,
+      `/${organizationId}/station/headQuarter/${data.station_id}`,
       {
         method: 'PUT',
         body: { [field]: +newValue },

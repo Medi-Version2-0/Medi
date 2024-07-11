@@ -17,7 +17,7 @@ export const GeneralInfo = ({
   formik,
   selectedGroup,
 }: GeneralInfoProps) => {
-  const { companyId } = useParams();
+  const { organizationId } = useParams();
   const [stationData, setStationData] = useState<any[]>([]);
   const [groupOptions, setGroupOptions] = useState<Option[]>([]);
   const [stationOptions, setStationOptions] = useState<Option[]>([]);
@@ -27,11 +27,11 @@ export const GeneralInfo = ({
   const [focused, setFocused] = useState('');
 
   const fetchAllData = async () => {
-    const stationList =
-      await sendAPIRequest<{ station_id: number; station_name: string }[]>(
-        `/${companyId}/station`
-      );
-    const groupDataList = await sendAPIRequest<any[]>('/group');
+    const stationList = await sendAPIRequest<
+      { station_id: number; station_name: string }[]
+    >(`/${organizationId}/station`);
+
+    const groups = await sendAPIRequest<any[]>(`/${organizationId}/group`);
 
     setStationData(stationList);
 
@@ -43,7 +43,7 @@ export const GeneralInfo = ({
     );
 
     setGroupOptions(
-      groupDataList.map((group: any) => ({
+      groups.map((group: any) => ({
         value: group.group_code,
         label: titleCase(group.group_name),
       }))

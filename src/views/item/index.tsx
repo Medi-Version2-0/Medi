@@ -20,7 +20,7 @@ import { Batch } from '../itembatch';
 
 const Items = () => {
   const [view, setView] = useState<string>('');
-  const { companyId } = useParams();
+  const { organizationId } = useParams();
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<itemFormData | any>(null);
   const [companyData, setCompanyData] = useState<CompanyFormData | any>(null);
@@ -43,7 +43,7 @@ const Items = () => {
 
   const { data } = useQuery<{ data: itemFormData }>({
     queryKey: ['get-items'],
-    queryFn: () => sendAPIRequest<{ data: itemFormData }>('/item'),
+    queryFn: () => sendAPIRequest<{ data: itemFormData }>(`/${organizationId}/item`),
   });
 
   const getItemData = async () => {
@@ -52,7 +52,7 @@ const Items = () => {
 
   const getCompany = async () => {
     const companyData = await sendAPIRequest<{ data: CompanyFormData }>(
-      `/${companyId}/company`,
+      `/${organizationId}/company`,
       {
         method: 'GET',
       }
@@ -62,17 +62,17 @@ const Items = () => {
 
   const getGroups = async () => {
     const itemGroup = await sendAPIRequest<{ data: ItemGroupFormData }>(
-      '/itemGroup',
+      `/${organizationId}/itemGroup`,
       { method: 'GET' }
     );
     setItemGroupData(itemGroup);
   };
 
   const getSales = async () => {
-    setSalesData(await sendAPIRequest<any[]>(`/${companyId}/sale`));
+    setSalesData(await sendAPIRequest<any[]>(`/${organizationId}/sale`));
   };
   const getPurchases = async () => {
-    setPurchaseData(await sendAPIRequest<any[]>(`/${companyId}/purchase`));
+    setPurchaseData(await sendAPIRequest<any[]>(`/${organizationId}/purchase`));
   };
 
   useEffect(() => {
@@ -139,7 +139,7 @@ const Items = () => {
 
   const handleConfirmPopup = async () => {
     setPopupState({ ...popupState, isModalOpen: false });
-    await sendAPIRequest(`/item/${id.current}`, { method: 'DELETE' });
+    await sendAPIRequest(`/${organizationId}/item/${id.current}`, { method: 'DELETE' });
     queryClient.invalidateQueries({ queryKey: ['get-items'] });
   };
 
@@ -197,7 +197,7 @@ const Items = () => {
         break;
     }
 
-    await sendAPIRequest(`/item/${data.id}`, {
+    await sendAPIRequest(`/${organizationId}/item/${data.id}`, {
       method: 'PUT',
       body: { [field]: newValue },
     });

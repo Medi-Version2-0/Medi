@@ -14,14 +14,14 @@ import { sendAPIRequest } from '../../helper/api';
 import { useParams } from 'react-router-dom';
 
 const useStations = () => {
-  const { companyId } = useParams();
+  const { organizationId } = useParams();
   const [stations, setStations] = useState<StationFormData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchStations = useCallback(async () => {
     try {
-      const stationsData = await sendAPIRequest<any[]>(`/${companyId}/station`);
+      const stationsData = await sendAPIRequest<any[]>(`/${organizationId}/station`);
       const transformedStations = stationsData.map((station) => ({
         ...station,
         state_code: station.State?.state_name,
