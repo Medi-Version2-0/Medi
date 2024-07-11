@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { CiSearch } from 'react-icons/ci';
 import { MdLibraryBooks, MdNavigateNext } from 'react-icons/md';
 import { IoChevronDownSharp } from 'react-icons/io5';
 import { FaPlus } from 'react-icons/fa6';
 import { FaCircleArrowRight, FaCircleArrowLeft } from 'react-icons/fa6';
 import MenuItem from './MenuItem';
-import { useUser } from '../../UserContext';
 import { Groups } from '../../views/groups';
 import { SubGroups } from '../../views/subgroups';
 import { ItemGroups } from '../../views/itemGroups';
@@ -36,9 +34,6 @@ const Sidebar: React.FC<SidebarProps> = ({
     setup: false,
   });
   const [isSidebar, setIsSidebar] = useState<boolean>(true);
-
-  const navigate = useNavigate();
-  const { selectedCompany } = useUser();
 
   useEffect(() => {
     if (isGroup || isSubGroup) {
@@ -105,7 +100,6 @@ const Sidebar: React.FC<SidebarProps> = ({
               label='Ledger'
               icon={<FaPlus className='fill-red-900' />}
               onClick={() => openTab?.('Ledger', <Ledger />)}
-              onClickIcon={() => navigate(`/${selectedCompany}/ledger`)}
             />
             <MenuItem
               url='/groups'
@@ -167,9 +161,6 @@ const Sidebar: React.FC<SidebarProps> = ({
               label='Company'
               icon={<FaPlus className='fill-yellow-900' />}
               onClick={() => openTab?.('Company', <Company />)}
-              onClickIcon={() =>
-                navigate(`${selectedCompany}/company`)
-              }
             />
             {showSubElements.setup && <></>}
           </>

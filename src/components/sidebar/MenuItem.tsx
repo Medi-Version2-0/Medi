@@ -32,16 +32,19 @@ const MenuItem = ({
     if (onClickIcon) {
       onClickIcon();
     }
+    else {
+      handleClick()
+    }
   };
 
   return (
     <div
-      className={`flex justify-between border bg-[#EAFBFCFF] cursor-pointer text-[0.9rem] pl-10 pr-[11px] py-2.5 border-solid border-[#009196FF] ${className}`}
+      className={`flex justify-between border bg-[#EAFBFCFF] cursor-pointer text-[0.9rem] pl-10 pr-[11px] py-2.5 border-solid border-[#009196FF] items-center ${className}`}
       onClick={handleClick}
     >
       <span id={id}>{label}</span>
       {icon && (
-        <span className={iconClassName} onClick={handleIconClick}>
+        <span className={`cursor-pointer ${iconClassName}`} onClick={handleIconClick}>
           {icon}
         </span>
       )}
