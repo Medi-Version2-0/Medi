@@ -104,7 +104,7 @@ const Container: React.FC<ContainerProps> = ({ title, fields, formik }) => {
 };
 
 const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
-  const { companyId } = useParams();
+  const { organizationId } = useParams();
   const [options, setOptions] = useState<{
     companiesOptions: Option[];
     salesOptions: Option[];
@@ -118,10 +118,10 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
   });
 
   const fetchAllData = async () => {
-    const companies = await sendAPIRequest<any[]>(`/${companyId}/company`);
-    const salesList = await sendAPIRequest<any[]>(`/${companyId}/sale`);
-    const purchaseList = await sendAPIRequest<any[]>(`/${companyId}/purchase`);
-    const groups = await sendAPIRequest<ItemGroupFormData[]>('/itemGroup', {
+    const companies = await sendAPIRequest<any[]>(`/${organizationId}/company`);
+    const salesList = await sendAPIRequest<any[]>(`/${organizationId}/sale`);
+    const purchaseList = await sendAPIRequest<any[]>(`/${organizationId}/purchase`);
+    const groups = await sendAPIRequest<ItemGroupFormData[]>(`/${organizationId}/itemGroup`, {
       method: 'GET',
     });
 

@@ -10,6 +10,7 @@ import { ColDef, ColGroupDef } from 'ag-grid-community';
 import { CreateSubGroup } from './CreateSubGroup';
 import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
+import { useParams } from 'react-router-dom';
 
 const initialValue = {
   group_code: '',
@@ -20,6 +21,7 @@ const initialValue = {
 };
 
 export const SubGroups = () => {
+  const { organizationId } = useParams();
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<SubGroupFormData>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
@@ -67,12 +69,12 @@ export const SubGroups = () => {
     }
     if (formData !== initialValue) {
       if (formData.group_code) {
-        await sendAPIRequest(`/group/sub/${formData.group_code}`, {
+        await sendAPIRequest(`/${organizationId}/group/sub/${formData.group_code}`, {
           method: 'PUT',
           body: formData,
         });
       } else {
-        await sendAPIRequest<any[]>('/group/sub', {
+        await sendAPIRequest(`/${organizationId}/group/sub`, {
           method: 'POST',
           body: formData,
         });
@@ -92,14 +94,16 @@ export const SubGroups = () => {
   };
 
   const getSubGroups = async () => {
-    const subGroups = await sendAPIRequest<any[]>('/group/sub');
+    const subGroups = await sendAPIRequest<any[]>(`/${organizationId}/group/sub`);
     setTableData(subGroups);
   };
 
   const deleteAcc = async (group_code: string) => {
     isDelete.current = false;
     togglePopup(false);
-    await sendAPIRequest(`/group/sub/${group_code}`, { method: 'DELETE' });
+    await sendAPIRequest(`/${organizationId}/group/sub/${group_code}`, {
+      method: 'DELETE',
+    });
     getSubGroups();
   };
 
@@ -217,7 +221,7 @@ export const SubGroups = () => {
         default:
           break;
       }
-      await sendAPIRequest(`/group/sub/${data.group_code}`, {
+      await sendAPIRequest(`/${organizationId}/group/sub/${data.group_code}`, {
         method: 'PUT',
         body: { [field]: newValue },
       });

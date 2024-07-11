@@ -38,7 +38,7 @@ export const App = () => {
           <Route element={<AuthRoute />}>
             <Route path='/redirecttocompany' element={<RedirectToCompany />} />
             <Route path='/' element={<Home />}>
-              <Route path='/:companyId/*' element={<AppRoot />} />
+              <Route path='/:organizationId/*' element={<AppRoot />} />
             </Route>
           </Route>
 
@@ -51,18 +51,18 @@ export const App = () => {
 };
 
 const AppRoot = () => {
-  const { companyId } = useParams();
+  const { organizationId } = useParams();
   const { user, setSelectedOrganization } = useUser();
   useEffect(() => {
-    if (companyId) {
-      setSelectedOrganization(+companyId);
+    if (organizationId) {
+      setSelectedOrganization(+organizationId);
     } else if (user) {
-      const defaultCompanyId = user.UserOrganizations[0]?.organizationId;
-      if (defaultCompanyId) {
-        setSelectedOrganization(defaultCompanyId);
+      const defaultOrganizationId = user.UserOrganizations[0]?.organizationId;
+      if (defaultOrganizationId) {
+        setSelectedOrganization(defaultOrganizationId);
       }
     }
-  }, [companyId, user, setSelectedOrganization]);
+  }, [organizationId, user, setSelectedOrganization]);
 
   return (
     <Routes>

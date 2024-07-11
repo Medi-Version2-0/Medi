@@ -37,7 +37,7 @@ const initialValue = {
 // };
 
 export const Stations = () => {
-  const { companyId } = useParams();
+  const { organizationId } = useParams();
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<StationFormData | any>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
@@ -59,7 +59,7 @@ export const Stations = () => {
 
   const { data } = useQuery<StationFormData[]>({
     queryKey: ['get-stations'],
-    queryFn: () => sendAPIRequest<StationFormData[]>(`/${companyId}/station`),
+    queryFn: () => sendAPIRequest<StationFormData[]>(`/${organizationId}/station`),
   });
 
   useEffect(() => {
@@ -80,7 +80,7 @@ export const Stations = () => {
   };
 
   const getStations = async () => {
-    const stations = await sendAPIRequest<any[]>(`/${companyId}/station`);
+    const stations = await sendAPIRequest<any[]>(`/${organizationId}/station`);
     setTableData(stations);
   };
 
@@ -111,12 +111,12 @@ export const Stations = () => {
     if (formData !== initialValue) {
       formData.state_code = +formData.state_code;
       if (formData.station_id) {
-        await sendAPIRequest(`/${companyId}/station/${formData.station_id}`, {
+        await sendAPIRequest(`/${organizationId}/station/${formData.station_id}`, {
           method: 'PUT',
           body: formData,
         });
       } else {
-        await sendAPIRequest(`/${companyId}/station`, {
+        await sendAPIRequest(`/${organizationId}/station`, {
           method: 'POST',
           body: formData,
         });
@@ -163,7 +163,7 @@ export const Stations = () => {
   const deleteAcc = async (station_id: string) => {
     isDelete.current = false;
     togglePopup(false);
-    await sendAPIRequest(`/${companyId}/station/${station_id}`, {
+    await sendAPIRequest(`/${organizationId}/station/${station_id}`, {
       method: 'DELETE',
     });
     queryClient.invalidateQueries({ queryKey: ['get-stations'] });
@@ -305,7 +305,7 @@ export const Stations = () => {
         break;
     }
 
-    await sendAPIRequest(`/${companyId}/station/${data.station_id}`, {
+    await sendAPIRequest(`/${organizationId}/station/${data.station_id}`, {
       method: 'PUT',
       body: { [field]: newValue },
     });
