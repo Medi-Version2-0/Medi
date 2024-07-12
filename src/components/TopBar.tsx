@@ -2,12 +2,36 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useUser } from '../UserContext';
 import userlogo from '../../src/assets/icons/user.png';
 import { useNavigate } from 'react-router-dom';
+import { IoSettingsOutline } from 'react-icons/io5';
+import { useControls } from '../ControlRoomContext';
+import Button from '../components/common/button/Button';
+import { generalSettingFields } from './common/controlRoom/settings';
+import { ControlRoomSettings } from './common/controlRoom/ControlRoomSettings';
 
 export const TopBar = () => {
   const [isPopupVisible, setPopupVisible] = useState(false);
+  const [open, setOpen] = useState<boolean>(false);
   const { logout, user } = useUser();
   const popupRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const { controlRoomSettings } = useControls();
+  const generalSettingsInitialValues = {
+    gstRefundBenefit: controlRoomSettings.gstRefundBenefit || false,
+    showItemSpecialRate: controlRoomSettings.showItemSpecialRate || false,
+    specialSale: controlRoomSettings.specialSale || false,
+    displayRackLocation: controlRoomSettings.displayRackLocation,
+    rxNonrxGeneral: controlRoomSettings.rxNonrxGeneral || false,
+    salePriceListOptionsAllowed:
+      controlRoomSettings.salePriceListOptionsAllowed || false,
+    printPriceToRetailer: controlRoomSettings.printPriceToRetailer || false,
+    removeStripOption: controlRoomSettings.removeStripOption || false,
+    defaultDownloadPath: controlRoomSettings.defaultDownloadPath || false,
+    itemWiseDiscount: controlRoomSettings.itemWiseDiscount || false,
+  };
+
+  const settingsPopup = (isOpen: boolean) => {
+    setOpen(isOpen);
+  };
 
   const togglePopup = () => {
     setPopupVisible(!isPopupVisible);
@@ -61,6 +85,22 @@ export const TopBar = () => {
                 >
                   Switch Company
                 </button>
+                <Button
+                  type='highlight'
+                  handleOnClick={() => {
+                    settingsPopup(true);
+                  }}
+                >
+                  <IoSettingsOutline />
+                </Button>
+                {open && (
+                  <ControlRoomSettings
+                    togglePopup={settingsPopup}
+                    heading={'Settings'}
+                    fields={generalSettingFields}
+                    initialValues={generalSettingsInitialValues}
+                  />
+                )}
                 <button
                   type='button'
                   className='py-1 px-1 w-full inline-flex justify-center items-center border-gray-500 gap-x-2 text-sm font-semibold rounded-lg border border-transparent text-red-500 hover:bg-red-100 hover:text-red-800 disabled:opacity-50 disabled:pointer-events-none dark:hover:bg-red-800/30 dark:hover:text-red-400'

@@ -91,6 +91,7 @@ export interface BatchForm {
   id?: number;
   itemId: number;
   batchNo: string;
+  mfgCode?: string;
   expiryDate: string;
   opBalance: number | null;
   opFree: number | null;
@@ -119,6 +120,14 @@ export interface CreateGroupProps {
   handelFormSubmit: any;
   isDelete: any;
   deleteAcc: (group_code: string) => void;
+  className?: string;
+}
+
+export interface ItemSettingProps {
+  togglePopup: Function;
+  heading: string;
+  fields: any;
+  initialValues: any;
   className?: string;
 }
 
@@ -261,15 +270,15 @@ export interface AccountGroupFormData {
   group_details: any;
 }
 
-export interface View  {
-  type : string,
-  data : Record<string , string | number>
+export interface View {
+  type: string;
+  data: Record<string, string | number>;
 }
 
 export interface ledgerSettingProps {
   togglePopup: Function;
   heading: string;
-  fields: any
+  fields: any;
   initialValues: any;
-  updateControls: (values: ControlFields) => Promise<void>
+  className?: string;
 }

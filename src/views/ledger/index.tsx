@@ -18,8 +18,6 @@ import { ControlRoomSettings } from '../../components/common/controlRoom/Control
 import { ledgerSettingFields } from '../../components/common/controlRoom/settings';
 import { CreateLedger } from './CreateLedger';
 
-
-
 const ledgerValidationSchema = Yup.object().shape({
   partyName: Yup.string()
     .required('Party Name is required')
@@ -57,13 +55,14 @@ export const Ledger = () => {
     message: '',
   });
 
-  const { updateControls, controlRoomSettings } = useControls();
+  const { controlRoomSettings } = useControls();
 
   const initialValues = {
     multiplePriceList: controlRoomSettings.multiplePriceList || true,
     printPartyBalance: controlRoomSettings.printPartyBalance || false,
     priceListLock: controlRoomSettings.priceListLock || false,
-    showTcsColumnOnPurchase: controlRoomSettings.showTcsColumnOnPurchase || false,
+    showTcsColumnOnPurchase:
+      controlRoomSettings.showTcsColumnOnPurchase || false,
     makeEwayBill: controlRoomSettings.makeEwayBill || false,
     enablePriceListMode: controlRoomSettings.enablePriceListMode || false,
     fssaiNumber: controlRoomSettings.fssaiNumber || false,
@@ -71,7 +70,8 @@ export const Ledger = () => {
 
   const { data } = useQuery<LedgerFormData[]>({
     queryKey: ['get-ledger'],
-    queryFn: () => sendAPIRequest<LedgerFormData[]>(`/${organizationId}/ledger`),
+    queryFn: () =>
+      sendAPIRequest<LedgerFormData[]>(`/${organizationId}/ledger`),
     initialData: [],
   });
 
@@ -93,7 +93,7 @@ export const Ledger = () => {
       switch (event.key) {
         case 'n':
         case 'N':
-          if (event.ctrlKey) setView({type :'add' , data : {}}); // need to ask
+          if (event.ctrlKey) setView({ type: 'add', data: {} }); // need to ask
           break;
         case 'd':
         case 'D':
@@ -110,7 +110,7 @@ export const Ledger = () => {
         case 'e':
         case 'E':
           if (event.ctrlKey && selectedRow && !selectedRow.isPredefinedLedger)
-            setView({type :'add' , data : selectedRow}); 
+            setView({ type: 'add', data: selectedRow });
           else if (event.ctrlKey && selectedRow?.isPredefinedLedger) {
             setPopupState({
               ...popupState,
@@ -312,7 +312,7 @@ export const Ledger = () => {
                   message: 'Predefined Ledger are not editable',
                 });
               } else {
-                setView({type :'add' , data : params.data});
+                setView({ type: 'add', data: params.data });
               }
             }}
           />
@@ -349,7 +349,10 @@ export const Ledger = () => {
             >
               <IoSettingsOutline />
             </Button>
-            <Button type='highlight' handleOnClick={() => setView({type :'add' , data : {}})}>
+            <Button
+              type='highlight'
+              handleOnClick={() => setView({ type: 'add', data: {} })}
+            >
               Add Ledger
             </Button>
           </div>
@@ -370,7 +373,6 @@ export const Ledger = () => {
             heading={'Ledger Settings'}
             fields={ledgerSettingFields}
             initialValues={initialValues}
-            updateControls={updateControls}
           />
         )}
         {(popupState.isModalOpen || popupState.isAlertOpen) && (

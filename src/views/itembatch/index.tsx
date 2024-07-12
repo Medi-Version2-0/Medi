@@ -10,6 +10,7 @@ import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { sendAPIRequest } from '../../helper/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
+import { useControls } from '../../ControlRoomContext';
 
 const expiryFormatRegex = /^(0[1-9]|1[0-2])\/\d{4}$/;
 
@@ -42,6 +43,7 @@ export const Batch = ({
   };
   const queryClient = useQueryClient();
   const { organizationId } = useParams();
+  const { controlRoomSettings } = useControls();
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [inputRow, setInputRow] = useState<BatchForm>(pinnedRow);
   const [tableData, setTableData] = useState<BatchForm | any>(null);
@@ -57,7 +59,9 @@ export const Batch = ({
   const { data } = useQuery<{ data: BatchForm }>({
     queryKey: ['get-itemBatches'],
     queryFn: () =>
-      sendAPIRequest<{ data: BatchForm }>(`/${organizationId}/item/${id}/batch`),
+      sendAPIRequest<{ data: BatchForm }>(
+        `/${organizationId}/item/${id}/batch`
+      ),
   });
 
   const getBatch = async () => {
@@ -418,6 +422,24 @@ export const Batch = ({
       suppressMovable: true,
       valueFormatter: createValueFormatter({ headerName: 'Batch No' }),
     },
+    ...(controlRoomSettings.batchWiseManufacturingCode
+      ? [
+          {
+            headerName: 'MFG Code',
+            field: 'mfgCode',
+            filter: true,
+            editable: true,
+            flex: 1,
+            headerClass: 'custom-header',
+            sortable: true,
+            suppressMovable: true,
+            valueFormatter: createValueFormatter({
+              headerName: 'MFG Code',
+            }),
+          },
+        ]
+      : []),
+
     {
       headerName: 'Expiry Date',
       field: 'expiryDate',

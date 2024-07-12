@@ -21,21 +21,31 @@ export interface ControlFields {
   enablePriceListMode: boolean;
   fssaiNumber: boolean;
   //ITEMS
-  gstRefundBenefit: boolean;
-  displayRackLocation: boolean;
   batchWiseManufacturingCode: boolean;
-  itemWiseDiscount: boolean;
-  noStockWarning: boolean;
   showQuantityDiscount: boolean;
-  showeItemSpecialRate: boolean;
   allowItemAsService: boolean;
   generateBarcodeBatchWise: boolean;
+  rxNonrx: boolean;
+  dpcoAct: boolean;
+  packaging: boolean;
+  partyWisePriceList: boolean;
+  //GENERAL
+  gstRefundBenefit: boolean;
+  itemWiseDiscount: boolean;
+  showItemSpecialRate: boolean;
+  specialSale: boolean;
+  displayRackLocation: boolean;
+  rxNonrxGeneral: boolean;
+  salePriceListOptionsAllowed: boolean;
+  printPriceToRetailer: boolean;
+  removeStripOption: boolean;
+  defaultDownloadPath: boolean;
 }
 
 interface ControlRoomContextType {
   controlRoomSettings: ControlFields;
   updateControlRoomSettings: Dispatch<SetStateAction<ControlFields>>;
-  updateControls: (value:object) => Promise<void>;
+  updateControls: (value: object) => Promise<void>;
 }
 
 const defaultSettings: ControlFields = {
@@ -47,35 +57,50 @@ const defaultSettings: ControlFields = {
   enablePriceListMode: false,
   fssaiNumber: false,
   //ITEMS
-  gstRefundBenefit: false,
-  displayRackLocation: false,
   batchWiseManufacturingCode: false,
-  itemWiseDiscount: false,
-  noStockWarning: false,
   showQuantityDiscount: false,
-  showeItemSpecialRate: false,
   allowItemAsService: false,
   generateBarcodeBatchWise: false,
+  rxNonrx: false,
+  dpcoAct: false,
+  packaging: false,
+  partyWisePriceList: false,
+  //GENERAL
+  gstRefundBenefit: false,
+  itemWiseDiscount: false,
+  showItemSpecialRate: false,
+  specialSale: false,
+  displayRackLocation: false,
+  rxNonrxGeneral: false,
+  salePriceListOptionsAllowed: false,
+  printPriceToRetailer: false,
+  removeStripOption: false,
+  defaultDownloadPath: false,
 };
 
-const controlRoomContext = createContext<ControlRoomContextType | undefined>(undefined);
+const controlRoomContext = createContext<ControlRoomContextType | undefined>(
+  undefined
+);
 
 export const ControlRoomProvider = ({ children }: { children: ReactNode }) => {
   const queryClient = useQueryClient();
-  const {selectedCompany } = useUser();
+  const { selectedCompany } = useUser();
   //TO-DO: Add default settings if custom settings not available
-  const [controlRoomSettings, updateControlRoomSettings] = useState<ControlFields>(defaultSettings);
+  const [controlRoomSettings, updateControlRoomSettings] =
+    useState<ControlFields>(defaultSettings);
 
-  const { data } = useQuery<any>({
+  const { data, isPending } = useQuery<any>({
     queryKey: ['get-controlSettings'],
     queryFn: () => sendAPIRequest<any>(`/${selectedCompany}/controlRoom`),
   });
 
   useEffect(() => {
-    if(data){
-      updateControlRoomSettings(data);
-    }
+    !isPending && getControls();
   }, [data]);
+
+  const getControls = async () => {
+    updateControlRoomSettings(data);
+  };
 
   const updateControls = async (values: object) => {
     try {
@@ -83,7 +108,9 @@ export const ControlRoomProvider = ({ children }: { children: ReactNode }) => {
         method: 'PUT',
         body: values,
       });
-      queryClient.invalidateQueries({queryKey: ['get-controlSettings']});
+      queryClient.invalidateQueries({
+        queryKey: ['get-controlSettings'],
+      });
     } catch (error) {
       const e = error as Error;
       throw new Error(e.message);

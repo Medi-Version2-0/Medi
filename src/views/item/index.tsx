@@ -12,18 +12,24 @@ import {
 } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { useParams } from 'react-router-dom';
+import { IoSettingsOutline } from 'react-icons/io5';
 import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
 import { ICellRendererParams } from 'ag-grid-community';
 import CreateItem from './create-item';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Batch } from '../itembatch';
+import { useControls } from '../../ControlRoomContext';
+import { ControlRoomSettings } from '../../components/common/controlRoom/ControlRoomSettings';
+import { itemSettingFields } from '../../components/common/controlRoom/settings';
 
 const Items = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
   const { organizationId } = useParams();
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<itemFormData | any>(null);
+  const [open, setOpen] = useState<boolean>(false);
+  const { controlRoomSettings } = useControls();
   const [companyData, setCompanyData] = useState<CompanyFormData | any>(null);
   const [itemGroupData, setItemGroupData] = useState<ItemGroupFormData | any>(
     null
@@ -40,11 +46,28 @@ const Items = () => {
     isAlertOpen: false,
     message: '',
   });
+  
+  const itemSettingsInitialValues = {
+    packaging: controlRoomSettings.packaging || false,
+    rxNonrx: controlRoomSettings.rxNonrx || false,
+    batchWiseManufacturingCode: controlRoomSettings.batchWiseManufacturingCode,
+    dpcoAct: controlRoomSettings.dpcoAct || false,
+    showQuantityDiscount: controlRoomSettings.showQuantityDiscount || false,
+    partyWisePriceList: controlRoomSettings.partyWisePriceList || false,
+    allowItemAsService: controlRoomSettings.allowItemAsService || false,
+    generateBarcodeBatchWise:
+      controlRoomSettings.generateBarcodeBatchWise || false,
+  };
 
   const { data } = useQuery<{ data: itemFormData }>({
     queryKey: ['get-items'],
-    queryFn: () => sendAPIRequest<{ data: itemFormData }>(`/${organizationId}/item`),
+    queryFn: () =>
+      sendAPIRequest<{ data: itemFormData }>(`/${organizationId}/item`),
   });
+
+  const togglePopup = (isOpen: boolean) => {
+    setOpen(isOpen);
+  };
 
   const getItemData = async () => {
     setTableData(data);
@@ -139,7 +162,9 @@ const Items = () => {
 
   const handleConfirmPopup = async () => {
     setPopupState({ ...popupState, isModalOpen: false });
-    await sendAPIRequest(`/${organizationId}/item/${id.current}`, { method: 'DELETE' });
+    await sendAPIRequest(`/${organizationId}/item/${id.current}`, {
+      method: 'DELETE',
+    });
     queryClient.invalidateQueries({ queryKey: ['get-items'] });
   };
 
@@ -151,7 +176,6 @@ const Items = () => {
     });
     id.current = oldData.id;
   };
-
 
   const handleCellEditingStopped = async (e: any) => {
     editing.current = false;
@@ -213,7 +237,7 @@ const Items = () => {
     switch (event.key) {
       case 'n':
       case 'N':
-        if (event.ctrlKey) setView({type : 'add' , data : {}});
+        if (event.ctrlKey) setView({ type: 'add', data: {} });
         break;
       case 'd':
       case 'D':
@@ -224,7 +248,7 @@ const Items = () => {
       case 'e':
       case 'E':
         if (event.ctrlKey && selectedRow) {
-          setView({type : 'add' , data : selectedRow})
+          setView({ type: 'add', data: selectedRow });
         }
         break;
       default:
@@ -344,7 +368,7 @@ const Items = () => {
           <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
             onClick={() => {
-              setView({type : 'add', data : params.data});
+              setView({ type: 'add', data: params.data });
             }}
           />
 
@@ -363,17 +387,27 @@ const Items = () => {
         {showBatch ? (
           <Batch params={{ showBatch, setShowBatch }} />
         ) : (
-          <div className='w-full'>
+          <div className='w-full relative'>
             <div className='flex w-full items-center justify-between px-8 py-1'>
               <h1 className='font-bold'>Item Master</h1>
-              <Button
-                type='highlight'
-                handleOnClick={() => {
-                  setView({type : 'add' , data : {}})
-                }}
-              >
-                Add Item
-              </Button>
+              <div className='flex gap-5'>
+                <Button
+                  type='highlight'
+                  handleOnClick={() => {
+                    togglePopup(true);
+                  }}
+                >
+                  <IoSettingsOutline />
+                </Button>
+                <Button
+                  type='highlight'
+                  handleOnClick={() => {
+                    setView({ type: 'add', data: {} });
+                  }}
+                >
+                  Add Item
+                </Button>
+              </div>
             </div>
 
             <div id='account_table' className='ag-theme-quartz'>
@@ -388,6 +422,15 @@ const Items = () => {
                 onCellEditingStopped={handleCellEditingStopped}
               />
             </div>
+            {open && (
+              <ControlRoomSettings
+                togglePopup={togglePopup}
+                heading={'Item Settings'}
+                fields={itemSettingFields}
+                initialValues={itemSettingsInitialValues}
+                className='absolute'
+              />
+            )}
             {(popupState.isModalOpen || popupState.isAlertOpen) && (
               <Confirm_Alert_Popup
                 onClose={handleClosePopup}

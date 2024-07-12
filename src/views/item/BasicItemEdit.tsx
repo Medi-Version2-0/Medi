@@ -5,6 +5,7 @@ import FormikInputField from '../../components/common/FormikInputField';
 import { ItemGroupFormData, Option } from '../../interface/global';
 import { sendAPIRequest } from '../../helper/api';
 import { useParams } from 'react-router-dom';
+import { useControls } from '../../ControlRoomContext';
 
 interface BasicItemEditProps {
   formik: ItemFormInfoType;
@@ -104,6 +105,7 @@ const Container: React.FC<ContainerProps> = ({ title, fields, formik }) => {
 };
 
 const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
+  const { controlRoomSettings } = useControls();
   const { organizationId } = useParams();
   const [options, setOptions] = useState<{
     companiesOptions: Option[];
@@ -120,10 +122,15 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
   const fetchAllData = async () => {
     const companies = await sendAPIRequest<any[]>(`/${organizationId}/company`);
     const salesList = await sendAPIRequest<any[]>(`/${organizationId}/sale`);
-    const purchaseList = await sendAPIRequest<any[]>(`/${organizationId}/purchase`);
-    const groups = await sendAPIRequest<ItemGroupFormData[]>(`/${organizationId}/itemGroup`, {
-      method: 'GET',
-    });
+    const purchaseList = await sendAPIRequest<any[]>(
+      `/${organizationId}/purchase`
+    );
+    const groups = await sendAPIRequest<ItemGroupFormData[]>(
+      `/${organizationId}/itemGroup`,
+      {
+        method: 'GET',
+      }
+    );
 
     setOptions((prevOption) => ({
       ...prevOption,
@@ -185,10 +192,12 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
       id: 'service',
       name: 'service',
       type: 'select',
-      options: [
-        { label: 'Goods', value: 'goods' },
-        { label: 'Services', value: 'services' },
-      ],
+      options: controlRoomSettings.allowItemAsService
+        ? [
+            { label: 'Goods', value: 'goods' },
+            { label: 'Services', value: 'services' },
+          ]
+        : [{ label: 'Goods', value: 'goods' }],
     },
     {
       label: 'MFG. Code',

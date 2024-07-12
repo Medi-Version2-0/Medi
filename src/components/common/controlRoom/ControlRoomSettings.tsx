@@ -4,30 +4,30 @@ import { ledgerSettingProps } from '../../../interface/global';
 import { Popup } from '../../popup/Popup';
 import Button from '../button/Button';
 import CustomToggleSwitch from './CustomToggleSwitch';
-
-interface ControlRoomSettingsProps extends ledgerSettingProps {
-  updateControls: (values: object) => Promise<void>;
-}
+import { useControls } from '../../../ControlRoomContext';
 
 export const ControlRoomSettings = ({
   togglePopup,
   heading,
   fields,
-  initialValues, 
-  updateControls,
-}: ControlRoomSettingsProps) => {
+  initialValues,
+  className,
+}: ledgerSettingProps) => {
+  const { updateControls } = useControls();
 
   const handleSubmit = async (values: object) => {
     togglePopup(false);
-    await updateControls(values);
+    updateControls(values);
   };
   return (
-    <Popup togglePopup={togglePopup} heading={heading} isControlRoomSettings={true}>
-      <Formik
-        initialValues={initialValues}
-        onSubmit={handleSubmit}
-      >
-        {formik => (
+    <Popup
+      togglePopup={togglePopup}
+      heading={heading}
+      isControlRoomSettings={true}
+      className={className}
+    >
+      <Formik initialValues={initialValues} onSubmit={handleSubmit}>
+        {(formik) => (
           <Form className='flex flex-col gap-3 min-w-[18rem] items-center px-4'>
             <div className='flex flex-col w-full'>
               {fields.map((field: any, index: number) => (
