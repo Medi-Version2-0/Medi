@@ -22,6 +22,9 @@ import { Batch } from '../itembatch';
 import { useControls } from '../../ControlRoomContext';
 import { ControlRoomSettings } from '../../components/common/controlRoom/ControlRoomSettings';
 import { itemSettingFields } from '../../components/common/controlRoom/settings';
+import { GiHamburgerMenu } from "react-icons/gi";
+import DropdownTippy from '../../components/common/dropdown/dropdown';
+
 
 const Items = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
@@ -390,7 +393,13 @@ const Items = () => {
           <div className='w-full relative'>
             <div className='flex w-full items-center justify-between px-8 py-1'>
               <h1 className='font-bold'>Item Master</h1>
-              <div className='flex gap-5'>
+              <div className='flex gap-5 items-center'>
+              <DropdownTippy items={[
+                {label : 'Search Item By Batch No.' , click : ()=> {} , key : 'b'},
+                {label : 'Search Item By HSN Code' , click : ()=> {} , key : 'h'},
+              ]}>
+                  <GiHamburgerMenu className='text-xl'/>
+              </DropdownTippy>
                 <Button
                   type='highlight'
                   handleOnClick={() => {
