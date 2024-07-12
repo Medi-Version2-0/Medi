@@ -136,6 +136,7 @@ export interface PopupProps {
   heading: string;
   children: any;
   className?: string;
+  isControlRoomSettings?: boolean;
 }
 
 export interface Confirm_Alert_PopupProps {
@@ -263,4 +264,12 @@ export interface AccountGroupFormData {
 export interface View  {
   type : string,
   data : Record<string , string | number>
+}
+
+export interface ledgerSettingProps {
+  togglePopup: Function;
+  heading: string;
+  fields: any
+  initialValues: any;
+  updateControls: (values: ControlFields) => Promise<void>
 }

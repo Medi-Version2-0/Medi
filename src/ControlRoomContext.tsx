@@ -9,104 +9,81 @@ import React, {
   SetStateAction,
 } from 'react';
 import { sendAPIRequest } from './helper/api';
-
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useUser } from './UserContext';
 export interface ControlFields {
+  //LEDGER
   multiplePriceList: boolean;
   printPartyBalance: boolean;
   priceListLock: boolean;
-  purchaseTC: boolean;
-  eWayBillNo: boolean;
-  priceListM: boolean;
+  showTcsColumnOnPurchase: boolean;
+  makeEwayBill: boolean;
+  enablePriceListMode: boolean;
+  fssaiNumber: boolean;
+  //ITEMS
+  gstRefundBenefit: boolean;
+  displayRackLocation: boolean;
+  batchWiseManufacturingCode: boolean;
+  itemWiseDiscount: boolean;
+  noStockWarning: boolean;
+  showQuantityDiscount: boolean;
+  showeItemSpecialRate: boolean;
+  allowItemAsService: boolean;
+  generateBarcodeBatchWise: boolean;
 }
 
 interface ControlRoomContextType {
   controlRoomSettings: ControlFields;
-  getControls: () => Promise<void>;
-  // setControls: () => Promise<void>;
   updateControlRoomSettings: Dispatch<SetStateAction<ControlFields>>;
-  updateControls: (
-    multiplePriceList: boolean,
-    printPartyBalance: boolean,
-    priceListLock: boolean,
-    purchaseTC: boolean,
-    eWayBillNo: boolean,
-    priceListM: boolean
-  ) => Promise<void>;
+  updateControls: (value:object) => Promise<void>;
 }
 
-const defaultSettings: {
-  multiplePriceList: boolean;
-  printPartyBalance: boolean;
-  priceListLock: boolean;
-  purchaseTC: boolean;
-  eWayBillNo: boolean;
-  priceListM: boolean;
-} = {
+const defaultSettings: ControlFields = {
   multiplePriceList: true,
   printPartyBalance: false,
   priceListLock: false,
-  purchaseTC: false,
-  eWayBillNo: false,
-  priceListM: false,
+  showTcsColumnOnPurchase: false,
+  makeEwayBill: false,
+  enablePriceListMode: false,
+  fssaiNumber: false,
+  //ITEMS
+  gstRefundBenefit: false,
+  displayRackLocation: false,
+  batchWiseManufacturingCode: false,
+  itemWiseDiscount: false,
+  noStockWarning: false,
+  showQuantityDiscount: false,
+  showeItemSpecialRate: false,
+  allowItemAsService: false,
+  generateBarcodeBatchWise: false,
 };
-
-// const apiUrl = process.env.REACT_APP_API_URL;
 
 const controlRoomContext = createContext<ControlRoomContextType | undefined>(undefined);
 
 export const ControlRoomProvider = ({ children }: { children: ReactNode }) => {
+  const queryClient = useQueryClient();
+  const {selectedCompany } = useUser();
   //TO-DO: Add default settings if custom settings not available
   const [controlRoomSettings, updateControlRoomSettings] = useState<ControlFields>(defaultSettings);
 
-  // const setControls = async () => {
-  //   try{
-  //     const 
-  //   }
-  // }
+  const { data } = useQuery<any>({
+    queryKey: ['get-controlSettings'],
+    queryFn: () => sendAPIRequest<any>(`/${selectedCompany}/controlRoom`),
+  });
+
   useEffect(() => {
-    getControls();
-  }, [])
-
-  const getControls = async () => {
-    try {
-      const response = await sendAPIRequest<ControlFields>('/controlRoom');
-      console.log("response ---> ", response)
-      updateControlRoomSettings(response);
-    } catch (error) {
-      const e = error as Error;
-      throw new Error(e.message);
+    if(data){
+      updateControlRoomSettings(data);
     }
-  };
+  }, [data]);
 
-  const updateControls = async (
-    multiplePriceList: boolean,
-    printPartyBalance: boolean, 
-    priceListLock: boolean,
-    purchaseTC: boolean,
-    eWayBillNo: boolean,
-    priceListM: boolean
-  ) => {
+  const updateControls = async (values: object) => {
     try {
-      await sendAPIRequest(`/controlRoom/1`, {
+      await sendAPIRequest(`/${selectedCompany}/controlRoom`, {
         method: 'PUT',
-        body: {
-          multiplePriceList,
-          printPartyBalance,
-          priceListLock,
-          purchaseTC,
-          eWayBillNo,
-          priceListM,
-        },
+        body: values,
       });
-      // updateControlRoomSettings({
-      //   multiplePriceList,
-      //   printPartyBalance,
-      //   priceListLock,
-      //   purchaseTC,
-      //   eWayBillNo,
-      //   priceListM,
-      // });
-      getControls();
+      queryClient.invalidateQueries({queryKey: ['get-controlSettings']});
     } catch (error) {
       const e = error as Error;
       throw new Error(e.message);
@@ -118,7 +95,6 @@ export const ControlRoomProvider = ({ children }: { children: ReactNode }) => {
       value={{
         controlRoomSettings,
         updateControlRoomSettings,
-        getControls,
         updateControls,
       }}
     >

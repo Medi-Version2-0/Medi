@@ -13,6 +13,9 @@ import { IoSettingsOutline } from 'react-icons/io5';
 import * as Yup from 'yup';
 import { sendAPIRequest } from '../../helper/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useControls } from '../../ControlRoomContext';
+import { ControlRoomSettings } from '../../components/common/controlRoom/ControlRoomSettings';
+import { ledgerSettingFields } from '../../components/common/controlRoom/settings';
 import { CreateLedger } from './CreateLedger';
 
 
@@ -47,11 +50,24 @@ export const Ledger = () => {
   const editing = useRef(false);
   const partyId = useRef('');
   const queryClient = useQueryClient();
+  const [open, setOpen] = useState<boolean>(false);
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
     message: '',
   });
+
+  const { updateControls, controlRoomSettings } = useControls();
+
+  const initialValues = {
+    multiplePriceList: controlRoomSettings.multiplePriceList || true,
+    printPartyBalance: controlRoomSettings.printPartyBalance || false,
+    priceListLock: controlRoomSettings.priceListLock || false,
+    showTcsColumnOnPurchase: controlRoomSettings.showTcsColumnOnPurchase || false,
+    makeEwayBill: controlRoomSettings.makeEwayBill || false,
+    enablePriceListMode: controlRoomSettings.enablePriceListMode || false,
+    fssaiNumber: controlRoomSettings.fssaiNumber || false,
+  };
 
   const { data } = useQuery<LedgerFormData[]>({
     queryKey: ['get-ledger'],
@@ -64,13 +80,9 @@ export const Ledger = () => {
     setTableData(data);
   };
 
-  // const togglePopup = (isOpen: boolean) => {
-  //   if (!isOpen) {
-  //     // setFormData(initialValue);
-  //     // isDelete.current = false;
-  //   }
-  //   setOpen(isOpen);
-  // };
+  const togglePopup = (isOpen: boolean) => {
+    setOpen(isOpen);
+  };
 
   useEffect(() => {
     fetchLedgerData();
@@ -332,8 +344,7 @@ export const Ledger = () => {
             <Button
               type='highlight'
               handleOnClick={() => {
-                // setIsPdf(true);
-                // togglePopup(true);
+                togglePopup(true);
               }}
             >
               <IoSettingsOutline />
@@ -353,15 +364,15 @@ export const Ledger = () => {
             onCellEditingStopped={handleCellEditingStopped}
           />
         </div>
-        {/* {open && (
-          <LedgerSetting
+        {open && (
+          <ControlRoomSettings
             togglePopup={togglePopup}
-            data={formData}
-            handelFormSubmit={handelFormSubmit}
-            isDelete={isDelete.current}
-            deleteAcc={deleteAcc}
+            heading={'Ledger Settings'}
+            fields={ledgerSettingFields}
+            initialValues={initialValues}
+            updateControls={updateControls}
           />
-        )} */}
+        )}
         {(popupState.isModalOpen || popupState.isAlertOpen) && (
           <Confirm_Alert_Popup
             onClose={handleClosePopup}
@@ -389,15 +400,3 @@ export const Ledger = () => {
 
   return <div className='w-full'>{renderView()}</div>;
 };
-
-
-
-
-
-
-
-
-
-
-
-
