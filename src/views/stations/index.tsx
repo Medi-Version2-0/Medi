@@ -11,6 +11,10 @@ import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
+import { IoSettingsOutline } from 'react-icons/io5';
+import { ControlRoomSettings } from '../../components/common/controlRoom/ControlRoomSettings';
+import { stationSettingFields } from '../../components/common/controlRoom/settings';
+import { useControls } from '../../ControlRoomContext';
 
 const initialValue = {
   station_id: '',
@@ -23,6 +27,7 @@ const initialValue = {
 export const Stations = () => {
   const { organizationId } = useParams();
   const [open, setOpen] = useState<boolean>(false);
+  const [settingToggleOpen, setSettingToggleOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<StationFormData | any>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<StationFormData | any>(null);
@@ -30,7 +35,19 @@ export const Stations = () => {
   const [stateData, setStateData] = useState<any[]>([]);
   const editing = useRef(false);
   let currTable: any[] = [];
-
+  
+  const { controlRoomSettings } = useControls();
+  
+  const initialValues = {
+    igstSaleFacility: controlRoomSettings.igstSaleFacility || false,
+  };
+  const { updateControls } = useControls();
+  
+  const handleSubmit = async (values: object) => {
+    setSettingToggleOpen(false);
+    updateControls(values);
+  };
+  
   const isDelete = useRef(false);
 
   const [popupState, setPopupState] = useState({
@@ -41,7 +58,8 @@ export const Stations = () => {
 
   const { data } = useQuery<StationFormData[]>({
     queryKey: ['get-stations'],
-    queryFn: () => sendAPIRequest<StationFormData[]>(`/${organizationId}/station`),
+    queryFn: () =>
+      sendAPIRequest<StationFormData[]>(`/${organizationId}/station`),
   });
 
   useEffect(() => {
@@ -73,6 +91,9 @@ export const Stations = () => {
     }
     setOpen(isOpen);
   };
+  const toggleSettingPopup = (isOpen: boolean) => {
+    setSettingToggleOpen(isOpen);
+  };
 
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
@@ -93,17 +114,20 @@ export const Stations = () => {
     if (formData !== initialValue) {
       formData.state_code = +formData.state_code;
       if (formData.station_id) {
-        await sendAPIRequest(`/${organizationId}/station/${formData.station_id}`, {
-          method: 'PUT',
-          body: formData,
-        });
+        await sendAPIRequest(
+          `/${organizationId}/station/${formData.station_id}`,
+          {
+            method: 'PUT',
+            body: formData,
+          }
+        );
       } else {
         await sendAPIRequest(`/${organizationId}/station`, {
           method: 'POST',
           body: formData,
         });
       }
-
+      
       togglePopup(false);
       queryClient.invalidateQueries({ queryKey: ['get-stations'] });
     }
@@ -307,6 +331,7 @@ export const Stations = () => {
     switch (event.key) {
       case 'Escape':
         togglePopup(false);
+        toggleSettingPopup(false);
         break;
       case 'n':
       case 'N':
@@ -341,21 +366,25 @@ export const Stations = () => {
       headerClass: 'custom-header',
       suppressMovable: true,
     },
-    {
-      headerName: 'IGST Sale',
-      field: 'igst_sale',
-      flex: 1,
-      filter: true,
-      editable: true,
-      cellEditor: 'agSelectCellEditor',
-      cellEditorParams: {
-        values: types,
-      },
-      valueFormatter: (params: { value: string | number }) =>
-        lookupValue(typeMapping, params.value),
-      headerClass: 'custom-header custom_header_class',
-      suppressMovable: true,
-    },
+    ...(controlRoomSettings.igstSaleFacility
+      ? [
+          {
+            headerName: 'IGST Sale',
+            field: 'igst_sale',
+            flex: 1,
+            filter: true,
+            editable: true,
+            cellEditor: 'agSelectCellEditor',
+            cellEditorParams: {
+              values: types,
+            },
+            valueFormatter: (params: { value: string | number }) =>
+              lookupValue(typeMapping, params.value),
+            headerClass: 'custom-header custom_header_class',
+            suppressMovable: true,
+          },
+        ]
+      : []),
     {
       headerName: 'Station State',
       field: 'state_code',
@@ -412,18 +441,28 @@ export const Stations = () => {
     },
   ];
 
+
   return (
     <>
       <div className='w-full relative'>
         <div className='flex w-full items-center justify-between px-8 py-1'>
           <h1 className='font-bold'>Stations</h1>
-          <Button
-            type='highlight'
-            className=''
-            handleOnClick={() => togglePopup(true)}
-          >
-            Add Station
-          </Button>
+          <div className='flex gap-5'>
+            <Button
+              type='highlight'
+              handleOnClick={() => {
+                toggleSettingPopup(true);
+              }}
+            >
+              <IoSettingsOutline />
+            </Button>
+            <Button
+              type='highlight'
+              handleOnClick={() => togglePopup(true)}
+            >
+              Add Station
+            </Button>
+          </div>
         </div>
         <div id='account_table' className='ag-theme-quartz'>
           {
@@ -460,6 +499,15 @@ export const Stations = () => {
             isDelete={isDelete.current}
             deleteAcc={deleteAcc}
             className='absolute'
+          />
+        )}
+        {settingToggleOpen && (
+          <ControlRoomSettings
+            togglePopup={togglePopup}
+            heading={'Station Settings'}
+            fields={stationSettingFields}
+            initialValues={initialValues}
+            handleSubmit={handleSubmit}
           />
         )}
       </div>

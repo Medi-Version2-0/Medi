@@ -72,7 +72,7 @@ export interface CreateAccountGroupProps {
 }
 export interface FormDataProps {
   station_name: string;
-  igst_sale: string;
+  igst_sale?: string;
   state_code: string;
   station_pinCode: string;
   station_headQuarter: string;
@@ -281,4 +281,5 @@ export interface ledgerSettingProps {
   fields: any;
   initialValues: any;
   className?: string;
+  handleSubmit?: any;
 }

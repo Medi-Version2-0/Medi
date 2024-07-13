@@ -140,3 +140,11 @@ export const generalSettingFields: SettingField[] = [
     name: 'rxNonrxGeneral',
   },
 ];
+
+export const stationSettingFields: SettingField[] = [  
+  {
+    label: 'IGST Sale Facility',
+    id: 'igstSaleFacility',
+    name: 'igstSaleFacility',
+  },
+]; 

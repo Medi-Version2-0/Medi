@@ -40,6 +40,8 @@ export interface ControlFields {
   printPriceToRetailer: boolean;
   removeStripOption: boolean;
   defaultDownloadPath: boolean;
+  // station
+  igstSaleFacility: boolean;
 }
 
 interface ControlRoomContextType {
@@ -56,7 +58,6 @@ const defaultSettings: ControlFields = {
   makeEwayBill: false,
   enablePriceListMode: false,
   fssaiNumber: false,
-  //ITEMS
   batchWiseManufacturingCode: false,
   showQuantityDiscount: false,
   allowItemAsService: false,
@@ -65,7 +66,6 @@ const defaultSettings: ControlFields = {
   dpcoAct: false,
   packaging: false,
   partyWisePriceList: false,
-  //GENERAL
   gstRefundBenefit: false,
   itemWiseDiscount: false,
   showItemSpecialRate: false,
@@ -76,6 +76,7 @@ const defaultSettings: ControlFields = {
   printPriceToRetailer: false,
   removeStripOption: false,
   defaultDownloadPath: false,
+  igstSaleFacility: false,
 };
 
 const controlRoomContext = createContext<ControlRoomContextType | undefined>(

@@ -14,6 +14,7 @@ import onKeyDown from '../../utilities/formKeyDown';
 import FormikInputField from '../../components/common/FormikInputField';
 import titleCase from '../../utilities/titleCase';
 import { sendAPIRequest } from '../../helper/api';
+import { useControls } from '../../ControlRoomContext';
 
 export const CreateStation = ({
   togglePopup,
@@ -21,11 +22,12 @@ export const CreateStation = ({
   handelFormSubmit,
   isDelete,
   deleteAcc,
-  className
-}:CreateStationProps) => {
+  className,
+}: CreateStationProps) => {
   const { station_id } = data;
   const formikRef = useRef<FormikProps<FormDataProps>>(null);
   const [stateOptions, setStateOptions] = useState<Option[]>([]);
+  const { controlRoomSettings } = useControls();
   const [focused, setFocused] = useState('');
 
   const validationSchema = Yup.object({
@@ -43,7 +45,6 @@ export const CreateStation = ({
       .matches(/^[0-9]+$/, 'Station pincode must contain only numbers')
       .min(6, 'Station pincode must be at least 6 characters long')
       .max(6, 'Station pincode cannot exceed 6 characters'),
-    igst_sale: Yup.string().required('CST sale is required'),
   });
 
   useEffect(() => {
@@ -108,7 +109,6 @@ export const CreateStation = ({
   };
   return (
     <Popup
-      togglePopup={togglePopup}
       heading={
         station_id && isDelete
           ? 'Delete Station'
@@ -212,7 +212,7 @@ export const CreateStation = ({
               className='!gap-0'
               isDisabled={isDelete && station_id}
               sideField='igst_sale'
-              nextField='igst_sale'
+              nextField={`${controlRoomSettings.igstSaleFacility ? 'igst_sale' : 'submit_button'}`}
               prevField='state_code'
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                 handleKeyDown(e)
@@ -226,58 +226,60 @@ export const CreateStation = ({
               }
             />
 
-            <div className='flex flex-col w-full '>
-              <Field name='igst_sale'>
-                {() => (
-                  <CustomSelect
-                    label='IGST Sale'
-                    id='igst_sale'
-                    name='igst_sale'
-                    value={
-                      formik.values.igst_sale === ''
-                        ? null
-                        : {
-                            label: formik.values.igst_sale,
-                            value: formik.values.igst_sale,
+            {controlRoomSettings.igstSaleFacility && (
+              <div className='flex flex-col w-full '>
+                <Field name='igst_sale'>
+                  {() => (
+                    <CustomSelect
+                      label='IGST Sale'
+                      id='igst_sale'
+                      name='igst_sale'
+                      value={
+                        formik.values.igst_sale === ''
+                          ? null
+                          : {
+                              label: formik.values.igst_sale,
+                              value: formik.values.igst_sale,
+                            }
+                      }
+                      onChange={handleFieldChange}
+                      options={[
+                        { value: 'Yes', label: 'Yes' },
+                        { value: 'No', label: 'No' },
+                      ]}
+                      isSearchable={false}
+                      disableArrow={false}
+                      hidePlaceholder={false}
+                      className='!h-6 rounded-sm text-xs'
+                      isTouched={formik.touched.igst_sale}
+                      isFocused={focused === 'igst_sale'}
+                      error={formik.errors.igst_sale}
+                      isDisabled={isDelete && station_id}
+                      onBlur={() => {
+                        formik.setFieldTouched('igst_sale', true);
+                        setFocused('');
+                      }}
+                      onKeyDown={(e: any) => {
+                        if (e.key === 'Enter' || e.key === 'Tab') {
+                          const dropdown = document.querySelector(
+                            '.custom-select__menu'
+                          );
+                          if (!dropdown) {
+                            e.preventDefault();
                           }
-                    }
-                    onChange={handleFieldChange}
-                    options={[
-                      { value: 'Yes', label: 'Yes' },
-                      { value: 'No', label: 'No' },
-                    ]}
-                    isSearchable={false}
-                    disableArrow={false}
-                    hidePlaceholder={false}
-                    className='!h-6 rounded-sm text-xs'
-                    isTouched={formik.touched.igst_sale}
-                    isFocused={focused === 'igst_sale'}
-                    error={formik.errors.igst_sale}
-                    isDisabled={isDelete && station_id}
-                    onBlur={() => {
-                      formik.setFieldTouched('igst_sale', true);
-                      setFocused('');
-                    }}
-                    onKeyDown={(e: any) => {
-                      if (e.key === 'Enter' || e.key === 'Tab') {
-                        const dropdown = document.querySelector(
-                          '.custom-select__menu'
-                        );
-                        if (!dropdown) {
+                          document.getElementById('submit_button')?.focus();
+                        }
+                        if (e.shiftKey && e.key === 'Tab') {
+                          document.getElementById('station_pinCode')?.focus();
                           e.preventDefault();
                         }
-                        document.getElementById('submit_button')?.focus();
-                      }
-                      if (e.shiftKey && e.key === 'Tab') {
-                        document.getElementById('station_pinCode')?.focus();
-                        e.preventDefault();
-                      }
-                    }}
-                    showErrorTooltip={true}
-                  />
-                )}
-              </Field>
-            </div>
+                      }}
+                      showErrorTooltip={true}
+                    />
+                  )}
+                </Field>
+              </div>
+            )}
             <div className='flex justify-between my-4 w-full'>
               <Button
                 type='fog'
@@ -294,7 +296,7 @@ export const CreateStation = ({
                   }
                   if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab')) {
                     e.preventDefault();
-                    setFocused('igst_sale');
+                    setFocused(`${controlRoomSettings.igstSaleFacility ? 'igst_sale' : 'station_pinCode'}`);
                   }
                   if (e.key === 'Enter') {
                     e.preventDefault();
