@@ -95,7 +95,7 @@ export const ControlRoomProvider = ({ children }: { children: ReactNode }) => {
   });
 
   useEffect(() => {
-    !isPending && getControls();
+    !isPending && data && getControls();
   }, [data]);
 
   const getControls = async () => {

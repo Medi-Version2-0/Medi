@@ -6,7 +6,7 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import {
   CompanyFormData,
-  itemFormData,
+  ItemFormData,
   ItemGroupFormData,
   View,
 } from '../../interface/global';
@@ -24,13 +24,13 @@ import { ControlRoomSettings } from '../../components/common/controlRoom/Control
 import { itemSettingFields } from '../../components/common/controlRoom/settings';
 import { GiHamburgerMenu } from "react-icons/gi";
 import DropdownTippy from '../../components/common/dropdown/dropdown';
-
+import PriceList from './PriceList';
 
 const Items = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
   const { organizationId } = useParams();
   const [selectedRow, setSelectedRow] = useState<any>(null);
-  const [tableData, setTableData] = useState<itemFormData | any>(null);
+  const [tableData, setTableData] = useState<ItemFormData | any>(null);
   const [open, setOpen] = useState<boolean>(false);
   const { controlRoomSettings } = useControls();
   const [companyData, setCompanyData] = useState<CompanyFormData | any>(null);
@@ -40,6 +40,7 @@ const Items = () => {
   const [salesData, setSalesData] = useState<any[]>([]);
   const [purchaseData, setPurchaseData] = useState<any[]>([]);
   const [showBatch, setShowBatch] = useState<any>(null);
+  const [showPriceList, setShowPriceList] = useState<boolean>(false);
 
   const editing = useRef(false);
   const id = useRef('');
@@ -62,10 +63,10 @@ const Items = () => {
       controlRoomSettings.generateBarcodeBatchWise || false,
   };
 
-  const { data } = useQuery<{ data: itemFormData }>({
+  const { data } = useQuery<{ data: ItemFormData }>({
     queryKey: ['get-items'],
     queryFn: () =>
-      sendAPIRequest<{ data: itemFormData }>(`/${organizationId}/item`),
+      sendAPIRequest<{ data: ItemFormData }>(`/${organizationId}/item`),
   });
 
   const togglePopup = (isOpen: boolean) => {
@@ -175,7 +176,7 @@ const Items = () => {
     setPopupState({
       ...popupState,
       isModalOpen: true,
-      message: 'Are you sure you want to delete the selected record ?',
+      message: 'Are you sure you want to delete the selected record?',
     });
     id.current = oldData.id;
   };
@@ -197,8 +198,8 @@ const Items = () => {
               message: !newValue
                 ? 'Item Name is required'
                 : /^\d+$/.test(newValue)
-                  ? 'Only Numbers not allowed'
-                  : 'Item name cannot exceed 100 characters',
+                ? 'Only Numbers not allowed'
+                : 'Item name cannot exceed 100 characters',
             });
             node.setDataValue(field, oldValue);
             return;
@@ -279,11 +280,6 @@ const Items = () => {
       headerName: 'Item Name',
       field: 'name',
       cellRenderer: BatchCellRenderer,
-
-      // cellRenderer: (params: ICellRendererParams) => (
-      //   <Batch params={params.data}/>
-      //   // <Link to={`${params.data.id}/batch`}> {params.value}</Link>
-      // ),
       menuTabs: ['filterMenuTab'],
       ...commonColDefConfig,
     },
@@ -389,6 +385,8 @@ const Items = () => {
       <>
         {showBatch ? (
           <Batch params={{ showBatch, setShowBatch }} />
+        ) : showPriceList ? (
+          <PriceList />
         ) : (
           <div className='w-full relative'>
             <div className='flex w-full items-center justify-between px-8 py-1'>
@@ -407,6 +405,9 @@ const Items = () => {
                   }}
                 >
                   <IoSettingsOutline />
+                </Button>
+                <Button type='highlight' handleOnClick={() => setShowPriceList(true)}>
+                  Show Price List
                 </Button>
                 <Button
                   type='highlight'

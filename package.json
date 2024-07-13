@@ -24,7 +24,10 @@
     "ag-grid-react": "^32.0.0",
     "electron-devtools-installer": "^3.2.0",
     "electron-reload": "^2.0.0-alpha.1",
+    "file-saver": "^2.0.5",
     "formik": "^2.4.5",
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.8.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-dyn-tabs": "^6.0.0",
@@ -35,6 +38,7 @@
     "react-tooltip": "^5.26.3",
     "typescript": "^4.9.5",
     "web-vitals": "^2.1.4",
+    "xlsx": "^0.18.5",
     "yup": "^1.4.0"
   },
   "scripts": {
@@ -83,6 +87,7 @@
     "@electron-forge/plugin-auto-unpack-natives": "^7.4.0",
     "@electron-forge/plugin-fuses": "^7.4.0",
     "@electron/fuses": "^1.8.0",
+    "@types/file-saver": "^2.0.7",
     "@typescript-eslint/eslint-plugin": "^7.6.0",
     "autoprefixer": "^10.4.19",
     "concurrently": "^8.2.2",

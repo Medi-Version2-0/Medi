@@ -42,8 +42,8 @@ export const getLedgerFormValidationSchema = (isSUNDRY: boolean) =>
     // contact info VS
     emailId1: Yup.string().email('Invalid email'),
     emailId2: Yup.string().email('Invalid email'),
-    drugLicenceNo1: Yup.string().required('Drug Licence No. 1 is required'),
-    drugLicenceNo2: Yup.string().required('Drug Licence No. 2 is required'),
+    drugLicenceNo1: isSUNDRY? Yup.string().required('Drug Licence No. 1 is required'): Yup.string(),
+    drugLicenceNo2: isSUNDRY? Yup.string().required('Drug Licence No. 2 is required'): Yup.string(),
     //license info VS
     // bank details VS
     accountHolderName: Yup.string().max(

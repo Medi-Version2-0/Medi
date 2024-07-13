@@ -251,7 +251,7 @@ export interface BatchForm {
   locked: string;
 }
 
-export interface itemFormData {
+export interface ItemFormData {
   id?: string;
   name: string;
   service: string;
