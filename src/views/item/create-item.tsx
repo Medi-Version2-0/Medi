@@ -23,17 +23,19 @@ export interface ItemFormValues {
   purAccId: string;
   scheduleDrug: string;
   itemDiscPer: number;
+  marginPercentage: number;
   minQty: number;
   maxQty: number;
   selected: string;
-  reckNumber: string;
-  dpcact: string;
+  rackNumber: string;
+  dpcoact: string;
   upload: string;
+  prescriptionType:string;
 }
 
 export type ItemFormInfoType = FormikProps<ItemFormValues>;
 
-const CreateItem = ({ setView , data }: any) => {
+const CreateItem = ({ setView, data }: any) => {
   const { organizationId } = useParams();
   const queryClient = useQueryClient();
   const [popupState, setPopupState] = useState({
@@ -59,9 +61,11 @@ const CreateItem = ({ setView , data }: any) => {
       minQty: data?.minQty || '',
       maxQty: data?.maxQty || '',
       selected: data?.selected || '',
-      reckNumber: data?.reckNumber || '',
-      dpcact: data?.dpcact || '',
+      rackNumber: data?.rackNumber || '',
+      dpcoact: data?.dpcoact || '',
       upload: data?.upload || '',
+      marginPercentage: data?.marginPercentage || 0,
+      prescriptionType: data?.prescriptionType || "",
     },
 
     validationSchema: itemFormValidations(),

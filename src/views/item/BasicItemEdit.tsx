@@ -6,6 +6,8 @@ import { ItemGroupFormData, Option } from '../../interface/global';
 import { sendAPIRequest } from '../../helper/api';
 import { useParams } from 'react-router-dom';
 import { useControls } from '../../ControlRoomContext';
+import { FormikProps } from 'formik';
+import onKeyDown from '../../utilities/formKeyDown';
 
 interface BasicItemEditProps {
   formik: ItemFormInfoType;
@@ -26,9 +28,25 @@ interface ContainerProps {
   title: string;
   fields: Array<abc>;
   formik: ItemFormInfoType;
+  setFocused: (field: string) => void;
+  focused?: string;
 }
 
-const Container: React.FC<ContainerProps> = ({ title, fields, formik }) => {
+const Container: React.FC<ContainerProps> = ({ title, fields, formik, setFocused, focused }) => {
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    formik?: FormikProps<ItemFormValues>,
+    radioField?: any
+  ) => {
+    onKeyDown({
+      e,
+      formik: formik,
+      radioField: radioField,
+      focusedSetter: (field: string) => {
+        setFocused(field);
+      },
+    });
+  };
   return (
     <div className='relative border w-full h-full pt-4 border-solid border-gray-400'>
       <div className='absolute top-[-14px] left-2  px-2 w-fit bg-[#f3f3f3]'>
@@ -48,6 +66,7 @@ const Container: React.FC<ContainerProps> = ({ title, fields, formik }) => {
               nextField={field.nextField}
               prevField={field.prevField}
               options={field.options}
+              isFocused={focused === field.id}
               value={
                 field.options.find(
                   (option) => option.value === formik.values[field.name]
@@ -63,6 +82,8 @@ const Container: React.FC<ContainerProps> = ({ title, fields, formik }) => {
                 field.id === 'saleAccId' ||
                 field.id === 'purAccId'
               }
+              labelClass='min-w-[90px]'
+              className='rounded-none'
               isTouched={
                 formik.touched[field.name as keyof typeof formik.touched]
               }
@@ -74,6 +95,20 @@ const Container: React.FC<ContainerProps> = ({ title, fields, formik }) => {
                   formik.errors[field.name as keyof typeof formik.errors]
                 )
               }
+              onBlur={() => {
+                formik.setFieldTouched('stationId', true);
+                setFocused('');
+              }}
+              onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+                const dropdown = document.querySelector(
+                  '.custom-select__menu'
+                );
+                if (e.key === 'Enter') {
+                  !dropdown && e.preventDefault();
+                  document.getElementById(field.nextField || 'compId')?.focus();
+                  setFocused(field.nextField || 'compId');
+                }
+              }}
             />
           ) : (
             <FormikInputField
@@ -90,6 +125,9 @@ const Container: React.FC<ContainerProps> = ({ title, fields, formik }) => {
               nextField={field.nextField}
               prevField={field.prevField}
               type={field.type}
+              onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
+                handleKeyDown(e)
+              }
               showErrorTooltip={
                 !!(
                   formik.touched[field.name as keyof typeof formik.touched] &&
@@ -118,6 +156,7 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
     purchaseOptions: [],
     groupOptions: [],
   });
+  const [focused, setFocused] = useState('');
 
   const fetchAllData = async () => {
     const companies = await sendAPIRequest<any[]>(`/${organizationId}/company`);
@@ -174,54 +213,60 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
       name: 'name',
       isRequired: true,
       type: 'text',
-      nextField: 'packing',
-    },
-    {
-      label: 'Packing',
-      id: 'packing',
-      name: 'packing',
-      type: 'text',
-      nextField: 'service',
-      prevField: 'name',
-    },
-  ];
-
-  const container1Fields = [
-    {
-      label: 'Service',
-      id: 'service',
-      name: 'service',
-      type: 'select',
-      options: controlRoomSettings.allowItemAsService
-        ? [
-            { label: 'Goods', value: 'goods' },
-            { label: 'Services', value: 'services' },
-          ]
-        : [{ label: 'Goods', value: 'goods' }],
-    },
-    {
-      label: 'MFG. Code',
-      id: 'shortName',
-      name: 'shortName',
-      type: 'text',
-      nextField: 'hsnCode',
-      prevField: 'service',
-    },
-    {
-      label: 'HSN/SAC',
-      id: 'hsnCode',
-      name: 'hsnCode',
       nextField: 'compId',
-      prevField: 'shortName',
     },
     {
       label: 'Company',
       id: 'compId',
       name: 'compId',
       type: 'select',
-      nextField: 'itemGroupCode',
-      prevField: 'hsnCode',
+      nextField: controlRoomSettings.packaging ? 'packing' : controlRoomSettings.batchWiseManufacturingCode ? 'shortName' : 'service',
+      prevField: 'name',
       options: options.companiesOptions,
+    },
+    ...controlRoomSettings.packaging
+      ? [{
+        label: 'Packing',
+        id: 'packing',
+        name: 'packing',
+        type: 'text',
+        nextField: 'shortName',
+        prevField: 'compId',
+      }]
+      : [],
+  ];
+
+  const container1Fields = [
+    ...controlRoomSettings.batchWiseManufacturingCode
+      ? [{
+        label: 'MFG. Code',
+        id: 'shortName',
+        name: 'shortName',
+        type: 'text',
+        prevField: controlRoomSettings.packaging ? 'packing' : 'compId',
+        nextField: 'service',
+      }]
+      : [],
+    {
+      label: 'Type',
+      id: 'service',
+      name: 'service',
+      type: 'select',
+      options: controlRoomSettings.allowItemAsService
+        ? [
+          { label: 'Goods', value: 'goods' },
+          { label: 'Services', value: 'services' },
+        ]
+        : [{ label: 'Goods', value: 'goods' }],
+      nextField: 'hsnCode',
+      prevField: controlRoomSettings.batchWiseManufacturingCode ? 'shortName' : controlRoomSettings.packaging ? 'packing' : 'compId',
+    },
+    {
+      label: 'HSN/SAC',
+      id: 'hsnCode',
+      name: 'hsnCode',
+      nextField: 'itemGroupCode',
+      prevField: 'service',
     },
     {
       label: 'Item Group',
@@ -229,7 +274,7 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
       name: 'itemGroupCode',
       type: 'select',
       nextField: 'scheduleDrug',
-      prevField: 'compId',
+      prevField: 'hsnCode',
       options: options.groupOptions,
     },
     {
@@ -237,13 +282,27 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
       id: 'scheduleDrug',
       name: 'scheduleDrug',
       type: 'select',
-      nextField: 'saleAccId',
-      prevField: 'itemGroupCode',
       options: [
         { label: 'Schedule H1', value: 'H1' },
-        { label: 'Schedule H', value: 'H' },
+        { label: 'Non-H1', value: 'NON-H1' },
       ],
+      prevField: 'itemGroupCode',
+      nextField: controlRoomSettings.rxNonrx ? 'prescriptionType' : 'saleAccId',
     },
+    ...controlRoomSettings.rxNonrx
+      ? [{
+        label: 'Prescription Type',
+        id: 'prescriptionType',
+        name: 'prescriptionType',
+        type: 'select',
+        nextField: 'saleAccId',
+        prevField: 'scheduleDrug',
+        options: [
+          { label: 'RX', value: 'RX' },
+          { label: 'Non-RX', value: 'NON-RX' },
+        ],
+      },]
+      : [],
   ];
 
   const container2Fields = [
@@ -253,6 +312,8 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
       name: 'saleAccId',
       type: 'select',
       options: options.salesOptions,
+      prevField: controlRoomSettings.rxNonrx ? 'prescriptionType' : 'scheduleDrug',
+      nextField: 'purAccId',
     },
     {
       label: 'Purchase Account',
@@ -260,18 +321,20 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
       name: 'purAccId',
       type: 'select',
       options: options.purchaseOptions,
+      prevField: 'saleAccId',
+      nextField: 'discountPer',
     },
     {
       label: 'Cash Discount %',
       id: 'discountPer',
       name: 'cashDiscountPer',
-      nextField: 'itemDiscPer',
+      nextField: 'marginPercentage',
       prevField: 'purAccId',
     },
     {
-      label: 'Item Discount %',
-      id: 'itemDiscPer',
-      name: 'itemDiscPer',
+      label: 'Margin %',
+      id: 'marginPercentage',
+      name: 'marginPercentage',
       nextField: 'minQty',
       prevField: 'discountPer',
     },
@@ -280,78 +343,77 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
       id: 'minQty',
       name: 'minQty',
       nextField: 'maxQty',
-      prevField: 'itemDiscPer',
+      prevField: 'marginPercentage',
     },
     {
       label: 'Max. Quantity',
       id: 'maxQty',
       name: 'maxQty',
-      nextField: 'selected',
       prevField: 'minQty',
+      nextField: controlRoomSettings.rackNumber ? 'rackNumber' : controlRoomSettings.dpcoAct ? 'dpcoAct' : 'upload',
     },
   ];
 
   const container3Fields = [
+    ...controlRoomSettings.rackNumber
+      ? [{
+        label: 'Rack No.',
+        id: 'rackNumber',
+        name: 'rackNumber',
+        type: 'text',
+        nextField: 'dpcoact',
+        prevField: 'maxQty',
+      }]
+      : [],
+    ...controlRoomSettings.dpcoAct
+      ? [{
+        label: 'DPCO Act.',
+        id: 'dpcoact',
+        name: 'dpcoact',
+        type: 'text',
+        nextField: 'upload',
+        prevField: 'rackNumber',
+      },]
+      : [],
     {
-      label: 'Selected',
-      id: 'selected',
-      name: 'selected',
-      type: 'select',
-      nextField: 'reckNumber',
-      prevField: 'maxQty',
-      options: [
-        { label: 'Yes', value: 'Yes' },
-        { label: 'No', value: 'No' },
-      ],
-    },
-    {
-      label: 'Reck No.',
-      id: 'reckNumber',
-      name: 'reckNumber',
-      type: 'text',
-      nextField: 'dpcact',
-      prevField: 'selected',
-    },
-    {
-      label: 'DP CACT',
-      id: 'dpcact',
-      name: 'dpcact',
-      type: 'text',
-      nextField: 'upload',
-      prevField: 'reckNumber',
-    },
-    {
-      label: 'Upload',
+      label: 'Upload Img.',
       id: 'upload',
       name: 'upload',
       type: 'text',
       nextField: 'submit_all',
-      prevField: 'dpcact',
+      prevField: controlRoomSettings.dpcoAct ? 'dpcoact' : controlRoomSettings.rackNumber ? 'rackNumber' : 'maxQty',
     },
   ];
-
   return (
     <div className='flex flex-col gap-14'>
       <Container
         title='Basic Info'
         fields={basicInfoFields as unknown as abc[]}
         formik={formik}
+        focused={focused}
+        setFocused={setFocused}
       />
       <div className='flex flex-row gap-4'>
         <Container
           title='Item Info'
           fields={container1Fields as unknown as abc[]}
           formik={formik}
+          focused={focused}
+          setFocused={setFocused}
         />
         <Container
           title='Cost Details'
           fields={container2Fields as unknown as abc[]}
           formik={formik}
+          focused={focused}
+          setFocused={setFocused}
         />
         <Container
           title='Misc.'
           fields={container3Fields as unknown as abc[]}
           formik={formik}
+          focused={focused}
+          setFocused={setFocused}
         />
       </div>
     </div>

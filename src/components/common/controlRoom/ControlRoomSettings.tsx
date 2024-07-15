@@ -24,12 +24,12 @@ export const ControlRoomSettings = ({
   return (
     <Popup
       heading={heading}
-      childClass='min-w-[70rem] h-fit !max-w-full'
+      childClass='h-fit !max-w-full min-w-[60%]'
       className={className}
     >
       <Formik initialValues={initialValues} onSubmit={handleSubmit}>
         {(formik) => (
-          <Form className='flex flex-col gap-3 min-w-[18rem] items-center px-4'>
+          <Form className='flex flex-col gap-3 items-center px-4'>
             <div className='flex flex-col w-full'>
               {fields.map((field: any, index: number) => (
                 <div key={index}>

@@ -44,29 +44,23 @@ export const ledgerSettingFields: SettingField[] = [
 
 export const itemSettingFields: SettingField[] = [
   {
-    label: 'Generate barcode batchwise',
+    label: 'Generate Barcode Batchwise',
     id: 'generateBarcodeBatchWise',
     name: 'generateBarcodeBatchWise',
   },
   {
-    label: 'Allow item as service',
+    label: 'Items As Service',
     id: 'allowItemAsService',
     name: 'allowItemAsService',
   },
 
   {
-    label: 'Show quantity discount',
-    id: 'showQuantityDiscount',
-    name: 'showQuantityDiscount',
-  },
-
-  {
-    label: 'Batch-wise manufacturing code',
+    label: 'Batch-wise MFG',
     id: 'batchWiseManufacturingCode',
     name: 'batchWiseManufacturingCode',
   },
   {
-    label: 'RX and Non RX item',
+    label: 'RX/Non-RX Item',
     id: 'rxNonrx',
     name: 'rxNonrx',
   },
@@ -76,14 +70,19 @@ export const itemSettingFields: SettingField[] = [
     name: 'dpcoAct',
   },
   {
-    label: 'Pakaging',
+    label: 'Packaging',
     id: 'packaging',
     name: 'packaging',
   },
   {
-    label: 'Party-wise price list',
-    id: 'partyWisePriceList',
-    name: 'partyWisePriceList',
+    label: 'Rack No.',
+    id: 'rackNumber',
+    name: 'rackNumber',
+  },
+  {
+    label: 'Dual-Price List',
+    id: 'dualPriceList',
+    name: 'dualPriceList',
   },
 ];
 

@@ -10,11 +10,9 @@ export const itemFormValidations = () =>
       .max(100, 'Item Name must be 100 characters or less')
       .required('Item Name is required'),
     packing: Yup.string()
-      .max(7, 'Packing must be 7 characters or less')
-      .required('Packing is required'),
+      .max(7, 'Packing must be 7 characters or less'),
     shortName: Yup.string()
-      .max(8, 'MFG code must be 8 characters or less')
-      .required('MFG code is required'),
+      .max(8, 'MFG code must be 8 characters or less'),
     hsnCode: Yup.string()
       .max(8, 'HSN code must be 8 characters or less')
       .required('HSN code is required'),
