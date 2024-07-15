@@ -15,6 +15,7 @@ import { Store } from '../../views/Stores';
 import { Company } from '../../views/company';
 import { Ledger } from '../../views/ledger';
 import { Sales_Table } from '../../views/sales_purchase';
+import Vouchers from '../../views/vouchers';
 
 type SubElementKey = 'master' | 'setup';
 
@@ -135,20 +136,14 @@ const Sidebar: React.FC<SidebarProps> = ({
               url='/sales_purchase_table'
               label='Sales Account'
               onClick={() =>
-                openTab?.(
-                  'Sales Account',
-                  <Sales_Table type={'Sales'}/>
-                )
+                openTab?.('Sales Account', <Sales_Table type={'Sales'} />)
               }
             />
             <MenuItem
               url='/sales_purchase_table'
               label='Purchase Account'
               onClick={() =>
-                openTab?.(
-                  'Purchase Account',
-                  <Sales_Table type='Purchase' />
-                )
+                openTab?.('Purchase Account', <Sales_Table type='Purchase' />)
               }
             />
             <MenuItem
@@ -161,6 +156,12 @@ const Sidebar: React.FC<SidebarProps> = ({
               label='Company'
               icon={<FaPlus className='fill-yellow-900' />}
               onClick={() => openTab?.('Company', <Company />)}
+            />
+             <MenuItem
+              url='/vouchers'
+              label='Vouchers'
+              // icon={<FaPlus className='fill-red-900' />}
+              onClick={() => openTab?.('Voucher', <Vouchers />)}
             />
             {showSubElements.setup && <></>}
           </>

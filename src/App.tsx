@@ -26,6 +26,7 @@ import RedirectToCompany from './components/RedirectToCompany';
 import Items from './views/item';
 import { ItemGroups } from './views/itemGroups';
 import { Sales_Table } from './views/sales_purchase';
+import Vouchers from './views/vouchers';
 
 export const App = () => {
   return (
@@ -86,7 +87,7 @@ const AppRoot = () => {
         path='/sales_purchase_table'
         element={
           <ProtectedRoute
-            element={<Sales_Table type="Sales" />}
+            element={<Sales_Table type='Sales' />}
             requiredPermissions={['admin']}
           />
         }
@@ -103,6 +104,11 @@ const AppRoot = () => {
           <ProtectedRoute element={<Items />} requiredPermissions={['admin']} />
         }
       />
+      <Route
+        path='/vouchers' element={ <ProtectedRoute element={<Vouchers />} requiredPermissions={['admin']} />}
+      />
+      <Route path='/vouchers/new' element={<CreateItem />} />
+      <Route path='/vouchers/:id/edit' element={<CreateItem />} />
       {/* <Route
         path='/items/:itemId/batch'
         element={
