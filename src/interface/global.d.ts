@@ -281,5 +281,4 @@ export interface ledgerSettingProps {
   fields: any;
   initialValues: any;
   className?: string;
-  handleSubmit?: any;
 }
