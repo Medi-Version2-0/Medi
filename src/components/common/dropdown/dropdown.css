@@ -1,6 +1,5 @@
 .tippy-content {
     background-color: #EAFBFCFF !important;
-    transition: all 1s ease-in-out;
     border-radius: 20px;
   }
   
@@ -8,7 +7,6 @@
     min-width: 250px;
     background-color: #EAFBFCFF !important;
     border-radius: 4px;
-    transition: all 1s ease-in-out;
     padding: 4px 2px;
     border: 1px solid ;
 

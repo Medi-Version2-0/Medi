@@ -12,7 +12,6 @@ import {
 } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { useParams } from 'react-router-dom';
-import { IoSettingsOutline } from 'react-icons/io5';
 import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
 import { ICellRendererParams } from 'ag-grid-community';
@@ -25,13 +24,19 @@ import { itemSettingFields } from '../../components/common/controlRoom/settings'
 import { GiHamburgerMenu } from "react-icons/gi";
 import DropdownTippy from '../../components/common/dropdown/dropdown';
 import PriceList from './PriceList';
+import SearchItem from './searchItem';
+
+const initialPopupState = {
+  setting: false,
+  search: false
+}
 
 const Items = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
   const { organizationId } = useParams();
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<ItemFormData | any>(null);
-  const [open, setOpen] = useState<boolean>(false);
+  const [open, setOpen] = useState(initialPopupState);
   const { controlRoomSettings } = useControls();
   const [companyData, setCompanyData] = useState<CompanyFormData | any>(null);
   const [itemGroupData, setItemGroupData] = useState<ItemGroupFormData | any>(
@@ -69,8 +74,13 @@ const Items = () => {
       sendAPIRequest<{ data: ItemFormData }>(`/${organizationId}/item`),
   });
 
-  const togglePopup = (isOpen: boolean) => {
-    setOpen(isOpen);
+  const togglePopup = (isOpen: boolean , key? :string) => {
+    if(key){
+      setOpen({...open , [key] : isOpen})
+    }
+    else{
+      setOpen(initialPopupState)
+    }
   };
 
   const getItemData = async () => {
@@ -393,22 +403,13 @@ const Items = () => {
               <h1 className='font-bold'>Item Master</h1>
               <div className='flex gap-5 items-center'>
               <DropdownTippy items={[
-                {label : 'Search Item By Batch No.' , click : ()=> {} , key : 'b'},
-                {label : 'Search Item By HSN Code' , click : ()=> {} , key : 'h'},
+                {label : 'Show Price List' , click : () => setShowPriceList(true) , key : 'p'},
+                {label : 'Search Item By' , click : ()=> {togglePopup(true , 'search')} , key : 'b'},
+                {label : 'Settings' , click : ()=> {togglePopup(true , 'setting')} , key : 's'},
+
               ]}>
                   <GiHamburgerMenu className='text-xl'/>
               </DropdownTippy>
-                <Button
-                  type='highlight'
-                  handleOnClick={() => {
-                    togglePopup(true);
-                  }}
-                >
-                  <IoSettingsOutline />
-                </Button>
-                <Button type='highlight' handleOnClick={() => setShowPriceList(true)}>
-                  Show Price List
-                </Button>
                 <Button
                   type='highlight'
                   handleOnClick={() => {
@@ -432,7 +433,7 @@ const Items = () => {
                 onCellEditingStopped={handleCellEditingStopped}
               />
             </div>
-            {open && (
+            {open.setting && (
               <ControlRoomSettings
                 togglePopup={togglePopup}
                 heading={'Item Settings'}
@@ -441,6 +442,11 @@ const Items = () => {
                 className='absolute'
               />
             )}
+              {
+                open.search && 
+                <SearchItem
+                  handleClosePopup= {()=> togglePopup(false)} />
+              }
             {(popupState.isModalOpen || popupState.isAlertOpen) && (
               <Confirm_Alert_Popup
                 onClose={handleClosePopup}
