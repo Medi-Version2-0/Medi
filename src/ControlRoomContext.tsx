@@ -22,13 +22,13 @@ export interface ControlFields {
   fssaiNumber: boolean;
   //ITEMS
   batchWiseManufacturingCode: boolean;
-  showQuantityDiscount: boolean;
   allowItemAsService: boolean;
   generateBarcodeBatchWise: boolean;
   rxNonrx: boolean;
   dpcoAct: boolean;
   packaging: boolean;
-  partyWisePriceList: boolean;
+  dualPriceList: boolean;
+  rackNumber:boolean;
   //GENERAL
   gstRefundBenefit: boolean;
   itemWiseDiscount: boolean;
@@ -59,13 +59,13 @@ const defaultSettings: ControlFields = {
   enablePriceListMode: false,
   fssaiNumber: false,
   batchWiseManufacturingCode: false,
-  showQuantityDiscount: false,
   allowItemAsService: false,
   generateBarcodeBatchWise: false,
   rxNonrx: false,
   dpcoAct: false,
   packaging: false,
-  partyWisePriceList: false,
+  dualPriceList: false,
+  rackNumber:false,
   gstRefundBenefit: false,
   itemWiseDiscount: false,
   showItemSpecialRate: false,

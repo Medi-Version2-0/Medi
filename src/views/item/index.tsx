@@ -55,17 +55,16 @@ const Items = () => {
     isAlertOpen: false,
     message: '',
   });
-  
+
   const itemSettingsInitialValues = {
-    packaging: controlRoomSettings.packaging || false,
-    rxNonrx: controlRoomSettings.rxNonrx || false,
-    batchWiseManufacturingCode: controlRoomSettings.batchWiseManufacturingCode,
-    dpcoAct: controlRoomSettings.dpcoAct || false,
-    showQuantityDiscount: controlRoomSettings.showQuantityDiscount || false,
-    partyWisePriceList: controlRoomSettings.partyWisePriceList || false,
+    generateBarcodeBatchWise: controlRoomSettings.generateBarcodeBatchWise || false,
     allowItemAsService: controlRoomSettings.allowItemAsService || false,
-    generateBarcodeBatchWise:
-      controlRoomSettings.generateBarcodeBatchWise || false,
+    batchWiseManufacturingCode: controlRoomSettings.batchWiseManufacturingCode,
+    rxNonrx: controlRoomSettings.rxNonrx || false,
+    dpcoAct: controlRoomSettings.dpcoAct || false,
+    packaging: controlRoomSettings.packaging || false,
+    rackNumber:controlRoomSettings.rackNumber || false,
+    dualPriceList: controlRoomSettings.dualPriceList || false,
   };
 
   const { data } = useQuery<{ data: ItemFormData }>({
@@ -208,8 +207,8 @@ const Items = () => {
               message: !newValue
                 ? 'Item Name is required'
                 : /^\d+$/.test(newValue)
-                ? 'Only Numbers not allowed'
-                : 'Item name cannot exceed 100 characters',
+                  ? 'Only Numbers not allowed'
+                  : 'Item name cannot exceed 100 characters',
             });
             node.setDataValue(field, oldValue);
             return;
@@ -439,7 +438,6 @@ const Items = () => {
                 heading={'Item Settings'}
                 fields={itemSettingFields}
                 initialValues={itemSettingsInitialValues}
-                className='absolute'
               />
             )}
               {
