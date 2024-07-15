@@ -22,6 +22,8 @@ class NetworkError extends Error {
   }
 }
 
+export const APIURL = process.env.REACT_APP_API_URL;
+
 async function callApi(
   url: string,
   token: string,
@@ -70,7 +72,7 @@ export const sendAPIRequest = async <T>(
     init.body = JSON.stringify(init.body) as string;
   }
 
-  const url = `${process.env.REACT_APP_API_URL}${subUrl}`;
+  const url = `${APIURL}${subUrl}`;
 
   try {
     const response = await callApi(url, token, init, requireToken);
