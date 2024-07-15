@@ -24,7 +24,7 @@ export const ControlRoomSettings = ({
   return (
     <Popup
       heading={heading}
-      isControlRoomSettings={true}
+      childClass='min-w-[70rem] h-fit !max-w-full'
       className={className}
     >
       <Formik initialValues={initialValues} onSubmit={handleSubmit}>

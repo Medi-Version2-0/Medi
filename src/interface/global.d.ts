@@ -145,7 +145,7 @@ export interface PopupProps {
   heading: string;
   children: any;
   className?: string;
-  isControlRoomSettings?: boolean;
+  childClass?: string;
 }
 
 export interface Confirm_Alert_PopupProps {

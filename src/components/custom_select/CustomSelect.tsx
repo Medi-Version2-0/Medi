@@ -130,7 +130,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
           }
           placeholder={hidePlaceholder ? '' : placeholder}
           isSearchable={isSearchable}
-          className={`w-full h-full text-gray-700`}
+          className={`w-full h-full text-gray-700 `}
           {...props}
           onKeyDown={handleKeyDown}
           isDisabled={isDisabled}

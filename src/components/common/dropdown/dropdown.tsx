@@ -109,10 +109,10 @@ const DropdownTippy = ({
                 {items.map((item, index) => (
                     <div
                         key={index}
-                        className={`${index === selectedItemIndex ? 'bg-[#009196FF] text-white' : ''} ${itemClass}`}
+                        className={`${index === selectedItemIndex ? 'bg-[#009196FF] text-white' : ''} ${itemClass} cursor-pointer`}
                         onClick={() => {
-                            item.click();
                             setIsOpen(false);
+                            item.click();
                         }}
                     >
                         {item.label}
