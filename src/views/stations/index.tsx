@@ -41,12 +41,6 @@ export const Stations = () => {
   const initialValues = {
     igstSaleFacility: controlRoomSettings.igstSaleFacility || false,
   };
-  const { updateControls } = useControls();
-  
-  const handleSubmit = async (values: object) => {
-    setSettingToggleOpen(false);
-    updateControls(values);
-  };
   
   const isDelete = useRef(false);
 
@@ -503,11 +497,10 @@ export const Stations = () => {
         )}
         {settingToggleOpen && (
           <ControlRoomSettings
-            togglePopup={togglePopup}
+          togglePopup={toggleSettingPopup}
             heading={'Station Settings'}
             fields={stationSettingFields}
             initialValues={initialValues}
-            handleSubmit={handleSubmit}
           />
         )}
       </div>
