@@ -60,6 +60,7 @@ export interface CreateSalePurchaseProps {
   isDelete: any;
   deleteAcc: (sp_id: string) => void;
   className?: string;
+  formik?: any;
 }
 
 export interface CreateAccountGroupProps {
@@ -178,6 +179,8 @@ export interface SalesPurchaseFormData {
   column?: Number;
   shortName?: string;
   shortName2?: string;
+  openingBal?: string;
+  openingBalType?: string;
 }
 
 export interface SalesPurchaseFormProps {
