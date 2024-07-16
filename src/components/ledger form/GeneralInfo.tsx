@@ -28,11 +28,22 @@ export const GeneralInfo = ({
     selectedGroup.toUpperCase() === 'GENERAL GROUP' ||
     selectedGroup.toUpperCase() === 'DISTRIBUTORS, C & F';
   const [focused, setFocused] = useState('');
+  const [options, setOptions] = useState<{
+    companiesOptions: Option[];
+    salesOptions: Option[];
+    purchaseOptions: Option[];
+    groupOptions: Option[];
+  }>({
+    companiesOptions: [],
+    salesOptions: [],
+    purchaseOptions: [],
+    groupOptions: [],
+  });
 
   const fetchAllData = async () => {
-    const stationList = await sendAPIRequest<
-      { station_id: number; station_name: string }[]
-    >(`/${organizationId}/station`);
+    const stationList = await sendAPIRequest<{ station_id: number; station_name: string }[]>(`/${organizationId}/station`);
+    const salesList = await sendAPIRequest<any[]>(`/${organizationId}/sale`);
+    const purchaseList = await sendAPIRequest<any[]>(`/${organizationId}/purchase`);
 
     setStationData(stationList);
 
@@ -42,7 +53,67 @@ export const GeneralInfo = ({
         label: titleCase(station.station_name),
       }))
     );
+    setOptions((prevOption) => ({
+          ...prevOption,
+          salesOptions: salesList.map((sales: any) => ({
+            value: sales.sp_id,
+            label: sales.sptype,
+          })),
+        })
+    );
+    setOptions((prevOption) => ({
+          ...prevOption,
+          purchaseOptions: purchaseList.map((purchase: any) => ({
+            value: purchase.sp_id,
+            label: purchase.sptype,
+          })),
+      })
+    );
+
   };
+
+  // const fetchAllData = async () => {
+  //   const companies = await sendAPIRequest<any[]>(`/${organizationId}/company`);
+  //   const salesList = await sendAPIRequest<any[]>(`/${organizationId}/sale`);
+  //   const purchaseList = await sendAPIRequest<any[]>(
+  //     `/${organizationId}/purchase`
+  //   );
+  //   const groups = await sendAPIRequest<ItemGroupFormData[]>(
+  //     `/${organizationId}/itemGroup`,
+  //     {
+  //       method: 'GET',
+  //     }
+  //   );
+
+  //   setOptions((prevOption) => ({
+  //     ...prevOption,
+  //     companiesOptions: companies.map((company: any) => ({
+  //       value: company.company_id,
+  //       label: company.companyName,
+  //     })),
+  //   }));
+  //   setOptions((prevOption) => ({
+  //     ...prevOption,
+  //     salesOptions: salesList.map((sales: any) => ({
+  //       value: sales.sp_id,
+  //       label: sales.sptype,
+  //     })),
+  //   }));
+  //   setOptions((prevOption) => ({
+  //     ...prevOption,
+  //     purchaseOptions: purchaseList.map((purchase: any) => ({
+  //       value: purchase.sp_id,
+  //       label: purchase.sptype,
+  //     })),
+  //   }));
+  //   setOptions((prevOption) => ({
+  //     ...prevOption,
+  //     groupOptions: groups.map((group: any) => ({
+  //       value: group.group_code,
+  //       label: group.group_name,
+  //     })),
+  //   }));
+  // };
 
   useEffect(() => {
     fetchAllData();
@@ -325,7 +396,8 @@ export const GeneralInfo = ({
             nextField='stateInout'
           />
         )}
-        <div className='flex m-[1px] items-center w-[42%]'>
+        <div className='flex m-[1px] items-center w-full'>
+        <div className='w-[42%]'>
           <CustomSelect
             isPopupOpen={false}
             label='State In Out'
@@ -362,6 +434,89 @@ export const GeneralInfo = ({
             }}
           />
         </div>
+        <div className='flex flex-col w-[50%] ml-4'>
+          <div className='flex items-center mb-2'>
+            <CustomSelect
+              isPopupOpen={false}
+              label='Sales Account'
+              id='saleAccId'
+              labelClass='min-w-[90px]'
+              value={
+                formik.values.saleAccId === ''
+                  ? null
+                  : {
+                      label: options.salesOptions.find(
+                        (e) => e.value === formik.values.saleAccId
+                      )?.label,
+                      value: formik.values.saleAccId,
+                    }
+              }
+              onChange={handleFieldChange}
+              options={options.salesOptions}
+              isSearchable={true}
+              placeholder='Sales Account'
+              disableArrow={true}
+              hidePlaceholder={false}
+              className='!h-6 rounded-sm'
+              error={formik.errors.saleAccId}
+              isTouched={formik.touched.saleAccId}
+              onBlur={() => {
+                formik.setFieldTouched('saleAccId', true);
+                setFocused('');
+              }}
+              onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+                const dropdown = document.querySelector('.custom-select__menu');
+                if (e.key === 'Enter') {
+                  !dropdown && e.preventDefault();
+                  document.getElementById('purAccId')?.focus();
+                }
+              }}
+              showErrorTooltip={true}
+            />
+          </div>
+
+          {/* Purchase Account field */}
+          <div className='flex items-center'>
+            <CustomSelect
+              isPopupOpen={false}
+              label='Purchase Account'
+              id='purAccId'
+              labelClass='min-w-[90px]'
+              value={
+                formik.values.purAccId === ''
+                  ? null
+                  : {
+                      label: options.purchaseOptions.find(
+                        (e) => e.value === formik.values.purAccId
+                      )?.label,
+                      value: formik.values.purAccId,
+                    }
+              }
+              onChange={handleFieldChange}
+              options={options.purchaseOptions}
+              isSearchable={true}
+              placeholder='Purchase Account'
+              disableArrow={true}
+              hidePlaceholder={false}
+              className='!h-6 rounded-sm'
+              error={formik.errors.purAccId}
+              isTouched={formik.touched.purAccId}
+              onBlur={() => {
+                formik.setFieldTouched('purAccId', true);
+                setFocused('');
+              }}
+              onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+                const dropdown = document.querySelector('.custom-select__menu');
+                if (e.key === 'Enter') {
+                  !dropdown && e.preventDefault();
+                  document.getElementById('nextFieldId')?.focus();
+                }
+              }}
+              showErrorTooltip={true}
+            />
+          </div>
+        </div>
+      </div>
       </div>
     </div>
   );

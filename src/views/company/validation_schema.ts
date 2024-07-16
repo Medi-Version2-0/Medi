@@ -12,8 +12,7 @@ export const getCompanyFormSchema = () => Yup.object({
     .required('Company Name is required'),
 
   shortName: Yup.string()
-  .max(8, 'MFG code must be 8 characters or less')
-  .required('MFG code is required'),
+  .max(8, 'MFG code must be 8 characters or less'),
 
   address1: Yup.string()
     .max(50, 'Address 1 must be 50 characters or less'),
@@ -31,11 +30,7 @@ export const getCompanyFormSchema = () => Yup.object({
     .positive('Discount Percent must be a positive number'),
 
   gstIn: Yup.string()
-    .matches(gstRegex, 'Invalid GSTIN')
-    .required('GSTIN is required'),
-
-  drugLicenceNo1: Yup.string()
-    .required('Drug Licence No. 1 is required'),
+    .matches(gstRegex, 'Invalid GSTIN'),
 
   phoneNumber: Yup.string()
     .matches(phoneRegex, 'Invalid Phone Number'),
@@ -43,6 +38,12 @@ export const getCompanyFormSchema = () => Yup.object({
   panNumber: Yup.string()
   .matches(panRegex, 'Invalid Pan Card Number'),
 
+  salesId: Yup.string()
+  .required('Sales Account is required'),
+
+  purchaseId: Yup.string()
+  .required('Purchase Account is required'),
+  
   emailId1: Yup.string()
     .email('Invalid Email ID')
     .max(25, 'Email ID 1 must be 25 characters or less'),
