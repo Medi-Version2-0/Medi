@@ -62,8 +62,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
         'Group name can contain alphanumeric characters, "-", "_", and spaces only'
       )
       .max(100, 'Group name cannot exceeds 100 characters'),
-    parent_code: Yup.string().required('Parent Group is required'),
-    type: Yup.string().required('Type is required'),
+    parent_code: Yup.string().required('Parent Group is required')
   });
 
   const handleSubmit = async (values: object) => {
