@@ -11,8 +11,6 @@ import CustomSelect from '../../components/custom_select/CustomSelect';
 import Button from '../../components/common/button/Button';
 import onKeyDown from '../../utilities/formKeyDown';
 import FormikInputField from '../../components/common/FormikInputField';
-import { FaExclamationCircle } from 'react-icons/fa';
-import { Tooltip as ReactTooltip } from 'react-tooltip';
 import { sendAPIRequest } from '../../helper/api';
 import { useParams } from 'react-router-dom';
 
@@ -109,7 +107,6 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
         initialValues={{
           group_name: data?.group_name || '',
           parent_code: data?.parent_code || '',
-          type: data?.type || '',
         }}
         validationSchema={validationSchema}
         onSubmit={handleSubmit}
@@ -192,80 +189,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                 </Field>
               )}
             </div>
-            <div
-              className={`radio_fields relative w-full rounded-sm border border-solid border-[#9ca3af] p-[3px]${!!(formik.touched.type && formik.errors.type) && '!border-red-500'}`}
-            >
-              <span
-                className={`label_prefix bg-white px-1 absolute top-0 left-1 -translate-y-1/2 text-xs ${!!(formik.touched.type && formik.errors.type) && '!text-red-700'}`}
-              >
-                Type
-              </span>
-              <div
-                className={`flex items-center relative  justify-evenly w-full p-[3px] ${group_code && isDelete && 'bg-[#f5f5f5]'}  `}
-              >
-                <label
-                  className={`flex items-center justify-center text-xs cursor-pointer text-center font-medium ${group_code && isDelete ? 'disabled' : ''}`}
-                >
-                  <Field
-                    type='radio'
-                    name='type'
-                    value='P&L'
-                    id='p_and_l'
-                    className='text-xs mr-1'
-                    checked={formik.values.type === 'P&L'}
-                    disabled={group_code && isDelete}
-                    data-next-field='submit_button'
-                    data-prev-field='parent_code'
-                    data-side-field='balance_sheet'
-                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                      handleKeyDown(e, formik, {
-                        typeField: 'type',
-                        sideField: 'balance_sheet',
-                      })
-                    }
-                  />
-                  <span>P & L</span>
-                </label>
-                <label
-                  className={`flex items-center justify-center text-xs cursor-pointer text-center font-medium ${group_code && isDelete ? 'disabled' : ''}`}
-                >
-                  <Field
-                    type='radio'
-                    name='type'
-                    value='Balance Sheet'
-                    id='balance_sheet'
-                    className='text-xs mr-1'
-                    checked={formik.values.type === 'Balance Sheet'}
-                    disabled={group_code && isDelete}
-                    data-next-field='submit_button'
-                    data-prev-field='parent_code'
-                    data-side-field='p_and_l'
-                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                      handleKeyDown(e, formik, {
-                        typeField: 'type',
-                        sideField: 'p_and_l',
-                      })
-                    }
-                  />
-                  <span>Bl. Sheet</span>
-                </label>
-                {formik.touched.type && formik.errors.type && (
-                  <>
-                    <FaExclamationCircle
-                      data-tooltip-id='typeError'
-                      className='absolute -translate-y-2/4 top-2/4 right-1 text-xs text-red-600'
-                    />
-                    <ReactTooltip
-                      id='typeError'
-                      place='bottom'
-                      className=' text-[white] border rounded !text-xs z-10 p-2 border-solid border-[#d8000c] !bg-red-600'
-                    >
-                      {formik.errors.type}
-                    </ReactTooltip>
-                  </>
-                )}
-              </div>
-            </div>
+
             <div className='flex justify-between my-4 w-full'>
               <Button
                 autoFocus={true}

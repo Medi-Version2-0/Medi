@@ -40,7 +40,6 @@ export interface SubGroupFormData {
   group_code?: string;
   group_name: string;
   parent_code?: string;
-  type: string;
   isPredefinedGroup?: boolean;
 }
 
@@ -112,7 +111,6 @@ export interface CreateItemGroupProps {
 export interface SubGroupFormDataProps {
   group_name: string;
   parent_code: string;
-  type: string;
 }
 export interface CreateGroupProps {
   togglePopup: Function;
@@ -236,6 +234,13 @@ export interface CompanyFormData {
   stationName: string;
   openingBal: string;
   openingBalType: string;
+}
+export interface PartyWiseDiscountFormData {
+  discount_id?: number;
+  companyId: number;
+  discountType: string;
+  partyId: number;
+  discount: number;
 }
 
 export interface BatchForm {

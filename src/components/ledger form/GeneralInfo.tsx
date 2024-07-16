@@ -10,7 +10,7 @@ interface GeneralInfoProps {
   onValueChange?: any;
   formik?: any;
   selectedGroup: string;
-  groupOptions : Option[];
+  groupOptions: Option[];
 }
 
 export const GeneralInfo = ({
@@ -24,14 +24,15 @@ export const GeneralInfo = ({
   const [stationOptions, setStationOptions] = useState<Option[]>([]);
   const isSUNDRY =
     selectedGroup.toUpperCase() === 'SUNDRY CREDITORS' ||
-    selectedGroup.toUpperCase() === 'SUNDRY DEBTORS';
+    selectedGroup.toUpperCase() === 'SUNDRY DEBTORS' ||
+    selectedGroup.toUpperCase() === 'GENERAL GROUP' ||
+    selectedGroup.toUpperCase() === 'DISTRIBUTORS, C & F';
   const [focused, setFocused] = useState('');
 
   const fetchAllData = async () => {
     const stationList = await sendAPIRequest<
       { station_id: number; station_name: string }[]
     >(`/${organizationId}/station`);
-
 
     setStationData(stationList);
 
@@ -41,7 +42,6 @@ export const GeneralInfo = ({
         label: titleCase(station.station_name),
       }))
     );
-
   };
 
   useEffect(() => {
@@ -233,7 +233,10 @@ export const GeneralInfo = ({
                 className='!mb-0'
                 prevField='address2'
                 nextField={
-                  selectedGroup?.toUpperCase() === 'SUNDRY CREDITORS'
+                  selectedGroup?.toUpperCase() === 'SUNDRY CREDITORS' ||
+                  selectedGroup?.toUpperCase() === 'SUNDRY DEBTORS' ||
+                  selectedGroup?.toUpperCase() === 'GENERAL GROUP' ||
+                  selectedGroup?.toUpperCase() === 'DISTRIBUTORS, C & F'
                     ? 'transport'
                     : 'excessRate'
                 }
@@ -262,13 +265,19 @@ export const GeneralInfo = ({
                 onChange={handleChange}
                 prevField='address3'
                 nextField={
-                  selectedGroup?.toUpperCase() === 'SUNDRY CREDITORS'
+                  selectedGroup?.toUpperCase() === 'SUNDRY CREDITORS' ||
+                  selectedGroup?.toUpperCase() === 'SUNDRY DEBTORS' ||
+                  selectedGroup?.toUpperCase() === 'GENERAL GROUP' ||
+                  selectedGroup?.toUpperCase() === 'DISTRIBUTORS, C & F'
                     ? 'transport'
                     : 'excessRate'
                 }
               />
             </div>
-            {selectedGroup?.toUpperCase() === 'SUNDRY CREDITORS' && (
+            {(selectedGroup?.toUpperCase() === 'SUNDRY CREDITORS' ||
+              selectedGroup?.toUpperCase() === 'SUNDRY DEBTORS' ||
+              selectedGroup?.toUpperCase() === 'GENERAL GROUP' ||
+              selectedGroup?.toUpperCase() === 'DISTRIBUTORS, C & F') && (
               <div className='flex justify-between items-center w-full'>
                 <div className='flex w-[45%]'>
                   <FormikInputField
@@ -293,290 +302,16 @@ export const GeneralInfo = ({
                     inputClassName='w-5/12'
                     formik={formik}
                     prevField='transport'
-                    nextField={
-                      selectedGroup?.toUpperCase() === 'SUNDRY DEBTORS'
-                        ? 'excessRate'
-                        : 'mailTo'
-                    }
-                  />
-                </div>
-              </div>
-            )}
-            {selectedGroup?.toUpperCase() === 'SUNDRY DEBTORS' && (
-              <div className='flex justify-between items-center w-full'>
-                <div className='flex w-[45%]'>
-                  <FormikInputField
-                    isPopupOpen={false}
-                    label='Excess Rate'
-                    id='excessRate'
-                    name='excessRate'
-                    inputClassName='w-5/12'
-                    labelClassName='min-w-[90px]'
-                    formik={formik}
-                    prevField='creditPrivilege'
-                    nextField='graceDay'
-                  />
-                </div>
-                <div className='flex w-[45%]'>
-                  <FormikInputField
-                    isPopupOpen={false}
-                    label='Grace Day'
-                    id='graceDay'
-                    name='graceDay'
-                    inputClassName='w-5/12'
-                    labelClassName='min-w-[90px]'
-                    formik={formik}
-                    prevField='excessRate'
-                    nextField={
-                      selectedGroup?.toUpperCase() === 'SUNDRY DEBTORS'
-                        ? 'manualLedger1'
-                        : 'mailTo'
-                    }
                   />
                 </div>
               </div>
             )}
           </div>
         )}
-        {selectedGroup?.toUpperCase() === 'SUNDRY DEBTORS' && (
-          <>
-            <div className='flex flex-col m-[1px] w-full gap-2'>
-              <div className='flex w-full m-[1px] justify-between'>
-                <div className='flex w-[42%]'>
-                  <FormikInputField
-                    isPopupOpen={false}
-                    label='Manual Ledger Folio 1'
-                    id='manualLedger1'
-                    name='manualLedger1'
-                    labelClassName='min-w-[90px]'
-                    formik={formik}
-                    prevField='graceDay'
-                    nextField='manualLedger2'
-                  />
-                </div>
-                <div className='flex w-[42%]'>
-                  <FormikInputField
-                    isPopupOpen={false}
-                    label='Manual Ledger Folio 2'
-                    id='manualLedger2'
-                    name='manualLedger2'
-                    labelClassName='min-w-1/3'
-                    formik={formik}
-                    prevField='manualLedger1'
-                    nextField='routeNo'
-                  />
-                </div>
-              </div>
-              <div className='flex w-full m-[1px] justify-between'>
-                <div className='flex w-[54%]'>
-                  <FormikInputField
-                    isPopupOpen={false}
-                    label='Route No'
-                    id='routeNo'
-                    name='routeNo'
-                    inputClassName='w-[51.7%]'
-                    labelClassName='min-w-[90px]'
-                    formik={formik}
-                    prevField='manualLedger2'
-                    nextField='partyCashCreditInvoice'
-                  />
-                </div>
-
-                <div className='flex w-[42%]'>
-                  <CustomSelect
-                    isPopupOpen={false}
-                    label='Party CACR'
-                    id='partyCashCreditInvoice'
-                    labelClass='min-w-[90px]'
-                    value={
-                      formik.values.partyCashCreditInvoice === ''
-                        ? null
-                        : {
-                            label: formik.values.partyCashCreditInvoice,
-                            value: formik.values.partyCashCreditInvoice,
-                          }
-                    }
-                    onChange={handleFieldChange}
-                    options={[
-                      { value: 'Cash Invoice', label: 'Cash Invoice' },
-                      { value: 'Credit Invoice', label: 'Credit Invoice' },
-                    ]}
-                    isSearchable={false}
-                    placeholder='Select an option'
-                    disableArrow={false}
-                    hidePlaceholder={false}
-                    className='!h-6 rounded-sm'
-                    onBlur={() => {
-                      formik.setFieldTouched('partyCashCreditInvoice', true);
-                      setFocused('');
-                    }}
-                    onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-                      const dropdown = document.querySelector(
-                        '.custom-select__menu'
-                      );
-                      if (e.key === 'Enter') {
-                        !dropdown && e.preventDefault();
-                        document.getElementById('deductDiscount')?.focus();
-                      }
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-            <div className='flex w-full m-[1px] justify-between'>
-              <div className='flex w-[30%]'>
-                <CustomSelect
-                  isPopupOpen={false}
-                  label='Deduct Discount'
-                  id='deductDiscount'
-                  labelClass='min-w-[90px]'
-                  value={
-                    formik.values.deductDiscount === ''
-                      ? null
-                      : {
-                          label: formik.values.deductDiscount,
-                          value: formik.values.deductDiscount,
-                        }
-                  }
-                  onChange={handleFieldChange}
-                  options={[
-                    { value: 'Yes', label: 'Yes' },
-                    { value: 'No', label: 'No' },
-                  ]}
-                  isSearchable={false}
-                  placeholder='Select an option'
-                  disableArrow={false}
-                  hidePlaceholder={false}
-                  className='!h-6 rounded-sm'
-                  onBlur={() => {
-                    formik.setFieldTouched('deductDiscount', true);
-                    setFocused('');
-                  }}
-                  onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-                    const dropdown = document.querySelector(
-                      '.custom-select__menu'
-                    );
-                    if (e.key === 'Enter') {
-                      !dropdown && e.preventDefault();
-                      document.getElementById('mailTo')?.focus();
-                    }
-                  }}
-                />
-              </div>
-              <div className='flex w-[67%]'>
-                <FormikInputField
-                  isPopupOpen={false}
-                  label='Mail to'
-                  id='mailTo'
-                  name='mailTo'
-                  isTitleCase={false}
-                  formik={formik}
-                  showErrorTooltip={
-                    formik.touched.mailTo && formik.errors.mailTo
-                  }
-                  labelClassName='min-w-[90px]'
-                  prevField='deductDiscount'
-                  nextField='stopNrx'
-                />
-              </div>
-            </div>
-
-            <div className='flex gap-4 items-center w-full'>
-              <CustomSelect
-                isPopupOpen={false}
-                label='STOP NRX'
-                id='stopNrx'
-                labelClass='min-w-[90px]'
-                value={
-                  formik.values.stopNrx === ''
-                    ? null
-                    : {
-                        label: formik.values.stopNrx,
-                        value: formik.values.stopNrx,
-                      }
-                }
-                onChange={handleFieldChange}
-                options={[
-                  { value: 'Yes', label: 'Yes' },
-                  { value: 'No', label: 'No' },
-                ]}
-                isSearchable={false}
-                placeholder='Select an option'
-                disableArrow={false}
-                hidePlaceholder={false}
-                containerClass='w-max'
-                className='!h-6 rounded-sm w-max'
-                onBlur={() => {
-                  formik.setFieldTouched('stopNrx', true);
-                  setFocused('');
-                }}
-                onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-                  const dropdown = document.querySelector(
-                    '.custom-select__menu'
-                  );
-                  if (e.key === 'Enter') {
-                    !dropdown && e.preventDefault();
-                    document.getElementById('stopHi')?.focus();
-                  }
-                }}
-              />
-              <CustomSelect
-                isPopupOpen={false}
-                label='STOP HI'
-                id='stopHi'
-                labelClass='w-max'
-                value={
-                  formik.values.stopHi === ''
-                    ? null
-                    : {
-                        label: formik.values.stopHi,
-                        value: formik.values.stopHi,
-                      }
-                }
-                onChange={handleFieldChange}
-                options={[
-                  { value: 'Yes', label: 'Yes' },
-                  { value: 'No', label: 'No' },
-                ]}
-                isSearchable={false}
-                placeholder='Select an option'
-                disableArrow={false}
-                hidePlaceholder={false}
-                containerClass='w-min'
-                className='!h-6 rounded-sm w-max'
-                onBlur={() => {
-                  formik.setFieldTouched('stopHi', true);
-                  setFocused('');
-                }}
-                onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-                  const dropdown = document.querySelector(
-                    '.custom-select__menu'
-                  );
-                  if (e.key === 'Enter') {
-                    !dropdown && e.preventDefault();
-                    document.getElementById('notPrinpba')?.focus();
-                  }
-                }}
-              />
-              <FormikInputField
-                isPopupOpen={false}
-                label='Not PRINPBA'
-                id='notPrinpba'
-                name='notPrinpba'
-                labelClassName=''
-                className='w-auto'
-                formik={formik}
-                prevField='stopHi'
-                nextField={
-                  selectedGroup?.toUpperCase() === 'SUNDRY CREDITORS'
-                    ? 'mailTo'
-                    : 'stateInout'
-                }
-              />
-            </div>
-          </>
-        )}
-        {selectedGroup?.toUpperCase() === 'SUNDRY CREDITORS' && (
+        {(selectedGroup?.toUpperCase() === 'SUNDRY CREDITORS' ||
+          selectedGroup?.toUpperCase() === 'SUNDRY DEBTORS' ||
+          selectedGroup?.toUpperCase() === 'GENERAL GROUP' ||
+          selectedGroup?.toUpperCase() === 'DISTRIBUTORS, C & F') && (
           <FormikInputField
             isPopupOpen={false}
             label='Mail to'

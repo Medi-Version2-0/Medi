@@ -105,11 +105,11 @@ export const BalanceDetails = ({
           label={`Party Type`}
           value={
             formik.values.partyType === ''
-            ? null
-            : {
-              label: formik.values.partyType,
-              value: formik.values.partyType,
-            }
+              ? null
+              : {
+                  label: formik.values.partyType,
+                  value: formik.values.partyType,
+                }
           }
           id='partyType'
           onChange={handleFieldChange}
@@ -131,13 +131,17 @@ export const BalanceDetails = ({
             if (e.key === 'Enter') {
               !dropdown && e.preventDefault();
               (selectedGroupName.toUpperCase() === 'SUNDRY CREDITORS' ||
-                selectedGroupName.toUpperCase() === 'SUNDRY DEBTORS') &&
+                selectedGroupName.toUpperCase() === 'SUNDRY DEBTORS' ||
+                selectedGroupName?.toUpperCase() === 'GENERAL GROUP' ||
+                selectedGroupName?.toUpperCase() === 'DISTRIBUTORS, C & F') &&
                 document.getElementById('creditLimit')?.focus();
             }
           }}
         />
         {(selectedGroupName.toUpperCase() === 'SUNDRY CREDITORS' ||
-          selectedGroupName.toUpperCase() === 'SUNDRY DEBTORS') && (
+          selectedGroupName.toUpperCase() === 'SUNDRY DEBTORS' ||
+          selectedGroupName?.toUpperCase() === 'GENERAL GROUP' ||
+          selectedGroupName?.toUpperCase() === 'DISTRIBUTORS, C & F') && (
           <div className='flex flex-col gap-1'>
             <FormikInputField
               isPopupOpen={false}

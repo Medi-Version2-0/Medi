@@ -12,12 +12,10 @@ export const ControlRoomSettings = ({
   fields,
   initialValues,
   className,
-
 }: ledgerSettingProps) => {
-
   const { updateControls } = useControls();
 
-  const handleSubmit = async (values: object) => {
+  const handleSubmit = async (values: any) => {
     togglePopup(false);
     updateControls(values);
   };
@@ -38,6 +36,7 @@ export const ControlRoomSettings = ({
                     component={CustomToggleSwitch}
                     label={field.label}
                     index={index}
+                    formik={formik}
                   />
                 </div>
               ))}

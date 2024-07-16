@@ -260,7 +260,10 @@ export const Ledger = () => {
         return (
           !params.data.isPredefinedLedger &&
           (params.data.Group.group_name === 'SUNDRY CREDITORS' ||
-            params.data.Group.group_name === 'SUNDRY DEBTORS')
+            params.data.Group.group_name === 'SUNDRY DEBTORS' ||
+            params.data.Group.group_name.toUpperCase() === 'GENERAL GROUP' ||
+            params.data.Group.group_name.toUpperCase() ===
+              'DISTRIBUTORS, C & F')
         );
       },
       headerClass: 'custom-header',

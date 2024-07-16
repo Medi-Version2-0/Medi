@@ -150,7 +150,12 @@ export const CreateLedger = ({ setView, data }: any) => {
 
   useEffect(() => {
     setIsSUNDRY(
-      ['SUNDRY CREDITORS', 'SUNDRY DEBTORS'].includes(group.toUpperCase())
+      [
+        'SUNDRY CREDITORS',
+        'SUNDRY DEBTORS',
+        'GENERAL GROUP',
+        'DISTRIBUTORS, C & F',
+      ].includes(group.toUpperCase())
     );
   }, [group]);
 
@@ -164,7 +169,12 @@ export const CreateLedger = ({ setView, data }: any) => {
       newValues.accountGroup = value;
       newValues.openingBal = '0.00';
       if (
-        ['SUNDRY CREDITORS', 'SUNDRY DEBTORS'].includes(value.toUpperCase())
+        [
+          'SUNDRY CREDITORS',
+          'SUNDRY DEBTORS',
+          'GENERAL GROUP',
+          'DISTRIBUTORS, C & F',
+        ].includes(value.toUpperCase())
       ) {
         newValues.country = 'India';
       }

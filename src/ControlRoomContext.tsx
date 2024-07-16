@@ -25,7 +25,7 @@ export interface ControlFields {
   allowItemAsService: boolean;
   generateBarcodeBatchWise: boolean;
   rxNonrx: boolean;
-  dpcoAct: boolean;
+  dpcoAct: number;
   packaging: boolean;
   dualPriceList: boolean;
   rackNumber:boolean;
@@ -62,7 +62,7 @@ const defaultSettings: ControlFields = {
   allowItemAsService: false,
   generateBarcodeBatchWise: false,
   rxNonrx: false,
-  dpcoAct: false,
+  dpcoAct: 0,
   packaging: false,
   dualPriceList: false,
   rackNumber:false,

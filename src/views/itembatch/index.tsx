@@ -33,6 +33,7 @@ export const Batch = ({
   const pinnedRow: BatchForm = {
     itemId: id ? +id : 0,
     batchNo: '',
+    mfgCode: '',
     expiryDate: '',
     opBalance: null,
     opFree: null,
