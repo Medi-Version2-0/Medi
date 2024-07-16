@@ -15,7 +15,6 @@ import { useParams } from 'react-router-dom';
 const initialValue = {
   group_code: '',
   group_name: '',
-  type: '',
   parent_code: '',
   isPredefinedGroup: true,
 };
@@ -34,23 +33,6 @@ export const SubGroups = () => {
     message: '',
   });
 
-  const typeMapping = {
-    p_and_l: 'P&L',
-    balance_sheet: 'Balance Sheet',
-  };
-
-  const extractKeys = (mappings: any) => {
-    const value = Object.keys(mappings);
-    value[0] = 'P&L';
-    value[1] = 'Balance Sheet';
-    return value;
-  };
-
-  const types = extractKeys(typeMapping);
-
-  const lookupValue = (mappings: any, key: string | number) => {
-    return mappings[key];
-  };
 
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
@@ -322,21 +304,6 @@ export const SubGroups = () => {
         flex: 1,
         filter: true,
         editable: true,
-        headerClass: 'custom-header',
-        suppressMovable: true,
-      },
-      {
-        headerName: 'P&L / BL. Sheet',
-        field: 'type',
-        filter: true,
-        editable: true,
-        cellEditor: 'agSelectCellEditor',
-        cellEditorParams: {
-          values: types,
-        },
-        valueFormatter: (params: { value: string | number }) =>
-          lookupValue(typeMapping, params.value),
-        flex: 1,
         headerClass: 'custom-header',
         suppressMovable: true,
       },

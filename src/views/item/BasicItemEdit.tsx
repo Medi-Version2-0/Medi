@@ -370,9 +370,13 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
         label: 'DPCO Act.',
         id: 'dpcoact',
         name: 'dpcoact',
-        type: 'text',
+        type: 'select',
         nextField: 'upload',
         prevField: 'rackNumber',
+        options: [
+          { label: 'Yes', value: 'Yes' },
+          { label: 'No', value: 'No' },
+        ],
       },]
       : [],
     {

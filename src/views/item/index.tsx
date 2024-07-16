@@ -61,7 +61,7 @@ const Items = () => {
     allowItemAsService: controlRoomSettings.allowItemAsService || false,
     batchWiseManufacturingCode: controlRoomSettings.batchWiseManufacturingCode,
     rxNonrx: controlRoomSettings.rxNonrx || false,
-    dpcoAct: controlRoomSettings.dpcoAct || false,
+    dpcoAct: controlRoomSettings.dpcoAct || 0,
     packaging: controlRoomSettings.packaging || false,
     rackNumber:controlRoomSettings.rackNumber || false,
     dualPriceList: controlRoomSettings.dualPriceList || false,

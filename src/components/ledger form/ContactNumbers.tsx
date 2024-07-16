@@ -19,7 +19,9 @@ export const ContactNumbers: React.FC<ContactNumbersProps> = ({
   return (
     <>
       {(selectedGroupName.toUpperCase() === 'SUNDRY CREDITORS' ||
-        selectedGroupName.toUpperCase() === 'SUNDRY DEBTORS') && (
+        selectedGroupName.toUpperCase() === 'SUNDRY DEBTORS' ||
+        selectedGroupName?.toUpperCase() === 'GENERAL GROUP' ||
+        selectedGroupName?.toUpperCase() === 'DISTRIBUTORS, C & F') && (
         <div className='relative border border-solid border-gray-400 p-4'>
           <div className='absolute top-[-14px] left-2 px-2 w-max bg-[#f3f3f3]'>
             Contact Numbers
