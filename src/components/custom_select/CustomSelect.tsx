@@ -45,7 +45,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   value,
   onChange,
   placeholder = '',
-  isSearchable = false,
+  isSearchable = true,
   disableArrow = true,
   hidePlaceholder = true,
   className = '',
@@ -85,11 +85,11 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   }, [isFocused]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'Enter' || e.key === 'ArrowDown') {
+    if (e.key === 'Enter') {
       if (nextField) {
         document.getElementById(nextField)?.focus();
       }
-    } else if ((e.key === 'Enter' && e.shiftKey) || e.key === 'ArrowUp') {
+    } else if ((e.key === 'Enter' && e.shiftKey) || e.key === '') {
       if (prevField) {
         document.getElementById(prevField)?.focus();
       }

@@ -145,6 +145,7 @@ export interface PopupProps {
   children: any;
   className?: string;
   childClass?: string;
+  onClose?: () => void;
 }
 
 export interface Confirm_Alert_PopupProps {

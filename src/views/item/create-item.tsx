@@ -29,8 +29,8 @@ export interface ItemFormValues {
   selected: string;
   rackNumber: string;
   dpcoact: string;
-  upload: string;
-  prescriptionType:string;
+  prescriptionType: string;
+  upload: File | null;
 }
 
 export type ItemFormInfoType = FormikProps<ItemFormValues>;
@@ -48,7 +48,7 @@ const CreateItem = ({ setView, data }: any) => {
     initialValues: {
       name: data?.name || '',
       packing: data?.packing || '',
-      service: data?.service || '',
+      service: data?.service || 'goods',
       shortName: data?.shortName || '',
       hsnCode: data?.hsnCode || '',
       compId: data?.compId || '',
@@ -56,30 +56,39 @@ const CreateItem = ({ setView, data }: any) => {
       discountPer: data?.discountPer || '',
       saleAccId: data?.saleAccId || '',
       purAccId: data?.purAccId || '',
-      scheduleDrug: data?.scheduleDrug || '',
+      scheduleDrug: data?.scheduleDrug || 'NON-H1',
       itemDiscPer: data?.itemDiscPer || '',
       minQty: data?.minQty || '',
       maxQty: data?.maxQty || '',
       selected: data?.selected || '',
       rackNumber: data?.rackNumber || '',
       dpcoact: data?.dpcoact || '',
-      upload: data?.upload || '',
       marginPercentage: data?.marginPercentage || 0,
-      prescriptionType: data?.prescriptionType || "",
+      prescriptionType: data?.prescriptionType || "RX",
+      upload: data?.upload || '',
     },
 
     validationSchema: itemFormValidations(),
-    onSubmit: async (values) => {
+    onSubmit: async (values: any) => {
       try {
+        const formData = new FormData();
+        Object.keys(values).forEach((key) => {
+          if (values[key] instanceof File) {
+            formData.append('file', values[key]);
+            formData.append(key, 'upload');
+          } else {
+            formData.append(key, values[key]);
+          }
+        });
         if (data.id) {
           await sendAPIRequest(`/${organizationId}/item/${data.id}`, {
             method: 'PUT',
-            body: values,
+            body: formData,
           });
         } else {
           await sendAPIRequest(`/${organizationId}/item`, {
             method: 'POST',
-            body: values,
+            body: formData,
           });
         }
         await queryClient.invalidateQueries({ queryKey: ['get-items'] });
