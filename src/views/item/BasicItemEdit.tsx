@@ -8,6 +8,8 @@ import { useParams } from 'react-router-dom';
 import { useControls } from '../../ControlRoomContext';
 import { FormikProps } from 'formik';
 import onKeyDown from '../../utilities/formKeyDown';
+import ImagePreview from '../../components/common/files/ImagePreview';
+const root = process.env.REACT_APP_API_URL;
 
 interface BasicItemEditProps {
   formik: ItemFormInfoType;
@@ -47,6 +49,13 @@ const Container: React.FC<ContainerProps> = ({ title, fields, formik, setFocused
       },
     });
   };
+  const [newImg, setNewImg] = useState(false);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      formik.setFieldValue(e.target.name, e.target.files[0]);
+      setNewImg(true);
+    }
+  };
   return (
     <div className='relative border w-full h-full pt-4 border-solid border-gray-400'>
       <div className='absolute top-[-14px] left-2  px-2 w-fit bg-[#f3f3f3]'>
@@ -76,12 +85,6 @@ const Container: React.FC<ContainerProps> = ({ title, fields, formik, setFocused
                 formik.setFieldValue(field.name, option ? option.value : null)
               }
               placeholder='Select an option...'
-              isSearchable={
-                field.id === 'compId' ||
-                field.id === 'itemGroupCode' ||
-                field.id === 'saleAccId' ||
-                field.id === 'purAccId'
-              }
               labelClass='min-w-[90px]'
               className='rounded-none'
               isTouched={
@@ -111,30 +114,36 @@ const Container: React.FC<ContainerProps> = ({ title, fields, formik, setFocused
               }}
             />
           ) : (
-            <FormikInputField
-              isPopupOpen={false}
-              key={field.id}
-              label={field.label}
-              id={field.id}
-              name={field.name}
-              formik={formik}
-              className='!mb-0'
-              inputClassName={`${title === 'Basic Info' ? 'w-[80%]' : ''}`}
-              labelClassName='min-w-[90px]'
-              isRequired={field.isRequired}
-              nextField={field.nextField}
-              prevField={field.prevField}
-              type={field.type}
-              onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                handleKeyDown(e)
-              }
-              showErrorTooltip={
-                !!(
-                  formik.touched[field.name as keyof typeof formik.touched] &&
-                  formik.errors[field.name as keyof typeof formik.errors]
-                )
-              }
-            />
+            <>
+              <FormikInputField
+                isPopupOpen={false}
+                key={field.id}
+                label={field.label}
+                id={field.id}
+                name={field.name}
+                formik={formik}
+                className='!mb-0'
+                inputClassName={`${title === 'Basic Info' ? 'w-[80%]' : ''}${field.type === 'file' && 'p-0'}`}
+                labelClassName='min-w-[90px]'
+                isRequired={field.isRequired}
+                nextField={field.nextField}
+                prevField={field.prevField}
+                type={field.type}
+                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
+                  handleKeyDown(e)
+                }
+                showErrorTooltip={
+                  !!(
+                    formik.touched[field.name as keyof typeof formik.touched] &&
+                    formik.errors[field.name as keyof typeof formik.errors]
+                  )
+                }
+                onChange={field.type === 'file' ? handleFileChange : undefined}
+              />
+              {field.type === 'file' && !newImg && (formik.values as any)[field.id] && (
+                <ImagePreview name={field.id} url={`${root}${(formik.values as any)[field.id]}` || ''} formik={formik} setNewImg={setNewImg} className='w-[200px]' />
+              )}
+            </>
           )
         )}
       </div>
@@ -215,15 +224,6 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
       type: 'text',
       nextField: 'compId',
     },
-    {
-      label: 'Company',
-      id: 'compId',
-      name: 'compId',
-      type: 'select',
-      nextField: controlRoomSettings.packaging ? 'packing' : controlRoomSettings.batchWiseManufacturingCode ? 'shortName' : 'service',
-      prevField: 'name',
-      options: options.companiesOptions,
-    },
     ...controlRoomSettings.packaging
       ? [{
         label: 'Packing',
@@ -234,6 +234,15 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
         prevField: 'compId',
       }]
       : [],
+    {
+      label: 'Company',
+      id: 'compId',
+      name: 'compId',
+      type: 'select',
+      nextField: controlRoomSettings.packaging ? 'packing' : controlRoomSettings.batchWiseManufacturingCode ? 'shortName' : 'service',
+      prevField: 'name',
+      options: options.companiesOptions,
+    },
   ];
 
   const container1Fields = [
@@ -283,8 +292,8 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
       name: 'scheduleDrug',
       type: 'select',
       options: [
-        { label: 'Schedule H1', value: 'H1' },
         { label: 'Non-H1', value: 'NON-H1' },
+        { label: 'Schedule H1', value: 'H1' },
       ],
       prevField: 'itemGroupCode',
       nextField: controlRoomSettings.rxNonrx ? 'prescriptionType' : 'saleAccId',
@@ -383,7 +392,7 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
       label: 'Upload Img.',
       id: 'upload',
       name: 'upload',
-      type: 'text',
+      type: 'file',
       nextField: 'submit_all',
       prevField: controlRoomSettings.dpcoAct ? 'dpcoact' : controlRoomSettings.rackNumber ? 'rackNumber' : 'maxQty',
     },

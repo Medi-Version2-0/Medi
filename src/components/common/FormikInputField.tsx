@@ -107,7 +107,6 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
         className={`w-full border border-solid border-[#9ca3af] text-[10px] text-gray-800 h-full rounded-sm p-1 disabled:text-[#A9A9A9] disabled:bg-[#f5f5f5] focus:bg-[#EAFBFCFF] ${!!(formik.touched[id] && formik.errors[id]) && '!border-red-500'} ${inputClassName}`}
         onBlur={formik.handleBlur}
         onChange={onChange}
-        value={formik.values[id]}
         onKeyDown={handleKeyDown}
         onClick={onClick}
         placeholder={placeholder}
@@ -115,6 +114,8 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
         data-next-field={nextField}
         data-prev-field={prevField}
         data-side-field={sideField}
+        {...(type !== 'file' && { value: formik.values[id] })}
+        {...(type === 'file' && { accept: "image/*" })}
       />
       {showErrorTooltip && formik.touched[id] && formik.errors[id] && (
         <>

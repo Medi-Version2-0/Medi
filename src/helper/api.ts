@@ -1,116 +1,60 @@
 import { USER_LS_KEY } from '../UserContext';
 import { getAccessToken, refreshToken } from '../auth';
-
-class ApiError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'ApiError';
-  }
-}
-
-class AuthError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'AuthError';
-  }
-}
-
-class NetworkError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'NetworkError';
-  }
-}
+import axios, { AxiosError } from 'axios';
 
 export const APIURL = process.env.REACT_APP_API_URL;
 
-async function callApi(
-  url: string,
-  token: string,
-  init: RequestInit | undefined = undefined,
-  requireToken: boolean
-) {
-  let headers = init?.headers || {};
-  headers = {
-    ...headers,
+export const sendAPIRequest = async <T>(
+  subUrl: string,
+  init?: any,
+  requireToken = true
+): Promise<T> => {
+  const token = requireToken ? getAccessToken() : '';
+  const url = `${APIURL}${subUrl}`;
+
+  const headers = {
     'Content-type': 'application/json',
     ...(requireToken && { Authorization: 'Bearer ' + token }),
   };
 
   try {
-    const response = await fetch(url, { ...init, headers });
-
-    if (!response.ok) {
-      if (response.status === 401) {
-        throw new AuthError('Unauthorized access - token may be expired');
-      } else {
-        const errorText = await response.text();
-        throw new ApiError(`API Error: ${response.status} ${errorText}`);
-      }
+    if ((init?.body instanceof FormData)) {
+      headers['Content-type'] = 'multipart/form-data';
+      console.log(headers);
     }
+    const response: any = await axios.request<T>({
+      url,
+      method: init?.method || 'GET',
+      data: init?.method !== 'GET' ? init?.body : undefined,
+      headers: { ...(init?.headers || {}), ...headers },
+    });
 
-    return response;
+    return response.data?.data;
+
   } catch (error) {
-    if (error instanceof TypeError) {
-      throw new NetworkError('Network error - could not reach server');
-    }
-    throw error;
-  }
-}
+    const axiosError = error as AxiosError;
 
-interface RequestInitWithBody extends RequestInit {
-  body?: any;
-}
+    if (axiosError.response?.status === 401) {
+      const storedUser = localStorage.getItem(USER_LS_KEY);
+      const storedPassword = localStorage.getItem('password');
 
-export const sendAPIRequest = async <T>(
-  subUrl: string,
-  init: RequestInitWithBody | undefined = undefined,
-  requireToken: boolean = true
-): Promise<T> => {
-  const token = requireToken ? getAccessToken() : '';
-  if (init?.body) {
-    init.body = JSON.stringify(init.body) as string;
-  }
-
-  const url = `${APIURL}${subUrl}`;
-
-  try {
-    const response = await callApi(url, token, init, requireToken);
-    return (await response.json().then((e) => {
-      if (e.error) {
-        throw new ApiError(e.error);
-      }
-      return e.data;
-    })) as Promise<T>;
-  } catch (error) {
-    if (error instanceof AuthError) {
-      const getLocalUser = localStorage.getItem(USER_LS_KEY);
-      const getPassword = localStorage.getItem('password');
-
-      if (!getLocalUser || !getPassword) {
-        throw new AuthError('User credentials not found in local storage');
+      if (!storedUser || !storedPassword) {
+        throw new Error('User credentials not found locally');
       }
 
-      const parsedUser = JSON.parse(getLocalUser);
+      const parsedUser = JSON.parse(storedUser);
 
-      console.error('Access Token has expired, attempting to refresh');
-
-      return refreshToken({
-        password: getPassword,
-        email: parsedUser.email,
-      })
-        .then((token) => callApi(url, token, init, requireToken))
-        .then((o) => o.json() as Promise<T>)
-        .catch((err) => {
-          throw new AuthError('Failed to refresh token: ' + err.message);
-        });
-    } else if (error instanceof NetworkError) {
-      throw new NetworkError('Network error occurred: ' + error.message);
-    } else if (error instanceof ApiError) {
-      throw new ApiError('API error occurred: ' + error.message);
+      try {
+        const newToken = await refreshToken({ password: storedPassword, email: parsedUser.email });
+        return sendAPIRequest<T>(subUrl, {
+          ...init,
+          headers: { ...(init?.headers || {}), Authorization: `Bearer ${newToken}` },
+        }, requireToken);
+      } catch (refreshError) {
+        throw new Error('Failed to refresh token: ' + (refreshError as Error).message);
+      }
     } else {
-      const e = error as Error;
-      throw new Error('An unexpected error occurred: ' + e.message);
+      throw error;
     }
   }
 };
