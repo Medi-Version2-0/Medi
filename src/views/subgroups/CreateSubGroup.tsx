@@ -31,7 +31,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
   useEffect(() => {
     const focusTarget = !isDelete
       ? document.getElementById('group_name')
-      : document.getElementById('cancel_button');
+      : document.getElementById('del_button');
     focusTarget?.focus();
   }, []);
 
@@ -94,9 +94,9 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
       togglePopup={togglePopup}
       heading={
         group_code && isDelete
-          ? 'Delete Group'
+          ? 'Delete Sub-Group'
           : group_code
-            ? 'Update Group'
+            ? 'Update Sub-Group'
             : 'Create Sub-Group'
       }
       className={className}
@@ -173,7 +173,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                           if (!dropdown) {
                             e.preventDefault();
                           }
-                          document.getElementById('p_and_l')?.focus();
+                          document.getElementById('submit_button')?.focus();
                         }
                         if (e.shiftKey && e.key === 'Tab') {
                           if (!dropdown) {
@@ -204,7 +204,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                     e.preventDefault();
                     document
                       .getElementById(
-                        `${isDelete ? 'cancel_button' : 'balance_sheet'}`
+                        `${isDelete ? 'cancel_button' : 'parent_code'}`
                       )
                       ?.focus();
                   }

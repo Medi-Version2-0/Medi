@@ -124,7 +124,7 @@ export const Tabs = () => {
     <div className='flex w-full h-full'>
       <Sidebar openTab={actions.openTab} />
       <div
-        className='m-[10px] bg-white p-[10px] rounded-[7px] h-screen'
+        className='m-[10px] bg-white p-[10px] rounded-[7px] min-h-full h-fit'
         style={{ width: 'calc(100vw - 215px)' }}
       >
         <Tablist />
