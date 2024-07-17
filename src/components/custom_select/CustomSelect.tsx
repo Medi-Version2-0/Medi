@@ -107,7 +107,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
       {label && (
         <label
           htmlFor={id}
-          className={`${isPopupOpen ? `absolute top-0 left-1 -translate-y-1/2 bg-white px-1 z-10 ${isTouched && error && !active && '!text-red-700'} ${labelClass}` : `flex items-start h-full ${labelClass}`}`}
+          className={`${isPopupOpen ? `absolute top-0 left-1 -translate-y-1/2 bg-white px-1 z-[1] ${isTouched && error && !active && '!text-red-700'} ${labelClass}` : `flex items-start h-full ${labelClass}`}`}
         >
           {label}
         </label>
@@ -147,7 +147,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
             <ReactTooltip
               id={`${id}-error-tooltip`}
               place='bottom'
-              className=' text-[white] border rounded text-sm z-10 p-2 border-solid border-[#d8000c] !bg-red-600'
+              className=' text-[white] border rounded text-sm z-[1] p-2 border-solid border-[#d8000c] !bg-red-600'
             >
               {error}
             </ReactTooltip>

@@ -51,6 +51,14 @@ export interface CreateStationProps {
   deleteAcc: (station_id: string) => void;
   className?: string;
 }
+export interface CreateBillProps {
+  togglePopup: Function;
+  data: BillBookFormData;
+  handelFormSubmit: any;
+  isDelete: any;
+  deleteAcc: (station_id: string) => void;
+  className?: string;
+}
 
 export interface CreateSalePurchaseProps {
   type?: string;
@@ -98,6 +106,36 @@ export interface BatchForm {
   purPrice: number | null;
   salePrice: number | null;
   mrp: number | null;
+  locked: string;
+}
+export interface BillBookForm {
+  id?: number;
+  seriesId?: number;
+  seriesName?: string;
+  billName: string;
+  billBookPrefix: string;
+  company: string;
+  billType: string;
+  orderOfBill: number | null;
+  locked: string;
+}
+export interface BillBookFormData {
+  id?: number;
+  seriesId?: number;
+  billName: string;
+  billBookPrefix: string;
+  company: string;
+  billType: string;
+  orderOfBill: string;
+  locked: string;
+}
+
+export interface BillBookFormDataProps {
+  billName: string;
+  billBookPrefix?: string;
+  company: string;
+  billType: string;
+  orderOfBill: number | null;
   locked: string;
 }
 

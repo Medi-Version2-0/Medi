@@ -15,6 +15,7 @@ import { Store } from '../../views/Stores';
 import { Company } from '../../views/company';
 import { Ledger } from '../../views/ledger';
 import { Sales_Table } from '../../views/sales_purchase';
+import { BillBook } from '../../views/BillBook';
 
 type SubElementKey = 'master' | 'setup';
 
@@ -135,20 +136,14 @@ const Sidebar: React.FC<SidebarProps> = ({
               url='/sales_purchase_table'
               label='Sales Account'
               onClick={() =>
-                openTab?.(
-                  'Sales Account',
-                  <Sales_Table type={'Sales'}/>
-                )
+                openTab?.('Sales Account', <Sales_Table type={'Sales'} />)
               }
             />
             <MenuItem
               url='/sales_purchase_table'
               label='Purchase Account'
               onClick={() =>
-                openTab?.(
-                  'Purchase Account',
-                  <Sales_Table type='Purchase' />
-                )
+                openTab?.('Purchase Account', <Sales_Table type='Purchase' />)
               }
             />
             <MenuItem
@@ -162,7 +157,11 @@ const Sidebar: React.FC<SidebarProps> = ({
               icon={<FaPlus className='fill-yellow-900' />}
               onClick={() => openTab?.('Company', <Company />)}
             />
-            {showSubElements.setup && <></>}
+            <MenuItem
+              url='/billBook'
+              label='Bill Book Setup'
+              onClick={() => openTab?.('Bill Book Setup', <BillBook />)}
+            />
           </>
         )}
         <div className='flex justify-between bg-[#EAFBFCFF] cursor-pointer text-base p-2 border border-solid border-[#009196FF]'>

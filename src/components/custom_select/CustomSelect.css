@@ -69,3 +69,7 @@
 .custom-select__input-container{
   margin: 0px !important;
 }
+
+.css-1nmdiq5-menu{
+  z-index: 2 !important;
+}
