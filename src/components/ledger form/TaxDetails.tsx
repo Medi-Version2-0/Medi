@@ -35,7 +35,7 @@ export const TaxDetails: React.FC<TaxInfoProps> = ({
         name='gstIn'
         maxLength={15}
         isTitleCase={false}
-        isRequired={true}
+        isRequired={false}
         formik={formik}
         labelClassName='min-w-[90px]'
         onChange={handleChange}
@@ -54,7 +54,7 @@ export const TaxDetails: React.FC<TaxInfoProps> = ({
         formik={formik}
         labelClassName='min-w-[90px]'
         prevField='panCard'
-        nextField='gstExpiry'
+        nextField='Licence_Info'
         showErrorTooltip={formik.touched.panCard && formik.errors.panCard}
       />
       <FormikInputField
