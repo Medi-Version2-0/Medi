@@ -29,7 +29,7 @@ export interface ControlFields {
   dpcoDiscount: number;
   packaging: boolean;
   dualPriceList: boolean;
-  rackNumber:boolean;
+  rackNumber: boolean;
   //GENERAL
   gstRefundBenefit: boolean;
   itemWiseDiscount: boolean;
@@ -43,6 +43,19 @@ export interface ControlFields {
   defaultDownloadPath: boolean;
   // station
   igstSaleFacility: boolean;
+  // invoice
+  stockNegative: boolean;
+  ifItemRepeatedInBill: boolean;
+  stopCursorAtInvoice: boolean;
+  schemeColPercentRequired: boolean;
+  showMFGCompanyWithItem: boolean;
+  invoiceWithoutHavingStock: boolean;
+  saveEntryTimeOfInvoice: boolean;
+  lossWarningOfInvoice: boolean;
+  numberOfCopiesInInvoice: number;
+  cursorAtSave: boolean;
+  smsOfInvoice: boolean;
+  shippingAddressRequired: boolean;
 }
 
 interface ControlRoomContextType {
@@ -67,7 +80,7 @@ const defaultSettings: ControlFields = {
   dpcoDiscount: 0,
   packaging: false,
   dualPriceList: false,
-  rackNumber:false,
+  rackNumber: false,
   gstRefundBenefit: false,
   itemWiseDiscount: false,
   showItemSpecialRate: false,
@@ -79,6 +92,18 @@ const defaultSettings: ControlFields = {
   removeStripOption: false,
   defaultDownloadPath: false,
   igstSaleFacility: false,
+  stockNegative: false,
+  ifItemRepeatedInBill: false,
+  stopCursorAtInvoice: false,
+  schemeColPercentRequired: true,
+  showMFGCompanyWithItem: true,
+  invoiceWithoutHavingStock: false,
+  saveEntryTimeOfInvoice: true,
+  lossWarningOfInvoice: true,
+  numberOfCopiesInInvoice: 1,
+  cursorAtSave: false,
+  smsOfInvoice: false,
+  shippingAddressRequired: false,
 };
 
 const controlRoomContext = createContext<ControlRoomContextType | undefined>(
@@ -100,7 +125,6 @@ export const ControlRoomProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     !isPending && data && getControls();
   }, [data]);
-
   const getControls = async () => {
     updateControlRoomSettings(data);
   };
