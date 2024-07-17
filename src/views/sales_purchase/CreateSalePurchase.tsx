@@ -229,7 +229,7 @@ export const CreateSalePurchase = ({
               { value: 'Dr', label: 'Dr' },
             ]}
             isSearchable={false}
-            placeholder='Op. Balance Type'
+            placeholder='Type'
             disableArrow={false}
             hidePlaceholder={false}
             containerClass='!w-1/3'
