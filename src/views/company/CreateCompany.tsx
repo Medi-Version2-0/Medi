@@ -39,11 +39,11 @@ export const CreateCompany = ({ setView , data }: any) => {
       address3: data?.address3 || '',
       stationId: data?.stationId || '',
       //balance
-      openingBal: data?.openingBal ?? null,
+      openingBal: data?.openingBal || '',
       openingBalType: data?.openingBalType || 'Dr',
       salesId: data?.salesId || '',
       purchaseId: data?.purchaseId || '',
-      discPercent: data?.discPercent ?? null,
+      discPercent: data?.discPercent || '',
       isDiscountPercent: data?.isDiscountPercent || '',
       //tax
       gstIn: data?.gstIn || '',
@@ -63,7 +63,6 @@ export const CreateCompany = ({ setView , data }: any) => {
     validationSchema: getCompanyFormSchema(),
     onSubmit: async (values) => {
       const allData = { ...values };
-
       if (data.company_id) {
         await sendAPIRequest(`/${organizationId}/company/${data.company_id}`, {
           method: 'PUT',
@@ -279,7 +278,7 @@ export const CreateCompany = ({ setView , data }: any) => {
                     />
                   </div>
                 </div>
-                <div className='flex flex-col gap-3'>
+                <div className='flex flex-col gap-3 w-[48%]'>
                   <CustomSelect
                     isPopupOpen={false}
                     label='Station'
@@ -303,7 +302,7 @@ export const CreateCompany = ({ setView , data }: any) => {
                     disableArrow={true}
                     hidePlaceholder={false}
                     className='!h-6 rounded-sm'
-                    isRequired={false}
+                    isRequired={true}
                     error={formik.errors.stationId}
                     isTouched={formik.touched.stationId}
                     showErrorTooltip={true}
@@ -331,10 +330,10 @@ export const CreateCompany = ({ setView , data }: any) => {
                       formik={formik}
                       placeholder='0.00'
                       maxLength={12}
-                      className='!mb-0'
+                      className='!mb-0 w-[100%]'
                       isRequired={false}
-                      inputClassName='h-9 text-right w-[335px]'
-                      labelClassName='min-w-[112px]'
+                      inputClassName='w-full'
+                      labelClassName='min-w-[110px]'
                       prevField='stationId'
                       nextField='openingBalType'
                       onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
@@ -590,8 +589,8 @@ export const CreateCompany = ({ setView , data }: any) => {
                       />
                   </div>
                   </div>
-              <div className='flex gap-[3rem] m-[1px]'>
-                <div className='w-[48%]'>
+              <div className='flex gap-[3rem] m-[1px] w-full'>
+                <div className='w-[50%]'>
                   <FormikInputField
                     isPopupOpen={false}
                     label='CD% CUST'
@@ -612,7 +611,7 @@ export const CreateCompany = ({ setView , data }: any) => {
                     }
                   />
                 </div>
-                <div className='w-[48%]'>
+                <div className='w-[50%]'>
                   <CustomSelect
                     isPopupOpen={false}
                     id='isDiscountPercent'
@@ -655,7 +654,7 @@ export const CreateCompany = ({ setView , data }: any) => {
                 </div>
               </div>
               <div className='flex gap-3 m-[1px]'>
-                <div className='w-[48%]'>
+                <div className='w-[47.9%]'>
                   <CustomSelect
                     isPopupOpen={false}
                     label='State In Out'
@@ -698,7 +697,7 @@ export const CreateCompany = ({ setView , data }: any) => {
                 </div>
               </div>
 
-              <div className='flex gap-[2.8rem] m-[1px]'>
+              <div className='flex gap-[4.4%] m-[1px]'>
                 <div className='flex'>
                   <FormikInputField
                     isPopupOpen={false}
@@ -707,7 +706,7 @@ export const CreateCompany = ({ setView , data }: any) => {
                     name='phoneNumber'
                     maxLength={10}
                     formik={formik}
-                    inputClassName=' border-l-0 w-[355px]'
+                    inputClassName=' border-l-0 w-[349px]'
                     labelClassName='min-w-[118px]'
                     className='!gap-0 text-xs text-gray-600'
                     isRequired={false}
@@ -734,7 +733,7 @@ export const CreateCompany = ({ setView , data }: any) => {
                     name='mobileNumber'
                     maxLength={10}
                     formik={formik}
-                    inputClassName='!ml-0 border-l-0 w-[350px]'
+                    inputClassName='!ml-0 border-l-0 w-[342px]'
                     labelClassName='min-w-[110px] mr-3'
                     className='!gap-0 text-xs text-gray-600'
                     isRequired={false}
@@ -763,7 +762,7 @@ export const CreateCompany = ({ setView , data }: any) => {
                   id='emailId1'
                   name='emailId1'
                   isTitleCase={false}
-                  inputClassName='w-[36.9%]'
+                  inputClassName='w-[36.6%]'
                   placeholder='abc@example.com'
                   formik={formik}
                   showErrorTooltip={
@@ -782,7 +781,7 @@ export const CreateCompany = ({ setView , data }: any) => {
                   id='emailId2'
                   name='emailId2'
                   isTitleCase={false}
-                  inputClassName='w-[36.9%]'
+                  inputClassName='w-[36.6%]'
                   placeholder='abc@example.com'
                   formik={formik}
                   showErrorTooltip={
@@ -800,7 +799,7 @@ export const CreateCompany = ({ setView , data }: any) => {
                   label='Email ID 3'
                   id='emailId3'
                   isTitleCase={false}
-                  inputClassName='w-[36.9%]'
+                  inputClassName='w-[36.6%]'
                   name='emailId3'
                   placeholder='abc@example.com'
                   formik={formik}
