@@ -2,7 +2,6 @@ import React from 'react';
 import { Tooltip as ReactTooltip } from 'react-tooltip';
 import { FaExclamationCircle } from 'react-icons/fa';
 import titleCase from '../../utilities/titleCase';
-import { kMaxLength } from 'buffer';
 
 interface FormikInputFieldProps {
   label?: string;
@@ -45,6 +44,7 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
   id,
   formik,
   type = 'text',
+  maxLength,
   showErrorTooltip = false,
   isRequired = false,
   children,
@@ -103,7 +103,7 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
         type={type}
         id={id}
         name={name}
-        maxLength={kMaxLength}
+        maxLength={maxLength}
         className={`w-full border border-solid border-[#9ca3af] text-[10px] text-gray-800 h-full rounded-sm p-1 disabled:text-[#A9A9A9] disabled:bg-[#f5f5f5] focus:bg-[#EAFBFCFF] ${!!(formik.touched[id] && formik.errors[id]) && '!border-red-500'} ${inputClassName}`}
         onBlur={formik.handleBlur}
         onChange={onChange}

@@ -26,6 +26,7 @@ import RedirectToCompany from './components/RedirectToCompany';
 import Items from './views/item';
 import { ItemGroups } from './views/itemGroups';
 import { Sales_Table } from './views/sales_purchase';
+import { BillBook } from './views/BillBook';
 
 export const App = () => {
   return (
@@ -103,12 +104,12 @@ const AppRoot = () => {
           <ProtectedRoute element={<Items />} requiredPermissions={['admin']} />
         }
       />
-      {/* <Route
-        path='/items/:itemId/batch'
+      <Route
+        path='/billBook'
         element={
-          <ProtectedRoute element={<Batch />} requiredPermissions={['admin']} />
+          <ProtectedRoute element={<BillBook />} requiredPermissions={['admin']} />
         }
-      /> */}
+      />
     </Routes>
   );
 };
