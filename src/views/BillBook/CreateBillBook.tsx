@@ -106,10 +106,10 @@ export const CreateBillBook = ({
         initialValues={{
           billName: data?.billName || '',
           billBookPrefix: data?.billBookPrefix || '',
-          company: data?.company || '',
-          billType: data?.billType || '',
+          company: data?.company || 'All Companies',
+          billType: data?.billType || 'Both',
           orderOfBill: data?.orderOfBill || '',
-          locked: data?.locked || '',
+          locked: data?.locked || 'No',
         }}
         validationSchema={validationSchema}
         onSubmit={handleSubmit}
@@ -247,10 +247,6 @@ export const CreateBillBook = ({
                         if (!dropdown) {
                           e.preventDefault();
                         }
-                        console.log(
-                          "document.getElementById('orderOfBill') >>>>>",
-                          document.getElementById('orderOfBill')
-                        );
                         document.getElementById('orderOfBill')?.focus();
                       }
                       if (e.shiftKey && e.key === 'Tab') {
@@ -271,7 +267,7 @@ export const CreateBillBook = ({
               className='!gap-0'
               isDisabled={isDelete && id}
               sideField='orderOfBill'
-              nextField='locked'
+              nextField={`${id ? 'locked' : 'submit_button'}`}
               prevField='billType'
               onChange={handleNumeric}
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>

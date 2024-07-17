@@ -147,3 +147,65 @@ export const stationSettingFields: SettingField[] = [
     name: 'igstSaleFacility',
   },
 ]; 
+export const invoiceSettingFields: SettingField[] = [  
+  {
+    label: 'Stock Negative Allowed',
+    id: 'stockNegative',
+    name: 'stockNegative',
+  },
+  {
+    label: 'Indicate if Item Repeated in Bill',
+    id: 'ifItemRepeatedInBill',
+    name: 'ifItemRepeatedInBill',
+  },
+  {
+    label: 'Stop Cursor at Invoice No., Date, GRNO. and etc.',
+    id: 'stopCursorAtInvoice',
+    name: 'stopCursorAtInvoice',
+  },
+  {
+    label: 'Scheme Col. Percent/Rupees/Rs. Per PC. Required',
+    id: 'schemeColPercentRequired',
+    name: 'schemeColPercentRequired',
+  },
+  {
+    label: 'Show MFG. Company name with Item name',
+    id: 'showMFGCompanyWithItem',
+    name: 'showMFGCompanyWithItem',
+  },
+  {
+    label: 'Invoice Without having Stock',
+    id: 'invoiceWithoutHavingStock',
+    name: 'invoiceWithoutHavingStock',
+  },
+  {
+    label: 'Save Entry Time of Invoice & Challan',
+    id: 'saveEntryTimeOfInvoice',
+    name: 'saveEntryTimeOfInvoice',
+  },
+  {
+    label: 'Loss Warning in Invoice',
+    id: 'lossWarningOfInvoice',
+    name: 'lossWarningOfInvoice',
+  },
+  {
+    label: 'Number of Copies by Default in Invoice Print',
+    id: 'numberOfCopiesInInvoice',
+    name: 'numberOfCopiesInInvoice',
+  },
+  {
+    label: 'Cursor at Save In Place of Pring & Save',
+    id: 'cursorAtSave',
+    name: 'cursorAtSave',
+  },
+  {
+    label: 'SMS of Invoice',
+    id: 'smsOfInvoice',
+    name: 'smsOfInvoice',
+  },
+  {
+    label: 'Shipping Address Required',
+    id: 'shippingAddressRequired',
+    name: 'shippingAddressRequired',
+  },
+]; 

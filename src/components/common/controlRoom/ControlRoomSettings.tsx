@@ -22,12 +22,12 @@ export const ControlRoomSettings = ({
   return (
     <Popup
       heading={heading}
-      childClass='h-fit !max-w-full min-w-[60%]'
+      childClass='h-fit !max-w-full min-w-[60%] pl-4'
       className={className}
     >
       <Formik initialValues={initialValues} onSubmit={handleSubmit}>
         {(formik) => (
-          <Form className='flex flex-col gap-3 items-center px-4'>
+          <Form className='flex flex-col gap-3 items-center px-2'>
             <div className='flex flex-col w-full'>
               {fields.map((field: any, index: number) => (
                 <div key={index}>
@@ -41,7 +41,7 @@ export const ControlRoomSettings = ({
                 </div>
               ))}
             </div>
-            <div className='flex justify-between my-4 w-full'>
+            <div className='flex justify-end my-4 px-4 gap-6 w-full'>
               <Button
                 autoFocus={true}
                 type='fog'

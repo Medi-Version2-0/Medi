@@ -10,6 +10,10 @@ import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
 import { useParams } from 'react-router-dom';
 import { CreateBillBook } from './CreateBillBook';
+import { IoSettingsOutline } from 'react-icons/io5';
+import { ControlRoomSettings } from '../../components/common/controlRoom/ControlRoomSettings';
+import { invoiceSettingFields } from '../../components/common/controlRoom/settings';
+import { useControls } from '../../ControlRoomContext';
 
 type SeriesOption = {
   id: number;
@@ -45,12 +49,32 @@ const seriesOptions: SeriesOption[] = [
 export const BillBook = () => {
   const { organizationId } = useParams();
   const [open, setOpen] = useState<boolean>(false);
+  const [settingToggleOpen, setSettingToggleOpen] = useState<boolean>(false);
   const [selectedSeries, setSelectedSeries] = useState<string>('1');
   const [formData, setFormData] = useState<BillBookForm | any>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<BillBookForm | any>(null);
   const editing = useRef(false);
   let currTable: any[] = [];
+  const { controlRoomSettings } = useControls();
+
+  const initialValues = {
+    stockNegative: controlRoomSettings.stockNegative || false,
+    ifItemRepeatedInBill: controlRoomSettings.ifItemRepeatedInBill || false,
+    stopCursorAtInvoice: controlRoomSettings.stopCursorAtInvoice || false,
+    schemeColPercentRequired:
+      controlRoomSettings.schemeColPercentRequired || true,
+    showMFGCompanyWithItem: controlRoomSettings.showMFGCompanyWithItem || true,
+    invoiceWithoutHavingStock:
+      controlRoomSettings.invoiceWithoutHavingStock || false,
+    saveEntryTimeOfInvoice: controlRoomSettings.saveEntryTimeOfInvoice || true,
+    lossWarningOfInvoice: controlRoomSettings.lossWarningOfInvoice || true,
+    numberOfCopiesInInvoice: controlRoomSettings.numberOfCopiesInInvoice || 1,
+    cursorAtSave: controlRoomSettings.cursorAtSave || false,
+    smsOfInvoice: controlRoomSettings.smsOfInvoice || false,
+    shippingAddressRequired:
+      controlRoomSettings.shippingAddressRequired || false,
+  };
 
   const isDelete = useRef(false);
 
@@ -77,6 +101,10 @@ export const BillBook = () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [selectedRow]);
+
+  const toggleSettingPopup = (isOpen: boolean) => {
+    setSettingToggleOpen(isOpen);
+  };
 
   const togglePopup = (isOpen: boolean) => {
     if (!isOpen) {
@@ -433,9 +461,19 @@ export const BillBook = () => {
         <div className='w-full'>
           <div className='flex w-full items-center justify-between px-8 py-1'>
             <h1 className='font-bold'>Bill Book Setup</h1>
-            <Button type='highlight' handleOnClick={() => togglePopup(true)}>
-              Add Series
-            </Button>
+            <div className='flex gap-5'>
+              <Button
+                type='highlight'
+                handleOnClick={() => {
+                  toggleSettingPopup(true);
+                }}
+              >
+                <IoSettingsOutline />
+              </Button>
+              <Button type='highlight' handleOnClick={() => togglePopup(true)}>
+                Add Series
+              </Button>
+            </div>
           </div>
 
           <div className='seriesSelection flex px-8 py-1 my-2 items-center gap-10'>
@@ -491,6 +529,14 @@ export const BillBook = () => {
               isDelete={isDelete.current}
               deleteAcc={deleteAcc}
               className='absolute'
+            />
+          )}
+          {settingToggleOpen && (
+            <ControlRoomSettings
+              togglePopup={toggleSettingPopup}
+              heading={'Invoice Settings'}
+              fields={invoiceSettingFields}
+              initialValues={initialValues}
             />
           )}
         </div>
