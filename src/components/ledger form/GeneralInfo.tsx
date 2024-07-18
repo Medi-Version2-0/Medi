@@ -93,17 +93,17 @@ export const GeneralInfo = ({
 
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
-    radioField?: any
+
   ) => {
     onKeyDown({
       e,
-      radioField: radioField,
+
       focusedSetter: (field: string) => {
-        console.log("Fierld >>>>>>", field)
+
         setFocused(field);
       },
     });
-    console.log("e-------------",e,"radioField-----",radioField)
+
   };
 
   return (
@@ -167,8 +167,8 @@ export const GeneralInfo = ({
                   if (e.key === 'Enter') {
                     !dropdown && e.preventDefault();
                     const nextFieldId = isSpecialGroup ? 'stationName' : 'stateInout';
-                    document.getElementById(nextFieldId)?.focus();
-                    console.log("nextFieldId >>>>>>>>>>", nextFieldId)
+
+                    
                     setFocused(nextFieldId);
                   }
                 }}
@@ -203,22 +203,22 @@ export const GeneralInfo = ({
                 hidePlaceholder={false}
                 className='!h-6 rounded-sm'
                 isRequired={false}
-                
+                isFocused={focused === 'stationName'}
                 error={formik.errors.stationName}
                 isTouched={formik.touched.stationName}
-                onBlur={() => {
-                  formik.setFieldTouched('stationName', true);
-                  setFocused('');
-                }}
-                onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-                  const dropdown = document.querySelector(
-                    '.custom-select__menu'
-                  );
-                  if (e.key === 'Enter') {
-                    !dropdown && e.preventDefault();
-                    document.getElementById('address1')?.focus();
-                  }
-                }}
+                  onBlur={() => {
+                    formik.setFieldTouched('stationName', true);
+                    setFocused('');
+                  }}
+                  onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+                    const dropdown = document.querySelector(
+                      '.custom-select__menu'
+                    );
+                    if (e.key === 'Enter') {
+                      !dropdown && e.preventDefault();
+                      document.getElementById('address1')?.focus();
+                    }
+                  }}
                 showErrorTooltip={true}
                 noOptionsMsg='No station found,create one...'
               />
@@ -352,6 +352,7 @@ export const GeneralInfo = ({
               { value: 'Out Of State', label: 'Out Of State' },
             ]}
             isSearchable={false}
+            isFocused={focused === 'stateInout'}
             placeholder='Select an option'
             disableArrow={false}
             hidePlaceholder={false}

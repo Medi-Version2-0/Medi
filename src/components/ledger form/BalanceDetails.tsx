@@ -1,8 +1,7 @@
-import React from 'react';
+import React , { useState } from 'react';
 import FormikInputField from '../common/FormikInputField';
 import CustomSelect from '../custom_select/CustomSelect';
 import { Option } from '../../interface/global';
-
 interface BalanceDetailsProps {
   selectedGroupName: string;
   formik?: any;
@@ -12,6 +11,7 @@ export const BalanceDetails = ({
   selectedGroupName,
   formik,
 }: BalanceDetailsProps) => {
+  const [focused, setFocused] = useState('');
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const id = e.target.id;
     const value = e.target.value;
@@ -64,9 +64,12 @@ export const BalanceDetails = ({
             className='!mb-0'
             inputClassName='h-9 text-right'
             labelClassName='w-fit text-nowrap'
-            prevField=''
-            nextField='openingBalType'
             maxLength={12}
+            prevField='stateInout'
+            nextField='openingBalType'
+            onKeyDown={() =>
+              setFocused('openingBalType')
+            }
             showErrorTooltip={
               formik.touched.openingBal && formik.errors.openingBal
             }
@@ -93,14 +96,16 @@ export const BalanceDetails = ({
             hidePlaceholder={false}
             containerClass='!w-[25%]'
             className='!rounded-none !h-6'
+            isFocused={focused === 'openingBalType'}
             onBlur={() => {
               formik.setFieldTouched('openingBalType', true);
+              setFocused('')
             }}
             onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
               const dropdown = document.querySelector('.custom-select__menu');
               if (e.key === 'Enter') {
                 !dropdown && e.preventDefault();
-                document.getElementById('partyType')?.focus();
+                setFocused('partyType');
               }
             }}
           />
@@ -125,6 +130,7 @@ export const BalanceDetails = ({
               { value: 'Balance Sheet', label: 'Balance Sheet' },
             ]}
             isSearchable={false}
+            isFocused={focused === 'partyType'}
             placeholder='Type'
             disableArrow={false}
             hidePlaceholder={false}
@@ -137,8 +143,9 @@ export const BalanceDetails = ({
               const dropdown = document.querySelector('.custom-select__menu');
               if (e.key === 'Enter') {
                 !dropdown && e.preventDefault();
-                isSpecialGroup &&
-                  document.getElementById('creditLimit')?.focus();
+                const nextFieldId = !isSpecialGroup ? 'partyName' : 'creditLimit';
+                    document.getElementById(nextFieldId)?.focus();
+                    setFocused(nextFieldId);
               }
             }}
           />

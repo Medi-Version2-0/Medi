@@ -208,6 +208,21 @@ export const CreateLedger = ({ setView, data }: any) => {
     setPopupState({ ...popupState, isModalOpen: false });
   };
 
+  const getInitialFocusFieldName = (label: any) => {
+    switch(label) {
+      case 'GST/Tax Details':
+        return "gstIn"
+      case 'Licence Info':
+        return "drugLicenceNo1"
+      case 'Contact Info':
+        return 'firstName'
+      case 'Bank Details':
+        return 'bankName'
+      default:
+        return "gstIn"
+    }
+  }
+
   return (
     <div className='w-full'>
       <div className='flex w-full items-center justify-between px-8 py-1'>
@@ -256,8 +271,8 @@ export const CreateLedger = ({ setView, data }: any) => {
                   handleOnClick={() => handleClick(`btn_${idx + 1}`)}
                   handleOnKeyDown={(e) => {
                     if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                      handleClick('btn_1');
-                      document.getElementById('gstIn')?.focus();
+                      handleClick(`btn_${idx + 1}`);
+                      document.getElementById(getInitialFocusFieldName(label))?.focus();
                       e.preventDefault();
                     } else if (e.key === 'ArrowRight') {
                       document.getElementById('Licence_Info')?.focus();

@@ -7,6 +7,9 @@ interface LicenceDetailsProps {
 
 export const LicenceDetails: React.FC<LicenceDetailsProps> = ({ formik }) => {
   const [licenseId2, setLicenseId2] = useState(formik.values.drugLicenceNo2 !== '');
+  const handleClick = () => {
+    document.getElementById('Contact_Info')?.focus();
+  }
   return (
     <div className={`flex ${licenseId2 && 'flex-col'} w-full  gap-2 m-2 text-xs px-2 leading-3 text-gray-600`}>
       <FormikInputField
@@ -17,7 +20,7 @@ export const LicenceDetails: React.FC<LicenceDetailsProps> = ({ formik }) => {
         labelClassName='min-w-[90px]'
         className='!w-2/3'
         formik={formik}
-        prevField=''
+        prevField='panCard'
         nextField='licenceExpiry'
       />
       <FormikInputField
@@ -30,7 +33,8 @@ export const LicenceDetails: React.FC<LicenceDetailsProps> = ({ formik }) => {
         className='!w-2/3'
         formik={formik}
         prevField='drugLicenceNo1'
-        nextField={(licenseId2 || (formik.values.drugLicenceNo2 !== '')) ? 'drugLicenceNo2' : ''}
+        nextField={(licenseId2 || (formik.values.drugLicenceNo2 !== '')) ? 'drugLicenceNo2' : 'firstName'}
+        onKeyDown={handleClick}
       />
       <div className='flex gap-2 '>
         {(licenseId2 || (formik.values.drugLicenceNo2 !== '')) &&

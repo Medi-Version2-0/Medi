@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import FormikInputField from '../common/FormikInputField';
 import CustomSelect from '../custom_select/CustomSelect';
 import { Option } from '../../interface/global';
+import onKeyDown from '../../utilities/formKeyDown';
 
 interface BankDetailsProps {
   formik?: any;
@@ -11,6 +12,19 @@ export const BankDetails: React.FC<BankDetailsProps> = ({ formik }) => {
   const [focused, setFocused] = useState('');
   const handleFieldChange = (option: Option | null, id: string) => {
     formik.setFieldValue(id, option?.value);
+  };
+
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    radioField?: any
+  ) => {
+    onKeyDown({
+      e,
+      radioField: radioField,
+      focusedSetter: (field: string) => {
+        setFocused(field);
+      },
+    });
   };
 
   return (
@@ -44,6 +58,9 @@ export const BankDetails: React.FC<BankDetailsProps> = ({ formik }) => {
         formik={formik}
         prevField='accountNumber'
         nextField='accountType'
+        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
+          handleKeyDown(e)
+        }
       />
       <CustomSelect
         isPopupOpen={false}
@@ -105,7 +122,7 @@ export const BankDetails: React.FC<BankDetailsProps> = ({ formik }) => {
         formik={formik}
         className=''
         prevField='ifscCode'
-        nextField=''
+        nextField='partyName'
       />
     </div>
   );
