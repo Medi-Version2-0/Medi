@@ -8,6 +8,7 @@ const Confirm_Alert_Popup: React.FC<Confirm_Alert_PopupProps> = ({
   onConfirm,
   message,
   className,
+  autoFocus = true,
 }) => {
   const handleKeyPress = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Enter') {
@@ -28,7 +29,7 @@ const Confirm_Alert_Popup: React.FC<Confirm_Alert_PopupProps> = ({
             className=''
             type='highlight'
             handleOnClick={onConfirm}
-            autoFocus={true}
+            autoFocus={autoFocus}
           >
             OK
           </Button>

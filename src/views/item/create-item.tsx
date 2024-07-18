@@ -62,7 +62,7 @@ const CreateItem = ({ setView, data }: any) => {
       maxQty: data?.maxQty || '',
       selected: data?.selected || '',
       rackNumber: data?.rackNumber || '',
-      dpcoact: data?.dpcoact || '',
+      dpcoact: data?.dpcoact || 'No',
       marginPercentage: data?.marginPercentage || 0,
       prescriptionType: data?.prescriptionType || "RX",
       upload: data?.upload || '',

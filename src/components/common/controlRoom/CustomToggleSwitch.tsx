@@ -23,7 +23,7 @@ const CustomToggleSwitch = ({ field, form, label, index, formik }: any) => {
 
   return (
     <div
-      className={`flex flex-col w-full ${index !== 0 ? 'border-t-0' : ''} pr-4`}
+      className={`flex flex-col w-full ${index !== 0 ? 'border-t-0' : ''}`}
     >
       <div className='flex flex-row justify-between items-center border-[1px] border-solid border-[#009196FF] pr-4'>
         <span className='ml-[0.7rem] w-[70%] p-2 border-r-[1px] border-solid border-[#009196FF]'>
@@ -67,7 +67,7 @@ const CustomToggleSwitch = ({ field, form, label, index, formik }: any) => {
               type='text'
               value={formik.values.dpcoDiscount}
               placeholder='Enter discount'
-              className='input-class w-full h-full text-right border-none outline-none'
+              className='input-class w-full h-full text-right border-none outline-none px-2 '
               onChange={handleDiscountChange}
               required
             />

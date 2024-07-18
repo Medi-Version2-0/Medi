@@ -20,7 +20,6 @@ export const sendAPIRequest = async <T>(
   try {
     if ((init?.body instanceof FormData)) {
       headers['Content-type'] = 'multipart/form-data';
-      console.log(headers);
     }
     const response: any = await axios.request<T>({
       url,
