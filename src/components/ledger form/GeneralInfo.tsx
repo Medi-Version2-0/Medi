@@ -5,6 +5,7 @@ import FormikInputField from '../common/FormikInputField';
 import titleCase from '../../utilities/titleCase';
 import { sendAPIRequest } from '../../helper/api';
 import { useParams } from 'react-router-dom';
+import onKeyDown from '../../utilities/formKeyDown';
 
 interface GeneralInfoProps {
   onValueChange?: any;
@@ -28,23 +29,8 @@ export const GeneralInfo = ({
     selectedGroup.toUpperCase() === 'GENERAL GROUP' ||
     selectedGroup.toUpperCase() === 'DISTRIBUTORS, C & F';
   const [focused, setFocused] = useState('');
-  const [options, setOptions] = useState<{
-    companiesOptions: Option[];
-    salesOptions: Option[];
-    purchaseOptions: Option[];
-    groupOptions: Option[];
-  }>({
-    companiesOptions: [],
-    salesOptions: [],
-    purchaseOptions: [],
-    groupOptions: [],
-  });
-
   const fetchAllData = async () => {
     const stationList = await sendAPIRequest<{ station_id: number; station_name: string }[]>(`/${organizationId}/station`);
-    const salesList = await sendAPIRequest<any[]>(`/${organizationId}/sale`);
-    const purchaseList = await sendAPIRequest<any[]>(`/${organizationId}/purchase`);
-
     setStationData(stationList);
 
     setStationOptions(
@@ -53,67 +39,9 @@ export const GeneralInfo = ({
         label: titleCase(station.station_name),
       }))
     );
-    setOptions((prevOption) => ({
-          ...prevOption,
-          salesOptions: salesList.map((sales: any) => ({
-            value: sales.sp_id,
-            label: sales.sptype,
-          })),
-        })
-    );
-    setOptions((prevOption) => ({
-          ...prevOption,
-          purchaseOptions: purchaseList.map((purchase: any) => ({
-            value: purchase.sp_id,
-            label: purchase.sptype,
-          })),
-      })
-    );
 
   };
 
-  // const fetchAllData = async () => {
-  //   const companies = await sendAPIRequest<any[]>(`/${organizationId}/company`);
-  //   const salesList = await sendAPIRequest<any[]>(`/${organizationId}/sale`);
-  //   const purchaseList = await sendAPIRequest<any[]>(
-  //     `/${organizationId}/purchase`
-  //   );
-  //   const groups = await sendAPIRequest<ItemGroupFormData[]>(
-  //     `/${organizationId}/itemGroup`,
-  //     {
-  //       method: 'GET',
-  //     }
-  //   );
-
-  //   setOptions((prevOption) => ({
-  //     ...prevOption,
-  //     companiesOptions: companies.map((company: any) => ({
-  //       value: company.company_id,
-  //       label: company.companyName,
-  //     })),
-  //   }));
-  //   setOptions((prevOption) => ({
-  //     ...prevOption,
-  //     salesOptions: salesList.map((sales: any) => ({
-  //       value: sales.sp_id,
-  //       label: sales.sptype,
-  //     })),
-  //   }));
-  //   setOptions((prevOption) => ({
-  //     ...prevOption,
-  //     purchaseOptions: purchaseList.map((purchase: any) => ({
-  //       value: purchase.sp_id,
-  //       label: purchase.sptype,
-  //     })),
-  //   }));
-  //   setOptions((prevOption) => ({
-  //     ...prevOption,
-  //     groupOptions: groups.map((group: any) => ({
-  //       value: group.group_code,
-  //       label: group.group_name,
-  //     })),
-  //   }));
-  // };
 
   useEffect(() => {
     fetchAllData();
@@ -158,6 +86,26 @@ export const GeneralInfo = ({
     }
   };
 
+  const isSpecialGroup = selectedGroup?.toUpperCase() === 'SUNDRY CREDITORS' ||
+  selectedGroup?.toUpperCase() === 'SUNDRY DEBTORS' ||
+  selectedGroup?.toUpperCase() === 'GENERAL GROUP' ||
+  selectedGroup?.toUpperCase() === 'DISTRIBUTORS, C & F';
+
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+
+  ) => {
+    onKeyDown({
+      e,
+
+      focusedSetter: (field: string) => {
+
+        setFocused(field);
+      },
+    });
+
+  };
+
   return (
     <div className='relative border w-3/5 h-full pt-4 border-solid border-gray-400'>
       <div className='absolute top-[-14px] left-2  px-2 w-max bg-[#f3f3f3]'>
@@ -174,10 +122,13 @@ export const GeneralInfo = ({
           labelClassName='min-w-[90px] '
           isRequired={true}
           nextField='accountGroup'
+          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
+            handleKeyDown(e)
+          }
           showErrorTooltip={formik.touched.partyName && formik.errors.partyName}
         />
         <div className='flex justify-between m-[1px] w-full items-center'>
-          <div className=' starlabel w-[42%]'>
+          <div className='w-[50%]'>
             {groupOptions.length > 0 && (
               <CustomSelect
                 isPopupOpen={false}
@@ -198,12 +149,13 @@ export const GeneralInfo = ({
                 options={groupOptions}
                 isSearchable={true}
                 placeholder='Account Group'
+                isRequired={true}
                 isFocused={focused === 'accountGroup'}
                 disableArrow={true}
                 hidePlaceholder={false}
                 className='!h-6 rounded-sm'
-                error={formik.errors.accountGroup}
-                isTouched={formik.touched.accountGroup}
+                prevField='partyName'
+                nextField='stationName'
                 onBlur={() => {
                   formik.setFieldTouched('accountGroup', true);
                   setFocused('');
@@ -214,11 +166,14 @@ export const GeneralInfo = ({
                   );
                   if (e.key === 'Enter') {
                     !dropdown && e.preventDefault();
-                    isSUNDRY
-                      ? document.getElementById('stationName')?.focus()
-                      : document.getElementById('stateInout')?.focus();
+                    const nextFieldId = isSpecialGroup ? 'stationName' : 'stateInout';
+
+                    
+                    setFocused(nextFieldId);
                   }
                 }}
+                error={formik.errors.accountGroup}
+                isTouched={formik.touched.accountGroup}
                 showErrorTooltip={true}
               />
             )}
@@ -247,22 +202,23 @@ export const GeneralInfo = ({
                 disableArrow={true}
                 hidePlaceholder={false}
                 className='!h-6 rounded-sm'
-                isRequired={true}
+                isRequired={false}
+                isFocused={focused === 'stationName'}
                 error={formik.errors.stationName}
                 isTouched={formik.touched.stationName}
-                onBlur={() => {
-                  formik.setFieldTouched('stationName', true);
-                  setFocused('');
-                }}
-                onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-                  const dropdown = document.querySelector(
-                    '.custom-select__menu'
-                  );
-                  if (e.key === 'Enter') {
-                    !dropdown && e.preventDefault();
-                    document.getElementById('address1')?.focus();
-                  }
-                }}
+                  onBlur={() => {
+                    formik.setFieldTouched('stationName', true);
+                    setFocused('');
+                  }}
+                  onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+                    const dropdown = document.querySelector(
+                      '.custom-select__menu'
+                    );
+                    if (e.key === 'Enter') {
+                      !dropdown && e.preventDefault();
+                      document.getElementById('address1')?.focus();
+                    }
+                  }}
                 showErrorTooltip={true}
                 noOptionsMsg='No station found,create one...'
               />
@@ -274,13 +230,14 @@ export const GeneralInfo = ({
             <label htmlFor='address1' className='min-w-[90px]'>
               Address
             </label>
-            <div className='flex flex-col gap-0 w-full'>
+            <div className='flex flex-col gap-[0.15rem] w-full'>
               <FormikInputField
                 isPopupOpen={false}
                 label=''
                 id='address1'
                 name='address1'
                 formik={formik}
+                placeholder='Address 1'
                 className='!mb-0'
                 prevField='stationName'
                 nextField='address2'
@@ -291,6 +248,7 @@ export const GeneralInfo = ({
                 id='address2'
                 name='address2'
                 formik={formik}
+                placeholder='Address 2'
                 className='!mb-0'
                 prevField='address1'
                 nextField='address3'
@@ -301,24 +259,18 @@ export const GeneralInfo = ({
                 id='address3'
                 name='address3'
                 formik={formik}
+                placeholder='Address 3'
                 className='!mb-0'
                 prevField='address2'
-                nextField={
-                  selectedGroup?.toUpperCase() === 'SUNDRY CREDITORS' ||
-                  selectedGroup?.toUpperCase() === 'SUNDRY DEBTORS' ||
-                  selectedGroup?.toUpperCase() === 'GENERAL GROUP' ||
-                  selectedGroup?.toUpperCase() === 'DISTRIBUTORS, C & F'
-                    ? 'transport'
-                    : 'excessRate'
-                }
+                nextField='pinCode'
               />
             </div>
           </div>
         )}
 
         {isSUNDRY && (
-          <div className='flex justify-between m-[1px] w-full items-center'>
-            <div className='flex justify-between items-center w-[64%]'>
+          <div className='flex flex-row justify-between m-[1px] w-full items-center'>
+            <div className='w-[50.1%]'>
               <FormikInputField
                 isPopupOpen={false}
                 label='Pincode'
@@ -326,83 +278,66 @@ export const GeneralInfo = ({
                 name='pinCode'
                 placeholder='Pin Code'
                 formik={formik}
-                isRequired={true}
-                labelClassName='w-1/3'
+                isRequired={false}
+                labelClassName='min-w-[90px]'
                 inputClassName='w-[35%]'
                 showErrorTooltip={true}
                 maxLength={6}
                 className=''
-                isDisabled={true}
+                isDisabled={false}
                 onChange={handleChange}
                 prevField='address3'
                 nextField={
-                  selectedGroup?.toUpperCase() === 'SUNDRY CREDITORS' ||
-                  selectedGroup?.toUpperCase() === 'SUNDRY DEBTORS' ||
-                  selectedGroup?.toUpperCase() === 'GENERAL GROUP' ||
-                  selectedGroup?.toUpperCase() === 'DISTRIBUTORS, C & F'
+                  isSpecialGroup
                     ? 'transport'
                     : 'excessRate'
                 }
               />
             </div>
-            {(selectedGroup?.toUpperCase() === 'SUNDRY CREDITORS' ||
-              selectedGroup?.toUpperCase() === 'SUNDRY DEBTORS' ||
-              selectedGroup?.toUpperCase() === 'GENERAL GROUP' ||
-              selectedGroup?.toUpperCase() === 'DISTRIBUTORS, C & F') && (
-              <div className='flex justify-between items-center w-full'>
-                <div className='flex w-[45%]'>
+            {isSpecialGroup && (
+                <div className='flex w-[40%]'>
                   <FormikInputField
                     isPopupOpen={false}
                     label='Transport'
                     id='transport'
                     name='transport'
                     inputClassName='w-5/12'
-                    labelClassName='w-1/3'
+                    labelClassName='w-1/2'
                     formik={formik}
                     prevField='pinCode'
-                    nextField='creditPrivilege'
+                    nextField='mailTo'
                   />
                 </div>
-                <div className='flex w-[45%]'>
-                  <FormikInputField
-                    isPopupOpen={false}
-                    label='Credit Privilege'
-                    id='creditPrivilege'
-                    name='creditPrivilege'
-                    labelClassName='min-w-[90px]'
-                    inputClassName='w-5/12'
-                    formik={formik}
-                    prevField='transport'
-                  />
-                </div>
-              </div>
             )}
           </div>
         )}
-        {(selectedGroup?.toUpperCase() === 'SUNDRY CREDITORS' ||
-          selectedGroup?.toUpperCase() === 'SUNDRY DEBTORS' ||
-          selectedGroup?.toUpperCase() === 'GENERAL GROUP' ||
-          selectedGroup?.toUpperCase() === 'DISTRIBUTORS, C & F') && (
-          <FormikInputField
-            isPopupOpen={false}
-            label='Mail to'
-            id='mailTo'
-            name='mailTo'
-            isTitleCase={false}
-            formik={formik}
-            showErrorTooltip={formik.touched.mailTo && formik.errors.mailTo}
-            labelClassName='min-w-[90px]'
-            prevField='notPrinpba'
-            nextField='stateInout'
-          />
+        <div className='flex flex-row justify-between w-full items-center'>
+        {isSpecialGroup && (
+            <div className='w-[50.3%]'>
+              <FormikInputField
+                isPopupOpen={false}
+                label='Email to'
+                id='mailTo'
+                name='mailTo'
+                isTitleCase={false}
+                formik={formik}
+                showErrorTooltip={formik.touched.mailTo && formik.errors.mailTo}
+                labelClassName='min-w-[90px]'
+                inputClassName='w-[50%]'
+                prevField='transport'
+                nextField='stateInout'
+                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
+                  handleKeyDown(e)
+                }
+              />
+            </div>
         )}
-        <div className='flex m-[1px] items-center w-full'>
-        <div className='w-[42%]'>
+        <div className={`flex items-center ${isSpecialGroup ? 'w-[40%]' : 'w-[50%]'}`}>
           <CustomSelect
             isPopupOpen={false}
             label='State In Out'
             id='stateInout'
-            labelClass='starlabel min-w-[90px] items-center'
+            labelClass={`${isSpecialGroup ? 'items-center w-1/2 ' : 'min-w-[90px]'}`}
             value={
               formik.values.stateInout === ''
                 ? null
@@ -417,6 +352,7 @@ export const GeneralInfo = ({
               { value: 'Out Of State', label: 'Out Of State' },
             ]}
             isSearchable={false}
+            isFocused={focused === 'stateInout'}
             placeholder='Select an option'
             disableArrow={false}
             hidePlaceholder={false}
@@ -429,94 +365,12 @@ export const GeneralInfo = ({
               const dropdown = document.querySelector('.custom-select__menu');
               if (e.key === 'Enter') {
                 !dropdown && e.preventDefault();
-                document.getElementById('stateInout')?.focus();
+                document.getElementById('openingBal')?.focus();
               }
             }}
           />
         </div>
-        <div className='flex flex-col w-[50%] ml-4'>
-          <div className='flex items-center mb-2'>
-            <CustomSelect
-              isPopupOpen={false}
-              label='Sales Account'
-              id='saleAccId'
-              labelClass='min-w-[90px]'
-              value={
-                formik.values.saleAccId === ''
-                  ? null
-                  : {
-                      label: options.salesOptions.find(
-                        (e) => e.value === formik.values.saleAccId
-                      )?.label,
-                      value: formik.values.saleAccId,
-                    }
-              }
-              onChange={handleFieldChange}
-              options={options.salesOptions}
-              isSearchable={true}
-              placeholder='Sales Account'
-              disableArrow={true}
-              hidePlaceholder={false}
-              className='!h-6 rounded-sm'
-              error={formik.errors.saleAccId}
-              isTouched={formik.touched.saleAccId}
-              onBlur={() => {
-                formik.setFieldTouched('saleAccId', true);
-                setFocused('');
-              }}
-              onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-                const dropdown = document.querySelector('.custom-select__menu');
-                if (e.key === 'Enter') {
-                  !dropdown && e.preventDefault();
-                  document.getElementById('purAccId')?.focus();
-                }
-              }}
-              showErrorTooltip={true}
-            />
-          </div>
-
-          {/* Purchase Account field */}
-          <div className='flex items-center'>
-            <CustomSelect
-              isPopupOpen={false}
-              label='Purchase Account'
-              id='purAccId'
-              labelClass='min-w-[90px]'
-              value={
-                formik.values.purAccId === ''
-                  ? null
-                  : {
-                      label: options.purchaseOptions.find(
-                        (e) => e.value === formik.values.purAccId
-                      )?.label,
-                      value: formik.values.purAccId,
-                    }
-              }
-              onChange={handleFieldChange}
-              options={options.purchaseOptions}
-              isSearchable={true}
-              placeholder='Purchase Account'
-              disableArrow={true}
-              hidePlaceholder={false}
-              className='!h-6 rounded-sm'
-              error={formik.errors.purAccId}
-              isTouched={formik.touched.purAccId}
-              onBlur={() => {
-                formik.setFieldTouched('purAccId', true);
-                setFocused('');
-              }}
-              onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-                const dropdown = document.querySelector('.custom-select__menu');
-                if (e.key === 'Enter') {
-                  !dropdown && e.preventDefault();
-                  document.getElementById('nextFieldId')?.focus();
-                }
-              }}
-              showErrorTooltip={true}
-            />
-          </div>
         </div>
-      </div>
       </div>
     </div>
   );

@@ -37,7 +37,7 @@ export const ContactNumbers: React.FC<ContactNumbersProps> = ({
             labelClassName='mr-4 min-w-[90px]'
             onChange={handleChange}
             className='!gap-0 text-xs text-gray-600'
-            isRequired={true}
+            isRequired={false}
             children={
               <span className='border border-solid border-gray-400 bg-gray-100 p-1 h-full select-none'>
                 +91
@@ -45,10 +45,10 @@ export const ContactNumbers: React.FC<ContactNumbersProps> = ({
             }
             onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
               if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                document.getElementById('phone3')?.focus();
+                document.getElementById('GST/Tax_Details')?.focus();
                 e.preventDefault();
               } else if (e.key === 'ArrowUp') {
-                document.getElementById('phone1')?.focus();
+                document.getElementById('creditDays')?.focus();
                 e.preventDefault();
               }
             }}

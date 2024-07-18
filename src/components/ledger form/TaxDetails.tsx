@@ -26,6 +26,11 @@ export const TaxDetails: React.FC<TaxInfoProps> = ({
       }
     }
   };
+
+  const handleClick = () => {
+    document.getElementById('Licence_Info')?.focus();
+  }
+
   return (
     <div className='flex flex-col  gap-x-4 gap-y-2 w-1/2 px-2 m-2 text-xs leading-3 text-gray-600'>
       <FormikInputField
@@ -35,7 +40,7 @@ export const TaxDetails: React.FC<TaxInfoProps> = ({
         name='gstIn'
         maxLength={15}
         isTitleCase={false}
-        isRequired={true}
+        isRequired={false}
         formik={formik}
         labelClassName='min-w-[90px]'
         onChange={handleChange}
@@ -53,24 +58,10 @@ export const TaxDetails: React.FC<TaxInfoProps> = ({
         maxLength={10}
         formik={formik}
         labelClassName='min-w-[90px]'
-        prevField='panCard'
-        nextField='gstExpiry'
+        prevField='gstIn'
+        nextField='drugLicenceNo1'
+        onKeyDown={handleClick}
         showErrorTooltip={formik.touched.panCard && formik.errors.panCard}
-      />
-      <FormikInputField
-      isPopupOpen={false}
-      type='date'
-      placeholder='MM/DD/YYYY'
-        label='Expiry Date'
-        id='gstExpiry'
-        name='gstExpiry'
-        maxLength={15}
-        isRequired={true}
-        formik={formik}
-        labelClassName='min-w-[90px]'
-        prevField='gstExpiry'
-        nextField=''
-        showErrorTooltip={formik.touched.gstExpiry && formik.errors.gstExpiry}
       />
     </div>
   );
