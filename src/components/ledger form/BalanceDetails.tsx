@@ -67,9 +67,13 @@ export const BalanceDetails = ({
             maxLength={12}
             prevField='stateInout'
             nextField='openingBalType'
-            onKeyDown={() =>
-              setFocused('openingBalType')
-            }
+            onKeyDown={(e: any) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                setFocused('openingBalType')
+
+              }
+            }}
             showErrorTooltip={
               formik.touched.openingBal && formik.errors.openingBal
             }
