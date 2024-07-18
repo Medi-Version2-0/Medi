@@ -298,6 +298,7 @@ export const Ledger = () => {
       flex: 1,
       sortable: false,
       suppressMovable: true,
+      headerClass: 'custom-header',
       cellStyle: {
         display: 'flex',
         justifyContent: 'center',
