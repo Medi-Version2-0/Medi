@@ -86,7 +86,7 @@ export const CreateLedger = ({ setView, data }: any) => {
       stopNrx: data?.stopNrx || '',
       stopHi: data?.stopHi || '',
       notPrinpba: data?.notPrinpba || '',
-      openingBal: data?.openingBal || '0.00',
+      openingBal: data?.openingBal || '',
       openingBalType: data?.openingBalType || 'Dr',
       creditDays: data?.creditDays || '0',
       creditLimit: data?.creditLimit || '0',
@@ -115,6 +115,7 @@ export const CreateLedger = ({ setView, data }: any) => {
   const ledgerFormInfo = useFormik({
     initialValues,
     validationSchema: getLedgerFormValidationSchema(isSUNDRY),
+    validateOnMount: true,
     onSubmit: async (values) => {
       const formattedOpeningBal = parseFloat(values.openingBal).toFixed(2);
       const matchingStation = stationData.find(
@@ -167,7 +168,7 @@ export const CreateLedger = ({ setView, data }: any) => {
       });
       newValues.partyName = ledgerFormInfo.values.partyName;
       newValues.accountGroup = value;
-      newValues.openingBal = '0.00';
+      // newValues.openingBal = '0.00';
       if (
         [
           'SUNDRY CREDITORS',
