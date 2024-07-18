@@ -9,19 +9,22 @@ export const itemFormValidations = () =>
     name: Yup.string()
       .max(100, 'Item Name must be 100 characters or less')
       .required('Item Name is required'),
+    compId: Yup.number().required('Choose the compnay.'),
     packing: Yup.string()
       .max(7, 'Packing must be 7 characters or less'),
     shortName: Yup.string()
       .max(8, 'MFG code must be 8 characters or less'),
     hsnCode: Yup.string()
       .max(8, 'HSN code must be 8 characters or less'),
-    minQty: Yup.number(),
+    minQty: Yup.number().nullable(),
     maxQty: Yup.number()
+      .nullable()
       .max(999999, 'Maximum Quantity must be 6 digits or less')
       .test('more-than-min-qty', 'Maximum Quantity must be more than Minimum Quantity', function (value) {
         const minQty = this.parent.minQty;
-        return value !== undefined && Number(value) > Number(minQty);
-
+        if (minQty == null || value == null) {
+          return true;
+        }
+        return Number(value) > Number(minQty);
       }),
-    location: Yup.string().max(10, 'Location must be 10 characters or less'),
   });

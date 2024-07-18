@@ -24,6 +24,7 @@ type abc = {
   options?: Option[];
   nextField?: string;
   prevField?: string;
+  disabled?: boolean;
 };
 
 interface ContainerProps {
@@ -32,9 +33,11 @@ interface ContainerProps {
   formik: ItemFormInfoType;
   setFocused: (field: string) => void;
   focused?: string;
+  setSalePurchase?: (field: any) => void;
+  companies?: any;
 }
 
-const Container: React.FC<ContainerProps> = ({ title, fields, formik, setFocused, focused }) => {
+const Container: React.FC<ContainerProps> = ({ title, fields, formik, setFocused, focused, setSalePurchase, companies }) => {
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
     formik?: FormikProps<ItemFormValues>,
@@ -56,6 +59,22 @@ const Container: React.FC<ContainerProps> = ({ title, fields, formik, setFocused
       setNewImg(true);
     }
   };
+  const handleOptionSelections = (field: any, option: any) => {
+    if (field.name === 'compId') {
+      const selectedCompany = companies.company.find((company: any) => company.company_id === option.value);
+      if (selectedCompany) {
+        setSalePurchase && setSalePurchase({
+          saleId: selectedCompany.salesId,
+          purchaseId: selectedCompany.purchaseId,
+          salePurchase: selectedCompany.purSaleAc,
+          discPercent: selectedCompany.discPercent,
+          isDiscountPercent: selectedCompany.isDiscountPercent
+        });
+      }
+    }
+    formik.setFieldValue(field.name, option ? option.value : null);
+  }
+
   return (
     <div className='relative border w-full h-full pt-4 border-solid border-gray-400'>
       <div className='absolute top-[-14px] left-2  px-2 w-fit bg-[#f3f3f3]'>
@@ -82,7 +101,7 @@ const Container: React.FC<ContainerProps> = ({ title, fields, formik, setFocused
                 ) || null
               }
               onChange={(option: Option | null) =>
-                formik.setFieldValue(field.name, option ? option.value : null)
+                handleOptionSelections(field, option)
               }
               placeholder='Select an option...'
               labelClass='min-w-[90px]'
@@ -99,7 +118,7 @@ const Container: React.FC<ContainerProps> = ({ title, fields, formik, setFocused
                 )
               }
               onBlur={() => {
-                formik.setFieldTouched('stationId', true);
+                formik.setFieldTouched(field.name, true);
                 setFocused('');
               }}
               onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
@@ -112,9 +131,10 @@ const Container: React.FC<ContainerProps> = ({ title, fields, formik, setFocused
                   setFocused(field.nextField || 'compId');
                 }
               }}
+              isDisabled={field?.disabled || false}
             />
           ) : (
-            <>
+            <React.Fragment key={field.id}>
               <FormikInputField
                 isPopupOpen={false}
                 key={field.id}
@@ -123,7 +143,7 @@ const Container: React.FC<ContainerProps> = ({ title, fields, formik, setFocused
                 name={field.name}
                 formik={formik}
                 className='!mb-0'
-                inputClassName={`${title === 'Basic Info' ? 'w-[80%]' : ''}${field.type === 'file' && 'p-0'}`}
+                inputClassName={`${title === 'Basic Info' ? 'w-[80%]' : ''}${field.type === 'file' && '!p-[0px]'}`}
                 labelClassName='min-w-[90px]'
                 isRequired={field.isRequired}
                 nextField={field.nextField}
@@ -139,11 +159,12 @@ const Container: React.FC<ContainerProps> = ({ title, fields, formik, setFocused
                   )
                 }
                 onChange={field.type === 'file' ? handleFileChange : undefined}
+                isDisabled={field?.disabled || false}
               />
               {field.type === 'file' && !newImg && (formik.values as any)[field.id] && (
                 <ImagePreview name={field.id} url={`${root}${(formik.values as any)[field.id]}` || ''} formik={formik} setNewImg={setNewImg} className='w-[200px]' />
               )}
-            </>
+            </React.Fragment>
           )
         )}
       </div>
@@ -159,13 +180,16 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
     salesOptions: Option[];
     purchaseOptions: Option[];
     groupOptions: Option[];
+    company: any;
   }>({
     companiesOptions: [],
     salesOptions: [],
     purchaseOptions: [],
     groupOptions: [],
+    company: [],
   });
   const [focused, setFocused] = useState('');
+  const [salePurchase, setSalePurchase] = useState<any>('');
 
   const fetchAllData = async () => {
     const companies = await sendAPIRequest<any[]>(`/${organizationId}/company`);
@@ -182,6 +206,7 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
 
     setOptions((prevOption) => ({
       ...prevOption,
+      company: companies,
       companiesOptions: companies.map((company: any) => ({
         value: company.company_id,
         label: company.companyName,
@@ -212,8 +237,31 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
 
   useEffect(() => {
     fetchAllData();
-    document.getElementById('name')?.focus();
+    document.getElementById('submit_all')?.focus();
+    if (formik.values.compId && options?.company) {
+      const selectedCompany = options.company.find((company: any) => company.company_id === formik.values.compId);
+      if (selectedCompany) {
+        setSalePurchase && setSalePurchase({
+          saleId: selectedCompany.salesId,
+          purchaseId: selectedCompany.purchaseId,
+          salePurchase: selectedCompany.purSaleAc,
+          discPercent: selectedCompany.discPercent,
+          isDiscountPercent: selectedCompany.isDiscountPercent
+        });
+      }
+    }
   }, []);
+
+  useEffect(() => {
+    const setForm = () => {
+      formik.setFieldValue('purAccId', salePurchase.purchaseId);
+      formik.setFieldValue('saleAccId', salePurchase.saleId);
+      (salePurchase?.isDiscountPercent === 'Yes') ? formik.setFieldValue('discountPer', salePurchase.discPercent) : formik.setFieldValue('discountPer', 0);
+    }
+    if (salePurchase.discPercent || salePurchase.saleId && salePurchase.purchaseId) {
+      setForm();
+    }
+  }, [salePurchase]);
 
   const basicInfoFields = [
     {
@@ -239,6 +287,7 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
       id: 'compId',
       name: 'compId',
       type: 'select',
+      isRequired: true,
       nextField: controlRoomSettings.packaging ? 'packing' : controlRoomSettings.batchWiseManufacturingCode ? 'shortName' : 'service',
       prevField: 'name',
       options: options.companiesOptions,
@@ -323,6 +372,7 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
       options: options.salesOptions,
       prevField: controlRoomSettings.rxNonrx ? 'prescriptionType' : 'scheduleDrug',
       nextField: 'purAccId',
+      disabled: (salePurchase?.salePurchase === 'Yes') || false
     },
     {
       label: 'Purchase Account',
@@ -332,11 +382,13 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
       options: options.purchaseOptions,
       prevField: 'saleAccId',
       nextField: 'discountPer',
+      disabled: (salePurchase?.salePurchase === 'Yes') || false
     },
     {
       label: 'Cash Discount %',
       id: 'discountPer',
       name: 'cashDiscountPer',
+      type: 'number',
       nextField: 'marginPercentage',
       prevField: 'purAccId',
     },
@@ -344,6 +396,7 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
       label: 'Margin %',
       id: 'marginPercentage',
       name: 'marginPercentage',
+      type: 'number',
       nextField: 'minQty',
       prevField: 'discountPer',
     },
@@ -359,7 +412,7 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
       id: 'maxQty',
       name: 'maxQty',
       prevField: 'minQty',
-      nextField: controlRoomSettings.rackNumber ? 'rackNumber' : controlRoomSettings.dpcoAct ? 'dpcoAct' : 'upload',
+      nextField: controlRoomSettings.rackNumber ? 'rackNumber' : controlRoomSettings.dpcoAct ? 'dpcoact' : 'upload',
     },
   ];
 
@@ -381,7 +434,7 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
         name: 'dpcoact',
         type: 'select',
         nextField: 'upload',
-        prevField: 'rackNumber',
+        prevField: controlRoomSettings.rackNumber ? 'rackNumber' : 'maxQty',
         options: [
           { label: 'Yes', value: 'Yes' },
           { label: 'No', value: 'No' },
@@ -405,6 +458,8 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
         formik={formik}
         focused={focused}
         setFocused={setFocused}
+        setSalePurchase={setSalePurchase}
+        companies={options}
       />
       <div className='flex flex-row gap-4'>
         <Container

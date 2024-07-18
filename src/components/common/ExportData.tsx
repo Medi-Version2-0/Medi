@@ -140,10 +140,6 @@ const ExportData = ({ data, fields }: ExportDataProps) => {
   const popupRef = useRef<HTMLDivElement>(null);
 
   const handleClickOutside = (event: MouseEvent) => {
-    console.log(
-      '  const popupRef = useRef<HTMLDivElement>(null);',
-      popupRef.current
-    );
     if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
       setEmailOptionsVisible(false);
     }

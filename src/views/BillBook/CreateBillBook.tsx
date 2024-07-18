@@ -143,7 +143,7 @@ export const CreateBillBook = ({
               maxLength={2}
               nextField='company'
               prevField='billName'
-              sideField='billBookPrefix'
+              sideField='company'
               onChange={handleUppercase}
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                 handleKeyDown(e)
@@ -251,6 +251,7 @@ export const CreateBillBook = ({
                       }
                       if (e.shiftKey && e.key === 'Tab') {
                         document.getElementById('company')?.focus();
+                        setFocused('company');                        
                         e.preventDefault();
                       }
                     }}

@@ -11,14 +11,7 @@ import { sendAPIRequest } from '../../helper/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import { useControls } from '../../ControlRoomContext';
-
-const expiryFormatRegex = /^(0[1-9]|1[0-2])\/\d{4}$/;
-
-const parseMonthYear = (dateString: string) => {
-  const [month, year] = dateString.split('/').map(Number);
-  const date = new Date(year, month - 1);
-  return date;
-};
+import { batchSchema, validatePrices } from './validation_schema';
 
 export const Batch = ({
   params,
@@ -29,11 +22,12 @@ export const Batch = ({
   };
 }) => {
   const { id } = params.showBatch;
-
+  const { controlRoomSettings } = useControls();
+  const [item, setItem] = useState<any>();
   const pinnedRow: BatchForm = {
     itemId: id ? +id : 0,
     batchNo: '',
-    mfgCode: '',
+    mfgCode: 'ksdfkaskdf' || item?.shortName,
     expiryDate: '',
     opBalance: null,
     opFree: null,
@@ -41,15 +35,16 @@ export const Batch = ({
     salePrice: null,
     mrp: null,
     locked: '',
+    ...(controlRoomSettings.dualPriceList ? { salePrice2: null } : {}),
+    ...(controlRoomSettings.batchWiseManufacturingCode ? { mfgCode: '' } : {}),
   };
   const queryClient = useQueryClient();
   const { organizationId } = useParams();
-  const { controlRoomSettings } = useControls();
-  const [selectedRow, setSelectedRow] = useState<any>(null);
-  const [inputRow, setInputRow] = useState<BatchForm>(pinnedRow);
+  const [selectedRow, setSelectedRow] = useState<BatchForm | any>(null);
+  const [inputRow, setInputRow] = useState<BatchForm | any>(pinnedRow);
   const [tableData, setTableData] = useState<BatchForm | any>(null);
-  const [currTableData, setCurrTableData] = useState<BatchForm | any>(null);
   const editing = useRef(false);
+  const gridRef = useRef<any>(null);
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
@@ -65,59 +60,62 @@ export const Batch = ({
       ),
   });
 
+  useEffect(() => {
+    const getItem = async () => {
+      const itemData = await sendAPIRequest<any>(`/${organizationId}/item/${id}`);
+      setItem(itemData);
+      setInputRow({ ...inputRow, mfgCode: itemData?.shortName });
+    }
+    getItem();
+  }, []);
+
   const getBatch = async () => {
-    setCurrTableData(data);
     setTableData(data);
   };
 
-  const isPinnedRowDataCompleted = (params: any) => {
-    if (params.node.rowPinned !== 'top') return;
-    const filteredInputRow = Object.fromEntries(
-      Object.entries(inputRow).filter(([key]) =>
-        colDefs?.some((def: any) => def.field === key)
-      )
-    );
-    return colDefs?.every((def: any) => filteredInputRow[def.field]);
-  };
+  useEffect(() => {
+    getBatch();
+  }, [data]);
 
-  const handelBatchAdd = async (batch: BatchForm) => {
-    const existingBatch = tableData?.find((tableBatch: BatchForm) => {
-      return (
-        numberedStringLowerCase(tableBatch?.batchNo) ===
-        numberedStringLowerCase(batch.batchNo)
+  const handleBatchAdd = async () => {
+    try {
+      await batchSchema.validate(inputRow);
+      const existingBatch = tableData?.find(
+        (tableBatch: BatchForm) =>
+          numberedStringLowerCase(tableBatch?.batchNo) === numberedStringLowerCase(inputRow.batchNo)
       );
-    });
-    if (!expiryFormatRegex.test(batch.expiryDate)) {
-      setPopupState({
-        ...popupState,
-        isAlertOpen: true,
-        message: 'Expiry date must be valid with format MM/YYYY.',
-      });
-      return;
-    }
-    if (existingBatch) {
-      setPopupState({
-        ...popupState,
-        isAlertOpen: true,
-        message: 'Batch with this id already exists!',
-      });
-      return;
-    }
+      if (existingBatch) {
+        setPopupState({
+          ...popupState,
+          isAlertOpen: true,
+          message: 'Batch with this id already exists!',
+        });
+        return;
+      }
+      const formattedInputRow = {
+        ...inputRow,
+        batchNo: inputRow.batchNo.toUpperCase(),
+        locked: inputRow.locked.toUpperCase(),
+      };
 
-    batch.batchNo = batch.batchNo.replace(/[a-z]/g, (char: string) =>
-      char.toUpperCase()
-    );
-    batch.locked = batch.locked.toUpperCase();
-    await sendAPIRequest(`/${organizationId}/item/${id}/batch`, {
-      method: 'POST',
-      body: batch,
-    });
-    queryClient.invalidateQueries({ queryKey: ['get-itemBatches'] });
-    setInputRow({
-      ...pinnedRow,
-      locked: '',
-      batchNo: '',
-    });
+      await sendAPIRequest(`/${organizationId}/item/${id}/batch`, {
+        method: 'POST',
+        body: formattedInputRow,
+      });
+      setInputRow(pinnedRow);
+      getBatch();
+      queryClient.invalidateQueries({ queryKey: ['get-itemBatches'] });
+    } catch (err: any) {
+      if (err.message) {
+        setPopupState({
+          ...popupState,
+          isAlertOpen: true,
+          message: err.message,
+        });
+      } else {
+        console.error('Error occured while adding batch:-', err);
+      }
+    }
   };
 
   const handleConfirmPopup = () => {
@@ -149,192 +147,51 @@ export const Batch = ({
       newValue?: any;
     }) => {
       editing.current = false;
-      const { data, column, oldValue, valueChanged, node } = e;
+      const { data, column, oldValue, newValue, valueChanged, node } = e;
       const batchId = data.id;
-      let { newValue } = e;
-      if (!valueChanged) return;
       const field = column.colId;
-
-      if (node.rowPinned === 'top') {
-        if (field === 'expiryDate') {
-          if (!expiryFormatRegex.test(newValue)) {
-            setPopupState({
-              ...popupState,
-              isAlertOpen: true,
-              message: 'Expiry date must be valid with format MM/YYYY.',
-            });
-            node.setDataValue(field, oldValue);
-            return;
+      if (!valueChanged) return;
+      try {
+        if (node.rowPinned === 'top') {
+          try {
+            await batchSchema.validateAt(field, { [field]: newValue });
+            const newBatch = { ...inputRow, [field]: newValue };
+            validatePrices(newBatch);
+            setInputRow(newBatch);
+          } catch (err: any) {
+            if (err.message) {
+              setPopupState({
+                ...popupState,
+                isAlertOpen: true,
+                message: err.message,
+              });
+              node.setDataValue(field, oldValue);
+            }
           }
-          if (parseMonthYear(newValue) < new Date()) {
-            setPopupState({
-              ...popupState,
-              isAlertOpen: true,
-              message: 'Expiry date must be greater than current date.',
-            });
-            node.setDataValue(field, oldValue);
-            return;
-          }
+        } else {
+          await batchSchema.validate({ ...data, [field]: newValue });
+          await sendAPIRequest(`/${organizationId}/item/${id}/batch/${batchId}`, {
+            method: 'PUT',
+            body: { ...data, [field]: newValue },
+          });
+          queryClient.invalidateQueries({ queryKey: ['get-itemBatches', id] });
         }
-        if (field === 'locked') {
-          if (!['Y', 'N', 'y', 'n'].includes(newValue)) {
-            setPopupState({
-              ...popupState,
-              isAlertOpen: true,
-              message:
-                'Please enter either "y" for Yes or "n" for "No" for Locked field.',
-            });
-            return;
-          }
+      } catch (err: any) {
+        if (err.message) {
+          setPopupState({
+            ...popupState,
+            isAlertOpen: true,
+            message: err.message,
+          });
+        } else {
+          console.error('Error:-', err);
         }
-
-        const newBatch = { ...inputRow, [field]: newValue };
-        setInputRow(newBatch);
-      } else {
-        switch (field) {
-          case 'batchNo':
-            {
-              const existingBatches = currTableData.find(
-                (batch: BatchForm) =>
-                  numberedStringLowerCase(batch.batchNo) ===
-                  numberedStringLowerCase(newValue)
-              );
-              if (existingBatches) {
-                setPopupState({
-                  ...popupState,
-                  isAlertOpen: true,
-                  message: 'Batch with this number already exists!',
-                });
-                node.setDataValue(field, oldValue);
-                return;
-              } else if (!newValue || newValue.length > 100) {
-                setPopupState({
-                  ...popupState,
-                  isAlertOpen: true,
-                  message: !newValue
-                    ? 'Batch Number is required'
-                    : 'Batch number cannot exceed 100 characters',
-                });
-                node.setDataValue(field, oldValue);
-                return;
-              }
-            }
-            break;
-          case 'expiryDate':
-            {
-              if (!newValue) {
-                setPopupState({
-                  ...popupState,
-                  isAlertOpen: true,
-                  message: `Expiry date is required`,
-                });
-                node.setDataValue(field, oldValue);
-                return;
-              }
-              if (newValue && !expiryFormatRegex.test(newValue)) {
-                setPopupState({
-                  ...popupState,
-                  isAlertOpen: true,
-                  message: 'Expiry date must be valid with format MM/YYYY.',
-                });
-                return;
-              }
-            }
-            break;
-
-          case 'opBalance':
-            {
-              if (!newValue) {
-                setPopupState({
-                  ...popupState,
-                  isAlertOpen: true,
-                  message: `Opennig stock is required`,
-                });
-                node.setDataValue(field, oldValue);
-                return;
-              }
-            }
-            break;
-          case 'opFree':
-            {
-              if (!newValue) {
-                setPopupState({
-                  ...popupState,
-                  isAlertOpen: true,
-                  message: `Scheme stock is required`,
-                });
-                node.setDataValue(field, oldValue);
-                return;
-              }
-            }
-            break;
-          case 'purPrice':
-            {
-              if (!newValue) {
-                setPopupState({
-                  ...popupState,
-                  isAlertOpen: true,
-                  message: `Purchase price is required`,
-                });
-                node.setDataValue(field, oldValue);
-                return;
-              }
-            }
-            break;
-          case 'salePrice':
-            {
-              if (!newValue) {
-                setPopupState({
-                  ...popupState,
-                  isAlertOpen: true,
-                  message: `Sale price is required`,
-                });
-                node.setDataValue(field, oldValue);
-                return;
-              }
-            }
-            break;
-          case 'mrp':
-            {
-              if (!newValue) {
-                setPopupState({
-                  ...popupState,
-                  isAlertOpen: true,
-                  message: `MRP is required`,
-                });
-                node.setDataValue(field, oldValue);
-                return;
-              }
-            }
-            break;
-          case 'locked':
-            {
-              if (!['Y', 'N', 'y', 'n'].includes(newValue)) {
-                setPopupState({
-                  ...popupState,
-                  isAlertOpen: true,
-                  message:
-                    'Please enter either "y" for Yes or "n" for "No" for Locked field.',
-                });
-                node.setDataValue(field, oldValue);
-                return;
-              }
-              newValue = newValue.toUpperCase();
-            }
-            break;
-          default:
-            break;
-        }
-        await sendAPIRequest(`/${organizationId}/item/${id}/batch/${batchId}`, {
-          method: 'PUT',
-          body: { ...data, [field]: newValue },
-        });
-
-        queryClient.invalidateQueries({ queryKey: ['get-itemBatches'] });
+        node.setDataValue(field, oldValue);
       }
     },
-    [tableData, inputRow]
+    [[tableData, inputRow]]
   );
+
 
   const onCellClicked = (params: { data: any }) => {
     setSelectedRow(selectedRow !== null ? null : params.data);
@@ -343,17 +200,22 @@ export const Batch = ({
   const cellEditingStarted = () => {
     editing.current = true;
   };
-  // TO-DO : (Avantika)= Handle Keyboard shortcut(Tab)
-  const handleKeyDown = (event: KeyboardEvent) => {
-    if (event.key) {
-      if (isPinnedRowDataCompleted({ node: { rowPinned: 'top' } })) {
-        handelBatchAdd(inputRow);
-      }
+
+  const isPinnedRowDataCompleted = async () => {
+    try {
+      await batchSchema.validate(inputRow);
+      return true;
+    } catch (err: any) {
+      console.error(err?.message || err);
+      return false;
     }
   };
-  useEffect(() => {
-    getBatch();
-  }, [data]);
+
+  const handleKeyDown = async (event: KeyboardEvent) => {
+    if (event.code === 'Enter' && await isPinnedRowDataCompleted()) {
+      handleBatchAdd();
+    }
+  };
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
@@ -386,7 +248,7 @@ export const Batch = ({
     const isPinnedRow = node.rowPinned === 'top';
     const isEditing = params.api
       .getEditingCells()
-      .some(
+      ?.some(
         (cell: any) =>
           cell.rowIndex === params.node.rowIndex &&
           cell.column.colId === params.column.colId
@@ -423,24 +285,6 @@ export const Batch = ({
       suppressMovable: true,
       valueFormatter: createValueFormatter({ headerName: 'Batch No' }),
     },
-    ...(controlRoomSettings.batchWiseManufacturingCode
-      ? [
-          {
-            headerName: 'MFG Code',
-            field: 'mfgCode',
-            filter: true,
-            editable: true,
-            flex: 1,
-            headerClass: 'custom-header',
-            sortable: true,
-            suppressMovable: true,
-            valueFormatter: createValueFormatter({
-              headerName: 'MFG Code',
-            }),
-          },
-        ]
-      : []),
-
     {
       headerName: 'Expiry Date',
       field: 'expiryDate',
@@ -506,6 +350,23 @@ export const Batch = ({
       },
       valueFormatter: createValueFormatter({ headerName: 'Sale Price' }),
     },
+    ...(controlRoomSettings.dualPriceList
+      ? [
+        {
+          headerName: 'Sale Price 2',
+          field: 'salePrice2',
+          filter: true,
+          editable: true,
+          flex: 1,
+          headerClass: 'custom-header',
+          sortable: true,
+          suppressMovable: true,
+          valueFormatter: createValueFormatter({
+            headerName: 'Sale Price 2',
+          }),
+        },
+      ]
+      : []),
     {
       headerName: 'MRP',
       field: 'mrp',
@@ -527,27 +388,42 @@ export const Batch = ({
       suppressMovable: true,
       valueFormatter: createValueFormatter({ headerName: 'Y/N' }),
     },
+    ...(controlRoomSettings.batchWiseManufacturingCode
+      ? [
+        {
+          headerName: 'MFG Code',
+          field: 'mfgCode',
+          filter: true,
+          editable: true,
+          flex: 1,
+          headerClass: 'custom-header',
+          sortable: true,
+          suppressMovable: true,
+          valueFormatter: createValueFormatter({
+            headerName: 'MFG Code',
+          }),
+        },
+      ]
+      : []),
   ];
 
   return (
     <div ref={containerRef}>
-      <div className='w-full'>
-        <div className='flex w-full items-center justify-between px-8 py-1'>
-          <h1 className='font-bold'>Batches</h1>
-          <Button
-            type='highlight'
-            handleOnClick={() => params.setShowBatch(null)}
-          >
+      <div className="w-full">
+        <div className="flex w-full items-center justify-between px-8 py-1">
+          <h1 className="font-bold">Batches</h1>
+          <Button type="highlight" handleOnClick={() => params.setShowBatch(null)}>
             Back
           </Button>
         </div>
-        <div id='account_table' className='ag-theme-quartz'>
-          {
+        <div id="account_table" className="ag-theme-quartz">
+          {tableData &&
             <AgGridReact
+              ref={gridRef}
               rowData={tableData}
               columnDefs={colDefs}
               defaultColDef={defaultColDef}
-              rowSelection='single'
+              rowSelection="single"
               onSelectionChanged={(event) => {
                 setSelectedRow(event.api.getSelectedNodes()[0]);
               }}
@@ -571,6 +447,7 @@ export const Batch = ({
             }
             message={popupState.message}
             isAlert={popupState.isAlertOpen}
+            autoFocus={false}
           />
         )}
       </div>

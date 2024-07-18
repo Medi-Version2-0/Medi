@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Tooltip as ReactTooltip } from 'react-tooltip';
 import { FaExclamationCircle } from 'react-icons/fa';
 import titleCase from '../../utilities/titleCase';
@@ -88,6 +88,23 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
       onKeyDown(e);
     }
   };
+  const inputRef: any = useRef(null);
+
+  useEffect(() => {
+    const inputElement = inputRef.current;
+    const handleWheel = (e: any) => {
+      e.preventDefault();
+    };
+    if (inputElement && inputElement) {
+      inputElement.addEventListener('wheel', handleWheel, { passive: false });
+    }
+    return () => {
+      if (inputElement) {
+        inputElement.removeEventListener('wheel', handleWheel);
+      }
+    };
+  }, []);
+
   return (
     <div
       className={`${isPopupOpen ? `flex flex-col relative w-full h-7 text-xs ${isRequired && 'starlabel'} ${className}` : `flex flex-row gap-2 items-center relative w-full h-6 text-xs ${isRequired && 'starlabel'} ${className}`}`}
@@ -100,11 +117,12 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
       </label>
       {children}
       <input
+        ref={inputRef}
         type={type}
         id={id}
         name={name}
         maxLength={maxLength}
-        className={`w-full border border-solid border-[#9ca3af] text-[10px] text-gray-800 h-full rounded-sm p-1 disabled:text-[#A9A9A9] disabled:bg-[#f5f5f5] focus:bg-[#EAFBFCFF] ${!!(formik.touched[id] && formik.errors[id]) && '!border-red-500'} ${inputClassName}`}
+        className={`w-full border border-solid border-[#9ca3af] text-[10px] text-gray-800 h-full rounded-sm p-1 appearance-none disabled:text-[#A9A9A9] disabled:bg-[#f5f5f5] focus:bg-[#EAFBFCFF] ${!!(formik.touched[id] && formik.errors[id]) && '!border-red-500'} ${inputClassName}`}
         onBlur={formik.handleBlur}
         onChange={onChange}
         onKeyDown={handleKeyDown}
