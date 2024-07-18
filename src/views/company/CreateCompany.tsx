@@ -13,7 +13,7 @@ import onKeyDown from '../../utilities/formKeyDown';
 import titleCase from '../../utilities/titleCase';
 import { sendAPIRequest } from '../../helper/api';
 import { useQueryClient } from '@tanstack/react-query';
-import * as Yup from 'yup';
+
 
 export const CreateCompany = ({ setView , data }: any) => {
   const { organizationId } = useParams();
@@ -37,7 +37,7 @@ export const CreateCompany = ({ setView , data }: any) => {
       address1: data?.address1 || '',
       address2: data?.address2 || '',
       address3: data?.address3 || '',
-      stationId: data?.stationId || '',
+      stationId: data?.stationId || null,
       //balance
       openingBal: data?.openingBal || '',
       openingBalType: data?.openingBalType || 'Dr',
@@ -78,25 +78,6 @@ export const CreateCompany = ({ setView , data }: any) => {
     },
   });
 
-  const getRequiredFields = (schema: Yup.ObjectSchema<any>) => {
-    const requiredFields: string[] = [];
-    const schemaFields = schema.describe().fields;
-    
-    for (const [key, value] of Object.entries(schemaFields)) {
-      if ((value as any).tests.some((test: any) => test.name === 'required')) {
-        requiredFields.push(key);
-      }
-    }
-    return requiredFields;
-  };
-  
-  const requiredFields = getRequiredFields(getCompanyFormSchema());
-  
-  const isFormValid = () => {
-    return requiredFields.every((field) => 
-      formik.values[field] !== '' && !formik.errors[field]
-    );
-  };
 
   const fetchAllData = async () => {
     const stations = await sendAPIRequest<any[]>(`/${organizationId}/station`);
@@ -302,7 +283,7 @@ export const CreateCompany = ({ setView , data }: any) => {
                     disableArrow={true}
                     hidePlaceholder={false}
                     className='!h-6 rounded-sm'
-                    isRequired={true}
+                    isRequired={false}
                     error={formik.errors.stationId}
                     isTouched={formik.touched.stationId}
                     showErrorTooltip={true}
@@ -822,7 +803,7 @@ export const CreateCompany = ({ setView , data }: any) => {
             padding='px-4 py-2'
             id='submit_company'
             btnType='submit'
-            disable={!isFormValid()}
+            disable={!(formik.isValid)}
             handleOnClick={() => {
               setPopupState({
                 ...popupState,
