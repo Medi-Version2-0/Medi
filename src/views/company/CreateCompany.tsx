@@ -13,7 +13,7 @@ import onKeyDown from '../../utilities/formKeyDown';
 import titleCase from '../../utilities/titleCase';
 import { sendAPIRequest } from '../../helper/api';
 import { useQueryClient } from '@tanstack/react-query';
-
+import { useSelector } from 'react-redux'
 
 export const CreateCompany = ({ setView , data }: any) => {
   const { organizationId } = useParams();
@@ -22,6 +22,7 @@ export const CreateCompany = ({ setView , data }: any) => {
   const [purchaseOptions, setPurchaseOptions] = useState<Option[]>([]);
   const [focused, setFocused] = useState('');
   const queryClient = useQueryClient();
+  const { stations } = useSelector((state: any) => state.global)
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
@@ -80,7 +81,6 @@ export const CreateCompany = ({ setView , data }: any) => {
 
 
   const fetchAllData = async () => {
-    const stations = await sendAPIRequest<any[]>(`/${organizationId}/station`);
     const salesList = await sendAPIRequest<any[]>(`/${organizationId}/sale`);
     const purchaseList = await sendAPIRequest<any[]>(`/${organizationId}/purchase`);
     setStationOptions(
@@ -108,7 +108,7 @@ export const CreateCompany = ({ setView , data }: any) => {
   useEffect(() => {
     fetchAllData();
     document.getElementById('companyName')?.focus();
-  }, []);
+  }, [stations]);
 
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });

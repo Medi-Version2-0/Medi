@@ -17,6 +17,8 @@ import { stationSettingFields } from '../../components/common/controlRoom/settin
 import { useControls } from '../../ControlRoomContext';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { stationValidationSchema } from './validation_schema';
+import { setStation } from '../../store/action/globalAction';
+import { useDispatch, useSelector } from 'react-redux'
 
 const initialValue = {
   station_id: '',
@@ -32,10 +34,12 @@ export const Stations = () => {
   const [settingToggleOpen, setSettingToggleOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<StationFormData | any>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
-  const [tableData, setTableData] = useState<StationFormData | any>(null);
+  // const [tableData, setTableData] = useState<StationFormData | any>(null);
+  const {stations :tableData} = useSelector((state:any)=> state.global)
   const queryClient = useQueryClient();
   const [stateData, setStateData] = useState<any[]>([]);
   const editing = useRef(false);
+  const dispatch = useDispatch()
   let currTable: any[] = [];
 
   const { controlRoomSettings } = useControls();
@@ -60,7 +64,6 @@ export const Stations = () => {
 
   useEffect(() => {
     getStates();
-    getStations();
   }, [data]);
 
   useEffect(() => {
@@ -77,8 +80,8 @@ export const Stations = () => {
 
   const getStations = async () => {
     const stations = await sendAPIRequest<any[]>(`/${organizationId}/station`);
-    setTableData(stations);
-  };
+    dispatch(setStation(stations || []))
+    };
 
   const togglePopup = (isOpen: boolean) => {
     if (!isOpen) {
@@ -123,7 +126,7 @@ export const Stations = () => {
           body: formData,
         });
       }
-
+      getStations()
       togglePopup(false);
       queryClient.invalidateQueries({ queryKey: ['get-stations'] });
     }
@@ -168,6 +171,7 @@ export const Stations = () => {
     await sendAPIRequest(`/${organizationId}/station/${station_id}`, {
       method: 'DELETE',
     });
+    dispatch(setStation(tableData.filter((x:any)=> x.station_id !== station_id)))
     queryClient.invalidateQueries({ queryKey: ['get-stations'] });
   };
 

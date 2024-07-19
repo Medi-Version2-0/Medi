@@ -12,6 +12,7 @@ import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
 import { useParams } from 'react-router-dom';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
+import { useSelector } from 'react-redux'
 
 const initialValue: StationFormData = {
   station_id: '',
@@ -25,7 +26,8 @@ export const Headquarters = () => {
   const [formData, setFormData] = useState<StationFormData>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<StationFormData[]>([]);
-  const [allStations, setAllStations] = useState<StationFormData[]>([]);
+  const { stations: allStations } = useSelector((state: any) => state.global)
+
   const editing = useRef(false);
   const isDelete = useRef(false);
 
@@ -35,10 +37,6 @@ export const Headquarters = () => {
     message: '',
   });
 
-  const getStations = useCallback(async () => {
-    const stations = await sendAPIRequest<any[]>(`/${organizationId}/station`);
-    setAllStations(stations);
-  }, []);
   const handleDelete = (oldData: StationFormData) => {
     isDelete.current = true;
     setFormData(oldData);
@@ -61,9 +59,8 @@ export const Headquarters = () => {
   }, []);
 
   useEffect(() => {
-    getStations();
     getHeadquarters();
-  }, [getStations, getHeadquarters]);
+  }, [getHeadquarters]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -178,7 +175,7 @@ export const Headquarters = () => {
   };
 
   const stationHeadquarterMap: { [key: number]: string } = {};
-  allStations.forEach((data) => {
+  allStations.forEach((data: any) => {
     if (data.station_id !== undefined) {
       stationHeadquarterMap[+data.station_id] = data.station_name;
     }
