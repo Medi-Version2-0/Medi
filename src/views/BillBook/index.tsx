@@ -14,6 +14,8 @@ import { IoSettingsOutline } from 'react-icons/io5';
 import { ControlRoomSettings } from '../../components/common/controlRoom/ControlRoomSettings';
 import { invoiceSettingFields } from '../../components/common/controlRoom/settings';
 import { useControls } from '../../ControlRoomContext';
+import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
+import { billBookValidationSchema } from './validation_schema';
 
 type SeriesOption = {
   id: number;
@@ -247,60 +249,42 @@ export const BillBook = () => {
     if (!valueChanged) return;
     const field = column.colId;
 
-    switch (field) {
-      case 'billName':
-        {
-          if (!newValue || newValue.length > 100) {
-            setPopupState({
-              ...popupState,
-              isAlertOpen: true,
-              message: !newValue
-                ? 'Bill Name is required'
-                : newValue.length > 100
-                  ? 'Bill name cannot exceed 100 characters'
-                  : '',
-            });
-            node.setDataValue(field, oldValue);
-            return;
-          }
-          newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
-          tableData.forEach((data: any) => {
-            if (data.station_id !== e.data.station_id) {
-              currTable.push(data);
-            }
-          });
+    try {
+      await billBookValidationSchema.validateAt(field, { [field]: newValue });
 
-          const existingBill = currTable.find(
-            (bill: BillBookForm) =>
-              bill.billName.toLowerCase() === newValue.toLowerCase()
-          );
-
-          if (existingBill) {
-            setPopupState({
-              ...popupState,
-              isAlertOpen: true,
-              message: 'Bill with this name already exists!',
-            });
-            node.setDataValue(field, oldValue);
-            return;
+      if (field === 'billName') {
+        newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
+        tableData.forEach((data: any) => {
+          if (data.station_id !== e.data.station_id) {
+            currTable.push(data);
           }
-        }
-        break;
-      case 'billBookPrefix':
-        if (!/^[A-Z]{2}$/.test(newValue)) {
+        });
+
+        const existingBill = currTable.find(
+          (bill: BillBookForm) =>
+            bill.billName.toLowerCase() === newValue.toLowerCase()
+        );
+
+        if (existingBill) {
           setPopupState({
             ...popupState,
             isAlertOpen: true,
-            message: 'Prefix must contain exactly two alphabet characters',
+            message: 'Bill with this name already exists!',
           });
           node.setDataValue(field, oldValue);
           return;
         }
-        break;
-      default:
-        break;
+      }
+    } catch (error: any) {
+      setPopupState({
+        ...popupState,
+        isAlertOpen: true,
+        message: error.message,
+      });
+      node.setDataValue(field, oldValue);
+      return;
     }
-
+    node.setDataValue(field, newValue);
     await sendAPIRequest(`/${organizationId}/billBook/${data.id}`, {
       method: 'PUT',
       body: { [field]: newValue },
@@ -318,31 +302,14 @@ export const BillBook = () => {
   };
 
   const handleKeyDown = (event: KeyboardEvent) => {
-    switch (event.key) {
-      case 'Escape':
-        togglePopup(false);
-        break;
-      case 'n':
-      case 'N':
-        if (event.ctrlKey) {
-          togglePopup(true);
-        }
-        break;
-      case 'd':
-      case 'D':
-        if (event.ctrlKey && selectedRow) {
-          handleDelete(selectedRow);
-        }
-        break;
-      case 'e':
-      case 'E':
-        if (event.ctrlKey && selectedRow) {
-          handleUpdate(selectedRow);
-        }
-        break;
-      default:
-        break;
-    }
+    handleKeyDownCommon(
+      event,
+      handleDelete,
+      handleUpdate,
+      togglePopup,
+      selectedRow,
+      undefined
+    );
   };
 
   const colDefs: any[] = [

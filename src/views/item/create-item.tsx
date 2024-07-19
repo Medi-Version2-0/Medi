@@ -68,7 +68,7 @@ const CreateItem = ({ setView, data }: any) => {
       upload: data?.upload || '',
     },
 
-    validationSchema: itemFormValidations(),
+    validationSchema: itemFormValidations,
     onSubmit: async (values: any) => {
       try {
         const formData = new FormData();

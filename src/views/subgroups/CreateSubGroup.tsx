@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { Formik, Form, Field, FormikProps } from 'formik';
-import * as Yup from 'yup';
 import {
   CreateSubGroupProps,
   Option,
@@ -13,6 +12,7 @@ import onKeyDown from '../../utilities/formKeyDown';
 import FormikInputField from '../../components/common/FormikInputField';
 import { sendAPIRequest } from '../../helper/api';
 import { useParams } from 'react-router-dom';
+import { subgroupValidationSchema } from './validation_schema';
 
 export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
   togglePopup,
@@ -52,18 +52,6 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
   const handleParentChange = (option: Option | null) => {
     formikRef.current?.setFieldValue('parent_code', option?.value);
   };
-
-  const validationSchema = Yup.object({
-    group_name: Yup.string()
-      .required('Group name is required')
-      .matches(/[a-zA-Z]/, 'Only Numbers not allowed')
-      .matches(
-        /^[a-zA-Z0-9\s_.-]*$/,
-        'Group name can contain alphanumeric characters, "-", "_", and spaces only'
-      )
-      .max(100, 'Group name cannot exceeds 100 characters'),
-    parent_code: Yup.string().required('Parent Group is required')
-  });
 
   const handleSubmit = async (values: object) => {
     const formData = {
@@ -107,7 +95,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
           group_name: data?.group_name || '',
           parent_code: data?.parent_code || '',
         }}
-        validationSchema={validationSchema}
+        validationSchema={subgroupValidationSchema}
         onSubmit={handleSubmit}
       >
         {(formik) => (

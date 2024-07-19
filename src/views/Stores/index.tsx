@@ -10,6 +10,7 @@ import Button from '../../components/common/button/Button';
 import { CreateStore } from './CreateStore';
 import { sendAPIRequest } from '../../helper/api';
 import { useParams } from 'react-router-dom';
+import { storeValidationSchema } from './validation_schema';
 
 const initialValue = {
   store_code: '',
@@ -17,6 +18,7 @@ const initialValue = {
   address1: '',
   address2: '',
   address3: '',
+  isPredefinedStore: true,
 };
 
 export const Store = () => {
@@ -80,10 +82,13 @@ export const Store = () => {
     }
     if (formData !== initialValue) {
       if (formData.store_code) {
-        await sendAPIRequest(`/${organizationId}/store/${formData.store_code}`, {
-          method: 'PUT',
-          body: formData,
-        });
+        await sendAPIRequest(
+          `/${organizationId}/store/${formData.store_code}`,
+          {
+            method: 'PUT',
+            body: formData,
+          }
+        );
       } else {
         await sendAPIRequest(`/${organizationId}/store`, {
           method: 'POST',
@@ -135,7 +140,9 @@ export const Store = () => {
   const deleteAcc = async (store_code: string) => {
     isDelete.current = false;
     togglePopup(false);
-    await sendAPIRequest(`/${organizationId}/store/${store_code}`, { method: 'DELETE' });
+    await sendAPIRequest(`/${organizationId}/store/${store_code}`, {
+      method: 'DELETE',
+    });
     getStores();
   };
 
@@ -160,45 +167,38 @@ export const Store = () => {
     let { newValue } = e;
     if (!valueChanged) return;
     const field = column.colId;
-    switch (field) {
-      case 'store_name':
-        {
-          const existingStore = tableData.filter(
-            (store: StoreFormData) =>
-              store.store_name.toLowerCase() === newValue.toLowerCase()
-          );
+    try {
+      await storeValidationSchema.validateAt(field, { [field]: newValue });
 
-          if (existingStore.length > 1) {
-            setPopupState({
-              ...popupState,
-              isAlertOpen: true,
-              message: 'Store with this name already exists!',
-            });
-            node.setDataValue(field, oldValue);
-            return;
-          } else if (
-            !newValue ||
-            /^\d+$/.test(newValue) ||
-            newValue.length > 100
-          ) {
-            setPopupState({
-              ...popupState,
-              isAlertOpen: true,
-              message: !newValue
-                ? 'Store Name is required'
-                : /^\d+$/.test(newValue)
-                  ? 'Only Numbers not allowed'
-                  : 'Store name cannot exceed 100 characters',
-            });
-            node.setDataValue(field, oldValue);
-            return;
-          }
-          newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
+      if (field === 'store_name') {
+        const existingStore = tableData.filter(
+          (store: StoreFormData) =>
+            store.store_name.toLowerCase() === newValue.toLowerCase()
+        );
+
+        if (existingStore.length > 1) {
+          setPopupState({
+            ...popupState,
+            isAlertOpen: true,
+            message: 'Store with this name already exists!',
+          });
+          node.setDataValue(field, oldValue);
+          return;
         }
-        break;
-      default:
-        break;
+
+        newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
+      }
+    } catch (error: any) {
+      setPopupState({
+        ...popupState,
+        isAlertOpen: true,
+        message: error.message,
+      });
+      node.setDataValue(field, oldValue);
+      return;
     }
+
+    node.setDataValue(field, newValue);
     await sendAPIRequest(`/${organizationId}/store/${data.store_code}`, {
       method: 'PUT',
       body: { [field]: newValue },
@@ -232,14 +232,37 @@ export const Store = () => {
         break;
       case 'd':
       case 'D':
-        if (event.ctrlKey && selectedRow) {
+        if (
+          event.ctrlKey &&
+          selectedRow &&
+          selectedRow.isPredefinedStore === false
+        ) {
           handleDelete(selectedRow);
+        } else if (
+          event.ctrlKey &&
+          selectedRow &&
+          selectedRow.isPredefinedStore === true
+        ) {
+          setPopupState({
+            ...popupState,
+            isAlertOpen: true,
+            message: 'Predefined Stores should not be deleted',
+          });
         }
+
         break;
       case 'e':
       case 'E':
         if (event.ctrlKey && selectedRow) {
-          handleUpdate(selectedRow);
+          if (selectedRow.isPredefinedStore === false) {
+            handleUpdate(selectedRow);
+          } else if (selectedRow.isPredefinedStore === true) {
+            setPopupState({
+              ...popupState,
+              isAlertOpen: true,
+              message: 'Predefined Stores are not editable',
+            });
+          }
         }
         break;
       default:
@@ -293,13 +316,31 @@ export const Store = () => {
         <div className='table_edit_buttons'>
           <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
-            onClick={() => handleUpdate(params.data)}
+            onClick={() => {
+              if (params.data.isPredefinedStore) {
+                setPopupState({
+                  ...popupState,
+                  isAlertOpen: true,
+                  message: 'Predefined Stores are not editable',
+                });
+              } else {
+                handleUpdate(params.data);
+              }
+            }}
           />
 
           <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
             onClick={() => {
-              handleDelete(params.data);
+              if (params.data.isPredefinedStore) {
+                setPopupState({
+                  ...popupState,
+                  isAlertOpen: true,
+                  message: 'Predefined Stores should not be deleted',
+                });
+              } else {
+                handleDelete(params.data);
+              }
             }}
           />
         </div>

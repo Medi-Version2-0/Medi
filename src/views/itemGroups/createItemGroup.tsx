@@ -1,7 +1,6 @@
 import React from 'react';
 import { useEffect } from 'react';
 import { Formik, Form, Field, FormikProps } from 'formik';
-import * as Yup from 'yup';
 import {
   CreateItemGroupProps,
   ItemGroupFormDataProps,
@@ -12,6 +11,7 @@ import onKeyDown from '../../utilities/formKeyDown';
 import FormikInputField from '../../components/common/FormikInputField';
 import { FaExclamationCircle } from 'react-icons/fa';
 import { Tooltip as ReactTooltip } from 'react-tooltip';
+import { itemGroupValidationSchema } from './validation_schema';
 
 export const CreateItemGroup: React.FC<CreateItemGroupProps> = ({
   togglePopup,
@@ -29,18 +29,6 @@ export const CreateItemGroup: React.FC<CreateItemGroupProps> = ({
       : document.getElementById('cancel_button');
     focusTarget?.focus();
   }, []);
-
-  const validationSchema = Yup.object({
-    group_name: Yup.string()
-      .required('Group name is required')
-      .matches(/[a-zA-Z]/, 'Only Numbers not allowed')
-      .matches(
-        /^[a-zA-Z0-9\s_.-]*$/,
-        'Group name can contain alphanumeric characters, "-", "_", and spaces only'
-      )
-      .max(100, 'Group name cannot exceeds 100 characters'),
-    type: Yup.string().required('Type is required'),
-  });
 
   const handleSubmit = async (values: object) => {
     const formData = group_code
@@ -79,7 +67,7 @@ export const CreateItemGroup: React.FC<CreateItemGroupProps> = ({
           group_name: data?.group_name || '',
           type: data?.type || '',
         }}
-        validationSchema={validationSchema}
+        validationSchema={itemGroupValidationSchema}
         onSubmit={handleSubmit}
       >
         {(formik) => (

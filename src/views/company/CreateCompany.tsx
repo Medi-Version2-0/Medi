@@ -60,7 +60,7 @@ export const CreateCompany = ({ setView , data }: any) => {
 
       purSaleAc: data?.purSaleAc || '',
     },
-    validationSchema: getCompanyFormSchema(),
+    validationSchema: getCompanyFormSchema,
     onSubmit: async (values) => {
       const allData = { ...values };
       if (data.company_id) {

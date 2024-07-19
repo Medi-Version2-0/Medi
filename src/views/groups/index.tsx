@@ -12,6 +12,7 @@ import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
+import { groupValidationSchema } from './validation_schema';
 
 const initialValue = {
   group_code: '',
@@ -89,10 +90,13 @@ export const Groups = () => {
     }
     if (formData !== initialValue) {
       if (formData.group_code) {
-        await sendAPIRequest(`/${organizationId}/group/${formData.group_code}`, {
-          method: 'PUT',
-          body: formData,
-        });
+        await sendAPIRequest(
+          `/${organizationId}/group/${formData.group_code}`,
+          {
+            method: 'PUT',
+            body: formData,
+          }
+        );
       } else {
         await sendAPIRequest(`/${organizationId}/group`, {
           method: 'POST',
@@ -186,56 +190,45 @@ export const Groups = () => {
       let { newValue } = e;
       if (!valueChanged) return;
       const field = column.colId;
-      switch (field) {
-        case 'group_name':
-          {
-            if (!newValue || /^\d+$/.test(newValue) || newValue.length > 100) {
-              setPopupState({
-                ...popupState,
-                isAlertOpen: true,
-                message: !newValue
-                  ? 'Group Name is required'
-                  : /^\d+$/.test(newValue)
-                    ? 'Only Numbers not allowed'
-                    : 'Group name cannot exceed 100 characters',
-              });
-              node.setDataValue(field, oldValue);
-              return;
+      try {
+        await groupValidationSchema.validateAt(field, { [field]: newValue });
+
+        if (field === 'group_name') {
+          newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
+          tableData.forEach((data: any) => {
+            if (data.group_code !== e.data.group_code) {
+              currTable.push(data);
             }
-            newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
-            tableData.forEach((data: any) => {
-              if (data.group_code !== e.data.group_code) {
-                currTable.push(data);
-              }
+          });
+
+          const existingGroup = currTable.find(
+            (group: GroupFormData) =>
+              group.group_name.toLowerCase() === newValue.toLowerCase()
+          );
+
+          if (existingGroup) {
+            setPopupState({
+              ...popupState,
+              isAlertOpen: true,
+              message: 'Group with this name already exists!',
             });
-
-            const existingGroup = currTable.find(
-              (group: GroupFormData) =>
-                group.group_name.toLowerCase() === newValue.toLowerCase()
-            );
-
-            if (existingGroup) {
-              setPopupState({
-                ...popupState,
-                isAlertOpen: true,
-                message: 'Group with this name already exists!',
-              });
-              node.setDataValue(field, oldValue);
-              return;
-            }
+            node.setDataValue(field, oldValue);
+            return;
           }
-          break;
-        case 'igst_sale':
-          {
-            if (newValue) newValue = newValue.toLowerCase();
-            if (!['yes', 'no'].includes(newValue)) {
-              return node.setDataValue(field, oldValue);
-            }
-          }
-          break;
-        default:
-          break;
+        } else if (field === 'igst_sale') {
+          newValue = newValue.toLowerCase();
+        }
+      } catch (error: any) {
+        setPopupState({
+          ...popupState,
+          isAlertOpen: true,
+          message: error.message,
+        });
+        node.setDataValue(field, oldValue);
+        return;
       }
+
+      node.setDataValue(field, newValue);
       await sendAPIRequest(`/${organizationId}/group/${data.group_code}`, {
         method: 'PUT',
         body: { [field]: newValue },

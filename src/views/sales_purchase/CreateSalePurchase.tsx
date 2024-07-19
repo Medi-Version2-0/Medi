@@ -67,7 +67,7 @@ export const CreateSalePurchase = ({
       shortName: data?.shortName || '',
       shortName2: data?.shortName2 || '',
       openingBal: data?.openingBal || '',
-      openingBalType: data?.openingBal || ''
+      openingBalType: data?.openingBal || '',
     },
     validationSchema: validationSchema,
     onSubmit: handleSubmit,
@@ -120,7 +120,10 @@ export const CreateSalePurchase = ({
       }
       className={className}
     >
-      <form onSubmit={formik.handleSubmit} className='flex flex-col gap-3 min-w-[18rem] items-start px-4'>
+      <form
+        onSubmit={formik.handleSubmit}
+        className='flex flex-col gap-3 min-w-[18rem] items-start px-4'
+      >
         <FormikInputField
           label='Sp Type'
           id='sptype'
@@ -131,7 +134,9 @@ export const CreateSalePurchase = ({
           nextField='igst'
           prevField='sptype'
           sideField='igst'
-          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => handleKeyDown(e, formik)}
+          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
+            handleKeyDown(e, formik)
+          }
           showErrorTooltip={!!(formik.touched.sptype && formik.errors.sptype)}
         />
         <FormikInputField
@@ -144,11 +149,11 @@ export const CreateSalePurchase = ({
           nextField='surCharge'
           prevField='sptype'
           sideField='surCharge'
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
-            handleChange(e)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(e)}
           onClick={resetField}
-          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => 
-            handleKeyDown(e, formik)}
+          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
+            handleKeyDown(e, formik)
+          }
           showErrorTooltip={!!(formik.touched.igst && formik.errors.igst)}
         />
         <FormikInputField
@@ -161,11 +166,13 @@ export const CreateSalePurchase = ({
           sideField='shortName'
           nextField='shortName'
           prevField='igst'
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
-            handleChange(e)}
-          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => 
-            handleKeyDown(e, formik)}
-          showErrorTooltip={!!(formik.touched.surCharge && formik.errors.surCharge)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(e)}
+          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
+            handleKeyDown(e, formik)
+          }
+          showErrorTooltip={
+            !!(formik.touched.surCharge && formik.errors.surCharge)
+          }
         />
         <FormikInputField
           label='ShortName'
@@ -178,8 +185,11 @@ export const CreateSalePurchase = ({
           nextField='shortName2'
           prevField='surCharge'
           onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-            handleKeyDown(e, formik)}
-          showErrorTooltip={!!(formik.touched.shortName && formik.errors.shortName)}
+            handleKeyDown(e, formik)
+          }
+          showErrorTooltip={
+            !!(formik.touched.shortName && formik.errors.shortName)
+          }
         />
         <FormikInputField
           label='shortName2'
@@ -191,9 +201,12 @@ export const CreateSalePurchase = ({
           sideField='submit_button'
           nextField='submit_button'
           prevField='shortName'
-          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => 
-            handleKeyDown(e, formik)}
-          showErrorTooltip={!!(formik.touched.shortName2 && formik.errors.shortName2)}
+          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
+            handleKeyDown(e, formik)
+          }
+          showErrorTooltip={
+            !!(formik.touched.shortName2 && formik.errors.shortName2)
+          }
         />
         <div className='flex flex-row gap-2 items-center w-full'>
           <FormikInputField
@@ -201,7 +214,9 @@ export const CreateSalePurchase = ({
             id='openingBal'
             name='openingBal'
             formik={formik}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(e)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              handleChange(e)
+            }
             className='!mb-0'
             inputClassName='h-9 text-right'
             labelClassName='w-fit text-nowrap'
@@ -210,7 +225,9 @@ export const CreateSalePurchase = ({
             maxLength={12}
             placeholder='0.00'
             onClick={resetField}
-            showErrorTooltip={!!(formik.touched.openingBal && formik.errors.openingBal)}
+            showErrorTooltip={
+              !!(formik.touched.openingBal && formik.errors.openingBal)
+            }
           />
           <CustomSelect
             isPopupOpen={false}
@@ -247,7 +264,9 @@ export const CreateSalePurchase = ({
             handleOnKeyDown={(e) => {
               if (e.key === 'Tab') {
                 document
-                  .getElementById(`${isDelete ? 'del_button' : 'submit_button'}`)
+                  .getElementById(
+                    `${isDelete ? 'del_button' : 'submit_button'}`
+                  )
                   ?.focus();
                 e.preventDefault();
               }
@@ -272,10 +291,7 @@ export const CreateSalePurchase = ({
                 if (e.key === 'Tab') {
                   e.preventDefault();
                 }
-                if (
-                  e.key === 'ArrowUp' ||
-                  (e.shiftKey && e.key === 'Tab')
-                ) {
+                if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab')) {
                   document.getElementById('cancel_button')?.focus();
                 }
               }}
@@ -293,10 +309,7 @@ export const CreateSalePurchase = ({
                   document.getElementById('sptype')?.focus();
                   e.preventDefault();
                 }
-                if (
-                  e.key === 'ArrowUp' ||
-                  (e.shiftKey && e.key === 'Tab')
-                ) {
+                if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab')) {
                   document.getElementById('cancel_button')?.focus();
                 }
               }}

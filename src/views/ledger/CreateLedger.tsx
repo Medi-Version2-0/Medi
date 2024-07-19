@@ -114,7 +114,7 @@ export const CreateLedger = ({ setView, data }: any) => {
 
   const ledgerFormInfo = useFormik({
     initialValues,
-    validationSchema: getLedgerFormValidationSchema(),
+    validationSchema: getLedgerFormValidationSchema,
     validateOnMount: true,
     onSubmit: async (values) => {
       const formattedOpeningBal = parseFloat(values.openingBal).toFixed(2);

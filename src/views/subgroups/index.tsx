@@ -11,12 +11,13 @@ import { CreateSubGroup } from './CreateSubGroup';
 import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
 import { useParams } from 'react-router-dom';
+import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
+import { subgroupValidationSchema } from './validation_schema';
 
 const initialValue = {
   group_code: '',
   group_name: '',
   parent_code: '',
-  isPredefinedGroup: true,
 };
 
 export const SubGroups = () => {
@@ -32,7 +33,6 @@ export const SubGroups = () => {
     isAlertOpen: false,
     message: '',
   });
-
 
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
@@ -51,10 +51,13 @@ export const SubGroups = () => {
     }
     if (formData !== initialValue) {
       if (formData.group_code) {
-        await sendAPIRequest(`/${organizationId}/group/sub/${formData.group_code}`, {
-          method: 'PUT',
-          body: formData,
-        });
+        await sendAPIRequest(
+          `/${organizationId}/group/sub/${formData.group_code}`,
+          {
+            method: 'PUT',
+            body: formData,
+          }
+        );
       } else {
         await sendAPIRequest(`/${organizationId}/group/sub`, {
           method: 'POST',
@@ -76,7 +79,9 @@ export const SubGroups = () => {
   };
 
   const getSubGroups = async () => {
-    const subGroups = await sendAPIRequest<any[]>(`/${organizationId}/group/sub`);
+    const subGroups = await sendAPIRequest<any[]>(
+      `/${organizationId}/group/sub`
+    );
     setTableData(subGroups);
   };
 
@@ -146,79 +151,56 @@ export const SubGroups = () => {
     node?: any;
     newValue?: any;
   }) => {
-    if (e?.data?.isPredefinedGroup === false) {
-      currTable = [];
-      editing.current = false;
-      const { data, column, oldValue, valueChanged, node } = e;
-      let { newValue } = e;
-      if (!valueChanged) return;
-      const field = column.colId;
-      switch (field) {
-        case 'group_name':
-          {
-            if (!newValue || /^\d+$/.test(newValue) || newValue.length > 100) {
-              setPopupState({
-                ...popupState,
-                isAlertOpen: true,
-                message: !newValue
-                  ? 'Sub Group name is required'
-                  : /^\d+$/.test(newValue)
-                    ? 'Only Numbers not allowed'
-                    : 'Sub Group name cannot exceed 100 characters',
-              });
-              node.setDataValue(field, oldValue);
-              return;
-            }
-            newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
-            tableData.forEach((data: any) => {
-              if (data.group_code !== e.data.group_code) {
-                currTable.push(data);
-              }
-            });
+    currTable = [];
+    editing.current = false;
+    const { data, column, oldValue, valueChanged, node } = e;
+    let { newValue } = e;
+    if (!valueChanged) return;
+    const field = column.colId;
+    try {
+      await subgroupValidationSchema.validateAt(field, { [field]: newValue });
 
-            const existingGroup = currTable.find(
-              (group: SubGroupFormData) =>
-                group.group_name.toLowerCase() === newValue.toLowerCase()
-            );
+      if (field === 'group_name') {
+        newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
+        tableData.forEach((data: any) => {
+          if (data.group_code !== e.data.group_code) {
+            currTable.push(data);
+          }
+        });
 
-            if (existingGroup) {
-              setPopupState({
-                ...popupState,
-                isAlertOpen: true,
-                message: 'Sub Group with this name already exists!',
-              });
-              node.setDataValue(field, oldValue);
-              return;
-            }
-          }
-          break;
-        case 'igst_sale':
-          {
-            if (newValue) newValue = newValue.toLowerCase();
-            if (!['yes', 'no'].includes(newValue)) {
-              return node.setDataValue(field, oldValue);
-            }
-          }
-          break;
-        default:
-          break;
+        const existingGroup = currTable.find(
+          (group: SubGroupFormData) =>
+            group.group_name.toLowerCase() === newValue.toLowerCase()
+        );
+
+        if (existingGroup) {
+          setPopupState({
+            ...popupState,
+            isAlertOpen: true,
+            message: 'Sub Group with this name already exists!',
+          });
+          node.setDataValue(field, oldValue);
+          return;
+        }
+      } else if (field === 'igst_sale' && newValue) {
+        newValue = newValue.toLowerCase();
       }
-      await sendAPIRequest(`/${organizationId}/group/sub/${data.group_code}`, {
-        method: 'PUT',
-        body: { [field]: newValue },
-      });
-      getSubGroups();
-    } else {
-      const { column, oldValue, node } = e;
-      const field = column.colId;
+    } catch (error: any) {
       setPopupState({
         ...popupState,
         isAlertOpen: true,
-        message: 'Predefined Groups are not editable',
+        message: error.message,
       });
       node.setDataValue(field, oldValue);
       return;
     }
+
+    node.setDataValue(field, newValue);
+    await sendAPIRequest(`/${organizationId}/group/sub/${data.group_code}`, {
+      method: 'PUT',
+      body: { [field]: newValue },
+    });
+    getSubGroups();
   };
 
   const onCellClicked = (params: { data: any }) => {
@@ -230,59 +212,14 @@ export const SubGroups = () => {
   };
 
   const handleKeyDown = (event: KeyboardEvent) => {
-    switch (event.key) {
-      case 'Escape':
-        togglePopup(false);
-        break;
-      case 'n':
-      case 'N':
-        if (event.ctrlKey) {
-          togglePopup(true);
-        }
-        break;
-      case 'd':
-      case 'D':
-        if (
-          event.ctrlKey &&
-          selectedRow &&
-          selectedRow.isPredefinedGroup === false
-        ) {
-          handleDelete(selectedRow);
-        } else if (
-          event.ctrlKey &&
-          selectedRow &&
-          selectedRow.isPredefinedGroup === true
-        ) {
-          setPopupState({
-            ...popupState,
-            isAlertOpen: true,
-            message: 'Predefined Groups should not be deleted',
-          });
-        }
-        break;
-      case 'e':
-      case 'E':
-        if (
-          event.ctrlKey &&
-          selectedRow &&
-          selectedRow.isPredefinedGroup === false
-        ) {
-          handleUpdate(selectedRow);
-        } else if (
-          event.ctrlKey &&
-          selectedRow &&
-          selectedRow.isPredefinedGroup === true
-        ) {
-          setPopupState({
-            ...popupState,
-            isAlertOpen: true,
-            message: 'Predefined Groups are not editable',
-          });
-        }
-        break;
-      default:
-        break;
-    }
+    handleKeyDownCommon(
+      event,
+      handleDelete,
+      handleUpdate,
+      togglePopup,
+      selectedRow,
+      undefined
+    );
   };
 
   useEffect(() => {
@@ -323,30 +260,14 @@ export const SubGroups = () => {
             <FaEdit
               style={{ cursor: 'pointer', fontSize: '1.1rem' }}
               onClick={() => {
-                if (params.data.isPredefinedGroup === false) {
-                  handleUpdate(params.data);
-                } else if (params.data.isPredefinedGroup === true) {
-                  setPopupState({
-                    ...popupState,
-                    isAlertOpen: true,
-                    message: 'Predefined Groups are not editable',
-                  });
-                }
+                handleUpdate(params.data);
               }}
             />
 
             <MdDeleteForever
               style={{ cursor: 'pointer', fontSize: '1.2rem' }}
               onClick={() => {
-                if (params.data.isPredefinedGroup === false) {
-                  handleDelete(params.data);
-                } else if (params.data.isPredefinedGroup === true) {
-                  setPopupState({
-                    ...popupState,
-                    isAlertOpen: true,
-                    message: 'Predefined Groups should not be deleted',
-                  });
-                }
+                handleDelete(params.data);
               }}
             />
           </div>

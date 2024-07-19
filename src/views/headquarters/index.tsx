@@ -11,6 +11,7 @@ import { CreateHQ } from './CreateHQ';
 import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
 import { useParams } from 'react-router-dom';
+import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 
 const initialValue: StationFormData = {
   station_id: '',
@@ -66,31 +67,14 @@ export const Headquarters = () => {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      switch (event.key) {
-        case 'Escape':
-          togglePopup(false);
-          break;
-        case 'n':
-        case 'N':
-          if (event.ctrlKey) {
-            togglePopup(true);
-          }
-          break;
-        case 'd':
-        case 'D':
-          if (event.ctrlKey && selectedRow) {
-            handleDelete(selectedRow);
-          }
-          break;
-        case 'e':
-        case 'E':
-          if (event.ctrlKey && selectedRow) {
-            handleUpdate(selectedRow);
-          }
-          break;
-        default:
-          break;
-      }
+      handleKeyDownCommon(
+        event,
+        handleDelete,
+        handleUpdate,
+        togglePopup,
+        selectedRow,
+        undefined
+      );
     };
 
     document.addEventListener('keydown', handleKeyDown);
@@ -184,9 +168,12 @@ export const Headquarters = () => {
   const deleteAcc = async (station_id: string) => {
     isDelete.current = false;
     togglePopup(false);
-    await sendAPIRequest(`/${organizationId}/station/headQuarter/${station_id}`, {
-      method: 'DELETE',
-    });
+    await sendAPIRequest(
+      `/${organizationId}/station/headQuarter/${station_id}`,
+      {
+        method: 'DELETE',
+      }
+    );
     getHeadquarters();
   };
 

@@ -12,6 +12,7 @@ import Button from '../../components/common/button/Button';
 import { CreateSalePurchase } from './CreateSalePurchase';
 import { sendAPIRequest } from '../../helper/api';
 import { useParams } from 'react-router-dom';
+import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 
 const initialValue: SalesPurchaseFormData = {
   sptype: '',
@@ -26,7 +27,9 @@ const useSalesData = (type: string, organizationId?: string) => {
 
   const getSalesData = async () => {
     const endpoint =
-      type === 'Sales' ? `/${organizationId}/sale` : `/${organizationId}/purchase`;
+      type === 'Sales'
+        ? `/${organizationId}/sale`
+        : `/${organizationId}/purchase`;
     const data = await sendAPIRequest<SalesPurchaseFormData[]>(endpoint);
     setTableData(data);
   };
@@ -36,48 +39,6 @@ const useSalesData = (type: string, organizationId?: string) => {
   }, [type]);
 
   return { tableData, getSalesData };
-};
-
-const useKeyboardEvents = (
-  togglePopup: (isOpen: boolean) => void,
-  selectedRow: any,
-  handleUpdate: (data: any) => void,
-  handleDelete: (data: any) => void
-) => {
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      switch (event.key) {
-        case 'Escape':
-          togglePopup(false);
-          break;
-        case 'n':
-        case 'N':
-          if (event.ctrlKey) {
-            togglePopup(true);
-          }
-          break;
-        case 'd':
-        case 'D':
-          if (event.ctrlKey && selectedRow) {
-            handleDelete(selectedRow);
-          }
-          break;
-        case 'e':
-        case 'E':
-          if (event.ctrlKey && selectedRow) {
-            handleUpdate(selectedRow);
-          }
-          break;
-        default:
-          break;
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [selectedRow, togglePopup, handleUpdate, handleDelete]);
 };
 
 export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
@@ -95,12 +56,30 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
 
   const { tableData, getSalesData } = useSalesData(type, organizationId);
 
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedRow]);
+
   const togglePopup = (isOpen: boolean) => {
     if (!isOpen) {
       setFormData(initialValue);
       isDelete.current = false;
     }
     setOpen(isOpen);
+  };
+
+  const handleKeyDown = (event: KeyboardEvent) => {
+    handleKeyDownCommon(
+      event,
+      handleDelete,
+      handleUpdate,
+      togglePopup,
+      selectedRow,
+      undefined
+    );
   };
 
   const decimalFormatter = (
@@ -126,7 +105,9 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
     }
     if (formData !== initialValue) {
       const endPoint =
-        type === 'Sales' ? `/${organizationId}/sale` : `/${organizationId}/purchase`;
+        type === 'Sales'
+          ? `/${organizationId}/sale`
+          : `/${organizationId}/purchase`;
       const endpoint = formData.sp_id
         ? `${endPoint}/${formData.sp_id}`
         : `${endPoint}`;
@@ -185,7 +166,9 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
     isDelete.current = false;
     togglePopup(false);
     const endPoint =
-      type === 'Sales' ? `/${organizationId}/sale` : `/${organizationId}/purchase`;
+      type === 'Sales'
+        ? `/${organizationId}/sale`
+        : `/${organizationId}/purchase`;
     const endpoint = `${endPoint}/${sp_id}`;
     togglePopup(false);
     await sendAPIRequest(endpoint, { method: 'DELETE' });
@@ -198,8 +181,6 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
     togglePopup(true);
     setSelectedRow(null);
   };
-
-  useKeyboardEvents(togglePopup, selectedRow, handleUpdate, handleDelete);
 
   const onCellClicked = (params: { data: any }) => {
     setSelectedRow(selectedRow !== null ? null : params.data);
@@ -246,7 +227,9 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
       data.sgst = newValue / 2;
     }
     const endPoint =
-      type === 'Sales' ? `/${organizationId}/sale` : `/${organizationId}/purchase`;
+      type === 'Sales'
+        ? `/${organizationId}/sale`
+        : `/${organizationId}/purchase`;
     const endpoint = `${endPoint}/${data.sp_id}`;
     await sendAPIRequest(endpoint, {
       method: 'PUT',
