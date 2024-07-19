@@ -11,7 +11,7 @@ export const groupValidationSchema = Yup.object({
     .max(100, 'Group name cannot exceeds 100 characters'),
   type: Yup.string().required('Type is required'),
   igst_sale: Yup.string().oneOf(
-    ['yes', 'no'],
-    'Igst Sale must be either "yes" or "no"'
+    ['Yes', 'No'],
+    'Igst Sale must be either "Yes" or "No"'
   ),
 });

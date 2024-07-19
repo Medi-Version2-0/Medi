@@ -18,7 +18,7 @@ import { useControls } from '../../ControlRoomContext';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { stationValidationSchema } from './validation_schema';
 import { setStation } from '../../store/action/globalAction';
-import { useDispatch, useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux';
 
 const initialValue = {
   station_id: '',
@@ -35,11 +35,11 @@ export const Stations = () => {
   const [formData, setFormData] = useState<StationFormData | any>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   // const [tableData, setTableData] = useState<StationFormData | any>(null);
-  const {stations :tableData} = useSelector((state:any)=> state.global)
+  const { stations: tableData } = useSelector((state: any) => state.global);
   const queryClient = useQueryClient();
   const [stateData, setStateData] = useState<any[]>([]);
   const editing = useRef(false);
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
   let currTable: any[] = [];
 
   const { controlRoomSettings } = useControls();
@@ -80,8 +80,8 @@ export const Stations = () => {
 
   const getStations = async () => {
     const stations = await sendAPIRequest<any[]>(`/${organizationId}/station`);
-    dispatch(setStation(stations || []))
-    };
+    dispatch(setStation(stations || []));
+  };
 
   const togglePopup = (isOpen: boolean) => {
     if (!isOpen) {
@@ -112,23 +112,38 @@ export const Stations = () => {
 
     if (formData !== initialValue) {
       formData.state_code = +formData.state_code;
-      if (formData.station_id) {
-        await sendAPIRequest(
-          `/${organizationId}/station/${formData.station_id}`,
-          {
-            method: 'PUT',
+      try {
+        let response: any;
+        if (formData.station_id) {
+          response = await sendAPIRequest(
+            `/${organizationId}/station/${formData.station_id}`,
+            {
+              method: 'PUT',
+              body: formData,
+            }
+          );
+        } else {
+          response = await sendAPIRequest(`/${organizationId}/station`, {
+            method: 'POST',
             body: formData,
-          }
-        );
-      } else {
-        await sendAPIRequest(`/${organizationId}/station`, {
-          method: 'POST',
-          body: formData,
+          });
+        }
+
+        if (!response.error) {
+          togglePopup(false);
+          queryClient.invalidateQueries({ queryKey: ['get-stations'] });
+          getStations();
+        }
+      } catch (error) {
+        console.log(error, popupState);
+
+        setPopupState({
+          ...popupState,
+          isAlertOpen: true,
+          isModalOpen: false,
+          message: `Failed to ${formData.station_id ? 'update' : 'create'} station`,
         });
       }
-      getStations()
-      togglePopup(false);
-      queryClient.invalidateQueries({ queryKey: ['get-stations'] });
     }
   };
 
@@ -171,7 +186,9 @@ export const Stations = () => {
     await sendAPIRequest(`/${organizationId}/station/${station_id}`, {
       method: 'DELETE',
     });
-    dispatch(setStation(tableData.filter((x:any)=> x.station_id !== station_id)))
+    dispatch(
+      setStation(tableData.filter((x: any) => x.station_id !== station_id))
+    );
     queryClient.invalidateQueries({ queryKey: ['get-stations'] });
   };
 

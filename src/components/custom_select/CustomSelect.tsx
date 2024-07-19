@@ -61,13 +61,18 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   prevField,
   ...props
 }) => {
-  const customComponents = disableArrow
-    ? { DropdownIndicator: () => null, IndicatorSeparator: () => null }
-    : {};
+  const [menuIsOpen, setMenuIsOpen] = useState(false);
   const selectRef = useRef<any>(null);
   const [inputValue, setInputValue] = useState('');
   const [active, setActive] = useState(false);
-  const handleFocus = () => setActive(!active);
+
+  const handleFocus = () => {
+    setActive(true);
+    if (menuIsOpen === false) {
+      setMenuIsOpen(true);
+    }
+  };
+
   const handleBlur = () => {
     setActive(false);
     if (onBlur) onBlur();
@@ -80,6 +85,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
 
   useEffect(() => {
     if (isFocused && selectRef.current) {
+      setMenuIsOpen(true);
       selectRef.current.focus();
     }
   }, [isFocused]);
@@ -89,6 +95,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
       if (nextField) {
         document.getElementById(nextField)?.focus();
       }
+      setMenuIsOpen(true);
     } else if ((e.key === 'Enter' && e.shiftKey) || e.key === '') {
       if (prevField) {
         document.getElementById(prevField)?.focus();
@@ -120,7 +127,14 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
           id={id || ''}
           name={name || ''}
           classNamePrefix='custom-select'
-          components={customComponents}
+          components={
+            disableArrow
+              ? {
+                  DropdownIndicator: () => null,
+                  IndicatorSeparator: () => null,
+                }
+              : {}
+          }
           options={options}
           value={value}
           inputValue={inputValue}
@@ -137,6 +151,9 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
           onBlur={handleBlur}
           onFocus={handleFocus}
           noOptionsMessage={() => noOptionsMsg}
+          menuIsOpen={menuIsOpen}
+          onMenuOpen={() => setMenuIsOpen(true)}
+          onMenuClose={() => setMenuIsOpen(false)}
         />
         {showErrorTooltip && isTouched && error && (
           <>
