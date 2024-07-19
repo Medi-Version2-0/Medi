@@ -25,6 +25,7 @@ type abc = {
   nextField?: string;
   prevField?: string;
   disabled?: boolean;
+  autoFocus?: boolean;
 };
 
 interface ContainerProps {
@@ -160,6 +161,7 @@ const Container: React.FC<ContainerProps> = ({ title, fields, formik, setFocused
                 }
                 onChange={field.type === 'file' ? handleFileChange : undefined}
                 isDisabled={field?.disabled || false}
+                autoFocus={field.autoFocus}
               />
               {field.type === 'file' && !newImg && (formik.values as any)[field.id] && (
                 <ImagePreview name={field.id} url={`${root}${(formik.values as any)[field.id]}` || ''} formik={formik} setNewImg={setNewImg} className='w-[200px]' />
@@ -237,7 +239,6 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
 
   useEffect(() => {
     fetchAllData();
-    document.getElementById('submit_all')?.focus();
     if (formik.values.compId && options?.company) {
       const selectedCompany = options.company.find((company: any) => company.company_id === formik.values.compId);
       if (selectedCompany) {
@@ -271,6 +272,7 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
       isRequired: true,
       type: 'text',
       nextField: 'compId',
+      autoFocus: true
     },
     ...controlRoomSettings.packaging
       ? [{
@@ -405,6 +407,7 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
       id: 'minQty',
       name: 'minQty',
       nextField: 'maxQty',
+      type: 'number',
       prevField: 'marginPercentage',
     },
     {
@@ -412,6 +415,7 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
       id: 'maxQty',
       name: 'maxQty',
       prevField: 'minQty',
+      type: 'number',
       nextField: controlRoomSettings.rackNumber ? 'rackNumber' : controlRoomSettings.dpcoAct ? 'dpcoact' : 'upload',
     },
   ];

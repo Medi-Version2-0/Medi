@@ -38,7 +38,10 @@ interface FormikInputFieldProps {
   prevField?: string;
   sideField?: string;
   isPopupOpen?: boolean;
+  allowNegative?: boolean;
+  autoFocus?: boolean;
 }
+
 const FormikInputField: React.FC<FormikInputFieldProps> = ({
   label,
   id,
@@ -50,17 +53,7 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
   children,
   isTitleCase = true,
   name,
-  onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
-    formik.handleChange({
-      ...e,
-      target: {
-        ...e.target,
-        id,
-        value: isTitleCase ? titleCase(value) : value,
-      },
-    });
-  },
+  onChange,
   onKeyDown,
   className,
   labelClassName,
@@ -72,8 +65,35 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
   prevField,
   sideField,
   isPopupOpen = true,
+  allowNegative = false,
+  autoFocus = false,
 }) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    const isNumber = allowNegative ? /^-?\d*$/ : /^\d*$/;
+    if (type === 'number' && !isNumber.test(value)) {
+      return;
+    }
+    formik.handleChange({
+      ...e,
+      target: {
+        ...e.target,
+        id,
+        value: isTitleCase ? titleCase(value) : value,
+      },
+    });
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const validKeys = ['Backspace', 'ArrowLeft', 'ArrowRight', 'Delete'];
+    const isNumericKey = /\d/.test(e.key);
+    const isNegativeSign = e.key === '-' && allowNegative;
+    if (type === 'number' && !isNumericKey && !validKeys.includes(e.key) && !isNegativeSign) {
+      e.preventDefault();
+    }
+
     if (e.key === 'Enter' || e.key === 'ArrowDown') {
       if (nextField) {
         document.getElementById(nextField)?.focus();
@@ -88,14 +108,13 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
       onKeyDown(e);
     }
   };
-  const inputRef: any = useRef(null);
 
   useEffect(() => {
     const inputElement = inputRef.current;
     const handleWheel = (e: any) => {
       e.preventDefault();
     };
-    if (inputElement && inputElement) {
+    if (inputElement) {
       inputElement.addEventListener('wheel', handleWheel, { passive: false });
     }
     return () => {
@@ -124,7 +143,7 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
         maxLength={maxLength}
         className={`w-full border border-solid border-[#9ca3af] text-[10px] text-gray-800 h-full rounded-sm p-1 appearance-none disabled:text-[#A9A9A9] disabled:bg-[#f5f5f5] focus:bg-[#EAFBFCFF] ${!!(formik.touched[id] && formik.errors[id]) && '!border-red-500'} ${inputClassName}`}
         onBlur={formik.handleBlur}
-        onChange={onChange}
+        onChange={onChange || handleChange}
         onKeyDown={handleKeyDown}
         onClick={onClick}
         placeholder={placeholder}
@@ -134,6 +153,7 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
         data-side-field={sideField}
         {...(type !== 'file' && { value: formik.values[id] })}
         {...(type === 'file' && { accept: "image/*" })}
+        autoFocus={autoFocus}
       />
       {showErrorTooltip && formik.touched[id] && formik.errors[id] && (
         <>
@@ -144,7 +164,7 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
           <ReactTooltip
             id={`${id}-error-tooltip`}
             place='bottom'
-            className=' text-[white] border rounded text-sm z-10 p-2 border-solid border-[#d8000c] !bg-red-600'
+            className='text-[white] border rounded text-sm z-10 p-2 border-solid border-[#d8000c] !bg-red-600'
           >
             {formik.errors[id]}
           </ReactTooltip>
