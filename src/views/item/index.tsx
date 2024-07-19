@@ -21,15 +21,17 @@ import { Batch } from '../itembatch';
 import { useControls } from '../../ControlRoomContext';
 import { ControlRoomSettings } from '../../components/common/controlRoom/ControlRoomSettings';
 import { itemSettingFields } from '../../components/common/controlRoom/settings';
-import { GiHamburgerMenu } from "react-icons/gi";
+import { GiHamburgerMenu } from 'react-icons/gi';
 import DropdownTippy from '../../components/common/dropdown/dropdown';
 import PriceList from './PriceList';
 import SearchItem from './searchItem';
+import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
+import { itemFormValidations } from './validation_schema';
 
 const initialPopupState = {
   setting: false,
-  search: false
-}
+  search: false,
+};
 
 const Items = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
@@ -57,14 +59,15 @@ const Items = () => {
   });
 
   const itemSettingsInitialValues = {
-    generateBarcodeBatchWise: controlRoomSettings.generateBarcodeBatchWise || false,
+    generateBarcodeBatchWise:
+      controlRoomSettings.generateBarcodeBatchWise || false,
     allowItemAsService: controlRoomSettings.allowItemAsService || false,
     batchWiseManufacturingCode: controlRoomSettings.batchWiseManufacturingCode,
     rxNonrx: controlRoomSettings.rxNonrx || false,
     dpcoAct: controlRoomSettings.dpcoAct || false,
     dpcoDiscount: controlRoomSettings.dpcoDiscount || 0,
     packaging: controlRoomSettings.packaging || false,
-    rackNumber:controlRoomSettings.rackNumber || false,
+    rackNumber: controlRoomSettings.rackNumber || false,
     dualPriceList: controlRoomSettings.dualPriceList || false,
   };
 
@@ -74,12 +77,11 @@ const Items = () => {
       sendAPIRequest<{ data: ItemFormData }>(`/${organizationId}/item`),
   });
 
-  const togglePopup = (isOpen: boolean , key? :string) => {
-    if(key){
-      setOpen({...open , [key] : isOpen})
-    }
-    else{
-      setOpen(initialPopupState)
+  const togglePopup = (isOpen: boolean, key?: string) => {
+    if (key) {
+      setOpen({ ...open, [key]: isOpen });
+    } else {
+      setOpen(initialPopupState);
     }
   };
 
@@ -198,39 +200,23 @@ const Items = () => {
     if (!valueChanged) return;
     const field = column.colId;
 
-    switch (field) {
-      case 'name':
-        {
-          if (!newValue || /^\d+$/.test(newValue) || newValue.length > 100) {
-            setPopupState({
-              ...popupState,
-              isAlertOpen: true,
-              message: !newValue
-                ? 'Item Name is required'
-                : /^\d+$/.test(newValue)
-                  ? 'Only Numbers not allowed'
-                  : 'Item name cannot exceed 100 characters',
-            });
-            node.setDataValue(field, oldValue);
-            return;
-          }
-          newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
-        }
-        break;
-      case 'shortName':
-        {
-          if (!newValue) {
-            setPopupState({
-              ...popupState,
-              isAlertOpen: true,
-              message: 'MFG code is required',
-            });
-            node.setDataValue(field, oldValue);
-            return;
-          }
-        }
-        break;
+    try {
+      await itemFormValidations.validateAt(field, { [field]: newValue });
+
+      if (field === 'name') {
+        newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
+      }
+    } catch (error: any) {
+      setPopupState({
+        ...popupState,
+        isAlertOpen: true,
+        message: error.message,
+      });
+      node.setDataValue(field, oldValue);
+      return;
     }
+
+    node.setDataValue(field, newValue);
 
     await sendAPIRequest(`/${organizationId}/item/${data.id}`, {
       method: 'PUT',
@@ -248,26 +234,14 @@ const Items = () => {
   };
 
   const handleKeyDown = (event: KeyboardEvent) => {
-    switch (event.key) {
-      case 'n':
-      case 'N':
-        if (event.ctrlKey) setView({ type: 'add', data: {} });
-        break;
-      case 'd':
-      case 'D':
-        if (event.ctrlKey && selectedRow) {
-          handleDelete(selectedRow);
-        }
-        break;
-      case 'e':
-      case 'E':
-        if (event.ctrlKey && selectedRow) {
-          setView({ type: 'add', data: selectedRow });
-        }
-        break;
-      default:
-        break;
-    }
+    handleKeyDownCommon(
+      event,
+      handleDelete,
+      undefined,
+      undefined,
+      selectedRow,
+      setView
+    );
   };
 
   const BatchCellRenderer = (props: ICellRendererParams) => {
@@ -402,14 +376,31 @@ const Items = () => {
             <div className='flex w-full items-center justify-between px-8 py-1'>
               <h1 className='font-bold'>Item Master</h1>
               <div className='flex gap-5 items-center'>
-              <DropdownTippy items={[
-                {label : 'Show Price List' , click : () => setShowPriceList(true) , key : 'p'},
-                {label : 'Search Item By' , click : ()=> {togglePopup(true , 'search')} , key : 'b'},
-                {label : 'Settings' , click : ()=> {togglePopup(true , 'setting')} , key : 's'},
-
-              ]}>
-                  <GiHamburgerMenu className='text-xl'/>
-              </DropdownTippy>
+                <DropdownTippy
+                  items={[
+                    {
+                      label: 'Show Price List',
+                      click: () => setShowPriceList(true),
+                      key: 'p',
+                    },
+                    {
+                      label: 'Search Item By',
+                      click: () => {
+                        togglePopup(true, 'search');
+                      },
+                      key: 'b',
+                    },
+                    {
+                      label: 'Settings',
+                      click: () => {
+                        togglePopup(true, 'setting');
+                      },
+                      key: 's',
+                    },
+                  ]}
+                >
+                  <GiHamburgerMenu className='text-xl' />
+                </DropdownTippy>
                 <Button
                   type='highlight'
                   handleOnClick={() => {
@@ -441,11 +432,9 @@ const Items = () => {
                 initialValues={itemSettingsInitialValues}
               />
             )}
-              {
-                open.search && 
-                <SearchItem
-                  handleClosePopup= {()=> togglePopup(false)} />
-              }
+            {open.search && (
+              <SearchItem handleClosePopup={() => togglePopup(false)} />
+            )}
             {(popupState.isModalOpen || popupState.isAlertOpen) && (
               <Confirm_Alert_Popup
                 onClose={handleClosePopup}

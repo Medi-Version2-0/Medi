@@ -12,6 +12,8 @@ import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
 import { CreateCompany } from './CreateCompany';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
+import { getCompanyFormSchema } from './validation_schema';
 
 export const Company = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
@@ -136,55 +138,43 @@ export const Company = () => {
     if (!valueChanged) return;
     const field = column.colId;
 
-    switch (field) {
-      case 'companyName':
-        {
-          if (!newValue || /^\d+$/.test(newValue) || newValue.length > 100) {
-            setPopupState({
-              ...popupState,
-              isAlertOpen: true,
-              message: !newValue
-                ? 'company Name is required'
-                : /^\d+$/.test(newValue)
-                  ? 'Only Numbers not allowed'
-                  : 'company name cannot exceed 100 characters',
-            });
-            node.setDataValue(field, oldValue);
-            return;
+    try {
+      await getCompanyFormSchema.validateAt(field, { [field]: newValue });
+
+      if (field === 'companyName') {
+        newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
+        tableData.forEach((data: any) => {
+          if (data.company_id !== e.data.company_id) {
+            currTable.push(data);
           }
-          newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
-          tableData.forEach((data: any) => {
-            if (data.company_id !== e.data.company_id) {
-              currTable.push(data);
-            }
+        });
+
+        const existingCompany = currTable.find(
+          (company: CompanyFormData) =>
+            company.companyName.toLowerCase() === newValue.toLowerCase()
+        );
+
+        if (existingCompany) {
+          setPopupState({
+            ...popupState,
+            isAlertOpen: true,
+            message: 'Company with this name already exists!',
           });
-
-          const existingCompany = currTable.find(
-            (company: CompanyFormData) =>
-              company.companyName.toLowerCase() === newValue.toLowerCase()
-          );
-
-          if (existingCompany) {
-            setPopupState({
-              ...popupState,
-              isAlertOpen: true,
-              message: 'Company with this name already exists!',
-            });
-            node.setDataValue(field, oldValue);
-            return;
-          }
+          node.setDataValue(field, oldValue);
+          return;
         }
-        break;
-      case 'openingBalType':
-        {
-          if (!['Dr', 'Cr'].includes(newValue)) {
-            return node.setDataValue(field, oldValue);
-          }
-        }
-        break;
-      default:
-        break;
+      }
+    } catch (error: any) {
+      setPopupState({
+        ...popupState,
+        isAlertOpen: true,
+        message: error.message,
+      });
+      node.setDataValue(field, oldValue);
+      return;
     }
+
+    node.setDataValue(field, newValue);
     await sendAPIRequest(`/${organizationId}/company/${data.company_id}`, {
       method: 'PUT',
       body: { [field]: newValue },
@@ -201,28 +191,14 @@ export const Company = () => {
   };
 
   const handleKeyDown = (event: KeyboardEvent) => {
-    switch (event.key) {
-      case 'n':
-      case 'N':
-        if (event.ctrlKey) {
-          return setView({type : 'add' , data : {}});
-        }
-        break;
-      case 'd':
-      case 'D':
-        if (event.ctrlKey && selectedRow) {
-          handleDelete(selectedRow);
-        }
-        break;
-      case 'e':
-      case 'E':
-        if (event.ctrlKey && selectedRow) {
-          setView({type : 'add' , data : selectedRow})
-        }
-        break;
-      default:
-        break;
-    }
+    handleKeyDownCommon(
+      event,
+      handleDelete,
+      undefined,
+      undefined,
+      selectedRow,
+      setView
+    );
   };
 
   const colDefs: any[] = [
@@ -297,7 +273,7 @@ export const Company = () => {
           <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
             onClick={() => {
-              setView({type : 'add' , data : params.data});
+              setView({ type: 'add', data: params.data });
             }}
           />
           <MdDeleteForever
@@ -316,7 +292,7 @@ export const Company = () => {
           <Button
             type='highlight'
             handleOnClick={() => {
-              setView({type : 'add' , data : {}});
+              setView({ type: 'add', data: {} });
             }}
           >
             Add Company

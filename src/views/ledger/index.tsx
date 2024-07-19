@@ -17,6 +17,7 @@ import { useControls } from '../../ControlRoomContext';
 import { ControlRoomSettings } from '../../components/common/controlRoom/ControlRoomSettings';
 import { ledgerSettingFields } from '../../components/common/controlRoom/settings';
 import { CreateLedger } from './CreateLedger';
+import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 
 const ledgerValidationSchema = Yup.object().shape({
   partyName: Yup.string()
@@ -89,44 +90,22 @@ export const Ledger = () => {
   }, [data]);
 
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      switch (event.key) {
-        case 'n':
-        case 'N':
-          if (event.ctrlKey) setView({ type: 'add', data: {} }); // need to ask
-          break;
-        case 'd':
-        case 'D':
-          if (event.ctrlKey && selectedRow && !selectedRow.isPredefinedLedger)
-            handleDelete(selectedRow);
-          else if (event.ctrlKey && selectedRow?.isPredefinedLedger) {
-            setPopupState({
-              ...popupState,
-              isAlertOpen: true,
-              message: 'Predefined Ledger should not be deleted ',
-            });
-          }
-          break;
-        case 'e':
-        case 'E':
-          if (event.ctrlKey && selectedRow && !selectedRow.isPredefinedLedger)
-            setView({ type: 'add', data: selectedRow });
-          else if (event.ctrlKey && selectedRow?.isPredefinedLedger) {
-            setPopupState({
-              ...popupState,
-              isAlertOpen: true,
-              message: 'Predefined Ledger are not editable',
-            });
-          }
-          break;
-        default:
-          break;
-      }
-    };
-
     document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, [selectedRow, popupState]);
+
+  const handleKeyDown = (event: KeyboardEvent) => {
+    handleKeyDownCommon(
+      event,
+      handleDelete,
+      undefined,
+      undefined,
+      selectedRow,
+      setView
+    );
+  };
 
   const typeMapping = useMemo(() => ({ Dr: 'DR', Cr: 'CR' }), []);
 

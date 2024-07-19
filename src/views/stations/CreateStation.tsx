@@ -7,7 +7,6 @@ import {
   StationFormData,
 } from '../../interface/global';
 import { Popup } from '../../components/popup/Popup';
-import * as Yup from 'yup';
 import CustomSelect from '../../components/custom_select/CustomSelect';
 import Button from '../../components/common/button/Button';
 import onKeyDown from '../../utilities/formKeyDown';
@@ -15,6 +14,7 @@ import FormikInputField from '../../components/common/FormikInputField';
 import titleCase from '../../utilities/titleCase';
 import { sendAPIRequest } from '../../helper/api';
 import { useControls } from '../../ControlRoomContext';
+import { stationValidationSchema } from './validation_schema';
 
 export const CreateStation = ({
   togglePopup,
@@ -29,23 +29,6 @@ export const CreateStation = ({
   const [stateOptions, setStateOptions] = useState<Option[]>([]);
   const { controlRoomSettings } = useControls();
   const [focused, setFocused] = useState('');
-
-  const validationSchema = Yup.object({
-    station_name: Yup.string()
-      .required('Station name is required')
-      .matches(/[a-zA-Z]/, 'Only Numbers not allowed')
-      .matches(
-        /^[a-zA-Z0-9\s_.-]*$/,
-        'Station name can contain alphanumeric characters, "-", "_", and spaces only'
-      )
-      .max(100, 'Station name cannot exceeds 100 characters'),
-    state_code: Yup.string().required('Station state is required'),
-    station_pinCode: Yup.string()
-      .required('Station pincode is required')
-      .matches(/^[0-9]+$/, 'Station pincode must contain only numbers')
-      .min(6, 'Station pincode must be at least 6 characters long')
-      .max(6, 'Station pincode cannot exceed 6 characters'),
-  });
 
   useEffect(() => {
     const focusTarget = !isDelete
@@ -127,7 +110,7 @@ export const CreateStation = ({
           station_pinCode: data?.station_pinCode || '',
           station_headQuarter: data?.station_headQuarter || '',
         }}
-        validationSchema={validationSchema}
+        validationSchema={stationValidationSchema}
         onSubmit={handleSubmit}
       >
         {(formik) => (
@@ -296,7 +279,9 @@ export const CreateStation = ({
                   }
                   if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab')) {
                     e.preventDefault();
-                    setFocused(`${controlRoomSettings.igstSaleFacility ? 'igst_sale' : 'station_pinCode'}`);
+                    setFocused(
+                      `${controlRoomSettings.igstSaleFacility ? 'igst_sale' : 'station_pinCode'}`
+                    );
                   }
                   if (e.key === 'Enter') {
                     e.preventDefault();

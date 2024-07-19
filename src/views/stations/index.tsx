@@ -15,6 +15,8 @@ import { IoSettingsOutline } from 'react-icons/io5';
 import { ControlRoomSettings } from '../../components/common/controlRoom/ControlRoomSettings';
 import { stationSettingFields } from '../../components/common/controlRoom/settings';
 import { useControls } from '../../ControlRoomContext';
+import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
+import { stationValidationSchema } from './validation_schema';
 
 const initialValue = {
   station_id: '',
@@ -35,13 +37,13 @@ export const Stations = () => {
   const [stateData, setStateData] = useState<any[]>([]);
   const editing = useRef(false);
   let currTable: any[] = [];
-  
+
   const { controlRoomSettings } = useControls();
-  
+
   const initialValues = {
     igstSaleFacility: controlRoomSettings.igstSaleFacility || false,
   };
-  
+
   const isDelete = useRef(false);
 
   const [popupState, setPopupState] = useState({
@@ -121,7 +123,7 @@ export const Stations = () => {
           body: formData,
         });
       }
-      
+
       togglePopup(false);
       queryClient.invalidateQueries({ queryKey: ['get-stations'] });
     }
@@ -233,77 +235,45 @@ export const Stations = () => {
     if (!valueChanged) return;
     const field = column.colId;
 
-    switch (field) {
-      case 'station_name':
-        {
-          if (!newValue || /^\d+$/.test(newValue) || newValue.length > 100) {
-            setPopupState({
-              ...popupState,
-              isAlertOpen: true,
-              message: !newValue
-                ? 'Station Name is required'
-                : /^\d+$/.test(newValue)
-                  ? 'Only Numbers not allowed'
-                  : 'Station name cannot exceed 100 characters',
-            });
-            node.setDataValue(field, oldValue);
-            return;
-          }
-          newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
-          tableData.forEach((data: any) => {
-            if (data.station_id !== e.data.station_id) {
-              currTable.push(data);
-            }
+    try {
+      await stationValidationSchema.validateAt(field, { [field]: newValue });
+
+      if (field === 'station_name') {
+        newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
+        currTable = tableData.filter(
+          (data: any) => data.station_id !== e.data.station_id
+        );
+
+        const existingStation = currTable.find(
+          (station: StationFormData) =>
+            station.station_name.toLowerCase() === newValue.toLowerCase()
+        );
+
+        if (existingStation) {
+          setPopupState({
+            ...popupState,
+            isAlertOpen: true,
+            message: 'Station with this name already exists!',
           });
-
-          const existingStation = currTable.find(
-            (station: StationFormData) =>
-              station.station_name.toLowerCase() === newValue.toLowerCase()
-          );
-
-          if (existingStation) {
-            setPopupState({
-              ...popupState,
-              isAlertOpen: true,
-              message: 'Station with this name already exists!',
-            });
-            node.setDataValue(field, oldValue);
-            return;
-          }
+          node.setDataValue(field, oldValue);
+          return;
         }
-        break;
-      case 'igst_sale':
-        {
-          if (!['yes', 'no'].includes(newValue.toLowerCase())) {
-            return node.setDataValue(field, oldValue);
-          }
-        }
-        break;
-      case 'station_pinCode':
-        {
-          const value = `${newValue}`;
-          if (
-            !value ||
-            (!!value && value.length !== 6) ||
-            (!!value && value[0] === '0')
-          ) {
-            setPopupState({
-              ...popupState,
-              isAlertOpen: true,
-              message: !newValue
-                ? 'PIN code is required'
-                : value.length !== 6
-                  ? `Length of PIN code must be exactly 6 digits`
-                  : `PIN code doesn't start from zero`,
-            });
-            node.setDataValue(field, oldValue);
-            return;
-          }
-        }
-        break;
-      default:
-        break;
+      }
+    } catch (error: any) {
+      setPopupState({
+        ...popupState,
+        isAlertOpen: true,
+        message: error.message,
+      });
+      node.setDataValue(field, oldValue);
+      return;
     }
+
+    if (field === 'igst_sale' && newValue) {
+      newValue = newValue.toLowerCase();
+    }
+
+    node.setDataValue(field, newValue);
 
     await sendAPIRequest(`/${organizationId}/station/${data.station_id}`, {
       method: 'PUT',
@@ -322,32 +292,14 @@ export const Stations = () => {
   };
 
   const handleKeyDown = (event: KeyboardEvent) => {
-    switch (event.key) {
-      case 'Escape':
-        togglePopup(false);
-        toggleSettingPopup(false);
-        break;
-      case 'n':
-      case 'N':
-        if (event.ctrlKey) {
-          togglePopup(true);
-        }
-        break;
-      case 'd':
-      case 'D':
-        if (event.ctrlKey && selectedRow) {
-          handleDelete(selectedRow);
-        }
-        break;
-      case 'e':
-      case 'E':
-        if (event.ctrlKey && selectedRow) {
-          handleUpdate(selectedRow);
-        }
-        break;
-      default:
-        break;
-    }
+    handleKeyDownCommon(
+      event,
+      handleDelete,
+      handleUpdate,
+      togglePopup,
+      selectedRow,
+      undefined
+    );
   };
 
   const colDefs: any[] = [
@@ -435,7 +387,6 @@ export const Stations = () => {
     },
   ];
 
-
   return (
     <>
       <div className='w-full relative'>
@@ -450,10 +401,7 @@ export const Stations = () => {
             >
               <IoSettingsOutline />
             </Button>
-            <Button
-              type='highlight'
-              handleOnClick={() => togglePopup(true)}
-            >
+            <Button type='highlight' handleOnClick={() => togglePopup(true)}>
               Add Station
             </Button>
           </div>
@@ -497,7 +445,7 @@ export const Stations = () => {
         )}
         {settingToggleOpen && (
           <ControlRoomSettings
-          togglePopup={toggleSettingPopup}
+            togglePopup={toggleSettingPopup}
             heading={'Station Settings'}
             fields={stationSettingFields}
             initialValues={initialValues}

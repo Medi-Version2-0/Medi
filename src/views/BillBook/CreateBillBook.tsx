@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Formik, Form, Field, FormikProps } from 'formik';
+import { billBookValidationSchema } from './validation_schema';
 import {
   CreateBillProps,
   BillBookFormDataProps,
@@ -7,7 +8,6 @@ import {
   BillBookFormData,
 } from '../../interface/global';
 import { Popup } from '../../components/popup/Popup';
-import * as Yup from 'yup';
 import Button from '../../components/common/button/Button';
 import onKeyDown from '../../utilities/formKeyDown';
 import FormikInputField from '../../components/common/FormikInputField';
@@ -25,23 +25,6 @@ export const CreateBillBook = ({
   const formikRef = useRef<FormikProps<BillBookFormData>>(null);
   const [focused, setFocused] = useState('');
 
-  const validationSchema = Yup.object({
-    billName: Yup.string()
-      .required('Bill name is required')
-      .matches(/[a-zA-Z]/, 'Only Numbers not allowed')
-      .matches(
-        /^[a-zA-Z0-9\s_.-]*$/,
-        'Bill name can contain alphanumeric characters, "-", "_", and spaces only'
-      )
-      .max(100, 'Station name cannot exceeds 100 characters'),
-    billBookPrefix: Yup.string()
-      .required('Prefix is required')
-      .matches(/^[A-Za-z]*$/, 'Only alphabets are allowed'),
-    orderOfBill: Yup.string().matches(
-      /^[0-9]*$/,
-      'Only numeric values are allowed'
-    ),
-  });
 
   useEffect(() => {
     const focusTarget = !isDelete
@@ -111,7 +94,7 @@ export const CreateBillBook = ({
           orderOfBill: data?.orderOfBill || '',
           locked: data?.locked || 'No',
         }}
-        validationSchema={validationSchema}
+        validationSchema={billBookValidationSchema}
         onSubmit={handleSubmit}
       >
         {(formik) => (

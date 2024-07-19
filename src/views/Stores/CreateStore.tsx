@@ -6,10 +6,10 @@ import {
   StoreFormDataProps,
 } from '../../interface/global';
 import { Popup } from '../../components/popup/Popup';
-import * as Yup from 'yup';
 import Button from '../../components/common/button/Button';
 import onKeyDown from '../../utilities/formKeyDown';
 import FormikInputField from '../../components/common/FormikInputField';
+import { storeValidationSchema } from './validation_schema';
 
 export const CreateStore: React.FC<CreateStoreProps> = ({
   togglePopup,
@@ -22,16 +22,6 @@ export const CreateStore: React.FC<CreateStoreProps> = ({
   const { store_code } = data;
   const formikRef = useRef<FormikProps<StoreFormDataProps>>(null);
 
-  const validationSchema = Yup.object({
-    store_name: Yup.string()
-      .required('Store name is required')
-      .matches(/[a-zA-Z]/, 'Only Numbers not allowed')
-      .matches(
-        /^[a-zA-Z0-9\s_.-]*$/,
-        'Store name can contain alphanumeric characters, "-", "_", and spaces only'
-      )
-      .max(100, 'Store name cannot exceeds 100 characters'),
-  });
 
   useEffect(() => {
     const focusTarget = !isDelete
@@ -79,7 +69,7 @@ export const CreateStore: React.FC<CreateStoreProps> = ({
           address2: data?.address2 || '',
           address3: data?.address3 || '',
         }}
-        validationSchema={validationSchema}
+        validationSchema={storeValidationSchema}
         onSubmit={handleSubmit}
       >
         {(formik) => (

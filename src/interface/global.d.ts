@@ -34,13 +34,11 @@ export interface ItemGroupFormData {
   group_code?: string;
   group_name: string;
   type: string;
-  isPredefinedGroup?: boolean;
 }
 export interface SubGroupFormData {
   group_code?: string;
   group_name: string;
   parent_code?: string;
-  isPredefinedGroup?: boolean;
 }
 
 export interface CreateStationProps {
@@ -256,6 +254,7 @@ export interface StoreFormData {
   address1: string;
   address2: string;
   address3: string;
+  isPredefinedStore:boolean;
 }
 export interface StoreFormDataProps {
   store_name: string;

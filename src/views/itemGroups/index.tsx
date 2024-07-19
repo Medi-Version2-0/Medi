@@ -12,12 +12,13 @@ import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
+import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
+import { itemGroupValidationSchema } from './validation_schema';
 
 const initialValue = {
   group_code: '',
   group_name: '',
   type: '',
-  isPredefinedGroup: true,
 };
 
 export const ItemGroups = () => {
@@ -36,7 +37,10 @@ export const ItemGroups = () => {
 
   const { data } = useQuery<{ data: ItemGroupFormData }>({
     queryKey: ['get-itemGroups'],
-    queryFn: () => sendAPIRequest<{ data: ItemGroupFormData }>(`/${organizationId}/itemGroup`),
+    queryFn: () =>
+      sendAPIRequest<{ data: ItemGroupFormData }>(
+        `/${organizationId}/itemGroup`
+      ),
   });
 
   const typeMapping = {
@@ -74,10 +78,13 @@ export const ItemGroups = () => {
     }
     if (formData !== initialValue) {
       if (formData.group_code) {
-        await sendAPIRequest(`/${organizationId}/itemGroup/${formData.group_code}`, {
-          method: 'PUT',
-          body: formData,
-        });
+        await sendAPIRequest(
+          `/${organizationId}/itemGroup/${formData.group_code}`,
+          {
+            method: 'PUT',
+            body: formData,
+          }
+        );
       } else {
         await sendAPIRequest(`/${organizationId}/itemGroup`, {
           method: 'POST',
@@ -107,7 +114,9 @@ export const ItemGroups = () => {
     togglePopup(false);
     isDelete.current = false;
 
-    await sendAPIRequest(`/${organizationId}/itemGroup/${group_code}`, { method: 'DELETE' });
+    await sendAPIRequest(`/${organizationId}/itemGroup/${group_code}`, {
+      method: 'DELETE',
+    });
     queryClient.invalidateQueries({ queryKey: ['get-itemGroups'] });
   };
 
@@ -173,36 +182,25 @@ export const ItemGroups = () => {
     let { newValue } = e;
     if (!valueChanged) return;
     const field = column.colId;
-    switch (field) {
-      case 'group_name':
-        {
-          if (!newValue || /^\d+$/.test(newValue) || newValue.length > 100) {
-            setPopupState({
-              ...popupState,
-              isAlertOpen: true,
-              message: !newValue
-                ? 'Group Name is required'
-                : /^\d+$/.test(newValue)
-                  ? 'Only Numbers not allowed'
-                  : 'Group name cannot exceed 100 characters',
-            });
-            node.setDataValue(field, oldValue);
-            return;
-          }
-          newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
-        }
-        break;
-      case 'igst_sale':
-        {
-          if (newValue) newValue = newValue.toLowerCase();
-          if (!['yes', 'no'].includes(newValue)) {
-            return node.setDataValue(field, oldValue);
-          }
-        }
-        break;
-      default:
-        break;
+    try {
+      await itemGroupValidationSchema.validateAt(field, { [field]: newValue });
+
+      if (field === 'group_name') {
+        newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
+      } else if (field === 'igst_sale' && newValue) {
+        newValue = newValue.toLowerCase();
+      }
+    } catch (error: any) {
+      setPopupState({
+        ...popupState,
+        isAlertOpen: true,
+        message: error.message,
+      });
+      node.setDataValue(field, oldValue);
+      return;
     }
+
+    node.setDataValue(field, newValue);
     await sendAPIRequest(`/${organizationId}/itemGroup/${data.group_code}`, {
       method: 'PUT',
       body: { [field]: newValue },
@@ -219,31 +217,39 @@ export const ItemGroups = () => {
   };
 
   const handleKeyDown = (event: KeyboardEvent) => {
-    switch (event.key) {
-      case 'Escape':
-        togglePopup(false);
-        break;
-      case 'n':
-      case 'N':
-        if (event.ctrlKey) {
-          togglePopup(true);
-        }
-        break;
-      case 'd':
-      case 'D':
-        if (event.ctrlKey && selectedRow) {
-          handleDelete(selectedRow);
-        }
-        break;
-      case 'e':
-      case 'E':
-        if (event.ctrlKey && selectedRow) {
-          handleUpdate(selectedRow);
-        }
-        break;
-      default:
-        break;
-    }
+    handleKeyDownCommon(
+      event,
+      handleDelete,
+      handleUpdate,
+      togglePopup,
+      selectedRow,
+      undefined
+    );
+    // switch (event.key) {
+    //   case 'Escape':
+    //     togglePopup(false);
+    //     break;
+    //   case 'n':
+    //   case 'N':
+    //     if (event.ctrlKey) {
+    //       togglePopup(true);
+    //     }
+    //     break;
+    //   case 'd':
+    //   case 'D':
+    //     if (event.ctrlKey && selectedRow) {
+    //       handleDelete(selectedRow);
+    //     }
+    //     break;
+    //   case 'e':
+    //   case 'E':
+    //     if (event.ctrlKey && selectedRow) {
+    //       handleUpdate(selectedRow);
+    //     }
+    //     break;
+    //   default:
+    //     break;
+    // }
   };
 
   useEffect(() => {
@@ -264,7 +270,7 @@ export const ItemGroups = () => {
         field: 'group_name',
         flex: 1,
         filter: true,
-        editable: (params) => !params.data.isPredefinedGroup,
+        editable: true,
         headerClass: 'custom-header',
         suppressMovable: true,
       },
@@ -272,7 +278,7 @@ export const ItemGroups = () => {
         headerName: 'P&L / BL. Sheet',
         field: 'type',
         filter: true,
-        editable: (params) => !params.data.isPredefinedGroup,
+        editable: true,
         cellEditor: 'agSelectCellEditor',
         cellEditorParams: {
           values: types,
