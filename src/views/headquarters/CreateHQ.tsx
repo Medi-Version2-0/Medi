@@ -10,19 +10,18 @@ import CustomSelect from '../../components/custom_select/CustomSelect';
 import Button from '../../components/common/button/Button';
 import * as Yup from 'yup';
 import titleCase from '../../utilities/titleCase';
-import { sendAPIRequest } from '../../helper/api';
-import { useParams } from 'react-router-dom';
+import { useSelector } from 'react-redux'
 
 const useStations = () => {
-  const { organizationId } = useParams();
   const [stations, setStations] = useState<StationFormData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { stations: stationsData } = useSelector((state: any) => state.global)
+
 
   const fetchStations = useCallback(async () => {
     try {
-      const stationsData = await sendAPIRequest<any[]>(`/${organizationId}/station`);
-      const transformedStations = stationsData.map((station) => ({
+      const transformedStations = stationsData.map((station:any) => ({
         ...station,
         state_code: station.State?.state_name,
       }));

@@ -18,6 +18,7 @@ import { ControlRoomSettings } from '../../components/common/controlRoom/Control
 import { ledgerSettingFields } from '../../components/common/controlRoom/settings';
 import { CreateLedger } from './CreateLedger';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
+import { useSelector } from 'react-redux'
 
 const ledgerValidationSchema = Yup.object().shape({
   partyName: Yup.string()
@@ -43,7 +44,7 @@ const validateField = async (field: string, value: any) => {
 export const Ledger = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
   const [selectedRow, setSelectedRow] = useState<any>(null);
-  const [stationData, setStationData] = useState<any[]>([]);
+  const { stations: stationData } = useSelector((state: any) => state.global)
   const { organizationId } = useParams();
   const [tableData, setTableData] = useState<LedgerFormData[]>([]);
   const editing = useRef(false);
@@ -108,14 +109,6 @@ export const Ledger = () => {
   };
 
   const typeMapping = useMemo(() => ({ Dr: 'DR', Cr: 'CR' }), []);
-
-  useEffect(() => {
-    fetchStations();
-  }, []);
-  const fetchStations = async () => {
-    const stations = await sendAPIRequest<any[]>(`/${organizationId}/station`);
-    setStationData(stations);
-  };
 
   const ledgerStationsMap: { [key: number]: string } = {};
 

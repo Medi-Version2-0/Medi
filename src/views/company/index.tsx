@@ -14,13 +14,15 @@ import { CreateCompany } from './CreateCompany';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { getCompanyFormSchema } from './validation_schema';
+import { useSelector } from 'react-redux';
 
 export const Company = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
   const { organizationId } = useParams();
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<CompanyFormData | any>(null);
-  const [stationData, setStationData] = useState<any[]>([]);
+  const { stations: stationData } = useSelector((state: any) => state.global)
+
   const editing = useRef(false);
   const companyId = useRef('');
   const queryClient = useQueryClient();
@@ -36,11 +38,6 @@ export const Company = () => {
     queryFn: () => sendAPIRequest<any[]>(`/${organizationId}/company`),
   });
 
-  const fetchStations = async () => {
-    const stations = await sendAPIRequest<any[]>(`/${organizationId}/station`);
-    setStationData(stations);
-  };
-
   const ledgerStationsMap: { [key: number]: string } = {};
 
   stationData?.forEach((station: any) => {
@@ -52,9 +49,7 @@ export const Company = () => {
   };
 
   useEffect(() => {
-    fetchStations();
     getCompanyData();
-    fetchStations();
   }, [data]);
 
   useEffect(() => {
