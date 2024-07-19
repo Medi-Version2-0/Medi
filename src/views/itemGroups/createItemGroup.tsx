@@ -80,7 +80,7 @@ export const CreateItemGroup: React.FC<CreateItemGroupProps> = ({
                 formik={formik}
                 className='!gap-0'
                 isDisabled={isDelete && group_code}
-                prevField='group_name'
+                prevField=''
                 sideField='p_and_l'
                 nextField='p_and_l'
                 onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
@@ -219,7 +219,7 @@ export const CreateItemGroup: React.FC<CreateItemGroupProps> = ({
                   type='fill'
                   autoFocus
                   handleOnKeyDown={(e) => {
-                    if (e.key === 'Tab') {
+                    if (e.key === 'Tab' || (!formik.isValid && e.key === 'Enter')) {
                       document.getElementById('group_name')?.focus();
                       e.preventDefault();
                     }

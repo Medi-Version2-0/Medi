@@ -26,15 +26,30 @@ const Confirm_Alert_Popup: React.FC<Confirm_Alert_PopupProps> = ({
         <p>{message}</p>
         <div className='flex gap-8 mb-4 mt-8 px-8'>
           <Button
-            className=''
-            type='highlight'
+            id ='ok_button'
+            // className=''
+            // type='highlight'
+            handleOnKeyDown={(e) => {
+              if (e.key === 'Tab') {
+                document.getElementById('cancel_button')?.focus();
+                e.preventDefault();
+              }
+            }}
             handleOnClick={onConfirm}
             autoFocus={autoFocus}
           >
             OK
           </Button>
           {!isAlert && (
-            <Button type='fog' handleOnClick={onClose}>
+            <Button type='fog' handleOnClick={onClose}
+            id = 'cancel_button'
+              handleOnKeyDown={(e: any) => {
+                  if (e.key === 'Tab') {
+                    document.getElementById('ok_button')?.focus();
+                    e.preventDefault();
+                  }
+                }}
+            >
               Cancel
             </Button>
           )}

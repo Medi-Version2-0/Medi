@@ -186,7 +186,7 @@ export const CreateStore: React.FC<CreateStoreProps> = ({
                   padding='px-8 py-2'
                   autoFocus={true}
                   handleOnKeyDown={(e) => {
-                    if (e.key === 'Tab') {
+                    if (e.key === 'Tab'  || (!formik.isValid && e.key === 'Enter')) {
                       document.getElementById('store_name')?.focus();
                       e.preventDefault();
                     }

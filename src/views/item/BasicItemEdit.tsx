@@ -266,7 +266,7 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
 
   const basicInfoFields = [
     {
-      label: 'Item Name',
+      label: 'Item Name11',
       id: 'name',
       name: 'name',
       isRequired: true,
@@ -450,7 +450,7 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
       id: 'upload',
       name: 'upload',
       type: 'file',
-      nextField: 'submit_all',
+      nextField: (formik.isValid) ? 'submit_all' : 'name',
       prevField: controlRoomSettings.dpcoAct ? 'dpcoact' : controlRoomSettings.rackNumber ? 'rackNumber' : 'maxQty',
     },
   ];

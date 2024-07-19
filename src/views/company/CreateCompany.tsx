@@ -512,7 +512,7 @@ export const CreateCompany = ({ setView , data }: any) => {
                         maxLength={15}
                         labelClassName='min-w-[110px]'
                         isRequired={false}
-                        prevField='purchaseId'
+                        prevField='purSaleAc'
                         nextField='drugLicenceNo1'
                         onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                           handleKeyDown(e)
@@ -696,7 +696,7 @@ export const CreateCompany = ({ setView , data }: any) => {
                         +91
                       </span>
                     }
-                    prevField='purSaleAc'
+                    prevField='stateInOut'
                     nextField='mobileNumber'
                     onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                       handleKeyDown(e)
@@ -788,7 +788,7 @@ export const CreateCompany = ({ setView , data }: any) => {
                     formik.touched.emailId3 && formik.errors.emailId3
                   }
                   prevField='emailId2'
-                  nextField='submit_company'
+                  nextField= {formik.isValid ? 'submit_company' : 'companyName'}
                   onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                     handleKeyDown(e)
                   }

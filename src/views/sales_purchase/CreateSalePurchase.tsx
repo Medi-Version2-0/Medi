@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useFormik, FormikProps } from 'formik';
 import {
   CreateSalePurchaseProps,
@@ -24,6 +24,7 @@ export const CreateSalePurchase = ({
 }: CreateSalePurchaseProps) => {
   const { sp_id } = data;
   const formikRef = useRef<FormikProps<SalesPurchaseFormProps>>(null);
+  const [focused, setFocused] = useState('');
 
   const validationSchema = Yup.object({
     sptype: Yup.string()
@@ -62,7 +63,7 @@ export const CreateSalePurchase = ({
     innerRef: formikRef,
     initialValues: {
       sptype: data?.sptype || '',
-      igst: data?.igst || '0.00',
+      igst: data?.igst || '',
       surCharge: data?.surCharge || '',
       shortName: data?.shortName || '',
       shortName2: data?.shortName2 || '',
@@ -81,7 +82,11 @@ export const CreateSalePurchase = ({
       e,
       formik: formik,
       radioField: radioField,
+      focusedSetter: (field: string) => {
+        setFocused(field);
+      },
     });
+
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -163,9 +168,9 @@ export const CreateSalePurchase = ({
           formik={formik}
           className='!gap-0'
           isDisabled={isDelete && sp_id}
-          sideField='shortName'
           nextField='shortName'
           prevField='igst'
+          sideField='shortName'
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(e)}
           onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
             handleKeyDown(e, formik)
@@ -198,9 +203,10 @@ export const CreateSalePurchase = ({
           formik={formik}
           className='!gap-0'
           isDisabled={isDelete && sp_id}
-          sideField='submit_button'
-          nextField='submit_button'
+          sideField='openingBal'
+          nextField='openingBal'
           prevField='shortName'
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(e)}
           onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
             handleKeyDown(e, formik)
           }
@@ -214,13 +220,15 @@ export const CreateSalePurchase = ({
             id='openingBal'
             name='openingBal'
             formik={formik}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              handleChange(e)
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(e)}
+            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
+              handleKeyDown(e, formik)
             }
             className='!mb-0'
             inputClassName='h-9 text-right'
             labelClassName='w-fit text-nowrap'
-            prevField=''
+            sideField='openingBalType'
+            prevField='shortName2'
             nextField='openingBalType'
             maxLength={12}
             placeholder='0.00'
@@ -241,6 +249,7 @@ export const CreateSalePurchase = ({
             }
             id='openingBalType'
             onChange={handleFieldChange}
+            isFocused={focused === 'openingBalType'}
             options={[
               { value: 'Cr', label: 'Cr' },
               { value: 'Dr', label: 'Dr' },
@@ -253,6 +262,18 @@ export const CreateSalePurchase = ({
             className='!rounded-none !h-6'
             onBlur={() => {
               formik.setFieldTouched('openingBalType', true);
+              setFocused('');
+            }}
+            onKeyDown={(
+              e: React.KeyboardEvent<HTMLSelectElement>
+            ) => {
+              const dropdown = document.querySelector(
+                '.custom-select__menu'
+              );
+              if (e.key === 'Enter') {
+                !dropdown && e.preventDefault();
+                document.getElementById('submit_button')?.focus();
+              }
             }}
           />
         </div>
@@ -272,6 +293,7 @@ export const CreateSalePurchase = ({
               }
               if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab')) {
                 e.preventDefault();
+              document.getElementById(`${isDelete ? 'cancel_button' : 'sptype'}`)?.focus();
               }
               if (e.key === 'Enter') {
                 e.preventDefault();
@@ -305,7 +327,7 @@ export const CreateSalePurchase = ({
               padding='px-8 py-2'
               autoFocus={true}
               handleOnKeyDown={(e) => {
-                if (e.key === 'Tab') {
+                if (e.key === 'Tab' || (!formik.isValid && e.key === 'Enter')) {
                   document.getElementById('sptype')?.focus();
                   e.preventDefault();
                 }

@@ -308,13 +308,13 @@ export const CreateHQ = ({
                   type='fill'
                   autoFocus={true}
                   handleOnKeyDown={(e) => {
-                    if (e.key === 'Tab') {
+                    if (e.key === 'Tab' || (!formik.isValid && e.key === 'Enter')) {
                       setFocused('station_name');
                       e.preventDefault();
                     }
                     if (
                       e.key === 'ArrowUp' ||
-                      (e.shiftKey && e.key === 'Tab')
+                      (e.shiftKey && e.key === 'Tab' || (!formik.isValid && e.key === 'Enter'))
                     ) {
                       document.getElementById('cancel_button')?.focus();
                       e.preventDefault();

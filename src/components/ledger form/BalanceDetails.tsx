@@ -142,12 +142,13 @@ export const BalanceDetails = ({
             className='!rounded-none !h-6 w-full width: fit-content !important text-wrap: nowrap'
             onBlur={() => {
               formik.setFieldTouched('partyType', true);
+              // setFocused('')
             }}
             onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
               const dropdown = document.querySelector('.custom-select__menu');
-              if (e.key === 'Enter') {
+              if (e.key === 'Enter' || e.key === 'Tab') {
                 !dropdown && e.preventDefault();
-                const nextFieldId = !isSpecialGroup ? 'partyName' : 'creditLimit';
+                const nextFieldId = formik.isValid ?  'submit_all'  : (  !isSpecialGroup ? 'partyName' : 'creditLimit');
                     document.getElementById(nextFieldId)?.focus();
                     setFocused(nextFieldId);
               }
