@@ -16,7 +16,7 @@ export const stationValidationSchema = Yup.object({
     .min(6, 'Station pincode must be at least 6 characters long')
     .max(6, 'Station pincode cannot exceed 6 characters'),
   igst_sale: Yup.string().oneOf(
-    ['yes', 'no'],
-    'IGST sale must be either "yes" or "no"'
+    ['Yes', 'No'],
+    'IGST sale must be either "Yes" or "No"'
   ),
 });

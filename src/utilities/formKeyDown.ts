@@ -56,7 +56,16 @@ const onKeyDown = ({
             e.currentTarget.getAttribute('data-side-field') ||
             e.currentTarget.getAttribute('data-next-field') ||
             '';
-          document.getElementById(sideField)?.focus();
+          const isLastField = !document.querySelector(
+            `[data-next-field="${sideField}"]`
+          );
+
+          if (isLastField) {
+            const addButtonId = 'submit_button';
+            document.getElementById(addButtonId)?.focus();
+          } else {
+            document.getElementById(sideField)?.focus();
+          }
           if (radioField?.typeField) {
             const value = (
               document.getElementById(sideField) as HTMLInputElement
