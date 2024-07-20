@@ -12,6 +12,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import { useControls } from '../../ControlRoomContext';
 import { batchSchema, validatePrices } from './validation_schema';
+import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
+import { debounce } from '@mui/material';
 
 export const Batch = ({
   params,
@@ -26,8 +28,7 @@ export const Batch = ({
   const [item, setItem] = useState<any>();
   const pinnedRow: BatchForm = {
     itemId: id ? +id : 0,
-    batchNo: '',
-    mfgCode: 'ksdfkaskdf' || item?.shortName,
+    batchNo: null,
     expiryDate: '',
     opBalance: null,
     opFree: null,
@@ -36,7 +37,7 @@ export const Batch = ({
     mrp: null,
     locked: '',
     ...(controlRoomSettings.dualPriceList ? { salePrice2: null } : {}),
-    ...(controlRoomSettings.batchWiseManufacturingCode ? { mfgCode: '' } : {}),
+    ...(controlRoomSettings.batchWiseManufacturingCode ? { mfgCode: item?.shortName || '', } : {}),
   };
   const queryClient = useQueryClient();
   const { organizationId } = useParams();
@@ -52,10 +53,10 @@ export const Batch = ({
   });
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const { data } = useQuery<{ data: BatchForm }>({
+  const { data } = useQuery<BatchForm[]>({
     queryKey: ['get-itemBatches'],
     queryFn: () =>
-      sendAPIRequest<{ data: BatchForm }>(
+      sendAPIRequest<BatchForm[]>(
         `/${organizationId}/item/${id}/batch`
       ),
   });
@@ -64,23 +65,28 @@ export const Batch = ({
     const getItem = async () => {
       const itemData = await sendAPIRequest<any>(`/${organizationId}/item/${id}`);
       setItem(itemData);
-      setInputRow({ ...inputRow, mfgCode: itemData?.shortName });
-    }
+
+      if (controlRoomSettings.batchWiseManufacturingCode) {
+        setInputRow({ ...inputRow, mfgCode: itemData?.shortName || '' });
+      }
+    };
     getItem();
   }, []);
 
   const getBatch = async () => {
-    setTableData(data);
+    const newRow = { ...inputRow, itemId: 0 };
+    const combinedData = data && [newRow, ...data];
+    setTableData(combinedData);
   };
 
   useEffect(() => {
     getBatch();
-  }, [data]);
+  }, [data, inputRow]);
 
   const handleBatchAdd = async () => {
     try {
       await batchSchema.validate(inputRow);
-      const existingBatch = tableData?.find(
+      const existingBatch = data?.find(
         (tableBatch: BatchForm) =>
           numberedStringLowerCase(tableBatch?.batchNo) === numberedStringLowerCase(inputRow.batchNo)
       );
@@ -147,12 +153,12 @@ export const Batch = ({
       newValue?: any;
     }) => {
       editing.current = false;
-      const { data, column, oldValue, newValue, valueChanged, node } = e;
+      const { data, column, oldValue, newValue, node } = e;
       const batchId = data.id;
       const field = column.colId;
-      if (!valueChanged) return;
+      if (newValue === inputRow[field]) return;
       try {
-        if (node.rowPinned === 'top') {
+        if (node.rowIndex === 0) {
           try {
             await batchSchema.validateAt(field, { [field]: newValue });
             const newBatch = { ...inputRow, [field]: newValue };
@@ -166,6 +172,10 @@ export const Batch = ({
                 message: err.message,
               });
               node.setDataValue(field, oldValue);
+              gridRef.current?.api?.startEditingCell({
+                rowIndex: node.rowIndex,
+                colKey: field,
+              });
             }
           }
         } else {
@@ -187,6 +197,10 @@ export const Batch = ({
           console.error('Error:-', err);
         }
         node.setDataValue(field, oldValue);
+        gridRef.current?.api?.startEditingCell({
+          rowIndex: node.rowIndex,
+          colKey: field,
+        });
       }
     },
     [[tableData, inputRow]]
@@ -211,16 +225,19 @@ export const Batch = ({
     }
   };
 
-  const handleKeyDown = async (event: KeyboardEvent) => {
-    if (event.code === 'Enter' && await isPinnedRowDataCompleted()) {
-      handleBatchAdd();
-    }
-  };
+  const debouncedHandleKeyDown = useCallback(
+    debounce(async (event: KeyboardEvent) => {
+      if (event.code === 'Enter' && (await isPinnedRowDataCompleted())) {
+        handleBatchAdd();
+      }
+    }, 300), // Adjust the debounce delay (in milliseconds) as needed
+    [inputRow]
+  );
 
   useEffect(() => {
-    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keydown', debouncedHandleKeyDown);
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keydown', debouncedHandleKeyDown);
     };
   }, [selectedRow, inputRow]);
 
@@ -232,176 +249,112 @@ export const Batch = ({
     []
   );
 
-  const isEmptyPinnedCell = (params: any) => {
-    return (
-      (params.node.rowPinned === 'top' && params.value == null) ||
-      (params.node.rowPinned === 'top' && params.value === '')
-    );
-  };
-
-  const createPinnedCellPlaceholder = ({ colDef }: any) => {
-    return colDef.headerName || '';
-  };
-
-  const createValueFormatter = (colDef: any) => (params: any) => {
-    const { value, node } = params;
-    const isPinnedRow = node.rowPinned === 'top';
-    const isEditing = params.api
-      .getEditingCells()
-      ?.some(
-        (cell: any) =>
-          cell.rowIndex === params.node.rowIndex &&
-          cell.column.colId === params.column.colId
-      );
-
-    if (isPinnedRow && !isEditing && (value === null || value === '')) {
-      return colDef.headerName;
-    } else {
-      return value;
-    }
-  };
+  // const isEmptyPinnedCell = (params: any) => {
+  //   return (
+  //     (params.node.rowIndex === 0 && params.value == null) ||
+  //     (params.node.rowIndex === 0 && params.value === '')
+  //   );
+  // };
 
   const defaultColDef = {
-    flex: 1,
+    filter: true,
     editable: true,
-    valueFormatter: (params: any) => {
-      if (isEmptyPinnedCell(params)) {
-        return createPinnedCellPlaceholder(params);
-      } else {
-        return params.value;
-      }
+    sortable: true,
+    flex: 1,
+    headerClass: 'custom-header',
+    suppressMovable: true,
+    cellStyle: {
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
     },
+    cellEditor: 'agTextCellEditor',
+    cellRenderer: (params: any) => (
+      <PlaceholderCellRenderer
+        value={params.value}
+        rowIndex={params.node.rowIndex}
+        column={params.colDef}
+        startEditingCell={(editParams) => {
+          gridRef.current?.api?.startEditingCell(editParams);
+        }}
+        placeholderText={params.colDef.headerName}
+      />
+    ),
   };
+
 
   const colDefs: ColDef[] = [
     {
       headerName: 'Batch No',
       field: 'batchNo',
-      filter: true,
-      editable: true,
-      sortable: true,
-      flex: 1,
-      headerClass: 'custom-header',
-      suppressMovable: true,
-      valueFormatter: createValueFormatter({ headerName: 'Batch No' }),
+      // valueFormatter: createValueFormatter({ headerName: 'Batch No' }),
     },
     {
       headerName: 'Expiry Date',
       field: 'expiryDate',
-      filter: true,
-      editable: true,
-      flex: 1,
-      headerClass: 'custom-header',
-      sortable: true,
-      suppressMovable: true,
-      valueFormatter: createValueFormatter({ headerName: 'MM/YYYY' }),
+      // valueFormatter: createValueFormatter({ headerName: 'MM/YYYY' }),
     },
     {
       headerName: 'Opening Stock',
       field: 'opBalance',
-      filter: true,
-      editable: true,
-      sortable: true,
-      flex: 1,
-      headerClass: 'custom-header',
-      suppressMovable: true,
-      valueFormatter: createValueFormatter({ headerName: 'Opening Stock' }),
+      cellDataType: 'number',
+      cellEditor: 'agTextCellEditor',
     },
     {
       headerName: 'Scheme Stock',
       field: 'opFree',
-      filter: true,
-      editable: true,
-      sortable: true,
-      flex: 1,
-      headerClass: 'custom-header',
-      suppressMovable: true,
-      valueFormatter: createValueFormatter({ headerName: 'Scheme Stock' }),
+      cellDataType: 'number',
+      // valueFormatter: createValueFormatter({ headerName: 'Scheme Stock' }),
     },
     {
       headerName: 'Purchase Price',
       field: 'purPrice',
-      filter: true,
+      cellDataType: 'number',
       headerClass: 'custom-header-class custom-header',
-      editable: true,
-      sortable: true,
-      suppressMovable: true,
-      flex: 1,
       cellStyle: {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
       },
-      valueFormatter: createValueFormatter({ headerName: 'Purchase Price' }),
+      // valueFormatter: createValueFormatter({ headerName: 'Purchase Price' }),
     },
     {
       headerName: 'Sale Price',
       field: 'salePrice',
-      filter: true,
+      cellDataType: 'number',
       headerClass: 'custom-header-class custom-header',
-      editable: true,
-      sortable: true,
-      suppressMovable: true,
-      flex: 1,
-      cellStyle: {
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-      },
-      valueFormatter: createValueFormatter({ headerName: 'Sale Price' }),
+      // valueFormatter: createValueFormatter({ headerName: 'Sale Price' }),
     },
     ...(controlRoomSettings.dualPriceList
       ? [
         {
           headerName: 'Sale Price 2',
           field: 'salePrice2',
-          filter: true,
-          editable: true,
-          flex: 1,
-          headerClass: 'custom-header',
-          sortable: true,
-          suppressMovable: true,
-          valueFormatter: createValueFormatter({
-            headerName: 'Sale Price 2',
-          }),
+          // valueFormatter: createValueFormatter({
+          //   headerName: 'Sale Price 2',
+          // }),
         },
       ]
       : []),
     {
       headerName: 'MRP',
       field: 'mrp',
-      filter: true,
-      editable: true,
-      sortable: true,
-      flex: 1,
-      headerClass: 'custom-header',
-      suppressMovable: true,
-      valueFormatter: createValueFormatter({ headerName: 'MRP' }),
+      cellDataType: 'number',
+      // valueFormatter: createValueFormatter({ headerName: 'MRP' }),
     },
     {
       headerName: 'Lock Batch',
       field: 'locked',
-      filter: true,
-      editable: true,
-      flex: 1,
-      headerClass: 'custom-header',
-      suppressMovable: true,
-      valueFormatter: createValueFormatter({ headerName: 'Y/N' }),
+      // valueFormatter: createValueFormatter({ headerName: 'Y/N' }),
     },
     ...(controlRoomSettings.batchWiseManufacturingCode
       ? [
         {
           headerName: 'MFG Code',
           field: 'mfgCode',
-          filter: true,
-          editable: true,
-          flex: 1,
-          headerClass: 'custom-header',
-          sortable: true,
-          suppressMovable: true,
-          valueFormatter: createValueFormatter({
-            headerName: 'MFG Code',
-          }),
+          // valueFormatter: createValueFormatter({
+          //   headerName: 'MFG Code',
+          // }),
         },
       ]
       : []),
@@ -412,7 +365,11 @@ export const Batch = ({
       <div className="w-full">
         <div className="flex w-full items-center justify-between px-8 py-1">
           <h1 className="font-bold">Batches</h1>
-          <Button type="highlight" handleOnClick={() => params.setShowBatch(null)}>
+          <Button
+            type="highlight"
+            // handleOnClick={() => getBatch()}
+            handleOnClick={() => params.setShowBatch(null)}
+          >
             Back
           </Button>
         </div>
@@ -427,7 +384,6 @@ export const Batch = ({
               onSelectionChanged={(event) => {
                 setSelectedRow(event.api.getSelectedNodes()[0]);
               }}
-              pinnedTopRowData={[inputRow]}
               getRowStyle={getRowStyle}
               onCellClicked={onCellClicked}
               onGridReady={getBatch}

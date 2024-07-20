@@ -96,7 +96,7 @@ export interface ItemGroupFormDataProps {
 export interface BatchForm {
   id?: number ;
   itemId: number;
-  batchNo: string;
+  batchNo: any;
   mfgCode?: string;
   expiryDate: string;
   opBalance: number | null;

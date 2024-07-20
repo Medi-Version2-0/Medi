@@ -127,8 +127,10 @@ const Container: React.FC<ContainerProps> = ({ title, fields, formik, setFocused
                   '.custom-select__menu'
                 );
                 if (e.key === 'Enter') {
+                  console.log("i am here");
                   !dropdown && e.preventDefault();
                   document.getElementById(field.nextField || 'compId')?.focus();
+                  console.log("🚀 ~ nextField:", field.nextField)
                   setFocused(field.nextField || 'compId');
                 }
               }}
