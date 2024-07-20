@@ -13,9 +13,17 @@ export const BalanceDetails = ({
 }: BalanceDetailsProps) => {
   const [focused, setFocused] = useState('');
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('e ==========> ', e)
     const id = e.target.id;
     const value = e.target.value;
-    const filteredValue = value.replace(/[^0-9]/g, '');
+    let filteredValue = value.replace(/[^0-9.]/g, '');
+    const decimalIndex = filteredValue.indexOf('.');
+    if (decimalIndex !== -1) {
+      const beforeDecimal = filteredValue.slice(0, decimalIndex);
+      const afterDecimal = filteredValue.slice(decimalIndex + 1);
+  
+      filteredValue = beforeDecimal + '.' + afterDecimal.slice(0, 2);
+    }
     if (id === 'openingBal') {
       if (filteredValue.length <= 12) {
         formik.setFieldValue('openingBal', filteredValue);
@@ -36,8 +44,9 @@ export const BalanceDetails = ({
   };
 
   const resetField = (e: React.MouseEvent<HTMLInputElement>) => {
-    const inputElement = e.currentTarget;
-    inputElement.setSelectionRange(0, inputElement.value.length);
+    console.log(e);
+    // const inputElement = e.currentTarget;
+    // inputElement.setSelectionRange(0, inputElement.value.length);
   };
 
   const isSpecialGroup = selectedGroupName.toUpperCase() === 'SUNDRY CREDITORS' ||
@@ -60,7 +69,7 @@ export const BalanceDetails = ({
             formik={formik}
             onChange={handleChange}
             placeholder='0.00'
-            onClick={resetField}
+            // onClick={resetField}
             className='!mb-0'
             inputClassName='h-9 text-right'
             labelClassName='w-fit text-nowrap'
@@ -142,13 +151,13 @@ export const BalanceDetails = ({
             className='!rounded-none !h-6 w-full width: fit-content !important text-wrap: nowrap'
             onBlur={() => {
               formik.setFieldTouched('partyType', true);
-              // setFocused('')
+              setFocused('')
             }}
             onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
               const dropdown = document.querySelector('.custom-select__menu');
-              if (e.key === 'Enter' || e.key === 'Tab') {
+              if (e.key === 'Enter' || e.key === 'Tab' ) {
                 !dropdown && e.preventDefault();
-                const nextFieldId = formik.isValid ?  'submit_all'  : (  !isSpecialGroup ? 'partyName' : 'creditLimit');
+                const nextFieldId = (formik.isValid && !isSpecialGroup) ?  'submit_all'  : (!formik.isValid && !isSpecialGroup) ? 'partyName' : 'creditLimit';
                     document.getElementById(nextFieldId)?.focus();
                     setFocused(nextFieldId);
               }

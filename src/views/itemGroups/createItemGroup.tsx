@@ -186,7 +186,7 @@ export const CreateItemGroup: React.FC<CreateItemGroupProps> = ({
                   if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab')) {
                     document
                       .getElementById(
-                        `${isDelete ? 'cancel_button' : 'balance_sheet'}`
+                        `${isDelete ? 'del_button' : 'balance_sheet'}`
                       )
                       ?.focus();
                   }
@@ -201,6 +201,7 @@ export const CreateItemGroup: React.FC<CreateItemGroupProps> = ({
                   handleOnClick={() => group_code && deleteAcc(group_code)}
                   handleOnKeyDown={(e) => {
                     if (e.key === 'Tab') {
+                      document.getElementById('cancel_button')?.focus();
                       e.preventDefault();
                     }
                     if (

@@ -167,6 +167,7 @@ export const CreateStore: React.FC<CreateStoreProps> = ({
                   handleOnClick={() => store_code && deleteAcc(store_code)}
                   handleOnKeyDown={(e) => {
                     if (e.key === 'Tab') {
+                      document.getElementById('cancel_button')?.focus();
                       e.preventDefault();
                     }
                     if (

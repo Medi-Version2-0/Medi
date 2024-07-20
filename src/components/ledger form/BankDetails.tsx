@@ -92,12 +92,18 @@ export const BankDetails: React.FC<BankDetailsProps> = ({ formik }) => {
         hidePlaceholder={false}
         isFocused={focused === 'accountType'}
         onBlur={() => {
+          formik.setFieldTouched('accountType', true);
           setFocused('');
         }}
         className='!rounded-none'
         onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+          const dropdown = document.querySelector(
+            '.custom-select__menu'
+          );
           if (e.key === 'Enter') {
+            !dropdown && e.preventDefault();
             document.getElementById('ifscCode')?.focus();
+            setFocused('ifscCode');
           }
         }}
       />
@@ -122,7 +128,7 @@ export const BankDetails: React.FC<BankDetailsProps> = ({ formik }) => {
         formik={formik}
         className=''
         prevField='ifscCode'
-        nextField='partyName'
+        nextField= {formik.isValid ? 'submit_all' : 'partyName'}
       />
     </div>
   );

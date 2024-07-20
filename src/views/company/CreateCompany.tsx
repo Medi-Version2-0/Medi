@@ -44,7 +44,7 @@ export const CreateCompany = ({ setView , data }: any) => {
       openingBalType: data?.openingBalType || 'Dr',
       salesId: data?.salesId || '',
       purchaseId: data?.purchaseId || '',
-      discPercent: data?.discPercent || '',
+      discPercent: data?.discPercent || null,
       isDiscountPercent: data?.isDiscountPercent || '',
       //tax
       gstIn: data?.gstIn || '',
@@ -121,6 +121,25 @@ export const CreateCompany = ({ setView , data }: any) => {
 
   const handleFieldChange = (option: Option | null, id: string) => {
     formik.setFieldValue(id, option?.value);
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('e ====1======> ', e)
+    const value = e.target.value;
+    let filteredValue = value.replace(/[^0-9.]/g, '');
+    const decimalIndex = filteredValue.indexOf('.');
+    if (decimalIndex !== -1) {
+      const beforeDecimal = filteredValue.slice(0, decimalIndex);
+      const afterDecimal = filteredValue.slice(decimalIndex + 1);
+  
+      filteredValue = beforeDecimal + '.' + afterDecimal.slice(0, 2);
+    }
+      if (filteredValue.length <= 12) {
+        formik.setFieldValue('openingBal', filteredValue);
+      } else {
+        formik.setFieldValue('openingBal', filteredValue.slice(0, 12));
+      }
+    
   };
 
   const handleKeyDown = (
@@ -298,6 +317,7 @@ export const CreateCompany = ({ setView , data }: any) => {
                       if (e.key === 'Enter') {
                         !dropdown && e.preventDefault();
                         document.getElementById('openingBal')?.focus();
+                        setFocused('openingBal')
                       }
                     }}
                   />
@@ -309,6 +329,7 @@ export const CreateCompany = ({ setView , data }: any) => {
                       name='openingBal'
                       // onClick={resetField}
                       formik={formik}
+                      onChange={handleChange}
                       placeholder='0.00'
                       maxLength={12}
                       className='!mb-0 w-[100%]'
@@ -812,7 +833,14 @@ export const CreateCompany = ({ setView , data }: any) => {
               });
             }}
             handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
-              if (e.key === 'ArrowUp') {
+              //  e.preventDefault();
+              if (e.key === 'ArrowUp' || e.shiftKey && e.key === 'Tab') {
+                document.getElementById('emailId3')?.focus();
+                setFocused('emailId3')
+                e.preventDefault();
+              }
+              if (e.key === 'Tab') {
+                document.getElementById('companyName')?.focus();
                 e.preventDefault();
               }
             }}

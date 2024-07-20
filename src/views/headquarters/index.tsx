@@ -120,6 +120,7 @@ export const Headquarters = () => {
         }
       });
       if (mode === false) {
+        console.log("formData--------",formData,id)
         await sendAPIRequest(
           `/${organizationId}/station/headQuarter/${formData.station_id}/${id}`,
           {

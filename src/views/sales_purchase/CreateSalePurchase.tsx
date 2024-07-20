@@ -91,18 +91,35 @@ export const CreateSalePurchase = ({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
-    const filteredValue = value.replace(/[^0-9]/g, '');
-    if (/^\d*\.?\d{0,2}$/.test(value)) {
+    const decimalRegex = /^\d*\.?\d{0,2}$/;
+  
+    if (decimalRegex.test(value)) {
       formik.setFieldValue(id, value);
     }
+  
     if (id === 'openingBal') {
-      if (filteredValue.length <= 12) {
-        formik.setFieldValue('openingBal', filteredValue);
+      if (value === '') {
+        formik.setFieldValue('openingBal', null);
       } else {
-        formik.setFieldValue('openingBal', filteredValue.slice(0, 12));
+        let filteredValue = value.replace(/[^0-9.]/g, '');
+  
+        const decimalIndex = filteredValue.indexOf('.');
+        if (decimalIndex !== -1) {
+          const beforeDecimal = filteredValue.slice(0, decimalIndex);
+          const afterDecimal = filteredValue.slice(decimalIndex + 1, decimalIndex + 3); // Up to 2 decimal places
+  
+          filteredValue = `${beforeDecimal}.${afterDecimal}`;
+        }
+  
+        if (filteredValue.length <= 12) {
+          formik.setFieldValue('openingBal', filteredValue);
+        } else {
+          formik.setFieldValue('openingBal', filteredValue.slice(0, 12));
+        }
       }
     }
   };
+  
 
   const handleFieldChange = (option: Option | null) => {
     formik.setFieldValue('openingBalType', option?.value);
@@ -232,7 +249,7 @@ export const CreateSalePurchase = ({
             nextField='openingBalType'
             maxLength={12}
             placeholder='0.00'
-            onClick={resetField}
+            // onClick={resetField}
             showErrorTooltip={
               !!(formik.touched.openingBal && formik.errors.openingBal)
             }
@@ -293,7 +310,7 @@ export const CreateSalePurchase = ({
               }
               if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab')) {
                 e.preventDefault();
-              document.getElementById(`${isDelete ? 'cancel_button' : 'sptype'}`)?.focus();
+              document.getElementById(`${isDelete ? 'del_button' : 'sptype'}`)?.focus();
               }
               if (e.key === 'Enter') {
                 e.preventDefault();
@@ -312,6 +329,7 @@ export const CreateSalePurchase = ({
               handleOnKeyDown={(e) => {
                 if (e.key === 'Tab') {
                   e.preventDefault();
+                  document.getElementById('cancel_button')?.focus();
                 }
                 if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab')) {
                   document.getElementById('cancel_button')?.focus();

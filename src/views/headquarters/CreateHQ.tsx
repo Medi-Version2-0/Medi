@@ -245,6 +245,7 @@ export const CreateHQ = ({
                       );
                       if (e.key === 'Enter' || e.key === 'Tab') {
                         if (!dropdown) {
+                          document.getElementById('cancel_button')?.focus();
                           e.preventDefault();
                         }
                         document
@@ -272,6 +273,7 @@ export const CreateHQ = ({
                 handleOnClick={() => togglePopup(false)}
                 handleOnKeyDown={(e) => {
                   if (e.key === 'Enter') {
+                    // document.getElementById('del_button')?.focus();
                     e.preventDefault();
                     togglePopup(false);
                   }
@@ -290,6 +292,7 @@ export const CreateHQ = ({
                   handleOnClick={() => station_id && deleteAcc(station_id)}
                   handleOnKeyDown={(e) => {
                     if (e.key === 'Tab') {
+                      document.getElementById('cancel_button')?.focus();
                       e.preventDefault();
                     }
                     if (
