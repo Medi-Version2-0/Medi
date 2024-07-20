@@ -282,11 +282,6 @@ export const CreateStation = ({
                     setFocused(
                       `${controlRoomSettings.igstSaleFacility ? 'igst_sale' : 'station_pinCode'}`
                     );
-                    document
-                      .getElementById(
-                        `${controlRoomSettings.igstSaleFacility ? 'igst_sale' : 'station_pinCode'}`
-                      )
-                      ?.focus();
                   }
                   if (e.key === 'Enter') {
                     e.preventDefault();

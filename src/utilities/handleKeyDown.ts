@@ -26,8 +26,8 @@ export const handleKeyDownCommon = (
         handleDelete(selectedRow);
       }
       break;
-    case 'e':
-    case 'E':
+    case 'b':
+    case 'B':
       if (event.ctrlKey && selectedRow) {
         if (setView) {
           setView({ type: 'add', data: selectedRow });

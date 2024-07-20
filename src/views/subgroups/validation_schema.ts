@@ -11,7 +11,7 @@ export const subgroupValidationSchema = Yup.object({
     .max(100, 'Group name cannot exceeds 100 characters'),
   parent_code: Yup.string().required('Parent Group is required'),
   igst_sale: Yup.string().oneOf(
-    ['Yes', 'No'],
-    'IGST sale must be either "Yes" or "No"'
+    ['yes', 'no'],
+    'IGST sale must be either "yes" or "no"'
   ),
 });
