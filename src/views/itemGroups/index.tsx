@@ -29,7 +29,6 @@ export const ItemGroups = () => {
   const [tableData, setTableData] = useState<ItemGroupFormData | any>(null);
   const queryClient = useQueryClient();
   const editing = useRef(false);
-  const isDelete = useRef(false);
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
@@ -70,14 +69,6 @@ export const ItemGroups = () => {
     setPopupState({ ...popupState, isModalOpen: false });
   };
 
-  const togglePopup = (isOpen: boolean) => {
-    if (!isOpen) {
-      setFormData(initialValue);
-      isDelete.current = false;
-    }
-    setOpen(isOpen);
-  };
-
   const handleConfirmPopup = async () => {
     setPopupState({ ...popupState, isModalOpen: false });
     if (formData.group_name) {
@@ -86,36 +77,32 @@ export const ItemGroups = () => {
         formData.group_name.slice(1);
     }
     if (formData !== initialValue) {
-      try {
-        let response: any;
-        if (formData.group_code) {
-          response = await sendAPIRequest(
-            `/${organizationId}/itemGroup/${formData.group_code}`,
-            {
-              method: 'PUT',
-              body: formData,
-            }
-          );
-        } else {
-          response = await sendAPIRequest(`/${organizationId}/itemGroup`, {
-            method: 'POST',
+      if (formData.group_code) {
+        await sendAPIRequest(
+          `/${organizationId}/itemGroup/${formData.group_code}`,
+          {
+            method: 'PUT',
             body: formData,
-          });
-        }
-
-        if (!response.error) {
-          togglePopup(false);
-          queryClient.invalidateQueries({ queryKey: ['get-itemGroups'] });
-        }
-      } catch (error) {
-        setPopupState({
-          ...popupState,
-          isAlertOpen: true,
-          isModalOpen: false,
-          message: `Failed to ${formData.group_code ? 'update' : 'create'} item group`,
+          }
+        );
+      } else {
+        await sendAPIRequest(`/${organizationId}/itemGroup`, {
+          method: 'POST',
+          body: formData,
         });
       }
+      togglePopup(false);
+      queryClient.invalidateQueries({ queryKey: ['get-itemGroups'] });
     }
+  };
+  const isDelete = useRef(false);
+
+  const togglePopup = (isOpen: boolean) => {
+    if (!isOpen) {
+      setFormData(initialValue);
+      isDelete.current = false;
+    }
+    setOpen(isOpen);
   };
 
   const getGroups = async () => {
@@ -238,6 +225,31 @@ export const ItemGroups = () => {
       selectedRow,
       undefined
     );
+    // switch (event.key) {
+    //   case 'Escape':
+    //     togglePopup(false);
+    //     break;
+    //   case 'n':
+    //   case 'N':
+    //     if (event.ctrlKey) {
+    //       togglePopup(true);
+    //     }
+    //     break;
+    //   case 'd':
+    //   case 'D':
+    //     if (event.ctrlKey && selectedRow) {
+    //       handleDelete(selectedRow);
+    //     }
+    //     break;
+    //   case 'e':
+    //   case 'E':
+    //     if (event.ctrlKey && selectedRow) {
+    //       handleUpdate(selectedRow);
+    //     }
+    //     break;
+    //   default:
+    //     break;
+    // }
   };
 
   useEffect(() => {

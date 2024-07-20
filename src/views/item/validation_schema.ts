@@ -7,17 +7,12 @@ export const gstRegex =
 export const itemFormValidations = Yup.object({
   name: Yup.string()
     .max(100, 'Item Name must be 100 characters or less')
-    .matches(/[a-zA-Z]/, 'Only Numbers not allowed')
-    .matches(
-      /^[a-zA-Z0-9\s_.-]*$/,
-      'Item name can contain alphanumeric characters, "-", "_", and spaces only'
-    )
     .required('Item Name is required'),
   compId: Yup.number().required('Choose the compnay.'),
   packing: Yup.string().max(7, 'Packing must be 7 characters or less'),
   shortName: Yup.string().max(8, 'MFG code must be 8 characters or less'),
   hsnCode: Yup.string().max(8, 'HSN code must be 8 characters or less'),
-  minQty: Yup.number().nullable().positive(),
+  minQty: Yup.number().nullable(),
   maxQty: Yup.number()
     .nullable()
     .max(999999, 'Maximum Quantity must be 6 digits or less')
@@ -31,5 +26,5 @@ export const itemFormValidations = Yup.object({
         }
         return Number(value) > Number(minQty);
       }
-    ).positive(),
+    ),
 });

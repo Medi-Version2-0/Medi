@@ -30,9 +30,7 @@ export const GeneralInfo = ({
     selectedGroup.toUpperCase() === 'DISTRIBUTORS, C & F';
   const [focused, setFocused] = useState('');
   const fetchAllData = async () => {
-    const stationList = await sendAPIRequest<
-      { station_id: number; station_name: string }[]
-    >(`/${organizationId}/station`);
+    const stationList = await sendAPIRequest<{ station_id: number; station_name: string }[]>(`/${organizationId}/station`);
     setStationData(stationList);
 
     setStationOptions(
@@ -41,7 +39,9 @@ export const GeneralInfo = ({
         label: titleCase(station.station_name),
       }))
     );
+
   };
+
 
   useEffect(() => {
     fetchAllData();
@@ -70,7 +70,7 @@ export const GeneralInfo = ({
         (station) => formik.values.station_id === station.station_id
       );
       const state = matchingStation ? matchingStation.station_state : '';
-      const pinCode = matchingStation ? matchingStation.station_pinCode : '';
+      const pinCode = matchingStation ? matchingStation.station_pinCode : ' ';
       formik.setFieldValue('state', state);
       formik.setFieldValue('pinCode', pinCode);
     }
@@ -86,20 +86,24 @@ export const GeneralInfo = ({
     }
   };
 
-  const isSpecialGroup =
-    selectedGroup?.toUpperCase() === 'SUNDRY CREDITORS' ||
-    selectedGroup?.toUpperCase() === 'SUNDRY DEBTORS' ||
-    selectedGroup?.toUpperCase() === 'GENERAL GROUP' ||
-    selectedGroup?.toUpperCase() === 'DISTRIBUTORS, C & F';
+  const isSpecialGroup = selectedGroup?.toUpperCase() === 'SUNDRY CREDITORS' ||
+  selectedGroup?.toUpperCase() === 'SUNDRY DEBTORS' ||
+  selectedGroup?.toUpperCase() === 'GENERAL GROUP' ||
+  selectedGroup?.toUpperCase() === 'DISTRIBUTORS, C & F';
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+
+  ) => {
     onKeyDown({
       e,
 
       focusedSetter: (field: string) => {
+
         setFocused(field);
       },
     });
+
   };
 
   return (
@@ -162,10 +166,9 @@ export const GeneralInfo = ({
                   );
                   if (e.key === 'Enter') {
                     !dropdown && e.preventDefault();
-                    const nextFieldId = isSpecialGroup
-                      ? 'stationName'
-                      : 'stateInout';
+                    const nextFieldId = isSpecialGroup ? 'stationName' : 'stateInout';
 
+                    
                     setFocused(nextFieldId);
                   }
                 }}
@@ -203,19 +206,19 @@ export const GeneralInfo = ({
                 isFocused={focused === 'stationName'}
                 error={formik.errors.stationName}
                 isTouched={formik.touched.stationName}
-                onBlur={() => {
-                  formik.setFieldTouched('stationName', true);
-                  setFocused('');
-                }}
-                onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-                  const dropdown = document.querySelector(
-                    '.custom-select__menu'
-                  );
-                  if (e.key === 'Enter') {
-                    !dropdown && e.preventDefault();
-                    document.getElementById('address1')?.focus();
-                  }
-                }}
+                  onBlur={() => {
+                    formik.setFieldTouched('stationName', true);
+                    setFocused('');
+                  }}
+                  onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+                    const dropdown = document.querySelector(
+                      '.custom-select__menu'
+                    );
+                    if (e.key === 'Enter') {
+                      !dropdown && e.preventDefault();
+                      document.getElementById('address1')?.focus();
+                    }
+                  }}
                 showErrorTooltip={true}
                 noOptionsMsg='No station found,create one...'
               />
@@ -281,31 +284,35 @@ export const GeneralInfo = ({
                 showErrorTooltip={true}
                 maxLength={6}
                 className=''
-                isDisabled={true}
+                isDisabled={false}
                 onChange={handleChange}
                 prevField='address3'
-                nextField={isSpecialGroup ? 'transport' : 'excessRate'}
+                nextField={
+                  isSpecialGroup
+                    ? 'transport'
+                    : 'excessRate'
+                }
               />
             </div>
             {isSpecialGroup && (
-              <div className='flex w-[40%]'>
-                <FormikInputField
-                  isPopupOpen={false}
-                  label='Transport'
-                  id='transport'
-                  name='transport'
-                  inputClassName='w-5/12'
-                  labelClassName='w-1/2'
-                  formik={formik}
-                  prevField='pinCode'
-                  nextField='mailTo'
-                />
-              </div>
+                <div className='flex w-[40%]'>
+                  <FormikInputField
+                    isPopupOpen={false}
+                    label='Transport'
+                    id='transport'
+                    name='transport'
+                    inputClassName='w-5/12'
+                    labelClassName='w-1/2'
+                    formik={formik}
+                    prevField='pinCode'
+                    nextField='mailTo'
+                  />
+                </div>
             )}
           </div>
         )}
         <div className='flex flex-row justify-between w-full items-center'>
-          {isSpecialGroup && (
+        {isSpecialGroup && (
             <div className='w-[50.3%]'>
               <FormikInputField
                 isPopupOpen={false}
@@ -324,47 +331,45 @@ export const GeneralInfo = ({
                 }
               />
             </div>
-          )}
-          <div
-            className={`flex items-center ${isSpecialGroup ? 'w-[40%]' : 'w-[50%]'}`}
-          >
-            <CustomSelect
-              isPopupOpen={false}
-              label='State In Out'
-              id='stateInout'
-              labelClass={`${isSpecialGroup ? 'items-center w-1/2 ' : 'min-w-[90px]'}`}
-              value={
-                formik.values.stateInout === ''
-                  ? null
-                  : {
-                      label: formik.values.stateInout,
-                      value: formik.values.stateInout,
-                    }
+        )}
+        <div className={`flex items-center ${isSpecialGroup ? 'w-[40%]' : 'w-[50%]'}`}>
+          <CustomSelect
+            isPopupOpen={false}
+            label='State In Out'
+            id='stateInout'
+            labelClass={`${isSpecialGroup ? 'items-center w-1/2 ' : 'min-w-[90px]'}`}
+            value={
+              formik.values.stateInout === ''
+                ? null
+                : {
+                    label: formik.values.stateInout,
+                    value: formik.values.stateInout,
+                  }
+            }
+            onChange={handleFieldChange}
+            options={[
+              { value: 'Within State', label: 'Within State' },
+              { value: 'Out Of State', label: 'Out Of State' },
+            ]}
+            isSearchable={false}
+            isFocused={focused === 'stateInout'}
+            placeholder='Select an option'
+            disableArrow={false}
+            hidePlaceholder={false}
+            className='!h-6 rounded-sm'
+            onBlur={() => {
+              formik.setFieldTouched('stateInout', true);
+              setFocused('');
+            }}
+            onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+              const dropdown = document.querySelector('.custom-select__menu');
+              if (e.key === 'Enter') {
+                !dropdown && e.preventDefault();
+                document.getElementById('openingBal')?.focus();
               }
-              onChange={handleFieldChange}
-              options={[
-                { value: 'Within State', label: 'Within State' },
-                { value: 'Out Of State', label: 'Out Of State' },
-              ]}
-              isSearchable={false}
-              isFocused={focused === 'stateInout'}
-              placeholder='Select an option'
-              disableArrow={false}
-              hidePlaceholder={false}
-              className='!h-6 rounded-sm'
-              onBlur={() => {
-                formik.setFieldTouched('stateInout', true);
-                setFocused('');
-              }}
-              onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-                const dropdown = document.querySelector('.custom-select__menu');
-                if (e.key === 'Enter') {
-                  !dropdown && e.preventDefault();
-                  document.getElementById('openingBal')?.focus();
-                }
-              }}
-            />
-          </div>
+            }}
+          />
+        </div>
         </div>
       </div>
     </div>
