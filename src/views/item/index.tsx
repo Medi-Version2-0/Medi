@@ -456,7 +456,7 @@ const Items = () => {
   const renderView = () => {
     switch (view.type) {
       case 'add':
-        return <CreateItem setView={setView} data={view.data} />;
+        return <CreateItem setView={setView} data={view.data} setShowBatch={setShowBatch} />;
       default:
         return items();
     }

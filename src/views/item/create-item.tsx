@@ -35,13 +35,15 @@ export interface ItemFormValues {
 
 export type ItemFormInfoType = FormikProps<ItemFormValues>;
 
-const CreateItem = ({ setView, data }: any) => {
+const CreateItem = ({ setView, data, setShowBatch }: any) => {
   const { organizationId } = useParams();
   const queryClient = useQueryClient();
+  const [newItem, setNewItem] = useState();
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
     message: '',
+    addText: '',
   });
 
   const itemFormInfo: ItemFormInfoType = useFormik({
@@ -86,23 +88,26 @@ const CreateItem = ({ setView, data }: any) => {
             body: formData,
           });
         } else {
-          await sendAPIRequest(`/${organizationId}/item`, {
+          const resp: any = await sendAPIRequest(`/${organizationId}/item`, {
             method: 'POST',
             body: formData,
           });
+          setNewItem(resp);
         }
         await queryClient.invalidateQueries({ queryKey: ['get-items'] });
 
         setPopupState({
           isModalOpen: false,
           isAlertOpen: true,
-          message: `Item ${data.id ? 'updated' : 'created'} successfully`,
+          message: `Item ${data.id ? 'updated' : 'created'} successfully.`,
+          addText: 'Add Batch',
         });
       } catch (error) {
         setPopupState({
           isModalOpen: false,
           isAlertOpen: true,
           message: `Failed to ${data.id ? 'update' : 'create'} item`,
+          addText: ''
         });
       }
     },
@@ -117,15 +122,28 @@ const CreateItem = ({ setView, data }: any) => {
     <div className='w-full'>
       <div className='flex w-full items-center justify-between px-8 py-1'>
         <h1 className='font-bold'>{data.id ? 'Update Item' : 'Create Item'}</h1>
-        <Button
-          type='highlight'
-          id='item_button'
-          handleOnClick={() => {
-            setView('');
-          }}
-        >
-          Back
-        </Button>
+        <div className='flex gap-2'>
+          {data?.id && <Button
+            type='fill'
+            id='item_button'
+            handleOnClick={() => {
+              setView('');
+              setShowBatch(data);
+            }}
+          >
+            Add Batch
+          </Button>
+          }
+          <Button
+            type='highlight'
+            id='item_button'
+            handleOnClick={() => {
+              setView('');
+            }}
+          >
+            Back
+          </Button>
+        </div>
       </div>
       <form
         onSubmit={itemFormInfo.handleSubmit}
@@ -157,6 +175,13 @@ const CreateItem = ({ setView, data }: any) => {
           onConfirm={handleAlertCloseModal}
           message={popupState.message}
           isAlert={popupState.isAlertOpen}
+          {...(popupState.addText ? {
+            onAdd: () => {
+              setView('');
+              setShowBatch(newItem || data);
+            }
+          } : {})}
+          {...(popupState.addText ? { addText: popupState.addText } : {})}
         />
       )}
     </div>

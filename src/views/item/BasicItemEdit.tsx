@@ -266,7 +266,7 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
 
   const basicInfoFields = [
     {
-      label: 'Item Name11',
+      label: 'Item Name',
       id: 'name',
       name: 'name',
       isRequired: true,

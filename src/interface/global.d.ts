@@ -96,7 +96,7 @@ export interface ItemGroupFormDataProps {
 export interface BatchForm {
   id?: number ;
   itemId: number;
-  batchNo: string;
+  batchNo: any;
   mfgCode?: string;
   expiryDate: string;
   opBalance: number | null;
@@ -187,11 +187,12 @@ export interface PopupProps {
 
 export interface Confirm_Alert_PopupProps {
   isAlert?: boolean;
-  onClose?: () => void;
+  onClose: () => void;
   onConfirm: () => void;
   message: string;
   className?: string;
-  autoFocus?: boolean;
+  onAdd?: () => void;
+  addText?: string;
 }
 
 export interface State {
