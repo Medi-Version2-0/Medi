@@ -25,7 +25,7 @@ const ledgerValidationSchema = Yup.object().shape({
     .required('Party Name is required')
     .matches(/^\D+$/, 'Only Numbers not allowed')
     .max(100, 'Party name cannot exceed 100 characters'),
-  station_id: Yup.number(),
+  station_id: Yup.number().nullable(),
   openingBal: Yup.number()
     .nullable()
     .test(
@@ -230,21 +230,16 @@ export const Ledger = () => {
       field: 'station_id',
       flex: 1,
       filter: 'agTextColumnFilter',
+      cellDataType: 'text',
       cellEditor: 'agSelectCellEditor',
       cellEditorParams: { values: ledgerStations },
       valueFormatter: (params: { value: string | number }) => {
         return lookupValue(ledgerStationsMap, params.value);
       },
-      editable: (params: any) => {
-        return (
-          !params.data.isPredefinedLedger &&
-          (params.data.Group.group_name === 'SUNDRY CREDITORS' ||
-            params.data.Group.group_name === 'SUNDRY DEBTORS' ||
-            params.data.Group.group_name.toUpperCase() === 'GENERAL GROUP' ||
-            params.data.Group.group_name.toUpperCase() ===
-              'DISTRIBUTORS, C & F')
-        );
+      valueGetter: (params: { data: any }) => {
+        return lookupValue(ledgerStationsMap, params.data.station_id);
       },
+      editable: true,
       headerClass: 'custom-header',
       suppressMovable: true,
     },
