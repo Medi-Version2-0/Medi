@@ -269,18 +269,23 @@ export const Batch = ({
 
   const handleKeyDown = async (event: KeyboardEvent) => {
     if (event.code === 'Enter') {
-      const validationStatus = await isPinnedRowDataCompleted();
-      if (validationStatus.completed) {
-        if (!editing.current) {
-          handleBatchAdd();
+      const focusedCell = gridRef?.current?.api.getFocusedCell();
+      const lastEditedRowIndex = focusedCell?.rowIndex;
+      if (focusedCell && lastEditedRowIndex === 0) {
+        const validationStatus = await isPinnedRowDataCompleted();
+        if (validationStatus.completed) {
+          if (!editing.current) {
+            handleBatchAdd();
+          }
+        } else {
+          !editing.current &&
+            setPopupState({
+              ...popupState,
+              isAlertOpen: true,
+              message: validationStatus.error,
+            });
         }
-      } else {
-        !editing.current &&
-          setPopupState({
-            ...popupState,
-            isAlertOpen: true,
-            message: validationStatus.error,
-          });
+
       }
     } else if (event.code === 'Tab') {
       onCellKeyDown();
