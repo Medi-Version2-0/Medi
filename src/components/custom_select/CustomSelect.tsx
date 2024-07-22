@@ -67,6 +67,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   const selectRef = useRef<any>(null);
   const [inputValue, setInputValue] = useState('');
   const [active, setActive] = useState(false);
+  const [isEmpty, setIsEmpty] = useState(false);
   const handleFocus = () => setActive(!active);
   const handleBlur = () => {
     setActive(false);
@@ -74,6 +75,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   };
 
   const handleInputChange = (newValue: string) => {
+    setIsEmpty(false);
     setInputValue(titleCase(newValue));
     return titleCase(newValue);
   };
@@ -89,7 +91,8 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
       if (nextField) {
         document.getElementById(nextField)?.focus();
       }
-    } else if ((e.key === 'Enter' && e.shiftKey) || e.key === '') {
+      isEmpty && e.preventDefault();
+    } else if ((e.key === 'Enter' && e.shiftKey) || e.key === 'ArrowUp') {
       if (prevField) {
         document.getElementById(prevField)?.focus();
       }
@@ -136,7 +139,10 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
           isDisabled={isDisabled}
           onBlur={handleBlur}
           onFocus={handleFocus}
-          noOptionsMessage={() => noOptionsMsg}
+          noOptionsMessage={() => {
+            setIsEmpty(true);
+            return noOptionsMsg;
+          }}
         />
         {showErrorTooltip && isTouched && error && (
           <>
