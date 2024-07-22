@@ -4,7 +4,7 @@ import { FaEdit } from 'react-icons/fa';
 import { MdDeleteForever } from 'react-icons/md';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
-import { BillBookForm } from '../../interface/global';
+import { BillBookForm, Option } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
@@ -16,6 +16,7 @@ import { invoiceSettingFields } from '../../components/common/controlRoom/settin
 import { useControls } from '../../ControlRoomContext';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { billBookValidationSchema } from './validation_schema';
+import CustomSelect from '../../components/custom_select/CustomSelect';
 
 type SeriesOption = {
   id: number;
@@ -47,6 +48,11 @@ const seriesOptions: SeriesOption[] = [
   { id: 12, name: 'Breakage Expiry Issue' },
   { id: 13, name: 'Breakage Expiry Issue Challan' },
 ];
+
+const formattedSeriesOptions = seriesOptions.map((option) => ({
+  value: option.id.toString(),
+  label: option.name,
+}));
 
 export const BillBook = () => {
   const { organizationId } = useParams();
@@ -202,8 +208,8 @@ export const BillBook = () => {
     setSelectedRow(null);
   };
 
-  const handleSeriesChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedSeries(event.target.value);
+  const handleSeriesChange = (option: Option | null) => {
+    setSelectedSeries(option?.value?.toLocaleString() || '');
   };
 
   const companyMapping = {
@@ -442,23 +448,30 @@ export const BillBook = () => {
               </Button>
             </div>
           </div>
-
           <div className='seriesSelection flex px-8 py-1 my-2 items-center gap-10'>
-            <label htmlFor='series-select' className=''>
+            <label htmlFor='series-select' className='w-[10%]'>
               Select Series:
             </label>
-            <select
+            <CustomSelect
               id='series-select'
-              value={selectedSeries}
-              onChange={handleSeriesChange}
-              className='p-2 border border-gray-300 rounded min-w-52'
-            >
-              {seriesOptions.map((option) => (
-                <option key={option.id} value={option.id}>
-                  {option.name}
-                </option>
-              ))}
-            </select>
+              name='series-select'
+              classNamePrefix={'!text-base custom-select'}
+              value={
+                formattedSeriesOptions.find(
+                  (option) => option.value === selectedSeries
+                ) || null
+              }
+              onChange={(e) => {
+                handleSeriesChange(e);
+              }}
+              options={formattedSeriesOptions}
+              placeholder='Select a series'
+              isSearchable={false}
+              disableArrow={false}
+              hidePlaceholder={false}
+              className='p-2 border border-gray-300 rounded w-[30%] text-gray-900 text-base'
+            //   className={`w-full h-full text-gray-700 `}
+            />
           </div>
           <div id='account_table' className='ag-theme-quartz'>
             {

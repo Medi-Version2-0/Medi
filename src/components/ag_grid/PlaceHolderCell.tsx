@@ -18,7 +18,6 @@ const PlaceholderCellRenderer: React.FC<PlaceholderCellRendererProps> = ({
     className = '',
 }) => {
     const hasValue = !!value;
-    console.log(placeholderText);
     if (!hasValue && rowIndex === 0) {
         return (
             <span

@@ -251,7 +251,7 @@ export const CreateBillBook = ({
               className='!gap-0'
               isDisabled={isDelete && id}
               sideField='orderOfBill'
-              nextField={`${id ? 'locked' : 'submit_button'}`}
+              nextField={`${!!id ? 'locked' : 'submit_button'}`}
               prevField='billType'
               onChange={handleNumeric}
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
@@ -331,7 +331,11 @@ export const CreateBillBook = ({
                   }
                   if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab')) {
                     e.preventDefault();
-                    setFocused('locked');
+                    if(id){
+                        setFocused('locked');
+                    }else {
+                        document.getElementById('orderOfBill')?.focus();
+                    }
                   }
                   if (e.key === 'Enter') {
                     e.preventDefault();

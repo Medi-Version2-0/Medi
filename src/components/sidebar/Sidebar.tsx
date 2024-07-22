@@ -16,6 +16,7 @@ import { Company } from '../../views/company';
 import { Ledger } from '../../views/ledger';
 import { Sales_Table } from '../../views/sales_purchase';
 import { BillBook } from '../../views/BillBook';
+import DeliveryChallan from '../../views/DeliveryChallan';
 
 type SubElementKey = 'master' | 'setup';
 
@@ -161,6 +162,11 @@ const Sidebar: React.FC<SidebarProps> = ({
               url='/billBook'
               label='Bill Book Setup'
               onClick={() => openTab?.('Bill Book Setup', <BillBook />)}
+            />
+            <MenuItem
+              url='/deliveryChallan'
+              label='Delivery Challan'
+              onClick={() => openTab?.('Delivery Challan', <DeliveryChallan />)}
             />
           </>
         )}

@@ -310,6 +310,13 @@ export interface ItemFormData {
   saleAccId?: string;
   purAccId?: string;
 }
+export interface DeliveryChallanFormData {
+  id?: string;
+  challanNumber: string;
+  partyId: string;
+  stationId: string;
+  mrp: Number;
+}
 
 export interface AccountGroupFormData {
   head_code?: string;
