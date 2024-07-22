@@ -350,6 +350,12 @@ export const Stations = () => {
       },
       valueFormatter: (params: { value: string | number }) =>
         lookupValue(stateCodeMap, params.value),
+      valueGetter: (params: { data: any }) => {
+      return lookupValue(stateCodeMap, params.data.state_code);
+      },
+      filterValueGetter: (params: { data: any }) => {
+      return lookupValue(stateCodeMap, params.data.state_code);
+      },
       headerClass: 'custom-header custom_header_class',
       suppressMovable: true,
     },

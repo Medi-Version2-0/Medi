@@ -222,6 +222,9 @@ export const Company = () => {
       valueFormatter: (params: { value: string | number }) => {
         return lookupValue(ledgerStationsMap, params.value);
       },
+      valueGetter: (params: { data: any }) => {
+        return lookupValue(ledgerStationsMap, params.data.stationId);
+      },
       editable: true,
       headerClass: 'custom-header',
       suppressMovable: true,
