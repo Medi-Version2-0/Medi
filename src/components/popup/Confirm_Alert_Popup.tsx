@@ -27,8 +27,6 @@ const Confirm_Alert_Popup: React.FC<Confirm_Alert_PopupProps> = ({
         <div className='flex gap-8 mb-4 mt-8 px-8'>
           <Button
             id ='ok_button'
-            // className=''
-            // type='highlight'
             handleOnKeyDown={(e) => {
               if (e.key === 'Tab') {
                 document.getElementById('cancel_button')?.focus();

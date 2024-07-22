@@ -27,9 +27,16 @@ const ledgerValidationSchema = Yup.object().shape({
     .max(100, 'Party name cannot exceed 100 characters'),
   station_id: Yup.number(),
   openingBal: Yup.number()
-    .required('Opening Balance is required')
-    .positive('Opening Balance must be greater than 0'),
-  openingBalType: Yup.string(),
+    .nullable()
+    .test(
+      'is-valid',
+      'Opening Balance must be a positive number with at most two decimal places',
+      value => {
+        if (value === undefined || value === null) return true;
+        return /^\d+(\.\d{0,2})?$/.test(value.toString()) && value >= 0;
+      }
+    )
+    .min(0, 'Opening Balance must be at least 0'),
 });
 
 const validateField = async (field: string, value: any) => {
@@ -245,7 +252,7 @@ export const Ledger = () => {
       headerName: 'Balance( ₹ )',
       field: 'openingBal',
       flex: 1,
-      filter: 'agNumberColumnFilter',
+      filter: true,
       editable: (params: any) => !params.data.isPredefinedLedger,
       type: 'rightAligned',
       valueFormatter: decimalFormatter,

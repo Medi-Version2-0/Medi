@@ -190,7 +190,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                   }
                   if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab')) {
                     e.preventDefault();
-                    document.getElementById(`${isDelete ? 'cancel_button' : 'group_name'}`)?.focus();
+                    document.getElementById(`${isDelete ? 'del_button' : 'group_name'}`)?.focus();
                   }
                 }}
               >
@@ -203,6 +203,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                   handleOnClick={() => group_code && deleteAcc(group_code)}
                   handleOnKeyDown={(e) => {
                     if (e.key === 'Tab') {
+                      document.getElementById('cancel_button')?.focus();
                       e.preventDefault();
                     }
                     if (

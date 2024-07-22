@@ -117,7 +117,7 @@ export const CreateLedger = ({ setView, data }: any) => {
     validationSchema: getLedgerFormValidationSchema,
     validateOnMount: true,
     onSubmit: async (values) => {
-      const formattedOpeningBal = parseFloat(values.openingBal).toFixed(2);
+      const formattedOpeningBal = values.openingBal ? parseFloat(values.openingBal).toFixed(2) : null;
       const matchingStation = stationData.find(
         (station) => values.station_id === station.station_id
       );
@@ -168,7 +168,6 @@ export const CreateLedger = ({ setView, data }: any) => {
       });
       newValues.partyName = ledgerFormInfo.values.partyName;
       newValues.accountGroup = value;
-      // newValues.openingBal = '0.00';
       if (
         [
           'SUNDRY CREDITORS',
@@ -179,6 +178,7 @@ export const CreateLedger = ({ setView, data }: any) => {
       ) {
         newValues.country = 'India';
       }
+      newValues.openingBal = '';
       newValues.openingBalType = 'Dr';
       ledgerFormInfo.setValues(newValues);
     } else {

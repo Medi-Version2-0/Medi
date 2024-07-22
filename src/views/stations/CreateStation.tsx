@@ -295,6 +295,7 @@ export const CreateStation = ({
                   handleOnClick={() => station_id && deleteAcc(station_id)}
                   handleOnKeyDown={(e) => {
                     if (e.key === 'Tab') {
+                      document.getElementById('cancel_button')?.focus();
                       e.preventDefault();
                     }
                     if (
