@@ -283,10 +283,6 @@ export const Batch = ({
           });
       }
     } else if (event.code === 'Tab') {
-      event.preventDefault();
-      event.stopPropagation();
-      event.stopImmediatePropagation();
-      return;
       onCellKeyDown();
     }
   };
