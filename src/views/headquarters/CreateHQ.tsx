@@ -245,6 +245,7 @@ export const CreateHQ = ({
                       );
                       if (e.key === 'Enter' || e.key === 'Tab') {
                         if (!dropdown) {
+                          document.getElementById('cancel_button')?.focus();
                           e.preventDefault();
                         }
                         document
@@ -290,6 +291,7 @@ export const CreateHQ = ({
                   handleOnClick={() => station_id && deleteAcc(station_id)}
                   handleOnKeyDown={(e) => {
                     if (e.key === 'Tab') {
+                      document.getElementById('cancel_button')?.focus();
                       e.preventDefault();
                     }
                     if (
@@ -308,13 +310,13 @@ export const CreateHQ = ({
                   type='fill'
                   autoFocus={true}
                   handleOnKeyDown={(e) => {
-                    if (e.key === 'Tab') {
-                      setFocused('station_name');
+                    if (e.key === 'Tab' || (!formik.isValid && e.key === 'Enter')) {
+                      setFocused('station_headQuarter');
                       e.preventDefault();
                     }
                     if (
                       e.key === 'ArrowUp' ||
-                      (e.shiftKey && e.key === 'Tab')
+                      (e.shiftKey && e.key === 'Tab' || (!formik.isValid && e.key === 'Enter'))
                     ) {
                       document.getElementById('cancel_button')?.focus();
                       e.preventDefault();

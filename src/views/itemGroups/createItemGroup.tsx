@@ -80,7 +80,7 @@ export const CreateItemGroup: React.FC<CreateItemGroupProps> = ({
                 formik={formik}
                 className='!gap-0'
                 isDisabled={isDelete && group_code}
-                prevField='group_name'
+                prevField=''
                 sideField='p_and_l'
                 nextField='p_and_l'
                 onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
@@ -186,7 +186,7 @@ export const CreateItemGroup: React.FC<CreateItemGroupProps> = ({
                   if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab')) {
                     document
                       .getElementById(
-                        `${isDelete ? 'cancel_button' : 'balance_sheet'}`
+                        `${isDelete ? 'del_button' : 'balance_sheet'}`
                       )
                       ?.focus();
                   }
@@ -201,6 +201,7 @@ export const CreateItemGroup: React.FC<CreateItemGroupProps> = ({
                   handleOnClick={() => group_code && deleteAcc(group_code)}
                   handleOnKeyDown={(e) => {
                     if (e.key === 'Tab') {
+                      document.getElementById('cancel_button')?.focus();
                       e.preventDefault();
                     }
                     if (
@@ -219,7 +220,7 @@ export const CreateItemGroup: React.FC<CreateItemGroupProps> = ({
                   type='fill'
                   autoFocus
                   handleOnKeyDown={(e) => {
-                    if (e.key === 'Tab') {
+                    if (e.key === 'Tab' || (!formik.isValid && e.key === 'Enter')) {
                       document.getElementById('group_name')?.focus();
                       e.preventDefault();
                     }

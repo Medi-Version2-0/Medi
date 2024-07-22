@@ -44,7 +44,7 @@ export const CreateCompany = ({ setView , data }: any) => {
       openingBalType: data?.openingBalType || 'Dr',
       salesId: data?.salesId || '',
       purchaseId: data?.purchaseId || '',
-      discPercent: data?.discPercent || '',
+      discPercent: data?.discPercent || null,
       isDiscountPercent: data?.isDiscountPercent || '',
       //tax
       gstIn: data?.gstIn || '',
@@ -121,6 +121,23 @@ export const CreateCompany = ({ setView , data }: any) => {
 
   const handleFieldChange = (option: Option | null, id: string) => {
     formik.setFieldValue(id, option?.value);
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    let filteredValue = value.replace(/[^0-9.]/g, '');
+    const decimalIndex = filteredValue.indexOf('.');
+    if (decimalIndex !== -1) {
+      const beforeDecimal = filteredValue.slice(0, decimalIndex);
+      const afterDecimal = filteredValue.slice(decimalIndex + 1);
+  
+      filteredValue = beforeDecimal + '.' + afterDecimal.slice(0, 2);
+    }
+      if (filteredValue.length <= 12) {
+        formik.setFieldValue('openingBal', filteredValue);
+      } else {
+        formik.setFieldValue('openingBal', filteredValue.slice(0, 12));
+      }    
   };
 
   const handleKeyDown = (
@@ -298,6 +315,7 @@ export const CreateCompany = ({ setView , data }: any) => {
                       if (e.key === 'Enter') {
                         !dropdown && e.preventDefault();
                         document.getElementById('openingBal')?.focus();
+                        setFocused('openingBal')
                       }
                     }}
                   />
@@ -307,8 +325,8 @@ export const CreateCompany = ({ setView , data }: any) => {
                       label={`Opening Balance ₹`}
                       id='openingBal'
                       name='openingBal'
-                      // onClick={resetField}
                       formik={formik}
+                      onChange={handleChange}
                       placeholder='0.00'
                       maxLength={12}
                       className='!mb-0 w-[100%]'
@@ -512,7 +530,7 @@ export const CreateCompany = ({ setView , data }: any) => {
                         maxLength={15}
                         labelClassName='min-w-[110px]'
                         isRequired={false}
-                        prevField='purchaseId'
+                        prevField='purSaleAc'
                         nextField='drugLicenceNo1'
                         onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                           handleKeyDown(e)
@@ -696,7 +714,7 @@ export const CreateCompany = ({ setView , data }: any) => {
                         +91
                       </span>
                     }
-                    prevField='purSaleAc'
+                    prevField='stateInOut'
                     nextField='mobileNumber'
                     onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                       handleKeyDown(e)
@@ -788,7 +806,7 @@ export const CreateCompany = ({ setView , data }: any) => {
                     formik.touched.emailId3 && formik.errors.emailId3
                   }
                   prevField='emailId2'
-                  nextField='submit_company'
+                  nextField= {formik.isValid ? 'submit_company' : 'companyName'}
                   onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                     handleKeyDown(e)
                   }
@@ -812,7 +830,13 @@ export const CreateCompany = ({ setView , data }: any) => {
               });
             }}
             handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
-              if (e.key === 'ArrowUp') {
+              if (e.key === 'ArrowUp' || e.shiftKey && e.key === 'Tab') {
+                document.getElementById('emailId3')?.focus();
+                setFocused('emailId3')
+                e.preventDefault();
+              }
+              if (e.key === 'Tab') {
+                document.getElementById('companyName')?.focus();
                 e.preventDefault();
               }
             }}

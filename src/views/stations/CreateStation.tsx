@@ -194,7 +194,7 @@ export const CreateStation = ({
               formik={formik}
               className='!gap-0'
               isDisabled={isDelete && station_id}
-              sideField='igst_sale'
+              // sideField='igst_sale'
               nextField={`${controlRoomSettings.igstSaleFacility ? 'igst_sale' : 'submit_button'}`}
               prevField='state_code'
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
@@ -270,11 +270,7 @@ export const CreateStation = ({
                 handleOnClick={() => togglePopup(false)}
                 handleOnKeyDown={(e) => {
                   if (e.key === 'Tab') {
-                    document
-                      .getElementById(
-                        `${isDelete ? 'del_button' : 'submit_button'}`
-                      )
-                      ?.focus();
+                    document.getElementById(`${isDelete ? 'del_button' : 'station_name'}`)?.focus();
                     e.preventDefault();
                   }
                   if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab')) {
@@ -299,6 +295,7 @@ export const CreateStation = ({
                   handleOnClick={() => station_id && deleteAcc(station_id)}
                   handleOnKeyDown={(e) => {
                     if (e.key === 'Tab') {
+                      document.getElementById('cancel_button')?.focus();
                       e.preventDefault();
                     }
                     if (
@@ -318,7 +315,7 @@ export const CreateStation = ({
                   padding='px-8 py-2'
                   autoFocus={true}
                   handleOnKeyDown={(e) => {
-                    if (e.key === 'Tab') {
+                    if (e.key === 'Tab' || (!formik.isValid && e.key === 'Enter')) {
                       document.getElementById('station_name')?.focus();
                       e.preventDefault();
                     }

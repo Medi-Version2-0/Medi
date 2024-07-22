@@ -72,7 +72,7 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
-    const isNumber = allowNegative ? /^-?\d*$/ : /^\d*$/;
+    const isNumber = allowNegative ? /^-?\d*$/ : /^\d*\.?\d{0,2}$/;
     if (type === 'number' && !isNumber.test(value)) {
       return;
     }
@@ -97,6 +97,7 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
     if (e.key === 'Enter' || e.key === 'ArrowDown') {
       if (nextField) {
         document.getElementById(nextField)?.focus();
+        e.preventDefault();
       }
     } else if ((e.key === 'Enter' && e.shiftKey) || e.key === 'ArrowUp') {
       if (prevField) {

@@ -5,6 +5,7 @@ export const gstRegex =
   /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
 export const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}/;
 export const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+export const decimalRegex = /^\d+(\.\d{0,2})?$/;
 
 export const getCompanyFormSchema = Yup.object({
   // general info
@@ -20,16 +21,31 @@ export const getCompanyFormSchema = Yup.object({
 
   address3: Yup.string().max(50, 'Address 3 must be 50 characters or less'),
 
-  openingBal: Yup.number().positive(
-    'Opening Balance must be a positive number'
-  ),
+  openingBal: Yup.number()
+    .nullable()
+    .test(
+      'is-valid',
+      'Opening Balance must be a positive number with at most two decimal places',
+      value => {
+        if (value === undefined || value === null) return true;
+        return decimalRegex.test(value.toString()) && value >= 0;
+      }
+    )
+    .min(0, 'Opening Balance must be at least 0'),
 
   openingBalType: Yup.string()
   .oneOf(['Dr', 'Cr'], 'Opening Balance Type must be either "Dr" or "Cr"'),
 
-  discPercent: Yup.number().positive(
-    'Discount Percent must be a positive number'
-  ),
+  discPercent: Yup.number()
+    .nullable()
+    .test(
+      'is-valid',
+      'Discount Percent must be a positive number with at most two decimal places',
+      value => {
+        if (value === null || value === undefined) return true;
+        return decimalRegex.test(value.toString()) && value >= 0;
+      }
+    ),
 
   gstIn: Yup.string().matches(gstRegex, 'Invalid GSTIN'),
 

@@ -155,7 +155,6 @@ export const GeneralInfo = ({
                 hidePlaceholder={false}
                 className='!h-6 rounded-sm'
                 prevField='partyName'
-                nextField='stationName'
                 onBlur={() => {
                   formik.setFieldTouched('accountGroup', true);
                   setFocused('');
@@ -164,11 +163,10 @@ export const GeneralInfo = ({
                   const dropdown = document.querySelector(
                     '.custom-select__menu'
                   );
-                  if (e.key === 'Enter') {
+                  if (e.key === 'Enter' && selectedGroup) {
                     !dropdown && e.preventDefault();
                     const nextFieldId = isSpecialGroup ? 'stationName' : 'stateInout';
-
-                    
+                    document.getElementById(nextFieldId)?.focus();                    
                     setFocused(nextFieldId);
                   }
                 }}
@@ -217,6 +215,7 @@ export const GeneralInfo = ({
                     if (e.key === 'Enter') {
                       !dropdown && e.preventDefault();
                       document.getElementById('address1')?.focus();
+                      setFocused('address1')
                     }
                   }}
                 showErrorTooltip={true}

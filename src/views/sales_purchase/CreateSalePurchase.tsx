@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useFormik, FormikProps } from 'formik';
 import {
   CreateSalePurchaseProps,
@@ -24,6 +24,7 @@ export const CreateSalePurchase = ({
 }: CreateSalePurchaseProps) => {
   const { sp_id } = data;
   const formikRef = useRef<FormikProps<SalesPurchaseFormProps>>(null);
+  const [focused, setFocused] = useState('');
 
   const validationSchema = Yup.object({
     sptype: Yup.string()
@@ -62,7 +63,7 @@ export const CreateSalePurchase = ({
     innerRef: formikRef,
     initialValues: {
       sptype: data?.sptype || '',
-      igst: data?.igst || '0.00',
+      igst: data?.igst || '',
       surCharge: data?.surCharge || '',
       shortName: data?.shortName || '',
       shortName2: data?.shortName2 || '',
@@ -81,20 +82,40 @@ export const CreateSalePurchase = ({
       e,
       formik: formik,
       radioField: radioField,
+      focusedSetter: (field: string) => {
+        setFocused(field);
+      },
     });
+
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
-    const filteredValue = value.replace(/[^0-9]/g, '');
-    if (/^\d*\.?\d{0,2}$/.test(value)) {
+    const decimalRegex = /^\d*\.?\d{0,2}$/;
+  
+    if (decimalRegex.test(value)) {
       formik.setFieldValue(id, value);
     }
+  
     if (id === 'openingBal') {
-      if (filteredValue.length <= 12) {
-        formik.setFieldValue('openingBal', filteredValue);
+      if (value === '') {
+        formik.setFieldValue('openingBal', null);
       } else {
-        formik.setFieldValue('openingBal', filteredValue.slice(0, 12));
+        let filteredValue = value.replace(/[^0-9.]/g, '');
+  
+        const decimalIndex = filteredValue.indexOf('.');
+        if (decimalIndex !== -1) {
+          const beforeDecimal = filteredValue.slice(0, decimalIndex);
+          const afterDecimal = filteredValue.slice(decimalIndex + 1, decimalIndex + 3); // Up to 2 decimal places
+  
+          filteredValue = `${beforeDecimal}.${afterDecimal}`;
+        }
+  
+        if (filteredValue.length <= 12) {
+          formik.setFieldValue('openingBal', filteredValue);
+        } else {
+          formik.setFieldValue('openingBal', filteredValue.slice(0, 12));
+        }
       }
     }
   };
@@ -163,9 +184,9 @@ export const CreateSalePurchase = ({
           formik={formik}
           className='!gap-0'
           isDisabled={isDelete && sp_id}
-          sideField='shortName'
           nextField='shortName'
           prevField='igst'
+          sideField='shortName'
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(e)}
           onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
             handleKeyDown(e, formik)
@@ -198,9 +219,10 @@ export const CreateSalePurchase = ({
           formik={formik}
           className='!gap-0'
           isDisabled={isDelete && sp_id}
-          sideField='submit_button'
-          nextField='submit_button'
+          sideField='openingBal'
+          nextField='openingBal'
           prevField='shortName'
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(e)}
           onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
             handleKeyDown(e, formik)
           }
@@ -214,17 +236,18 @@ export const CreateSalePurchase = ({
             id='openingBal'
             name='openingBal'
             formik={formik}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              handleChange(e)
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(e)}
+            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
+              handleKeyDown(e, formik)
             }
             className='!mb-0'
             inputClassName='h-9 text-right'
             labelClassName='w-fit text-nowrap'
-            prevField=''
+            sideField='openingBalType'
+            prevField='shortName2'
             nextField='openingBalType'
             maxLength={12}
             placeholder='0.00'
-            onClick={resetField}
             showErrorTooltip={
               !!(formik.touched.openingBal && formik.errors.openingBal)
             }
@@ -241,6 +264,7 @@ export const CreateSalePurchase = ({
             }
             id='openingBalType'
             onChange={handleFieldChange}
+            isFocused={focused === 'openingBalType'}
             options={[
               { value: 'Cr', label: 'Cr' },
               { value: 'Dr', label: 'Dr' },
@@ -253,6 +277,18 @@ export const CreateSalePurchase = ({
             className='!rounded-none !h-6'
             onBlur={() => {
               formik.setFieldTouched('openingBalType', true);
+              setFocused('');
+            }}
+            onKeyDown={(
+              e: React.KeyboardEvent<HTMLSelectElement>
+            ) => {
+              const dropdown = document.querySelector(
+                '.custom-select__menu'
+              );
+              if (e.key === 'Enter') {
+                !dropdown && e.preventDefault();
+                document.getElementById('submit_button')?.focus();
+              }
             }}
           />
         </div>
@@ -272,6 +308,7 @@ export const CreateSalePurchase = ({
               }
               if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab')) {
                 e.preventDefault();
+              document.getElementById(`${isDelete ? 'del_button' : 'sptype'}`)?.focus();
               }
               if (e.key === 'Enter') {
                 e.preventDefault();
@@ -290,6 +327,7 @@ export const CreateSalePurchase = ({
               handleOnKeyDown={(e) => {
                 if (e.key === 'Tab') {
                   e.preventDefault();
+                  document.getElementById('cancel_button')?.focus();
                 }
                 if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab')) {
                   document.getElementById('cancel_button')?.focus();
@@ -305,7 +343,7 @@ export const CreateSalePurchase = ({
               padding='px-8 py-2'
               autoFocus={true}
               handleOnKeyDown={(e) => {
-                if (e.key === 'Tab') {
+                if (e.key === 'Tab' || (!formik.isValid && e.key === 'Enter')) {
                   document.getElementById('sptype')?.focus();
                   e.preventDefault();
                 }
