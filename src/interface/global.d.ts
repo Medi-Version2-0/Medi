@@ -100,6 +100,7 @@ export interface BatchForm {
   mfgCode?: string;
   expiryDate: string;
   opBalance: number | null;
+  currentStock: number | null;
   opFree: number | null;
   purPrice: number | null;
   salePrice: number | null;

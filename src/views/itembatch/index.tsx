@@ -29,6 +29,7 @@ export const Batch = ({
     batchNo: '',
     expiryDate: '',
     opBalance: null,
+    currentStock: null,
     opFree: null,
     purPrice: null,
     salePrice: null,
@@ -111,6 +112,7 @@ export const Batch = ({
       }
       const formattedInputRow = {
         ...inputRow,
+        currentStock: inputRow.opBalance,
         batchNo: inputRow.batchNo.toUpperCase(),
         locked: inputRow.locked.toUpperCase(),
       };
@@ -225,7 +227,7 @@ export const Batch = ({
           await batchSchema.validate({ ...data, [field]: newValue });
           await sendAPIRequest(`/${organizationId}/item/${id}/batch/${batchId}`, {
             method: 'PUT',
-            body: { ...data, [field]: newValue },
+            body: { ...data, currentStock: data.opBalance, [field]: newValue },
           });
           await queryClient.invalidateQueries({ queryKey: ['get-itemBatches', id] });
         }
@@ -349,6 +351,11 @@ export const Batch = ({
       field: 'opBalance',
       cellDataType: 'number',
       cellEditor: 'agTextCellEditor',
+    },
+    {
+      headerName: 'Current Stock',
+      field: 'currentStock',
+      editable: false
     },
     {
       headerName: 'Scheme Stock',
