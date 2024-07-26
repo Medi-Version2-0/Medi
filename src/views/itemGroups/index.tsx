@@ -15,20 +15,16 @@ import { useParams } from 'react-router-dom';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { itemGroupValidationSchema } from './validation_schema';
 
+const initialValue = {
+  group_code: '',
+  group_name: '',
+  type: '',
+};
 
 export const ItemGroups = () => {
-  const initialData = {
-    group_code: '',
-    group_name: '',
-    type: '',
-  };
   const { organizationId } = useParams();
   const [open, setOpen] = useState<boolean>(false);
-  const [formData, setFormData] = useState<ItemGroupFormData>({
-    group_name: '',
-    group_code: '',
-    type: '',
-  });
+  const [formData, setFormData] = useState<ItemGroupFormData>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<ItemGroupFormData | any>(null);
   const queryClient = useQueryClient();
@@ -73,42 +69,27 @@ export const ItemGroups = () => {
     setPopupState({ ...popupState, isModalOpen: false });
   };
 
-  const handleConfirmPopup = async (data?: any) => {
-    const respData = data ? data : formData;
+  const handleConfirmPopup = async () => {
     setPopupState({ ...popupState, isModalOpen: false });
     if (formData.group_name) {
       formData.group_name =
         formData.group_name.charAt(0).toUpperCase() +
         formData.group_name.slice(1);
     }
-    const payload = {
-      group_name: respData.group_name ? respData.group_name : formData.group_name,
-      type: respData.group_name ? respData.type : formData.type,
-    };
-    
-    if (payload !== initialData) {
+    if (formData !== initialValue) {
       if (formData.group_code) {
-        const response: any  = await sendAPIRequest(
+        await sendAPIRequest(
           `/${organizationId}/itemGroup/${formData.group_code}`,
           {
             method: 'PUT',
             body: formData,
           }
         );
-        queryClient.invalidateQueries({ queryKey: ['get-itemGroups'] });
       } else {
-        const response: any  = await sendAPIRequest(`/${organizationId}/itemGroup`, {
+        await sendAPIRequest(`/${organizationId}/itemGroup`, {
           method: 'POST',
-          body: payload,
+          body: formData,
         });
-        if (!response.error) {
-          setPopupState({
-            ...popupState,
-            isAlertOpen: true,
-            message: 'Item Group saved successfully',
-          });
-        }
-        setTableToInitialState();
       }
       togglePopup(false);
       queryClient.invalidateQueries({ queryKey: ['get-itemGroups'] });
@@ -118,18 +99,15 @@ export const ItemGroups = () => {
 
   const togglePopup = (isOpen: boolean) => {
     if (!isOpen) {
-      setFormData(initialData);
+      setFormData(initialValue);
       isDelete.current = false;
     }
     setOpen(isOpen);
   };
 
   const getGroups = async () => {
-    console.log(typeof initialData, initialData);
-    if (Array.isArray(data)) {
-      setTableData([initialData, ...data]);
-    }
-    return data;
+    setTableData(data);
+    // setCurrTableData(itemGroup.data);
   };
 
   const deleteAcc = async (group_code: string) => {
@@ -181,7 +159,7 @@ export const ItemGroups = () => {
       values.group_name =
         values.group_name.charAt(0).toUpperCase() + values.group_name.slice(1);
     }
-    if (values !== initialData) {
+    if (values !== initialValue) {
       setPopupState({
         ...popupState,
         isModalOpen: true,
@@ -204,56 +182,31 @@ export const ItemGroups = () => {
     let { newValue } = e;
     if (!valueChanged) return;
     const field = column.colId;
-    if (node.rowIndex === 0) {
-      if (data.group_name && data.type) {
-        try {
-          await itemGroupValidationSchema.validateAt(field, {
-            [field]: newValue,
-          });
+    try {
+      await itemGroupValidationSchema.validateAt(field, { [field]: newValue });
 
-          if (field === 'group_name') {
-            newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
-          } else if (field === 'igst_sale' && newValue) {
-            newValue = newValue.toLowerCase();
-          }
-          handleConfirmPopup(data);
-        } catch (error: any) {
-          setPopupState({
-            ...popupState,
-            isAlertOpen: true,
-            message: error.message,
-          });
-        }
+      if (field === 'group_name') {
+        newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
+      } else if (field === 'igst_sale' && newValue) {
+        newValue = newValue.toLowerCase();
       }
-
-      node.setDataValue(field, newValue);
-    } else {
-      try {
-        await sendAPIRequest(
-          `/${organizationId}/itemGroup/${data.group_code}`,
-          {
-            method: 'PUT',
-            body: { [field]: newValue },
-          }
-        );
-        queryClient.invalidateQueries({ queryKey: ['get-itemGroups'] });
-      } catch (error: any) {
-        setPopupState({
-          ...popupState,
-          isAlertOpen: true,
-          message: error.message,
-        });
-        node.setDataValue(field, oldValue);
-      }
+    } catch (error: any) {
+      setPopupState({
+        ...popupState,
+        isAlertOpen: true,
+        message: error.message,
+      });
+      node.setDataValue(field, oldValue);
+      return;
     }
+
+    node.setDataValue(field, newValue);
+    await sendAPIRequest(`/${organizationId}/itemGroup/${data.group_code}`, {
+      method: 'PUT',
+      body: { [field]: newValue },
+    });
+    queryClient.invalidateQueries({ queryKey: ['get-itemGroups'] });
   };
-
-  const setTableToInitialState = async () => {
-    if (Array.isArray(data)) {
-      const combinedData = [initialData, ...data];
-      setTableData(combinedData);
-    }
-};
 
   const onCellClicked = (params: { data: any }) => {
     setSelectedRow(selectedRow !== null ? null : params.data);

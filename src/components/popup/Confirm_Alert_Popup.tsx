@@ -14,6 +14,10 @@ const Confirm_Alert_Popup: React.FC<Confirm_Alert_PopupProps> = ({
 }) => {
   const handleKeyPress = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Escape') {
+      onClose();
+      onConfirm();
+    }
+    if (event.key === 'Escape') {
       event.stopPropagation();
       onClose?.();
     }

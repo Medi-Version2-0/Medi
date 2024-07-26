@@ -25,7 +25,7 @@ export interface AccountGroupFormData {
 export interface GroupFormData {
   group_code?: string;
   group_name: string;
-  parent_code?: string | null;
+  parent_code: string | null;
   type: string;
   isPredefinedGroup?: boolean;
 }
