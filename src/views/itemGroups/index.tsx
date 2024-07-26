@@ -15,13 +15,12 @@ import { useParams } from 'react-router-dom';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { itemGroupValidationSchema } from './validation_schema';
 
-
 export const ItemGroups = () => {
-  const initialData = {
-    group_code: '',
-    group_name: '',
-    type: '',
-  };
+const initialData = {
+  group_code: '',
+  group_name: '',
+  type: '',
+};
   const { organizationId } = useParams();
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<ItemGroupFormData>({
@@ -101,7 +100,7 @@ export const ItemGroups = () => {
           method: 'POST',
           body: payload,
         });
-        if (!response.error) {
+        if (respData.group_name && !response.error) {
           setPopupState({
             ...popupState,
             isAlertOpen: true,
@@ -272,31 +271,6 @@ export const ItemGroups = () => {
       selectedRow,
       undefined
     );
-    // switch (event.key) {
-    //   case 'Escape':
-    //     togglePopup(false);
-    //     break;
-    //   case 'n':
-    //   case 'N':
-    //     if (event.ctrlKey) {
-    //       togglePopup(true);
-    //     }
-    //     break;
-    //   case 'd':
-    //   case 'D':
-    //     if (event.ctrlKey && selectedRow) {
-    //       handleDelete(selectedRow);
-    //     }
-    //     break;
-    //   case 'e':
-    //   case 'E':
-    //     if (event.ctrlKey && selectedRow) {
-    //       handleUpdate(selectedRow);
-    //     }
-    //     break;
-    //   default:
-    //     break;
-    // }
   };
 
   useEffect(() => {

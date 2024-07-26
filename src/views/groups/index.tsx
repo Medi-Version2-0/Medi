@@ -86,7 +86,6 @@ export const Groups = () => {
   };
 
   const handleConfirmPopup = async (dataa?: any) => {
-    // await groupValidationSchema.validate(data);
     const respData = dataa ? dataa : formData;
     setPopupState({ ...popupState, isModalOpen: false });
     if (formData.group_name) {
@@ -95,13 +94,13 @@ export const Groups = () => {
         formData.group_name.slice(1);
     }
     const payload = {
-      group_name: respData.group_name || formData.group_name,
-      type: respData.type || formData.type,
+      group_name: respData.group_name ? respData.group_name : formData.group_name,
+      type: respData.group_name ? respData.type : formData.type,
     };
     if (payload !== initialValue) {
       try {
         if (formData.group_code) {
-         const response: any  = await sendAPIRequest(
+        await sendAPIRequest(
             `/${organizationId}/group/${formData.group_code}`,
             {
               method: 'PUT',
@@ -117,11 +116,11 @@ export const Groups = () => {
             method: 'POST',
             body: payload,
           });
-          if (!response.error) {
+          if (respData.group_name && !response.error) {
             setPopupState({
               ...popupState,
               isAlertOpen: true,
-              message: 'Group saved successfully2',
+              message: 'Group saved successfully',
             });
           }
           setInputRow(pinnedRow);
@@ -131,6 +130,7 @@ export const Groups = () => {
           getGroups();
         }
         togglePopup(false);
+        setFormData(pinnedRow)
       } catch (error) {
         console.error('Error saving group:', error);
       }
@@ -261,15 +261,6 @@ export const Groups = () => {
     editing.current = true;
   };
 
-  // const isPinnedRowDataCompleted = async () => {
-  //   try {
-  //     await groupValidationSchema.validate(inputRow);
-  //     return { completed: true };
-  //   } catch (err: any) {
-  //     return { completed: false, error: err.message };
-  //   }
-  // };
-
   const handleKeyDown = async (event: KeyboardEvent) => {
     switch (event.key) {
       case 'Escape':
@@ -339,38 +330,6 @@ export const Groups = () => {
           });
         }
         break;
-      // case 'Enter':
-      //   const api = gridRef?.current?.api;
-      //   console.log(
-      //     'gridRef----',
-      //     gridRef,
-      //     'gridRef?.current------',
-      //     gridRef?.current
-      //   );
-      //   // if (api) {
-      //   //   const focusedCell = api.getFocusedCell();
-      //   //   if (focusedCell) {
-      //   //     const lastEditedRowIndex = focusedCell.rowIndex;
-      //   //     const lastEditedColKey = focusedCell.column.colId;
-
-      //   //     await api.startEditingCell({
-      //   //       rowIndex: lastEditedRowIndex,
-      //   //       colKey: lastEditedColKey,
-      //   //     });
-      //   //     api.setFocusedCell(lastEditedRowIndex, lastEditedColKey);
-      //   //   }
-
-      //   const focusedCell = gridRef.current.api.getFocusedCell();
-      //   const lastEditedRowIndex = focusedCell?.rowIndex;
-      //   if (focusedCell && lastEditedRowIndex === 0) {
-      //     const validationStatus = await isPinnedRowDataCompleted();
-      //     if (validationStatus.completed) {
-      //       if (!editing.current) {
-      //         handleConfirmPopup();
-      //       }
-      //     }
-      //   }
-      //   break;
       default:
         break;
     }
@@ -382,7 +341,6 @@ export const Groups = () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [selectedRow]);
-
 
   const fetchGroupData = async () => {
     try {
