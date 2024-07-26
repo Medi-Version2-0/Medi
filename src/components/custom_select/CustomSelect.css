@@ -15,7 +15,7 @@
 }
 
 .custom-select__value-container {
-  font-size: 10px !important;
+  font-size: 12px !important;
   padding: 0 !important;
   max-height: 36px;
 }
@@ -71,5 +71,5 @@
 }
 
 .css-1nmdiq5-menu{
-  z-index: 2 !important;
+  z-index: 12 !important;
 }

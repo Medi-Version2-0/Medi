@@ -227,16 +227,16 @@ export const Batch = ({
           await batchSchema.validate({ ...data, [field]: newValue });
           await sendAPIRequest(`/${organizationId}/item/${id}/batch/${batchId}`, {
             method: 'PUT',
-            body: { ...data, currentStock: data.opBalance, [field]: newValue },
+            body: { ...data, [field]: newValue },
           });
-          await queryClient.invalidateQueries({ queryKey: ['get-itemBatches', id] });
+          await queryClient.invalidateQueries({ queryKey: ['get-itemBatches'] });
         }
       } catch (err: any) {
-        if (err.message) {
+        if (err.response.data.message || err.message) {
           setPopupState({
             ...popupState,
             isAlertOpen: true,
-            message: err.message,
+            message:err.response.data.message || err.message,
           });
         } else {
           console.error('Error:-', err);
@@ -350,7 +350,6 @@ export const Batch = ({
       headerName: 'Opening Stock',
       field: 'opBalance',
       cellDataType: 'number',
-      cellEditor: 'agTextCellEditor',
     },
     {
       headerName: 'Current Stock',
