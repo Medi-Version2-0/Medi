@@ -94,13 +94,13 @@ export const Groups = () => {
         formData.group_name.slice(1);
     }
     const payload = {
-      group_name: respData.group_name || formData.group_name,
-      type: respData.type || formData.type,
+      group_name: respData.group_name ? respData.group_name : formData.group_name,
+      type: respData.group_name ? respData.type : formData.type,
     };
     if (payload !== initialValue) {
       try {
         if (formData.group_code) {
-         const response: any  = await sendAPIRequest(
+        await sendAPIRequest(
             `/${organizationId}/group/${formData.group_code}`,
             {
               method: 'PUT',
@@ -116,11 +116,11 @@ export const Groups = () => {
             method: 'POST',
             body: payload,
           });
-          if (!response.error) {
+          if (respData.group_name && !response.error) {
             setPopupState({
               ...popupState,
               isAlertOpen: true,
-              message: 'Group saved successfully2',
+              message: 'Group saved successfully',
             });
           }
           setInputRow(pinnedRow);
@@ -130,6 +130,7 @@ export const Groups = () => {
           getGroups();
         }
         togglePopup(false);
+        setFormData(pinnedRow)
       } catch (error) {
         console.error('Error saving group:', error);
       }

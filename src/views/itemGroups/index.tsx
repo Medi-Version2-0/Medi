@@ -100,7 +100,7 @@ const initialData = {
           method: 'POST',
           body: payload,
         });
-        if (!response.error) {
+        if (respData.group_name && !response.error) {
           setPopupState({
             ...popupState,
             isAlertOpen: true,
@@ -271,31 +271,6 @@ const initialData = {
       selectedRow,
       undefined
     );
-    // switch (event.key) {
-    //   case 'Escape':
-    //     togglePopup(false);
-    //     break;
-    //   case 'n':
-    //   case 'N':
-    //     if (event.ctrlKey) {
-    //       togglePopup(true);
-    //     }
-    //     break;
-    //   case 'd':
-    //   case 'D':
-    //     if (event.ctrlKey && selectedRow) {
-    //       handleDelete(selectedRow);
-    //     }
-    //     break;
-    //   case 'e':
-    //   case 'E':
-    //     if (event.ctrlKey && selectedRow) {
-    //       handleUpdate(selectedRow);
-    //     }
-    //     break;
-    //   default:
-    //     break;
-    // }
   };
 
   useEffect(() => {
