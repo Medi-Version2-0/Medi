@@ -214,7 +214,6 @@ export const Groups = () => {
     newValue?: any;
   }) => {
     const { data, column, oldValue, valueChanged, node } = e;
-    let { newValue } = e;
     const field = column.colId;
     if (!valueChanged) return;
     if (node.rowIndex === 0) {
