@@ -13,6 +13,7 @@ import { sendAPIRequest } from '../../helper/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import { groupValidationSchema } from './validation_schema';
+import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
 
 const initialValue = {
   group_code: '',
@@ -27,17 +28,21 @@ export const Groups = () => {
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<GroupFormData>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
-  const [tableData, setTableData] = useState<GroupFormData[]>([]);
+  const [tableData, setTableData] = useState<GroupFormData[] | null>();
   const editing = useRef(false);
-  let currTable: any[] = [];
   const queryClient = useQueryClient();
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
     message: '',
   });
-
+  const pinnedRow: GroupFormData = {
+    group_name: '',
+    type: '',
+  };
+  const [inputRow, setInputRow] = useState<GroupFormData | any>(pinnedRow);
   const [subgroups, setSubgroups] = useState<GroupFormData[]>([]);
+  const gridRef = useRef<any>(null);
 
   const { data } = useQuery<GroupFormData[]>({
     queryKey: ['get-groups'],
@@ -81,30 +86,55 @@ export const Groups = () => {
     setPopupState({ ...popupState, isModalOpen: false });
   };
 
-  const handleConfirmPopup = async () => {
+  const handleConfirmPopup = async (dataa?: any) => {
+    const respData = dataa ? dataa : formData;
     setPopupState({ ...popupState, isModalOpen: false });
     if (formData.group_name) {
       formData.group_name =
         formData.group_name.charAt(0).toUpperCase() +
         formData.group_name.slice(1);
     }
-    if (formData !== initialValue) {
-      if (formData.group_code) {
-        await sendAPIRequest(
-          `/${organizationId}/group/${formData.group_code}`,
-          {
-            method: 'PUT',
-            body: formData,
+    const payload = {
+      group_name: respData.group_name || formData.group_name,
+      type: respData.type || formData.type,
+    };
+    if (payload !== initialValue) {
+      try {
+        if (formData.group_code) {
+         const response: any  = await sendAPIRequest(
+            `/${organizationId}/group/${formData.group_code}`,
+            {
+              method: 'PUT',
+              body: formData,
+            }
+          );
+          await queryClient.invalidateQueries({
+            queryKey: ['get-itemBatches'],
+          });
+          getGroups();
+        } else {
+          const response: any = await sendAPIRequest(`/${organizationId}/group`, {
+            method: 'POST',
+            body: payload,
+          });
+          if (respData.group_name && !response.error) {
+            setPopupState({
+              ...popupState,
+              isAlertOpen: true,
+              message: 'Group saved successfully',
+            });
           }
-        );
-      } else {
-        await sendAPIRequest(`/${organizationId}/group`, {
-          method: 'POST',
-          body: formData,
-        });
+          setInputRow(pinnedRow);
+          await queryClient.invalidateQueries({
+            queryKey: ['get-itemBatches'],
+          });
+          getGroups();
+        }
+        togglePopup(false);
+        setFormData(pinnedRow)
+      } catch (error) {
+        console.error('Error saving group:', error);
       }
-      togglePopup(false);
-      queryClient.invalidateQueries({ queryKey: ['get-groups'] });
     }
   };
   const isDelete = useRef(false);
@@ -143,7 +173,7 @@ export const Groups = () => {
 
   const handelFormSubmit = (values: GroupFormData) => {
     const mode = values.group_code ? 'update' : 'create';
-    const existingGroup = tableData.find((group: GroupFormData) => {
+    const existingGroup = tableData?.find((group: GroupFormData) => {
       if (mode === 'create')
         return (
           group.group_name.toLowerCase() === values.group_name.toLowerCase()
@@ -183,41 +213,34 @@ export const Groups = () => {
     node?: any;
     newValue?: any;
   }) => {
-    if (e?.data?.isPredefinedGroup === false) {
-      currTable = [];
-      editing.current = false;
-      const { data, column, oldValue, valueChanged, node } = e;
-      let { newValue } = e;
-      if (!valueChanged) return;
-      const field = column.colId;
-      try {
-        await groupValidationSchema.validateAt(field, { [field]: newValue });
-
-        if (field === 'group_name') {
-          newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
-          tableData.forEach((data: any) => {
-            if (data.group_code !== e.data.group_code) {
-              currTable.push(data);
-            }
+    const { data, column, oldValue, valueChanged, node } = e;
+    let { newValue } = e;
+    const field = column.colId;
+    if (!valueChanged) return;
+    if (node.rowIndex === 0) {
+      
+      if (data.group_name && data.type) {
+        try {
+          await groupValidationSchema.validate(data);
+          handleConfirmPopup(data);
+        } catch (error: any) {
+          setPopupState({
+            ...popupState,
+            isAlertOpen: true,
+            message: error.message,
           });
-
-          const existingGroup = currTable.find(
-            (group: GroupFormData) =>
-              group.group_name.toLowerCase() === newValue.toLowerCase()
-          );
-
-          if (existingGroup) {
-            setPopupState({
-              ...popupState,
-              isAlertOpen: true,
-              message: 'Group with this name already exists!',
-            });
-            node.setDataValue(field, oldValue);
-            return;
-          }
-        } else if (field === 'igst_sale') {
-          newValue = newValue.toLowerCase();
         }
+      }
+      node.setDataValue(field, newValue);
+    } else {
+      try {
+        node.setDataValue(field, e.newValue);
+        await sendAPIRequest(`/${organizationId}/group/${data.group_code}`, {
+          method: 'PUT',
+          body: { [field]: newValue },
+        });
+        queryClient.invalidateQueries({ queryKey: ['get-groups'] });
+        getGroups();
       } catch (error: any) {
         setPopupState({
           ...popupState,
@@ -227,23 +250,6 @@ export const Groups = () => {
         node.setDataValue(field, oldValue);
         return;
       }
-
-      node.setDataValue(field, newValue);
-      await sendAPIRequest(`/${organizationId}/group/${data.group_code}`, {
-        method: 'PUT',
-        body: { [field]: newValue },
-      });
-      queryClient.invalidateQueries({ queryKey: ['get-groups'] });
-    } else {
-      const { column, oldValue, node } = e;
-      const field = column.colId;
-      setPopupState({
-        ...popupState,
-        isAlertOpen: true,
-        message: 'Predefined Groups are not editable',
-      });
-      node.setDataValue(field, oldValue);
-      return;
     }
   };
 
@@ -255,7 +261,7 @@ export const Groups = () => {
     editing.current = true;
   };
 
-  const handleKeyDown = (event: KeyboardEvent) => {
+  const handleKeyDown = async (event: KeyboardEvent) => {
     switch (event.key) {
       case 'Escape':
         togglePopup(false);
@@ -336,30 +342,71 @@ export const Groups = () => {
     };
   }, [selectedRow]);
 
-  useEffect(() => {
-    fetchGroupData();
-  }, [data]);
 
   const fetchGroupData = async () => {
-    setTableData(data);
+    try {
+      const fetchedData = await sendAPIRequest<GroupFormData[]>(
+        `/${organizationId}/group`
+      );
+      setTableData([initialValue, ...fetchedData]);
+      return fetchedData;
+    } catch (error) {
+      console.error('Error fetching group data:', error);
+    }
   };
 
-  const colDefs: (ColDef<any, any> | ColGroupDef<any>)[] | null | undefined[] =
+  const getGroups = async () => {
+    setInputRow(pinnedRow);
+    const getGroupData: any = await fetchGroupData();
+    const combinedData = [pinnedRow, ...getGroupData];
+    setTableData(combinedData);
+  };
+
+  const onGridReady = () => {
+    if (gridRef.current) {
+      gridRef.current.api?.getDisplayedRowAtIndex(0)?.setSelected(true);
+      gridRef.current.api?.startEditingCell({
+        rowIndex: 0,
+        colKey: colDefs,
+      });
+    }
+  };
+  useEffect(() => {
+    onGridReady();
+  }, [tableData]);
+
+  useEffect(() => {
+    fetchGroupData();
+    onGridReady();
+  }, [data]);
+
+  const colDefs: ColDef<any, any>[]| ColGroupDef<any> | null | undefined[] = 
     [
       {
         headerName: 'Group Name',
         field: 'group_name',
         flex: 1,
         filter: true,
-        editable: (params) => !params.data.isPredefinedGroup,
+        editable: true,
         headerClass: 'custom-header',
         suppressMovable: true,
+        cellRenderer: (params: any) => (
+          <PlaceholderCellRenderer
+            value={params.value}
+            rowIndex={params.node.rowIndex}
+            column={params.colDef}
+            startEditingCell={(editParams : any) => {
+              gridRef.current?.api?.startEditingCell(editParams);
+            }}
+            placeholderText={params.colDef.headerName}
+          />
+        ),
       },
       {
         headerName: 'P&L / BL. Sheet',
         field: 'type',
         filter: true,
-        editable: (params) => !params.data.isPredefinedGroup,
+        editable: true,
         cellEditor: 'agSelectCellEditor',
         cellEditorParams: {
           values: types,
@@ -369,6 +416,17 @@ export const Groups = () => {
         flex: 1,
         headerClass: 'custom-header',
         suppressMovable: true,
+        cellRenderer: (params: any) => (
+          <PlaceholderCellRenderer
+            value={params.value}
+            rowIndex={params.node.rowIndex}
+            column={params.colDef}
+            startEditingCell={(editParams : any) => {
+              gridRef.current?.api?.startEditingCell(editParams);
+            }}
+            placeholderText={params.colDef.headerName}
+          />
+        ),
       },
       {
         headerName: 'Actions',
