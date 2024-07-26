@@ -15,15 +15,15 @@ import { useParams } from 'react-router-dom';
 import { groupValidationSchema } from './validation_schema';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
 
-const initialValue = {
-  group_code: '',
-  group_name: '',
-  type: '',
-  parent_code: '',
-  isPredefinedGroup: true,
-};
 
 export const Groups = () => {
+  const initialValue = {
+    group_code: '',
+    group_name: '',
+    type: '',
+    parent_code: '',
+    isPredefinedGroup: true,
+  };
   const { organizationId } = useParams();
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<GroupFormData>(initialValue);
