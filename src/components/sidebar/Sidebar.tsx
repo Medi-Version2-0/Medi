@@ -17,6 +17,7 @@ import { Ledger } from '../../views/ledger';
 import { Sales_Table } from '../../views/sales_purchase';
 import { BillBook } from '../../views/BillBook';
 import { PartyWiseDiscount } from '../../views/discount';
+import DeliveryChallan from '../../views/DeliveryChallan';
 
 type SubElementKey = 'master' | 'setup';
 
@@ -169,6 +170,13 @@ const Sidebar: React.FC<SidebarProps> = ({
               icon={<FaPlus className='fill-yellow-900' />}
               onClick={() =>
                 openTab?.('Party-wise discount', <PartyWiseDiscount />)
+              }
+            />
+            <MenuItem
+              url='/deliveryChallan'
+              label='Sale Challan'
+              onClick={() =>
+                openTab?.('Sale Challan', <DeliveryChallan />)
               }
             />
           </>

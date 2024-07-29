@@ -20,11 +20,21 @@ export const CreateBillBook = ({
   isDelete,
   deleteAcc,
   className,
+  selectedSeries,
+  billBookData
 }: CreateBillProps) => {
   const { id } = data;
   const formikRef = useRef<FormikProps<BillBookFormData>>(null);
   const [focused, setFocused] = useState('');
+  const [editing, setEditing] = useState<boolean>(false);
 
+  useEffect(() => {
+    if (data.id) {
+      setEditing(true);
+    } else {
+      setEditing(false);
+    }
+  }, [data]);
 
   useEffect(() => {
     const focusTarget = !isDelete
@@ -94,7 +104,7 @@ export const CreateBillBook = ({
           orderOfBill: data?.orderOfBill || '',
           locked: data?.locked || 'No',
         }}
-        validationSchema={billBookValidationSchema}
+        validationSchema={() => billBookValidationSchema(billBookData, selectedSeries, editing)}
         onSubmit={handleSubmit}
       >
         {(formik) => (

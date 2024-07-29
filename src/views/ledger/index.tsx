@@ -1,3 +1,4 @@
+// TODO : if the form didn't ask for station then station will also noe editable from ag grid cell editing
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { FaEdit } from 'react-icons/fa';
@@ -244,7 +245,7 @@ export const Ledger = () => {
       suppressMovable: true,
     },
     {
-      headerName: 'Balance( ₹ )',
+      headerName: 'Opening Balance( ₹ )',
       field: 'openingBal',
       flex: 1,
       filter: true,

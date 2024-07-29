@@ -40,7 +40,6 @@ export const Groups = () => {
     group_name: '',
     type: '',
   };
-  const [inputRow, setInputRow] = useState<GroupFormData | any>(pinnedRow);
   const [subgroups, setSubgroups] = useState<GroupFormData[]>([]);
   const gridRef = useRef<any>(null);
 
@@ -101,7 +100,7 @@ export const Groups = () => {
     if (payload !== initialValue) {
       try {
         if (formData.group_code) {
-         const response: any  = await sendAPIRequest(
+         await sendAPIRequest(
             `/${organizationId}/group/${formData.group_code}`,
             {
               method: 'PUT',
@@ -124,7 +123,6 @@ export const Groups = () => {
               message: 'Group saved successfully',
             });
           }
-          setInputRow(pinnedRow);
           await queryClient.invalidateQueries({
             queryKey: ['get-itemBatches'],
           });
@@ -356,7 +354,6 @@ export const Groups = () => {
   };
 
   const getGroups = async () => {
-    setInputRow(pinnedRow);
     const getGroupData: any = await fetchGroupData();
     const combinedData = [pinnedRow, ...getGroupData];
     setTableData(combinedData);

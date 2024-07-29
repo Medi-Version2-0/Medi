@@ -250,7 +250,7 @@ export const BillBook = () => {
     const field = column.colId;
 
     try {
-      await billBookValidationSchema.validateAt(field, { [field]: newValue });
+      await billBookValidationSchema(tableData, selectedSeries, false).validateAt(field, { [field]: newValue });
 
       if (field === 'billName') {
         newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
@@ -496,6 +496,8 @@ export const BillBook = () => {
               isDelete={isDelete.current}
               deleteAcc={deleteAcc}
               className='absolute'
+              selectedSeries={selectedSeries}
+              billBookData={tableData}
             />
           )}
           {settingToggleOpen && (

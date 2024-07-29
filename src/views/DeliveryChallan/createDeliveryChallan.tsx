@@ -1,0 +1,521 @@
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { FormikProps, useFormik } from 'formik';
+import Button from '../../components/common/button/Button';
+import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
+import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-quartz.css';
+import { sendAPIRequest } from '../../helper/api';
+import { useQueryClient } from '@tanstack/react-query';
+import { CompanyFormData, Option } from '../../interface/global';
+import onKeyDown from '../../utilities/formKeyDown';
+import FormikInputField from '../../components/common/FormikInputField';
+import CustomSelect from '../../components/custom_select/CustomSelect';
+import titleCase from '../../utilities/titleCase';
+import { CreateDeliveryChallanTable } from './createDeliveryChallanTable';
+import { saleChallanFormValidations } from './validation_schema';
+
+export interface DeliveryChallanFormValues {
+  oneStation: string;
+  stationId: string;
+  partyId: string;
+  runningBalance: number;
+  runningBalanceType: string;
+  challanNumber: string;
+  netRateSymbol: string;
+  personName: string;
+  date: string;
+  qtyTotal: string;
+  total: string;
+}
+
+export type DeliveryChallanFormInfoType =
+  FormikProps<DeliveryChallanFormValues>;
+
+const CreateDeliveryChallan = ({ setView, data }: any) => {
+  const { organizationId } = useParams();
+  const [stationOptions, setStationOptions] = useState<Option[]>([]);
+  const [partyOptions, setPartyOptions] = useState<Option[]>([]);
+  const [dataFromTable, setDataFromTable] = useState<any[]>([]);
+  const [challanTableData, setChallanTableData] = useState<any[]>([]);
+  const [partyData, setPartyData] = useState<any[]>([]);
+  const queryClient = useQueryClient();
+  const [totalAmt, setTotalAmt] = useState<number>(0);
+  const [totalQty, setTotalQty] = useState<number>(0);
+  const [focused, setFocused] = useState('');
+  const [popupState, setPopupState] = useState({
+    isModalOpen: false,
+    isAlertOpen: false,
+    message: '',
+  });
+
+  const formik: DeliveryChallanFormInfoType = useFormik({
+    initialValues: {
+      oneStation: data?.oneStation || 'One Station',
+      stationId: data?.stationId || '',
+      partyId: data?.partyId || '',
+      runningBalance: data?.runningBalance || 0.0,
+      runningBalanceType: data?.runningBalanceType || '',
+      challanNumber: data?.challanNumber || '',
+      netRateSymbol: data?.netRateSymbol || '',
+      personName: data?.personName || '',
+      date:
+        data?.date ||
+        new Date().toLocaleDateString('en-GB', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+        }), // dd//mm//yyyy
+      qtyTotal: data?.qtyTotal || '',
+      total: data?.total || '',
+    },
+    validationSchema: saleChallanFormValidations,
+    onSubmit: async (values: any) => {
+      try {
+        const formData = new FormData();
+        Object.keys(values).forEach((key) => {
+          if (values[key] instanceof File) {
+            formData.append('file', values[key]);
+            formData.append(key, 'upload');
+          } else {
+            formData.append(key, values[key]);
+          }
+        });
+        if (values.oneStation === 'All Stations') {
+          values.stationId = null;
+        }
+        values.total = (+totalAmt)?.toFixed(2);
+        values.qtyTotal = (+totalQty)?.toFixed(2);
+        const finalData = { ...values, challans: dataFromTable };
+        if (data.id) {
+          await sendAPIRequest(
+            `/${organizationId}/deliveryChallan/${data.id}`,
+            {
+              method: 'PUT',
+              body: finalData,
+            }
+          );
+        } else {
+          await sendAPIRequest(`/${organizationId}/deliveryChallan`, {
+            method: 'POST',
+            body: finalData,
+          });
+        }
+        await queryClient.invalidateQueries({
+          queryKey: ['get-deliveryChallan'],
+        });
+
+        setPopupState({
+          isModalOpen: false,
+          isAlertOpen: true,
+          message: `Delivery Challan ${data.id ? 'updated' : 'created'} successfully`,
+        });
+      } catch (error) {
+        setPopupState({
+          isModalOpen: false,
+          isAlertOpen: true,
+          message: `Failed to ${data.id ? 'update' : 'create'} delivery challan`,
+        });
+      }
+    },
+  });
+
+  const fetchAllData = async () => {
+    const stations = await sendAPIRequest<any[]>(`/${organizationId}/station`);
+    const partyList = await sendAPIRequest<any[]>(`/${organizationId}/ledger`);
+
+    setPartyData(partyList);
+
+    setStationOptions(
+      stations.map((station: any) => ({
+        value: station.station_id,
+        label: titleCase(station.station_name),
+      }))
+    );
+    if (formik.values.oneStation === 'One Station') {
+      const requiredParty = partyList.filter(
+        (party) => party.station_id === formik.values.stationId
+      );
+      setPartyOptions(
+        requiredParty.map((party: any) => ({
+          value: party.party_id,
+          label: titleCase(party.partyName),
+        }))
+      );
+    } else if (formik.values.oneStation === 'All Stations') {
+      setPartyOptions(
+        partyList.map((party: any) => ({
+          value: party.party_id,
+          label: titleCase(party.partyName),
+        }))
+      );
+    }
+  };
+
+  const handleAlertCloseModal = () => {
+    setPopupState({ ...popupState, isAlertOpen: false });
+    setView({ type: '', data: {} });
+  };
+
+  const handleFieldChange = (option: Option | null, id: string) => {
+    formik.setFieldValue(id, option?.value);
+  };
+
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    formik?: FormikProps<CompanyFormData>,
+    radioField?: any
+  ) => {
+    onKeyDown({
+      e,
+      formik: formik,
+      radioField: radioField,
+      focusedSetter: (field: string) => {
+        setFocused(field);
+      },
+    });
+  };
+
+  useEffect(() => {
+    fetchAllData();
+  }, [formik.values.stationId, formik.values.oneStation]);
+
+  useEffect(() => {
+    if (formik.values.partyId !== '') {
+      const party = partyData.find(
+        (party) => party.party_id === formik.values.partyId
+      );
+      formik.setFieldValue('runningBalance', party.currentOpeningBal);
+      formik.setFieldValue('runningBalanceType', party.currentOpeningBalType);
+    }
+  }, [formik.values.partyId]);
+
+  useEffect(() => {
+    setFocused('oneStation');
+    if (data) {
+      setChallanTableData(data.challans);
+    }
+  }, []);
+
+  return (
+    <div className='w-full'>
+      <div className='flex w-full items-center justify-between px-8 py-1'>
+        <h1 className='font-bold'>
+          {data.id ? 'Update Challan' : 'Create Challan'}
+        </h1>
+        <Button
+          type='highlight'
+          id='challan_button'
+          handleOnClick={() => {
+            setView({ type: '', data: {} });
+          }}
+        >
+          Back
+        </Button>
+      </div>
+      <form onSubmit={formik.handleSubmit}>
+        <div className='flex flex-col p-3 mx-8 my-4 gap-2 border-[1px] border-solid border-gray-400'>
+          <div className='flex justify-between'>
+            <div className='w-[30%]'>
+              <CustomSelect
+                isPopupOpen={false}
+                label='Station'
+                isRequired={true}
+                id='oneStation'
+                name='oneStation'
+                labelClass='min-w-[140px] text-base text-gray-700'
+                value={
+                  formik.values.oneStation === ''
+                    ? null
+                    : {
+                        label: formik.values.oneStation,
+                        value: formik.values.oneStation,
+                      }
+                }
+                onChange={handleFieldChange}
+                options={[
+                  { value: 'One Station', label: 'One Station' },
+                  { value: 'All Stations', label: 'All Stations' },
+                ]}
+                isSearchable={false}
+                disableArrow={false}
+                hidePlaceholder={false}
+                className='!h-6 rounded-sm'
+                isTouched={formik.touched.oneStation}
+                isFocused={focused === 'oneStation'}
+                error={formik.errors.oneStation}
+                onBlur={() => {
+                  formik.setFieldTouched('oneStation', true);
+                  setFocused('');
+                }}
+                onKeyDown={(e: any) => {
+                  if (e.key === 'Enter' || e.key === 'Tab') {
+                    const dropdown = document.querySelector(
+                      '.custom-select__menu'
+                    );
+                    if (!dropdown) {
+                      e.preventDefault();
+                    }
+                    if (formik.values.oneStation === 'One Station') {
+                      setFocused('stationId');
+                    } else if (formik.values.oneStation === 'All Stations') {
+                      setFocused('partyId');
+                    }
+                  }
+                }}
+                showErrorTooltip={true}
+              />
+            </div>
+            <div className='w-[35%]'>
+              {formik.values.oneStation &&
+                formik.values.oneStation === 'One Station' && (
+                  <CustomSelect
+                    isPopupOpen={false}
+                    label='Station Name'
+                    id='stationId'
+                    labelClass='min-w-[140px] mr-[3em] text-gray-700'
+                    isFocused={focused === 'stationId'}
+                    value={
+                      formik.values.stationId === ''
+                        ? null
+                        : {
+                            label: stationOptions.find(
+                              (e) => e.value === formik.values.stationId
+                            )?.label,
+                            value: formik.values.stationId,
+                          }
+                    }
+                    onChange={handleFieldChange}
+                    options={stationOptions}
+                    isSearchable={true}
+                    disableArrow={true}
+                    hidePlaceholder={false}
+                    className='!h-6 rounded-sm'
+                    isRequired={
+                      formik.values.oneStation === 'One Station' ? true : false
+                    }
+                    error={formik.errors.stationId}
+                    isTouched={formik.touched.stationId}
+                    showErrorTooltip={true}
+                    onBlur={() => {
+                      formik.setFieldTouched('stationId', true);
+                      setFocused('');
+                    }}
+                    onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+                      if (e.key === 'Enter' || e.key === 'Tab') {
+                        const dropdown = document.querySelector(
+                          '.custom-select__menu'
+                        );
+                        if (!dropdown) {
+                          e.preventDefault();
+                        }
+                        setFocused('partyId');
+                      }
+                      if (e.shiftKey && e.key === 'Tab') {
+                        setFocused('oneStation');
+                      }
+                    }}
+                  />
+                )}
+            </div>
+          </div>
+          <div className='flex justify-between'>
+            <div className='w-[30%]'>
+              <CustomSelect
+                isPopupOpen={false}
+                label='Party Name'
+                id='partyId'
+                labelClass='min-w-[140px] text-gray-700'
+                isFocused={focused === 'partyId'}
+                value={
+                  formik.values.partyId === ''
+                    ? null
+                    : {
+                        label: partyOptions.find(
+                          (e) => e.value === formik.values.partyId
+                        )?.label,
+                        value: formik.values.partyId,
+                      }
+                }
+                onChange={handleFieldChange}
+                noOptionsMsg={
+                  formik.values.oneStation === 'One Station'
+                    ? formik.values.stationId === ''
+                      ? 'Select station First'
+                      : 'No party is associated with the selected station. select another station or first create the party'
+                    : 'Create a party first'
+                }
+                options={partyOptions}
+                isSearchable={true}
+                disableArrow={true}
+                hidePlaceholder={false}
+                className='!h-6 rounded-sm'
+                isRequired={true}
+                error={formik.errors.partyId}
+                isTouched={formik.touched.partyId}
+                showErrorTooltip={true}
+                onBlur={() => {
+                  formik.setFieldTouched('partyId', true);
+                  setFocused('');
+                }}
+                onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+                  if (e.key === 'Enter' || e.key === 'Tab') {
+                    const dropdown = document.querySelector(
+                      '.custom-select__menu'
+                    );
+                    if (!dropdown) {
+                      e.preventDefault();
+                    }
+                    setFocused('netRateSymbol');
+                  }
+                  if (e.shiftKey && e.key === 'Tab') {
+                    if (formik.values.oneStation === 'One Station') {
+                      setFocused('stationId');
+                    } else if (formik.values.oneStation === 'All Stations') {
+                      setFocused('oneStation');
+                    }
+                  }
+                }}
+              />
+            </div>
+            {/* Running balance is calculated and shown automatically so it must be disabled */}
+            <div className='w-[35%] flex'>
+              <div className='w-[80%]'>
+                <FormikInputField
+                  isDisabled={true}
+                  isPopupOpen={false}
+                  label='Balance'
+                  id='runningBalance'
+                  name='runningBalance'
+                  formik={formik}
+                  className='!mb-0'
+                  inputClassName='disabled:text-gray-800'
+                  labelClassName='min-w-[140px] text-base mr-[3em] text-gray-700'
+                />
+              </div>
+              <div className='w-[20%]'>
+                <FormikInputField
+                  isDisabled={true}
+                  isPopupOpen={false}
+                  id='runningBalanceType'
+                  name='runningBalanceType'
+                  formik={formik}
+                  className='!mb-0'
+                  inputClassName='disabled:text-gray-800'
+                />
+              </div>
+            </div>
+          </div>
+          <div className='flex justify-between'>
+            <div className='w-[30%]'>
+              <FormikInputField
+                isPopupOpen={false}
+                label='Person Name'
+                id='personName'
+                name='personName'
+                formik={formik}
+                className='!mb-0'
+                prevField='netRateSymbol'
+                nextField='cell-0-0'
+                labelClassName='min-w-[140px] text-base text-gray-700'
+                isRequired={false}
+                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
+                  handleKeyDown(e)
+                }
+                showErrorTooltip={
+                  formik.touched.personName && !!formik.errors.personName
+                }
+              />
+            </div>
+            <div className='w-[35%]'>
+              <FormikInputField
+                isDisabled={true}
+                isPopupOpen={false}
+                label='Challan Number'
+                id='challanNumber'
+                name='challanNumber'
+                formik={formik}
+                className='!mb-0'
+                inputClassName='disabled:text-gray-800'
+                labelClassName='min-w-[140px] mr-[3em] text-base text-gray-700'
+                isRequired={false}
+                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
+                  handleKeyDown(e)
+                }
+                showErrorTooltip={
+                  formik.touched.challanNumber && !!formik.errors.challanNumber
+                }
+              />
+            </div>
+          </div>
+          <div className='flex justify-between'>
+            <div className='w-[30%]'>
+              <FormikInputField
+                isDisabled={true}
+                isPopupOpen={false}
+                label='Date'
+                id='date'
+                name='date'
+                formik={formik}
+                className='!mb-0'
+                labelClassName='min-w-[140px] text-base text-gray-700'
+                isRequired={false}
+                inputClassName='disabled:text-gray-800'
+              />
+            </div>
+          </div>
+        </div>
+        <div className='my-4 mx-8'>
+          <CreateDeliveryChallanTable
+            setDataFromTable={setDataFromTable}
+            setTotalAmt={setTotalAmt}
+            setTotalQty={setTotalQty}
+            challanTableData={challanTableData}
+          />
+        </div>
+        <div className='border-[1px] border-solid border-gray-400 my-4 p-4 mx-8'>
+          <div className='flex gap-12 justify-end'>
+            <span className='flex gap-2 text-base text-gray-900'>
+              Quantity Total :{' '}
+              <span className='min-w-[50px] text-gray-700'>
+                {parseFloat(totalQty.toFixed(2))}
+              </span>
+            </span>
+            <span className='flex gap-2 text-base text-gray-900'>
+              Total :{' '}
+              <span className='min-w-[50px] text-gray-700'>
+                {parseFloat(Number(totalAmt)?.toFixed(2))}
+              </span>
+            </span>
+          </div>
+        </div>
+        <div className='w-full px-8 py-2'>
+          <Button
+            type='fill'
+            padding='px-4 py-2'
+            id='submit_all'
+            disable={!formik.isValid}
+            handleOnClick={formik.handleSubmit}
+            handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
+              if (e.key === 'ArrowUp') {
+                e.preventDefault();
+              }
+            }}
+          >
+            {data.id ? 'Update' : 'Submit'}
+          </Button>
+        </div>
+      </form>
+      {(popupState.isModalOpen || popupState.isAlertOpen) && (
+        <Confirm_Alert_Popup
+          onClose={handleAlertCloseModal}
+          onConfirm={handleAlertCloseModal}
+          message={popupState.message}
+          isAlert={popupState.isAlertOpen}
+        />
+      )}
+    </div>
+  );
+};
+
+export default CreateDeliveryChallan;
