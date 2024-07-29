@@ -19,28 +19,28 @@ import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { stationValidationSchema } from './validation_schema';
 import { setStation } from '../../store/action/globalAction';
 import { useDispatch, useSelector } from 'react-redux'
-
-const initialValue = {
-  station_id: '',
-  station_name: '',
-  igst_sale: '',
-  state_code: '',
-  station_pinCode: '',
-};
+import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
 
 export const Stations = () => {
+  const initialValue = {
+    station_id: '',
+    station_name: '',
+    igst_sale: '',
+    state_code: '',
+    station_pinCode: '',
+  };
   const { organizationId } = useParams();
   const [open, setOpen] = useState<boolean>(false);
   const [settingToggleOpen, setSettingToggleOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<StationFormData | any>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
-  // const [tableData, setTableData] = useState<StationFormData | any>(null);
-  const {stations :tableData} = useSelector((state:any)=> state.global)
+  const [tableData, setTableData] = useState<StationFormData | any>(null);
   const queryClient = useQueryClient();
   const [stateData, setStateData] = useState<any[]>([]);
   const editing = useRef(false);
   const dispatch = useDispatch()
   let currTable: any[] = [];
+  const gridRef = useRef<any>(null);
 
   const { controlRoomSettings } = useControls();
 
@@ -63,6 +63,7 @@ export const Stations = () => {
   });
 
   useEffect(() => {
+    getStations()
     getStates();
   }, [data]);
 
@@ -80,7 +81,9 @@ export const Stations = () => {
 
   const getStations = async () => {
     const stations = await sendAPIRequest<any[]>(`/${organizationId}/station`);
-    dispatch(setStation(stations || []))
+    dispatch(setStation(stations))
+    setTableData([initialValue , ...stations])
+
     };
 
   const togglePopup = (isOpen: boolean) => {
@@ -102,7 +105,8 @@ export const Stations = () => {
     setPopupState({ ...popupState, isModalOpen: false });
   };
 
-  const handleConfirmPopup = async () => {
+  const handleConfirmPopup = async (data?: any) => {
+    const respData = data ? data : formData;
     setPopupState({ ...popupState, isModalOpen: false });
     if (formData.station_name) {
       formData.station_name =
@@ -110,7 +114,14 @@ export const Stations = () => {
         formData.station_name.slice(1);
     }
 
-    if (formData !== initialValue) {
+    const payload = {
+      station_name: respData.station_name ? respData.station_name : formData.station_name,
+      state_code: respData.state_code ? respData.state_code : formData.state_code,
+      station_pinCode: respData.station_pinCode ? respData.station_pinCode : formData.station_pinCode,
+      igst_sale: respData.igst_sale ? respData.igst_sale : formData.station_pinCode,
+    };
+
+    if (payload !== initialValue) {
       formData.state_code = +formData.state_code;
       if (formData.station_id) {
         await sendAPIRequest(
@@ -123,7 +134,7 @@ export const Stations = () => {
       } else {
         await sendAPIRequest(`/${organizationId}/station`, {
           method: 'POST',
-          body: formData,
+          body: payload,
         });
       }
       getStations()
@@ -239,52 +250,57 @@ export const Stations = () => {
     if (!valueChanged) return;
     const field = column.colId;
 
-    try {
-      await stationValidationSchema.validateAt(field, { [field]: newValue });
-
-      if (field === 'station_name') {
-        newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
-        currTable = tableData.filter(
-          (data: any) => data.station_id !== e.data.station_id
-        );
-
-        const existingStation = currTable.find(
-          (station: StationFormData) =>
-            station.station_name.toLowerCase() === newValue.toLowerCase()
-        );
-
-        if (existingStation) {
+    if (node.rowIndex === 0) {
+      if (data.state_code && data.station_name && data.station_pinCode) {
+        try {
+          await stationValidationSchema.validateAt(field, { [field]: newValue });
+          handleConfirmPopup(data)
+    
+          if (field === 'station_name') {
+            newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
+            currTable = tableData.filter(
+              (data: any) => data.station_id !== e.data.station_id
+            );
+    
+            const existingStation = currTable.find(
+              (station: StationFormData) =>
+                station.station_name.toLowerCase() === newValue.toLowerCase()
+            );
+    
+            if (existingStation) {
+              setPopupState({
+                ...popupState,
+                isAlertOpen: true,
+                message: 'Station with this name already exists!',
+              });
+              node.setDataValue(field, oldValue);
+              return;
+            }
+          }
+        } catch (error: any) {
           setPopupState({
             ...popupState,
             isAlertOpen: true,
-            message: 'Station with this name already exists!',
+            message: error.message,
           });
           node.setDataValue(field, oldValue);
           return;
         }
+     
+        if (field === 'igst_sale' && newValue) {
+          newValue = newValue.toLowerCase();
+        }
+    
+        node.setDataValue(field, newValue);
       }
-    } catch (error: any) {
-      setPopupState({
-        ...popupState,
-        isAlertOpen: true,
-        message: error.message,
+    }else{
+      await sendAPIRequest(`/${organizationId}/station/${data.station_id}`, {
+        method: 'PUT',
+        body: { [field]: newValue },
       });
-      node.setDataValue(field, oldValue);
-      return;
+  
+      queryClient.invalidateQueries({ queryKey: ['get-stations'] });
     }
-
-    if (field === 'igst_sale' && newValue) {
-      newValue = newValue.toLowerCase();
-    }
-
-    node.setDataValue(field, newValue);
-
-    await sendAPIRequest(`/${organizationId}/station/${data.station_id}`, {
-      method: 'PUT',
-      body: { [field]: newValue },
-    });
-
-    queryClient.invalidateQueries({ queryKey: ['get-stations'] });
   };
 
   const onCellClicked = (params: { data: any }) => {
@@ -315,6 +331,17 @@ export const Stations = () => {
       editable: true,
       headerClass: 'custom-header',
       suppressMovable: true,
+      cellRenderer: (params: any) => (
+        <PlaceholderCellRenderer
+          value={params.value}
+          rowIndex={params.node.rowIndex}
+          column={params.colDef}
+          startEditingCell={(editParams : any) => {
+            gridRef.current?.api?.startEditingCell(editParams);
+          }}
+          placeholderText={params.colDef.headerName}
+        />
+      ),
     },
     ...(controlRoomSettings.igstSaleFacility
       ? [
@@ -332,6 +359,17 @@ export const Stations = () => {
               lookupValue(typeMapping, params.value),
             headerClass: 'custom-header custom_header_class',
             suppressMovable: true,
+            cellRenderer: (params: any) => (
+              <PlaceholderCellRenderer
+                value={params.value}
+                rowIndex={params.node.rowIndex}
+                column={params.colDef}
+                startEditingCell={(editParams : any) => {
+                  gridRef.current?.api?.startEditingCell(editParams);
+                }}
+                placeholderText={params.colDef.headerName}
+              />
+            ),
           },
         ]
       : []),
@@ -358,6 +396,17 @@ export const Stations = () => {
       },
       headerClass: 'custom-header custom_header_class',
       suppressMovable: true,
+      cellRenderer: (params: any) => (
+        <PlaceholderCellRenderer
+          value={params.value}
+          rowIndex={params.node.rowIndex}
+          column={params.colDef}
+          startEditingCell={(editParams : any) => {
+            gridRef.current?.api?.startEditingCell(editParams);
+          }}
+          placeholderText={params.colDef.headerName}
+        />
+      ),
     },
     {
       headerName: 'Pin Code',
@@ -367,6 +416,17 @@ export const Stations = () => {
       editable: true,
       headerClass: 'custom-header custom_header_class',
       suppressMovable: true,
+      cellRenderer: (params: any) => (
+        <PlaceholderCellRenderer
+          value={params.value}
+          rowIndex={params.node.rowIndex}
+          column={params.colDef}
+          startEditingCell={(editParams : any) => {
+            gridRef.current?.api?.startEditingCell(editParams);
+          }}
+          placeholderText={params.colDef.headerName}
+        />
+      ),
     },
     {
       headerName: 'Actions',
@@ -419,6 +479,7 @@ export const Stations = () => {
         <div id='account_table' className='ag-theme-quartz'>
           {
             <AgGridReact
+              // rowData={[initialValue, ...tableData]}
               rowData={tableData}
               columnDefs={colDefs}
               defaultColDef={{
