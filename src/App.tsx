@@ -27,6 +27,7 @@ import Items from './views/item';
 import { ItemGroups } from './views/itemGroups';
 import { Sales_Table } from './views/sales_purchase';
 import { BillBook } from './views/BillBook';
+import DeliveryChallan from './views/DeliveryChallan';
 
 export const App = () => {
   return (
@@ -108,6 +109,12 @@ const AppRoot = () => {
         path='/billBook'
         element={
           <ProtectedRoute element={<BillBook />} requiredPermissions={['admin']} />
+        }
+      />
+      <Route
+        path='/deliveryChallan'
+        element={
+          <ProtectedRoute element={<DeliveryChallan />} requiredPermissions={['admin']} />
         }
       />
     </Routes>

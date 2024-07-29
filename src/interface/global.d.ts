@@ -56,6 +56,8 @@ export interface CreateBillProps {
   isDelete: any;
   deleteAcc: (station_id: string) => void;
   className?: string;
+  selectedSeries: string;
+  billBookData: any[];
 }
 
 export interface CreateSalePurchaseProps {
@@ -311,6 +313,13 @@ export interface ItemFormData {
   itemGroupCode: string;
   saleAccId?: string;
   purAccId?: string;
+}
+export interface DeliveryChallanFormData {
+  id?: string;
+  challanNumber: string;
+  partyId: string;
+  stationId: string;
+  mrp: Number;
 }
 
 export interface AccountGroupFormData {

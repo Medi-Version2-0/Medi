@@ -89,7 +89,7 @@ const initialData = {
     
     if (payload !== initialData) {
       if (formData.group_code) {
-        const response: any  = await sendAPIRequest(
+        await sendAPIRequest(
           `/${organizationId}/itemGroup/${formData.group_code}`,
           {
             method: 'PUT',

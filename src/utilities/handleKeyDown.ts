@@ -14,7 +14,7 @@ export const handleKeyDownCommon = (
     case 'N':
       if (event.ctrlKey) {
         if (togglePopup) {
-          togglePopup(true);
+          togglePopup(true);  
         } else if (setView) {
           setView({ type: 'add', data: {} });
         }
