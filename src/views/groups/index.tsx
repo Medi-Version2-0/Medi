@@ -154,6 +154,7 @@ export const Groups = () => {
       method: 'DELETE',
     });
     queryClient.invalidateQueries({ queryKey: ['get-groups'] });
+    getGroups();
   };
 
   const handleDelete = (oldData: GroupFormData) => {
@@ -213,7 +214,7 @@ export const Groups = () => {
     node?: any;
     newValue?: any;
   }) => {
-    const { data, column, oldValue, valueChanged, node } = e;
+    const { data, column, oldValue, newValue, valueChanged, node } = e;
     const field = column.colId;
     if (!valueChanged) return;
     if (node.rowIndex === 0) {

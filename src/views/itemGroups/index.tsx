@@ -126,7 +126,6 @@ const initialData = {
   };
 
   const getGroups = async () => {
-    console.log(typeof initialData, initialData);
     if (Array.isArray(data)) {
       setTableData([initialData, ...data]);
     }

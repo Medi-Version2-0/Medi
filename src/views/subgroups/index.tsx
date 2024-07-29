@@ -13,19 +13,22 @@ import { sendAPIRequest } from '../../helper/api';
 import { useParams } from 'react-router-dom';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { subgroupValidationSchema } from './validation_schema';
+import { useQuery } from '@tanstack/react-query';
+import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
 
-const initialValue = {
-  group_code: '',
-  group_name: '',
-  parent_code: '',
-};
 
 export const SubGroups = () => {
+  const initialValue = {
+    group_code: '',
+    group_name: '',
+    parent_code: '',
+  };
   const { organizationId } = useParams();
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<SubGroupFormData>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<SubGroupFormData | any>(null);
+  const [groupOptions, setGroupOptions] = useState<any[]>([]);
   const editing = useRef(false);
   let currTable: any[] = [];
   const [popupState, setPopupState] = useState({
@@ -33,6 +36,17 @@ export const SubGroups = () => {
     isAlertOpen: false,
     message: '',
   });
+
+  const { data } = useQuery<SubGroupFormData[]>({
+    queryKey: ['get-groups'],
+    queryFn: () => sendAPIRequest<SubGroupFormData[]>(`/${organizationId}/group`),
+    initialData: [],
+  });
+
+  const pinnedRow: SubGroupFormData = {
+    group_name: ''
+  };
+  const gridRef = useRef<any>(null);
 
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
@@ -42,14 +56,20 @@ export const SubGroups = () => {
     setPopupState({ ...popupState, isModalOpen: false });
   };
 
-  const handleConfirmPopup = async () => {
+  const handleConfirmPopup = async (data?: any) => {
+    const respData = data ? data : formData;
     setPopupState({ ...popupState, isModalOpen: false });
     if (formData.group_name) {
       formData.group_name =
         formData.group_name.charAt(0).toUpperCase() +
         formData.group_name.slice(1);
     }
-    if (formData !== initialValue) {
+    const payload = {
+      group_name: respData.group_name ? respData.group_name : formData.group_name,
+      parent_code: respData.group_name ? respData.parent_code : formData.parent_code,
+    };
+
+    if (payload !== initialValue) {
       if (formData.group_code) {
         await sendAPIRequest(
           `/${organizationId}/group/sub/${formData.group_code}`,
@@ -61,7 +81,7 @@ export const SubGroups = () => {
       } else {
         await sendAPIRequest(`/${organizationId}/group/sub`, {
           method: 'POST',
-          body: formData,
+          body: payload,
         });
       }
       togglePopup(false);
@@ -82,7 +102,8 @@ export const SubGroups = () => {
     const subGroups = await sendAPIRequest<any[]>(
       `/${organizationId}/group/sub`
     );
-    setTableData(subGroups);
+    setTableData([pinnedRow, ...subGroups]);
+    return subGroups
   };
 
   const deleteAcc = async (group_code: string) => {
@@ -157,50 +178,47 @@ export const SubGroups = () => {
     let { newValue } = e;
     if (!valueChanged) return;
     const field = column.colId;
-    try {
-      await subgroupValidationSchema.validateAt(field, { [field]: newValue });
+    if (node.rowIndex === 0) {
+      if (data.group_name && data.parent_code) {
+        try { 
+          await subgroupValidationSchema.validate(data);
+            handleConfirmPopup(data)
 
-      if (field === 'group_name') {
-        newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
-        tableData.forEach((data: any) => {
-          if (data.group_code !== e.data.group_code) {
-            currTable.push(data);
+            const existingGroup = currTable.find(
+              (group: SubGroupFormData) =>
+                group.group_name.toLowerCase() === newValue.toLowerCase()
+            );
+
+            if (existingGroup) {
+              setPopupState({
+                ...popupState,
+                isAlertOpen: true,
+                message: 'Sub Group with this name already exists!',
+              });
+              node.setDataValue(field, oldValue);
+              return;
+            }
+          if (field === 'igst_sale' && newValue) {
+            newValue = newValue.toLowerCase();
           }
-        });
-
-        const existingGroup = currTable.find(
-          (group: SubGroupFormData) =>
-            group.group_name.toLowerCase() === newValue.toLowerCase()
-        );
-
-        if (existingGroup) {
+        } catch (error: any) {
           setPopupState({
             ...popupState,
             isAlertOpen: true,
-            message: 'Sub Group with this name already exists!',
+            message: error.message,
           });
           node.setDataValue(field, oldValue);
           return;
         }
-      } else if (field === 'igst_sale' && newValue) {
-        newValue = newValue.toLowerCase();
-      }
-    } catch (error: any) {
-      setPopupState({
-        ...popupState,
-        isAlertOpen: true,
-        message: error.message,
-      });
-      node.setDataValue(field, oldValue);
-      return;
     }
-
+  }else{
     node.setDataValue(field, newValue);
     await sendAPIRequest(`/${organizationId}/group/sub/${data.group_code}`, {
       method: 'PUT',
       body: { [field]: newValue },
     });
     getSubGroups();
+  }
   };
 
   const onCellClicked = (params: { data: any }) => {
@@ -233,6 +251,54 @@ export const SubGroups = () => {
     getSubGroups();
   }, []);
 
+  const getGroups = async () => {
+    const groupList = await sendAPIRequest<any[]>(`/${organizationId}/group`);
+    return groupList.map((grp: any) => ({
+      value: grp.group_code,
+      label: grp.group_name.toUpperCase(),
+    }));
+  };
+
+
+  useEffect(() => {
+    const fetchGroups = async () => {
+      const groups = await getGroups();
+      setGroupOptions(groups);
+    };
+
+    fetchGroups();
+  }, []);
+
+
+  const parentGroupMap: { [key: number]: string } = {};
+
+  groupOptions?.forEach((group: any) => {
+    parentGroupMap[group.value] = group.label;
+  });
+
+
+  const extractKeys = (mappings: {
+    [x: number]: string;
+    Yes?: string;
+    No?: string;
+  }) => {
+    return Object.keys(mappings).map((key) => Number(key));
+  };
+
+  const parentGroup = extractKeys(parentGroupMap);
+
+  const lookupValue = (
+    mappings: {
+      [x: string]: any;
+      [x: number]: string;
+      Yes?: string;
+      No?: string;
+    },
+    key: string | number
+  ) => {
+    return mappings[key];
+  };
+
   const colDefs: (ColDef<any, any> | ColGroupDef<any>)[] | null | undefined[] =
     [
       {
@@ -243,6 +309,52 @@ export const SubGroups = () => {
         editable: true,
         headerClass: 'custom-header',
         suppressMovable: true,
+        cellRenderer: (params: any) => (
+          <PlaceholderCellRenderer
+            value={params.value}
+            rowIndex={params.node.rowIndex}
+            column={params.colDef}
+            startEditingCell={(editParams : any) => {
+              gridRef.current?.api?.startEditingCell(editParams);
+            }}
+            placeholderText={params.colDef.headerName}
+          />
+        ),
+      },
+      {
+        headerName: 'Parent Group',
+        field: 'parent_code',
+        flex: 1,
+        filter: true,
+        editable: true,
+        cellEditor: 'agSelectCellEditor',
+        cellEditorParams: {
+          values: parentGroup,
+          valueListMaxHeight: 120,
+          valueListMaxWidth: 185,
+          valueListGap: 8,
+        },
+        valueFormatter: (params: { value: string | number }) =>
+          lookupValue(parentGroupMap, params.value),
+        valueGetter: (params: { data: any }) => {
+        return lookupValue(parentGroupMap, params.data.parent_code);
+        },
+        filterValueGetter: (params: { data: any }) => {
+        return lookupValue(parentGroupMap, params.data.parent_code);
+        },
+        headerClass: 'custom-header',
+        suppressMovable: true,
+        cellRenderer: (params: any) => (
+          <PlaceholderCellRenderer
+            value={params.value}
+            rowIndex={params.node.rowIndex}
+            column={params.colDef}
+            startEditingCell={(editParams : any) => {
+              gridRef.current?.api?.startEditingCell(editParams);
+            }}
+            placeholderText={params.colDef.headerName}
+          />
+        ),
       },
       {
         headerName: 'Actions',
