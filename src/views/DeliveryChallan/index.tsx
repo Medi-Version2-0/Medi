@@ -11,6 +11,7 @@ import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import CreateDeliveryChallan from './createDeliveryChallan';
+import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 
 const DeliveryChallan = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
@@ -19,9 +20,6 @@ const DeliveryChallan = () => {
   const [tableData, setTableData] = useState<DeliveryChallanFormData | any>(
     null
   );
-  const [partiesData, setPartiesData] = useState<any[]>([]);
-  const [stationData, setStationData] = useState<any[]>([]);
-
   const editing = useRef(false);
   const id = useRef('');
   const queryClient = useQueryClient();
@@ -39,59 +37,13 @@ const DeliveryChallan = () => {
       ),
   });
 
-  const getParties = async () => {
-    setPartiesData(await sendAPIRequest<any[]>(`/${organizationId}/ledger`));
-  };
-
   const getDeliveryChallanData = async () => {
     if (data) setTableData(data);
   };
 
-  const getStations = async () => {
-    setStationData(await sendAPIRequest<any[]>(`/${organizationId}/station`));
-  };
-
   useEffect(() => {
-    getStations();
     getDeliveryChallanData();
-    getParties();
   }, [data]);
-
-  const partiesCodeMap: { [key: number]: string } = {};
-  const oneStationCodeMap: { [key: number | string]: string } = {};
-  const stationsCodeMap: { [key: number]: string } = {};
-
-  (partiesData || []).forEach((party: any) => {
-    partiesCodeMap[party.party_id] = party.partyName;
-  });
-
-  (stationData || []).forEach((station: any) => {
-    stationsCodeMap[station.station_id] = station.station_name;
-  });
-
-  [
-    { label: 'One Station', value: 'One Station' },
-    { label: 'All Stations', value: 'All Stations' },
-  ].forEach((oneStation: any) => {
-    oneStationCodeMap[oneStation.label] = oneStation.value;
-  });
-
-  const extractKeys = (mappings: { [x: number]: string }) => {
-    return Object.keys(mappings).map((key) => Number(key));
-  };
-
-  const parties = extractKeys(partiesCodeMap);
-  const stations = extractKeys(stationsCodeMap);
-
-  const lookupValue = (
-    mappings: {
-      [x: string]: any;
-      [x: number]: string;
-    },
-    key: string | number
-  ) => {
-    return mappings[key];
-  };
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
@@ -134,26 +86,14 @@ const DeliveryChallan = () => {
   };
 
   const handleKeyDown = (event: KeyboardEvent) => {
-    switch (event.key) {
-      case 'n':
-      case 'N':
-        if (event.ctrlKey) setView({ type: 'add', data: {} });
-        break;
-      case 'd':
-      case 'D':
-        if (event.ctrlKey && selectedRow) {
-          handleDelete(selectedRow);
-        }
-        break;
-      case 'e':
-      case 'E':
-        if (event.ctrlKey && selectedRow) {
-          setView({ type: 'add', data: selectedRow });
-        }
-        break;
-      default:
-        break;
-    }
+    handleKeyDownCommon(
+      event,
+      handleDelete,
+      undefined,
+      undefined,
+      selectedRow,
+      setView 
+    );
   };
 
   const commonColDefConfig = {
@@ -167,60 +107,34 @@ const DeliveryChallan = () => {
     {
       headerName: 'Challan No.',
       field: 'challanNumber',
-      menuTabs: ['filterMenuTab'],
       ...commonColDefConfig,
+      editable: false,
     },
     {
       headerName: 'Station One / All',
       field: 'oneStation',
+      ...commonColDefConfig,
       editable: false,
-      flex: 1,
-      filter: true,
-      suppressMovable: true,
-      headerClass: 'custom-header',
     },
     {
       headerName: 'Station Name',
       field: 'stationId',
+      ...commonColDefConfig,
       editable: false,
-      cellEditor: 'agSelectCellEditor',
-      cellEditorParams: {
-        values: stations,
-        valueListMaxHeight: 120,
-        valueListMaxWidth: 172,
-        valueListGap: 8,
-      },
-      valueFormatter: (params: { value: string }) => {
-        return lookupValue(stationsCodeMap, params.value);
-      },
-      flex: 1,
-      filter: true,
-      suppressMovable: true,
-      headerClass: 'custom-header',
     },
     {
       headerName: 'Party',
       field: 'partyId',
+      ...commonColDefConfig,
       headerClass: 'custom-header custom_header_class ag-right-aligned-header',
-      flex: 1,
-      filter: true,
       editable: false,
-      suppressMovable: true,
-      cellEditor: 'agSelectCellEditor',
-      cellEditorParams: {
-        values: parties,
-        valueListMaxHeight: 120,
-        valueListMaxWidth: 172,
-        valueListGap: 8,
-      },
-      valueFormatter: (params: { value: string | number }) =>
-        lookupValue(partiesCodeMap, params.value),
     },
 
     {
       headerName: 'Balance',
       field: 'runningBalance',
       ...commonColDefConfig,
+      editable: false,
     },
     {
       headerName: 'Actions',
@@ -283,7 +197,6 @@ const DeliveryChallan = () => {
               }}
               onCellClicked={onCellClicked}
               onCellEditingStarted={cellEditingStarted}
-              //   onCellEditingStopped={handleCellEditingStopped}
             />
           </div>
           {(popupState.isModalOpen || popupState.isAlertOpen) && (
