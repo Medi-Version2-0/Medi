@@ -13,7 +13,6 @@ import { sendAPIRequest } from '../../helper/api';
 import { useParams } from 'react-router-dom';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { subgroupValidationSchema } from './validation_schema';
-import { useQuery } from '@tanstack/react-query';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
 
 
@@ -35,12 +34,6 @@ export const SubGroups = () => {
     isModalOpen: false,
     isAlertOpen: false,
     message: '',
-  });
-
-  const { data } = useQuery<SubGroupFormData[]>({
-    queryKey: ['get-groups'],
-    queryFn: () => sendAPIRequest<SubGroupFormData[]>(`/${organizationId}/group`),
-    initialData: [],
   });
 
   const pinnedRow: SubGroupFormData = {
