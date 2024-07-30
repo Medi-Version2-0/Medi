@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useUser } from '../UserContext';
 import userlogo from '../../src/assets/icons/user.png';
-import { useNavigate } from 'react-router-dom';
 import { IoSettingsOutline } from 'react-icons/io5';
 import { useControls } from '../ControlRoomContext';
 import Button from '../components/common/button/Button';
@@ -15,7 +14,6 @@ export const TopBar = () => {
   const [open, setOpen] = useState<boolean>(false);
   const [companies, setCompanies] = useState<any>([]);
   const { logout, user } = useUser();
-  const navigate = useNavigate();
   const { organizations } = useSelector((state: any) => state.global);
   const popupRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);

@@ -18,7 +18,7 @@ import { useControls } from '../../ControlRoomContext';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { stationValidationSchema } from './validation_schema';
 import { setStation } from '../../store/action/globalAction';
-import { useDispatch, useSelector } from 'react-redux'
+import { useDispatch } from 'react-redux'
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
 
 export const Stations = () => {

@@ -29,6 +29,7 @@ const UserForm = () => {
                 const { email, ...user } = values;
                 await updateUser(user);
                 navigate('/redirecttocompany')
+                console.log("User created successfully with email", email);
             } catch (error) {
                 console.error('Error:', error);
             }

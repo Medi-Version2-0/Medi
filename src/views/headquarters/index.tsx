@@ -229,7 +229,7 @@ export const Headquarters = () => {
 
   const handleCellEditingStopped = async (e: any) => {
     editing.current = false;
-    const { data, column, valueChanged, node, oldValue, newValue } = e;
+    const { data, column, node, oldValue, newValue } = e;
     if (oldValue === newValue) return;
     const field = column.colId;
 
