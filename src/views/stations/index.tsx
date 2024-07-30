@@ -294,12 +294,35 @@ export const Stations = () => {
         node.setDataValue(field, newValue);
       }
     }else{
-      await sendAPIRequest(`/${organizationId}/station/${data.station_id}`, {
-        method: 'PUT',
-        body: { [field]: newValue },
-      });
-  
-      queryClient.invalidateQueries({ queryKey: ['get-stations'] });
+      try {
+        if (!data.state_code || !data.station_name || !data.station_pinCode) {
+          setPopupState({
+            ...popupState,
+            isAlertOpen: true,
+            message: 'State code, station name, and pin code cannot be left null.',
+          });
+          node.setDataValue(field, oldValue);
+          return;
+        }
+      
+          const isValid = await stationValidationSchema.validateAt(field, { [field]: newValue });
+          if (isValid) {
+          await sendAPIRequest(`/${organizationId}/station/${data.station_id}`, {
+            method: 'PUT',
+            body: { [field]: newValue },
+          });
+        }
+        queryClient.invalidateQueries({ queryKey: ['get-stations'] });    
+      } catch (error: any) {
+        console.log("eroroorororor",error,field, oldValue)
+        setPopupState({
+          ...popupState,
+          isAlertOpen: true,
+          message: error.message,
+        });
+        node.setDataValue(field, oldValue);
+        return;
+      }
     }
   };
 
@@ -383,7 +406,7 @@ export const Stations = () => {
       cellEditorParams: {
         values: states,
         valueListMaxHeight: 120,
-        valueListMaxWidth: 192,
+        valueListMaxWidth: 230,
         valueListGap: 8,
       },
       valueFormatter: (params: { value: string | number }) =>
@@ -416,6 +439,10 @@ export const Stations = () => {
       editable: true,
       headerClass: 'custom-header custom_header_class',
       suppressMovable: true,
+      cellEditorParams: {
+        values: [],
+        maxLength: 6,
+      },
       cellRenderer: (params: any) => (
         <PlaceholderCellRenderer
           value={params.value}

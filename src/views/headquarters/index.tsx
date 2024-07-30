@@ -12,24 +12,28 @@ import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
 import { useParams } from 'react-router-dom';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
-import { useSelector } from 'react-redux'
-
-const initialValue: StationFormData = {
-  station_id: '',
-  station_name: '',
-  station_headQuarter: '',
-};
+import { useSelector, useDispatch } from 'react-redux';
+import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
+import { setStation } from '../../store/action/globalAction';
 
 export const Headquarters = () => {
+  const initialValue = {
+    station_id: '',
+    station_name: '',
+    station_headQuarter: '',
+  };
   const { organizationId } = useParams();
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState<StationFormData>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<StationFormData[]>([]);
-  const { stations: allStations } = useSelector((state: any) => state.global)
+  const { stations: allStations } = useSelector((state: any) => state.global);
+  const [filteredStations, setFilteredStations] = useState([]);
 
   const editing = useRef(false);
   const isDelete = useRef(false);
+  const gridRef = useRef<any>(null);
+  const dispatch = useDispatch()
 
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
@@ -51,11 +55,30 @@ export const Headquarters = () => {
     togglePopup(true);
     setSelectedRow(null);
   };
+
+  const filterStations =async (headQuarter?: any)=> {
+    const filtered = allStations.filter(
+      (station: any) =>
+        !headQuarter.some((hq: any) => hq.station_id === station.station_id)
+    );  
+    return filtered;
+  }
+
   const getHeadquarters = useCallback(async () => {
     const headQuarter = await sendAPIRequest<StationFormData[]>(
       `/${organizationId}/station/headQuarter`
     );
-    setTableData(headQuarter);
+    const pinnedRow = {
+      station_id: '',
+      station_name: '',
+      station_headQuarter: '',
+    };
+    setTableData([pinnedRow, ...headQuarter]);
+
+    const filteredStations = await filterStations(headQuarter);
+
+    setFilteredStations(filteredStations);
+    return headQuarter;
   }, []);
 
   useEffect(() => {
@@ -96,18 +119,27 @@ export const Headquarters = () => {
     setPopupState({ ...popupState, isModalOpen: false });
   };
 
-  const handleConfirmPopup = async () => {
+  const handleConfirmPopup = async (data?: any) => {
+    const respData = data ? data : formData;
     setPopupState({ ...popupState, isModalOpen: false });
     if (formData.station_name) {
       formData.station_name =
         formData.station_name.charAt(0).toUpperCase() +
         formData.station_name.slice(1);
     }
+
+    const payload = {
+      station_name: respData.station_name || formData.station_name,
+      station_headQuarter:
+        respData.station_headQuarter || formData.station_headQuarter,
+    };
+
     if (formData !== initialValue) {
       let id = 0;
       const mode = allStations.some((station: any) => {
         if (
-          station.station_name === formData.station_name &&
+          station.station_name ===
+            (formData.station_name || payload.station_name) &&
           station.station_headQuarter === null
         ) {
           return true;
@@ -120,19 +152,19 @@ export const Headquarters = () => {
         }
       });
       if (mode === false) {
-        await sendAPIRequest(
-          `/${organizationId}/station/headQuarter/${formData.station_id}/${id}`,
-          {
-            method: 'PUT',
-            body: formData,
-          }
-        );
+        await sendAPIRequest(`/${organizationId}/station/headQuarter/${id}`, {
+          method: 'PUT',
+          body: formData,
+        });
       } else {
         await sendAPIRequest(`/${organizationId}/station/headQuarter`, {
           method: 'POST',
-          body: formData,
+          body: payload,
         });
       }
+
+      const stations = await sendAPIRequest<any[]>(`/${organizationId}/station`);
+      dispatch(setStation(stations))
       togglePopup(false);
       getHeadquarters();
     }
@@ -171,6 +203,11 @@ export const Headquarters = () => {
         method: 'DELETE',
       }
     );
+    const updatedStation = [...allStations]
+    const stationIndex = allStations.findIndex((x:any) => x.station_id === station_id);
+    updatedStation[stationIndex] = {...updatedStation[stationIndex],station_headQuarter : null}
+    dispatch(setStation(updatedStation))
+    filterStations(updatedStation);
     getHeadquarters();
   };
 
@@ -181,15 +218,92 @@ export const Headquarters = () => {
     }
   });
 
+  const stationOptions: { [key: number]: string } = {};
+  filteredStations.forEach((data: any) => {
+    if (data.station_id !== undefined && data.station_headQuarter === null) {
+      stationOptions[+data.station_id] = data.station_name;
+    }
+  });
+
+  const stationValues = Object.keys(stationOptions).map((key) => Number(key));
+
+  const handleCellEditingStopped = async (e: any) => {
+    editing.current = false;
+    const { data, column, valueChanged, node, oldValue, newValue } = e;
+    if (oldValue === newValue) return;
+    const field = column.colId;
+
+    const stationName = await allStations.filter(
+      (e: any) => newValue === e.station_id
+    );
+
+    data[field] = field == 'station_name' ? stationName[0]?.station_name : newValue;
+
+    if (node.rowIndex === 0) {
+      if (data.station_name && data.station_headQuarter) {
+        try {
+          handleConfirmPopup(data);
+        } catch (error: any) {
+          setPopupState({
+            ...popupState,
+            isAlertOpen: true,
+            message: error.message,
+          });
+          return;
+        }
+      }
+    } else {
+      await sendAPIRequest(
+        `/${organizationId}/station/headQuarter/${data.station_id}`,
+        {
+          method: 'PUT',
+          body: { [field]: +newValue },
+        }
+      );
+      getHeadquarters();
+    }
+  };
+
+  const onCellClicked = (params: any) => {
+    setSelectedRow(selectedRow !== null ? null : params.data);
+  };
+
+  const cellEditingStarted = () => {
+    editing.current = true;
+  };
+
   const colDefs: ColDef<StationFormData>[] = [
     {
       headerName: 'Station Name',
       field: 'station_name',
       flex: 1,
       filter: true,
-      editable: false,
+      editable: (params) => params.node.rowIndex === 0,
+      cellEditor: 'agSelectCellEditor',
+      cellEditorParams: {
+        values: stationValues.length > 0 ? Object.keys(stationOptions).map((key) => Number(key)) : ['No station left'],
+        valueListMaxHeight: 120,
+        valueListMaxWidth: 308,
+        valueListGap: 8,
+      },
+      valueFormatter: (params): any => {
+        return stationOptions[Number(params.value)] || params.value;
+      },
       headerClass: 'custom-header',
       suppressMovable: true,
+      cellRenderer: (params: any) => {
+        return (
+          <PlaceholderCellRenderer  
+            value={params.valueFormatted}
+            rowIndex={params.node.rowIndex}
+            column={params.colDef}
+            startEditingCell={(editParams: any) => {
+              gridRef.current?.api?.startEditingCell(editParams);
+            }}
+            placeholderText={params.colDef.headerName}
+          />
+        );
+      },
     },
     {
       headerName: 'Headquarter',
@@ -201,13 +315,24 @@ export const Headquarters = () => {
       cellEditorParams: {
         values: Object.keys(stationHeadquarterMap).map((key) => Number(key)),
         valueListMaxHeight: 120,
-        valueListMaxWidth: 330,
+        valueListMaxWidth: 308,
         valueListGap: 8,
       },
       valueFormatter: (params) =>
         stationHeadquarterMap[Number(params.value)] || params.value,
       headerClass: 'custom-header custom_header_class',
       suppressMovable: true,
+      cellRenderer: (params: any) => (
+        <PlaceholderCellRenderer
+          value={params.valueFormatted}
+          rowIndex={params.node.rowIndex}
+          column={params.colDef}
+          startEditingCell={(editParams: any) => {
+            gridRef.current?.api?.startEditingCell(editParams);
+          }}
+          placeholderText={params.colDef.headerName}
+        />
+      ),
     },
     {
       headerName: 'Actions',
@@ -234,31 +359,6 @@ export const Headquarters = () => {
       ),
     },
   ];
-
-  const handleCellEditingStopped = async (e: any) => {
-    editing.current = false;
-    const { data, column, valueChanged } = e;
-    if (!valueChanged) return;
-
-    const field = column.colId;
-    const newValue = e.newValue;
-    await sendAPIRequest(
-      `/${organizationId}/station/headQuarter/${data.station_id}`,
-      {
-        method: 'PUT',
-        body: { [field]: +newValue },
-      }
-    );
-    getHeadquarters();
-  };
-
-  const onCellClicked = (params: any) => {
-    setSelectedRow(selectedRow !== null ? null : params.data);
-  };
-
-  const cellEditingStarted = () => {
-    editing.current = true;
-  };
 
   return (
     <>

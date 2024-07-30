@@ -31,11 +31,11 @@ const useStations = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [stationsData]);
 
   useEffect(() => {
     fetchStations();
-  }, [fetchStations]);
+  }, [fetchStations , stationsData]);
 
   return { stations, loading, error, fetchStations };
 };
