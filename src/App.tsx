@@ -18,20 +18,23 @@ import { Store } from './views/Stores';
 import { Company } from './views/company';
 import { CreateCompany } from './views/company/CreateCompany';
 import CreateItem from './views/item/create-item';
-import { AuthForm } from './components/AuthForm';
+import { AuthForm } from './components/auth/AuthForm';
 import { NotAuthorized } from './views/NotAuthrozed';
 import { ProtectedRoute } from './components/ProtectedRoute';
-import { AuthRoute } from './components/AuthRoute';
+import { AuthRoute } from './components/auth/AuthRoute';
 import RedirectToCompany from './components/RedirectToCompany';
 import Items from './views/item';
 import { ItemGroups } from './views/itemGroups';
 import { Sales_Table } from './views/sales_purchase';
 import { BillBook } from './views/BillBook';
 import DeliveryChallan from './views/DeliveryChallan';
+import { Organization } from './views/organization';
+import InitialFirmSetup from './views/home/InitialFirmSetup';
+import UserForm from './views/user/UserForm';
 
 export const App = () => {
   return (
-    <React.StrictMode>  
+    <React.StrictMode>
       <HashRouter>
         <Routes>
           <Route path='/login' element={<AuthForm isLogin={true} />} />
@@ -39,6 +42,8 @@ export const App = () => {
 
           <Route element={<AuthRoute />}>
             <Route path='/redirecttocompany' element={<RedirectToCompany />} />
+            <Route path='/user/setup' element={<UserForm />} />
+            <Route path='/company/setup' element={<InitialFirmSetup />} />
             <Route path='/' element={<Home />}>
               <Route path='/:organizationId/*' element={<AppRoot />} />
             </Route>
@@ -68,6 +73,7 @@ const AppRoot = () => {
 
   return (
     <Routes>
+      <Route path='/main' element={<Organization />} />
       <Route path='/stations' element={<Stations />} />
       <Route path='/groups' element={<Groups />} />
       <Route path='/subgroups' element={<SubGroups />} />

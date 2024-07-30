@@ -12,6 +12,7 @@ interface CustomSelectProps extends Omit<SelectProps<Option>, 'onChange'> {
   name?: string;
   labelClass?: string;
   containerClass?: string;
+  selectClass?:string;
   options: Option[];
   value: Option | null;
   onChange: (option: Option | null, id: string) => void;
@@ -41,6 +42,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   name = '',
   labelClass,
   containerClass,
+  selectClass,
   options,
   value,
   onChange,
@@ -133,7 +135,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
           }
           placeholder={hidePlaceholder ? '' : placeholder}
           isSearchable={isSearchable}
-          className={`w-full h-full text-gray-700 `}
+          className={`w-full h-full text-gray-700 ${selectClass}`}
           {...props}
           onKeyDown={handleKeyDown}
           isDisabled={isDisabled}

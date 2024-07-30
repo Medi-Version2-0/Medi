@@ -96,7 +96,7 @@ export interface ItemGroupFormDataProps {
 }
 
 export interface BatchForm {
-  id?: number ;
+  id?: number;
   itemId: number;
   batchNo: any;
   mfgCode?: string;
@@ -258,7 +258,7 @@ export interface StoreFormData {
   address1: string;
   address2: string;
   address3: string;
-  isPredefinedStore:boolean;
+  isPredefinedStore: boolean;
 }
 export interface StoreFormDataProps {
   store_name: string;
@@ -340,4 +340,19 @@ export interface ledgerSettingProps {
   fields: any;
   initialValues: any;
   className?: string;
+}
+
+export interface UserFormI {
+  id?: number;
+  name: string;
+  phoneNumber?: string;
+  altPhoneNumber?: string;
+  address?: string;
+  city?: string;
+  pinCode?: string;
+  aadharNumber?: string;
+  email: string;
+  password?: string;
+  role?: number;
+  status?: boolean;
 }

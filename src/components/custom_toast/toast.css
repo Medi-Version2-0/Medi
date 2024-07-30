@@ -1,0 +1,15 @@
+.custom-toast {
+    color: rgb(32, 33, 31);
+    text-align: center;
+    font-weight: 600;
+    padding: 20px;
+}
+
+.custom-toast-border{
+    border: 1px solid gray;
+}
+.Toastify__toast-container--top-center {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}

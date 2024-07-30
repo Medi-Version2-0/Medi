@@ -12,6 +12,9 @@ import { mediAccessToken } from './auth';
 
 export interface User {
   id: number;
+  name?:string;
+  city?:string;
+  address?:string;  
   email: string;
   permissions: string[];
   UserOrganizations: {
@@ -103,7 +106,6 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
       if (fetchRequest.error === false) {
         const parsedUser = {
           ...fetchRequest.data,
-          permissions: JSON.parse(fetchRequest.data.permissions),
         };
         localStorage.setItem(mediAccessToken, fetchRequest.access_token);
         localStorage.setItem('password', password);

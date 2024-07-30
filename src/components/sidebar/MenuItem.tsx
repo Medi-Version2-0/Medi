@@ -9,18 +9,23 @@ interface MenuItemProps {
   icon?: React.ReactElement;
   onClickIcon?: () => void;
   onClick?: () => void;
+  isDisabled?: boolean;
 }
 
 const MenuItem = ({
   id,
   label,
-  // url,
   className,
   icon,
   iconClassName,
   onClickIcon,
   onClick,
+  isDisabled = false,
 }: MenuItemProps) => {
+  if (isDisabled) {
+    return null;
+  }
+
   const handleClick = () => {
     if (onClick) {
       onClick();
@@ -31,9 +36,8 @@ const MenuItem = ({
     e.stopPropagation();
     if (onClickIcon) {
       onClickIcon();
-    }
-    else {
-      handleClick()
+    } else {
+      handleClick();
     }
   };
 

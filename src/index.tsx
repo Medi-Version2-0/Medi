@@ -7,6 +7,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ControlRoomProvider } from './ControlRoomContext';
 import { Provider } from 'react-redux';
 import configureStore from './store/configureStore';
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -22,13 +24,14 @@ const queryClient = new QueryClient({
 
 root.render(
   <Provider store={store}>
-  <QueryClientProvider client={queryClient}>
-    <UserProvider>
-      <ControlRoomProvider>
-        <App />
-      </ControlRoomProvider>
-    </UserProvider>
-  </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <UserProvider>
+        <ControlRoomProvider>
+          <App />
+        </ControlRoomProvider>
+      </UserProvider>
+      <ToastContainer />
+    </QueryClientProvider>
   </Provider>
 );
 

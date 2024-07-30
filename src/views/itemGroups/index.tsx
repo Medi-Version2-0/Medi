@@ -17,11 +17,11 @@ import { itemGroupValidationSchema } from './validation_schema';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
 
 export const ItemGroups = () => {
-const initialData = {
-  group_code: '',
-  group_name: '',
-  type: '',
-};
+  const initialData = {
+    group_code: '',
+    group_name: '',
+    type: '',
+  };
   const { organizationId } = useParams();
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<ItemGroupFormData>({
@@ -86,7 +86,7 @@ const initialData = {
       group_name: respData.group_name ? respData.group_name : formData.group_name,
       type: respData.group_name ? respData.type : formData.type,
     };
-    
+
     if (payload !== initialData) {
       if (formData.group_code) {
         await sendAPIRequest(
@@ -98,7 +98,7 @@ const initialData = {
         );
         queryClient.invalidateQueries({ queryKey: ['get-itemGroups'] });
       } else {
-        const response: any  = await sendAPIRequest(`/${organizationId}/itemGroup`, {
+        const response: any = await sendAPIRequest(`/${organizationId}/itemGroup`, {
           method: 'POST',
           body: payload,
         });
@@ -227,7 +227,7 @@ const initialData = {
       node.setDataValue(field, newValue);
     } else {
       try {
-        await itemGroupValidationSchema.validateAt(field, {[field]: newValue,});
+        await itemGroupValidationSchema.validateAt(field, { [field]: newValue, });
         await sendAPIRequest(
           `/${organizationId}/itemGroup/${data.group_code}`,
           {
@@ -252,7 +252,7 @@ const initialData = {
       const combinedData = [initialData, ...data];
       setTableData(combinedData);
     }
-};
+  };
 
   const onCellClicked = (params: { data: any }) => {
     setSelectedRow(selectedRow !== null ? null : params.data);
@@ -299,7 +299,7 @@ const initialData = {
             value={params.value}
             rowIndex={params.node.rowIndex}
             column={params.colDef}
-            startEditingCell={(editParams : any) => {
+            startEditingCell={(editParams: any) => {
               gridRef.current?.api?.startEditingCell(editParams);
             }}
             placeholderText={params.colDef.headerName}
@@ -325,7 +325,7 @@ const initialData = {
             value={params.value}
             rowIndex={params.node.rowIndex}
             column={params.colDef}
-            startEditingCell={(editParams : any) => {
+            startEditingCell={(editParams: any) => {
               gridRef.current?.api?.startEditingCell(editParams);
             }}
             placeholderText={params.colDef.headerName}
