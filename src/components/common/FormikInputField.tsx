@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Tooltip as ReactTooltip } from 'react-tooltip';
 import { FaExclamationCircle } from 'react-icons/fa';
 import titleCase from '../../utilities/titleCase';
+import defautlKeyDown from '../../utilities/formKeyDown';
 
 interface FormikInputFieldProps {
   label?: string;
@@ -10,6 +11,7 @@ interface FormikInputFieldProps {
   type?: string;
   placeholder?: string;
   isTitleCase?: boolean;
+  isUpperCase?: boolean;
   maxLength?: number;
   formik: {
     handleBlur: (e: React.FocusEvent<any>) => void;
@@ -52,6 +54,7 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
   isRequired = false,
   children,
   isTitleCase = true,
+  isUpperCase = false,
   name,
   onChange,
   onKeyDown,
@@ -81,7 +84,7 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
       target: {
         ...e.target,
         id,
-        value: isTitleCase ? titleCase(value) : value,
+        value: isTitleCase ? titleCase(value) : (isUpperCase ? value.toUpperCase() : value)
       },
     });
   };
@@ -107,6 +110,8 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
 
     if (onKeyDown) {
       onKeyDown(e);
+    } else {
+      defautlKeyDown({ e });
     }
   };
 
@@ -142,7 +147,7 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
         id={id}
         name={name}
         maxLength={maxLength}
-        className={`w-full border border-solid border-[#9ca3af] text-[12px] text-gray-800 h-full rounded-sm p-1 appearance-none disabled:text-[#A9A9A9] disabled:bg-[#f5f5f5] focus:bg-[#EAFBFCFF] ${!!(formik.touched[id] && formik.errors[id]) && '!border-red-500'} ${inputClassName}`}
+        className={`w-full border border-solid border-[#9ca3af] text-[10px] text-gray-800 h-full rounded-sm p-1 appearance-none disabled:text-[#4c4c4c] disabled:bg-[#f5f5f5] focus:rounded-none focus:!outline-yellow-500 focus:bg-[#EAFBFCFF] ${!!(formik.touched[id] && formik.errors[id]) && '!border-red-500'} ${inputClassName}`}
         onBlur={formik.handleBlur}
         onChange={onChange || handleChange}
         onKeyDown={handleKeyDown}

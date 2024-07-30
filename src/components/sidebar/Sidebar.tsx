@@ -18,6 +18,8 @@ import { Sales_Table } from '../../views/sales_purchase';
 import { BillBook } from '../../views/BillBook';
 import { PartyWiseDiscount } from '../../views/discount';
 import DeliveryChallan from '../../views/DeliveryChallan';
+import { Organization } from '../../views/organization';
+import { useSelector } from 'react-redux';
 
 type SubElementKey = 'master' | 'setup';
 
@@ -37,6 +39,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     setup: false,
   });
   const [isSidebar, setIsSidebar] = useState<boolean>(true);
+  const { permissions } = useSelector((state: any) => state.global);
 
   useEffect(() => {
     if (isGroup || isSubGroup) {
@@ -103,6 +106,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               label='Ledger'
               icon={<FaPlus className='fill-red-900' />}
               onClick={() => openTab?.('Ledger', <Ledger />)}
+              isDisabled={!permissions?.ledger?.readAccess}
             />
             <MenuItem
               url='/groups'
@@ -184,16 +188,16 @@ const Sidebar: React.FC<SidebarProps> = ({
         <div className='flex justify-between bg-[#EAFBFCFF] cursor-pointer text-base p-2 border border-solid border-[#009196FF]'>
           <span className='flex items-center gap-2'>
             <MdLibraryBooks />
-            {'  '}Sales
-          </span>
-          {<MdNavigateNext />}
-        </div>
-        <div className='flex justify-between bg-[#EAFBFCFF] cursor-pointer text-base p-2 border border-solid border-[#009196FF]'>
-          <span className='flex items-center gap-2'>
-            <MdLibraryBooks />
             Purchases
           </span>
           <MdNavigateNext />
+        </div>
+        <div className='flex justify-between bg-[#EAFBFCFF] cursor-pointer text-base p-2 border border-solid border-[#009196FF]' onClick={() => openTab?.('Main Settings', <Organization />)}>
+          <span className='flex items-center gap-2' >
+            <MdLibraryBooks />
+            {'  '}Main Settings
+          </span>
+          {<MdNavigateNext />}
         </div>
       </div>
     </div>

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Navigate, Outlet, useNavigate } from 'react-router-dom';
-import { useUser } from '../UserContext';
+import { useUser } from '../../UserContext';
 
 export const AuthRoute = () => {
   const { user } = useUser();

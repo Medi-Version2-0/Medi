@@ -203,7 +203,7 @@ export const Batch = ({
       const field = column.colId;
       if (newValue === oldValue) return;
       try {
-        if (node.rowIndex === 0) {
+        if (node.rowIndex === 0 && !isAnyFilterActive()) {
           try {
             await batchSchema.validateAt(field, { [field]: newValue });
             const newBatch = { ...inputRow, [field]: newValue };
@@ -273,7 +273,7 @@ export const Batch = ({
     if (event.code === 'Enter') {
       const focusedCell = gridRef?.current?.api.getFocusedCell();
       const lastEditedRowIndex = focusedCell?.rowIndex;
-      if (focusedCell && lastEditedRowIndex === 0) {
+      if (focusedCell && lastEditedRowIndex === 0 && !isAnyFilterActive()) {
         const validationStatus = await isPinnedRowDataCompleted();
         if (validationStatus.completed) {
           if (!editing.current) {
@@ -308,6 +308,15 @@ export const Batch = ({
         : {},
     []
   );
+
+  const isAnyFilterActive = () => {
+    const filterModel = gridRef?.current?.api.getFilterModel();
+    if (filterModel) {
+      return Object.keys(filterModel).length > 0;
+    } else {
+      return false;
+    }
+  };
 
   const defaultColDef = {
     filter: true,
