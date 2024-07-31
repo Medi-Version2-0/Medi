@@ -6,6 +6,7 @@ import titleCase from '../../utilities/titleCase';
 import { sendAPIRequest } from '../../helper/api';
 import { useParams } from 'react-router-dom';
 import onKeyDown from '../../utilities/formKeyDown';
+import { useSelector } from 'react-redux';
 
 interface GeneralInfoProps {
   onValueChange?: any;
@@ -21,7 +22,7 @@ export const GeneralInfo = ({
   groupOptions,
 }: GeneralInfoProps) => {
   const { organizationId } = useParams();
-  const [stationData, setStationData] = useState<any[]>([]);
+  const {stations : stationData} = useSelector((state:any)=> state.global)
   const [stationOptions, setStationOptions] = useState<Option[]>([]);
   const isSUNDRY =
     selectedGroup.toUpperCase() === 'SUNDRY CREDITORS' ||
@@ -29,22 +30,18 @@ export const GeneralInfo = ({
     selectedGroup.toUpperCase() === 'GENERAL GROUP' ||
     selectedGroup.toUpperCase() === 'DISTRIBUTORS, C & F';
   const [focused, setFocused] = useState('');
-  const fetchAllData = async () => {
-    const stationList = await sendAPIRequest<{ station_id: number; station_name: string }[]>(`/${organizationId}/station`);
-    setStationData(stationList);
 
+  useEffect(() => {
     setStationOptions(
-      stationList.map((station: any) => ({
+      stationData.map((station: any) => ({
         value: station.station_id,
         label: titleCase(station.station_name),
       }))
     );
-
-  };
+  }, [stationData])
 
 
   useEffect(() => {
-    fetchAllData();
     document.getElementById('partyName')?.focus();
   }, []);
 
@@ -52,7 +49,7 @@ export const GeneralInfo = ({
     if (id === 'accountGroup') {
       onValueChange(option?.label);
       const groupId = groupOptions.find(
-        (e) => e.label === option?.value
+        (e:any) => e.label === option?.value
       )?.value;
       formik.setFieldValue('accountCode', groupId);
       formik.setFieldValue(id, option?.value);
@@ -67,7 +64,7 @@ export const GeneralInfo = ({
   useEffect(() => {
     if (formik.values.stationName) {
       const matchingStation = stationData.find(
-        (station) => formik.values.station_id === station.station_id
+        (station:any) => formik.values.station_id === station.station_id
       );
       const state = matchingStation ? matchingStation.station_state : '';
       const pinCode = matchingStation ? matchingStation.station_pinCode : ' ';
@@ -140,7 +137,7 @@ export const GeneralInfo = ({
                     ? null
                     : {
                         label: groupOptions.find(
-                          (e) => e.value === formik.values.accountGroup
+                          (e: any) => e.value === formik.values.accountGroup
                         )?.label,
                         value: formik.values.accountGroup,
                       }

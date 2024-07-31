@@ -15,6 +15,8 @@ import { useParams } from 'react-router-dom';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { itemGroupValidationSchema } from './validation_schema';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
+import { setItemGroups } from '../../store/action/globalAction';
+import { useDispatch } from 'react-redux'
 
 export const ItemGroups = () => {
   const initialData = {
@@ -33,6 +35,7 @@ export const ItemGroups = () => {
   const [tableData, setTableData] = useState<ItemGroupFormData | any>(null);
   const queryClient = useQueryClient();
   const editing = useRef(false);
+  const dispatch = useDispatch()
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
@@ -126,6 +129,7 @@ export const ItemGroups = () => {
   };
 
   const getGroups = async () => {
+    dispatch(setItemGroups(data))
     if (Array.isArray(data)) {
       setTableData([initialData, ...data]);
     }
@@ -139,6 +143,7 @@ export const ItemGroups = () => {
     await sendAPIRequest(`/${organizationId}/itemGroup/${group_code}`, {
       method: 'DELETE',
     });
+    dispatch(setItemGroups(tableData?.filter((x:any)=> x.group_code !== group_code)))
     queryClient.invalidateQueries({ queryKey: ['get-itemGroups'] });
   };
 

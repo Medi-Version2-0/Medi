@@ -22,7 +22,7 @@ export const CreateCompany = ({ setView , data }: any) => {
   const [purchaseOptions, setPurchaseOptions] = useState<Option[]>([]);
   const [focused, setFocused] = useState('');
   const queryClient = useQueryClient();
-  const { stations } = useSelector((state: any) => state.global)
+  const { stations, sales: salesList, purchase: purchaseList } = useSelector((state: any) => state.global)
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
@@ -80,9 +80,7 @@ export const CreateCompany = ({ setView , data }: any) => {
   });
 
 
-  const fetchAllData = async () => {
-    const salesList = await sendAPIRequest<any[]>(`/${organizationId}/sale`);
-    const purchaseList = await sendAPIRequest<any[]>(`/${organizationId}/purchase`);
+  useEffect(() => {
     setStationOptions(
       stations.map((station: any) => ({
         value: station.station_id,
@@ -97,16 +95,15 @@ export const CreateCompany = ({ setView , data }: any) => {
       }))
     );
 
-    setPurchaseOptions(
-      purchaseList.map((purchase: any) => ({
-        value: purchase.sp_id,
-        label: titleCase(purchase.sptype),
-      }))
-    );
-  };
+  setPurchaseOptions(
+    purchaseList.map((purchase: any) => ({
+      value: purchase.sp_id,
+      label: titleCase(purchase.sptype),
+    }))
+  );
+  }, [stations, salesList, purchaseList])
 
   useEffect(() => {
-    fetchAllData();
     document.getElementById('companyName')?.focus();
   }, [stations]);
 

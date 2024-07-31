@@ -1,4 +1,4 @@
-import { SET_STATION, SET_GROUPS, SET_ORGANIZATION, SET_PERMISSIONS, GlobalActionTypes } from '../types/globalTypes';
+import { SET_STATION, SET_GROUPS, SET_ORGANIZATION, SET_PERMISSIONS, GlobalActionTypes, SET_SALES, SET_PURCHASE, SET_COMPANY, SET_ITEMGROUP } from '../types/globalTypes';
 
 export const setStation = (station: any): GlobalActionTypes => ({
   type: SET_STATION,
@@ -18,4 +18,24 @@ export const setOrganization = (organizations: any): GlobalActionTypes => ({
 export const setPermissions = (permissions: any): GlobalActionTypes => ({
   type: SET_PERMISSIONS,
   payload: permissions,
+});
+
+export const setSales = (sales: any): GlobalActionTypes => ({
+  type: SET_SALES,
+  payload: sales,
+});
+
+export const setPurchase = (purchase: any): GlobalActionTypes => ({
+  type: SET_PURCHASE,
+  payload: purchase,
+});
+
+export const setCompany = (company: any): GlobalActionTypes => ({
+  type: SET_COMPANY,
+  payload: company,
+});
+
+export const setItemGroups = (itemGroups: any): GlobalActionTypes => ({
+  type: SET_ITEMGROUP,
+  payload: itemGroups,
 });

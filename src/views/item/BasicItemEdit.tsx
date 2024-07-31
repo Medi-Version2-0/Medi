@@ -10,6 +10,7 @@ import { FormikProps } from 'formik';
 import onKeyDown from '../../utilities/formKeyDown';
 import ImagePreview from '../../components/common/files/ImagePreview';
 const root = process.env.REACT_APP_API_URL;
+import { useSelector } from 'react-redux'
 
 interface BasicItemEditProps {
   formik: ItemFormInfoType;
@@ -192,20 +193,8 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
   });
   const [focused, setFocused] = useState('');
   const [salePurchase, setSalePurchase] = useState<any>('');
-
-  const fetchAllData = async () => {
-    const companies = await sendAPIRequest<any[]>(`/${organizationId}/company`);
-    const salesList = await sendAPIRequest<any[]>(`/${organizationId}/sale`);
-    const purchaseList = await sendAPIRequest<any[]>(
-      `/${organizationId}/purchase`
-    );
-    const groups = await sendAPIRequest<ItemGroupFormData[]>(
-      `/${organizationId}/itemGroup`,
-      {
-        method: 'GET',
-      }
-    );
-
+  const { company: companies ,sales: salesList, purchase: purchaseList, itemGroups } = useSelector((state: any) => state.global)
+  useEffect(() => {
     setOptions((prevOption) => ({
       ...prevOption,
       company: companies,
@@ -230,28 +219,12 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
     }));
     setOptions((prevOption) => ({
       ...prevOption,
-      groupOptions: groups.map((group: any) => ({
+      groupOptions: itemGroups.map((group: any) => ({
         value: group.group_code,
         label: group.group_name,
       })),
     }));
-  };
-
-  useEffect(() => {
-    fetchAllData();
-    if (formik.values.compId && options?.company) {
-      const selectedCompany = options.company.find((company: any) => company.company_id === formik.values.compId);
-      if (selectedCompany) {
-        setSalePurchase && setSalePurchase({
-          saleId: selectedCompany.salesId,
-          purchaseId: selectedCompany.purchaseId,
-          salePurchase: selectedCompany.purSaleAc,
-          discPercent: selectedCompany.discPercent,
-          isDiscountPercent: selectedCompany.isDiscountPercent
-        });
-      }
-    }
-  }, []);
+  }, [companies , salesList, purchaseList, itemGroups])
 
   useEffect(() => {
     const setForm = () => {
