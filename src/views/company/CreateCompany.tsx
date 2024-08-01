@@ -7,7 +7,7 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import FormikInputField from '../../components/common/FormikInputField';
 import { getCompanyFormSchema } from './validation_schema';
-import { CompanyFormData, Option } from '../../interface/global';
+import { CompanyFormData, Option, StationFormData, SalesPurchaseFormData } from '../../interface/global';
 import CustomSelect from '../../components/custom_select/CustomSelect';
 import onKeyDown from '../../utilities/formKeyDown';
 import titleCase from '../../utilities/titleCase';
@@ -22,7 +22,7 @@ export const CreateCompany = ({ setView , data }: any) => {
   const [purchaseOptions, setPurchaseOptions] = useState<Option[]>([]);
   const [focused, setFocused] = useState('');
   const queryClient = useQueryClient();
-  const { stations } = useSelector((state: any) => state.global)
+  const { stations, sales: salesList, purchase: purchaseList } = useSelector((state: any) => state.global)
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
@@ -80,33 +80,34 @@ export const CreateCompany = ({ setView , data }: any) => {
   });
 
 
-  const fetchAllData = async () => {
-    const salesList = await sendAPIRequest<any[]>(`/${organizationId}/sale`);
-    const purchaseList = await sendAPIRequest<any[]>(`/${organizationId}/purchase`);
+  useEffect(() => {
     setStationOptions(
-      stations.map((station: any) => ({
+      stations.map((station: StationFormData) => ({
         value: station.station_id,
         label: titleCase(station.station_name),
       }))
     );
-
-    setSalesOptions(
-      salesList.map((sales: any) => ({
-        value: sales.sp_id,
-        label: titleCase(sales.sptype),
-      }))
-    );
-
-    setPurchaseOptions(
-      purchaseList.map((purchase: any) => ({
-        value: purchase.sp_id,
-        label: titleCase(purchase.sptype),
-      }))
-    );
-  };
+  }, [stations])
 
   useEffect(() => {
-    fetchAllData();
+    setSalesOptions(
+      salesList.map((sales: SalesPurchaseFormData) => ({
+        value: sales.sp_id,
+        label: titleCase(sales.sptype ?? ''),
+      }))
+    );
+  }, [salesList])
+
+  useEffect(() => {
+    setPurchaseOptions(
+      purchaseList.map((purchase: SalesPurchaseFormData) => ({
+        value: purchase.sp_id,
+        label: titleCase(purchase.sptype ?? ''),
+      }))
+    );
+  }, [purchaseList])
+
+  useEffect(() => {
     document.getElementById('companyName')?.focus();
   }, [stations]);
 

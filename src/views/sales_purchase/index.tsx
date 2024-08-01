@@ -13,6 +13,8 @@ import { CreateSalePurchase } from './CreateSalePurchase';
 import { sendAPIRequest } from '../../helper/api';
 import { useParams } from 'react-router-dom';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
+import { useDispatch } from 'react-redux'
+import { setSales, setPurchase } from '../../store/action/globalAction';
 
 const initialValue: SalesPurchaseFormData = {
   sptype: '',
@@ -24,6 +26,7 @@ const initialValue: SalesPurchaseFormData = {
 
 const useSalesData = (type: string, organizationId?: string) => {
   const [tableData, setTableData] = useState<SalesPurchaseFormData[]>([]);
+  const dispatch = useDispatch()
 
   const getSalesData = async () => {
     const endpoint =
@@ -31,6 +34,7 @@ const useSalesData = (type: string, organizationId?: string) => {
         ? `/${organizationId}/sale`
         : `/${organizationId}/purchase`;
     const data = await sendAPIRequest<SalesPurchaseFormData[]>(endpoint);
+    type === 'Sales' ? dispatch(setSales(data)) : dispatch(setPurchase(data));
     setTableData(data);
   };
 
@@ -53,6 +57,7 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
   });
   const editing = useRef(false);
   const isDelete = useRef(false);
+  const dispatch = useDispatch()
 
   const { tableData, getSalesData } = useSalesData(type, organizationId);
 
@@ -172,6 +177,8 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
     const endpoint = `${endPoint}/${sp_id}`;
     togglePopup(false);
     await sendAPIRequest(endpoint, { method: 'DELETE' });
+    const filteredData = tableData?.filter((x: SalesPurchaseFormData) => x.sp_id !== sp_id);
+    type === 'Sales' ? dispatch(setSales(filteredData)) : dispatch(setPurchase(filteredData));
     getSalesData();
   };
 

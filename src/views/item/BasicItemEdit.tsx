@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ItemFormValues, ItemFormInfoType } from './create-item';
 import CustomSelect from '../../components/custom_select/CustomSelect';
 import FormikInputField from '../../components/common/FormikInputField';
-import { ItemGroupFormData, Option } from '../../interface/global';
+import { ItemGroupFormData, Option, CompanyFormData, SalesPurchaseFormData   } from '../../interface/global';
 import { sendAPIRequest } from '../../helper/api';
 import { useParams } from 'react-router-dom';
 import { useControls } from '../../ControlRoomContext';
@@ -10,6 +10,7 @@ import { FormikProps } from 'formik';
 import onKeyDown from '../../utilities/formKeyDown';
 import ImagePreview from '../../components/common/files/ImagePreview';
 const root = process.env.REACT_APP_API_URL;
+import { useSelector } from 'react-redux'
 
 interface BasicItemEditProps {
   formik: ItemFormInfoType;
@@ -192,66 +193,47 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
   });
   const [focused, setFocused] = useState('');
   const [salePurchase, setSalePurchase] = useState<any>('');
-
-  const fetchAllData = async () => {
-    const companies = await sendAPIRequest<any[]>(`/${organizationId}/company`);
-    const salesList = await sendAPIRequest<any[]>(`/${organizationId}/sale`);
-    const purchaseList = await sendAPIRequest<any[]>(
-      `/${organizationId}/purchase`
-    );
-    const groups = await sendAPIRequest<ItemGroupFormData[]>(
-      `/${organizationId}/itemGroup`,
-      {
-        method: 'GET',
-      }
-    );
-
+  const { company: companies ,sales: salesList, purchase: purchaseList, itemGroups } = useSelector((state: any) => state.global)
+  useEffect(() => {
     setOptions((prevOption) => ({
       ...prevOption,
       company: companies,
-      companiesOptions: companies.map((company: any) => ({
+      companiesOptions: companies.map((company: CompanyFormData) => ({
         value: company.company_id,
         label: company.companyName,
       })),
     }));
+  }, [companies])
+
+  useEffect(() => {
     setOptions((prevOption) => ({
       ...prevOption,
-      salesOptions: salesList.map((sales: any) => ({
+      salesOptions: salesList.map((sales: SalesPurchaseFormData) => ({
         value: sales.sp_id,
         label: sales.sptype,
       })),
     }));
+  }, [salesList])
+
+  useEffect(() => {
     setOptions((prevOption) => ({
       ...prevOption,
-      purchaseOptions: purchaseList.map((purchase: any) => ({
+      purchaseOptions: purchaseList.map((purchase: SalesPurchaseFormData) => ({
         value: purchase.sp_id,
         label: purchase.sptype,
       })),
     }));
+  }, [purchaseList])
+
+  useEffect(() => {
     setOptions((prevOption) => ({
       ...prevOption,
-      groupOptions: groups.map((group: any) => ({
+      groupOptions: itemGroups.map((group: ItemGroupFormData) => ({
         value: group.group_code,
         label: group.group_name,
       })),
     }));
-  };
-
-  useEffect(() => {
-    fetchAllData();
-    if (formik.values.compId && options?.company) {
-      const selectedCompany = options.company.find((company: any) => company.company_id === formik.values.compId);
-      if (selectedCompany) {
-        setSalePurchase && setSalePurchase({
-          saleId: selectedCompany.salesId,
-          purchaseId: selectedCompany.purchaseId,
-          salePurchase: selectedCompany.purSaleAc,
-          discPercent: selectedCompany.discPercent,
-          isDiscountPercent: selectedCompany.isDiscountPercent
-        });
-      }
-    }
-  }, []);
+  }, [itemGroups])
 
   useEffect(() => {
     const setForm = () => {

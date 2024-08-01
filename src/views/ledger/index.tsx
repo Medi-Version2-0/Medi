@@ -20,6 +20,7 @@ import { ledgerSettingFields } from '../../components/common/controlRoom/setting
 import { CreateLedger } from './CreateLedger';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { useSelector } from 'react-redux'
+import usePermission from '../../hooks/useRole';
 
 const ledgerValidationSchema = Yup.object().shape({
   partyName: Yup.string()
@@ -66,7 +67,7 @@ export const Ledger = () => {
   });
 
   const { controlRoomSettings } = useControls();
-
+  const permissions = usePermission('ledger')
   const initialValues = {
     multiplePriceList: controlRoomSettings.multiplePriceList || true,
     printPartyBalance: controlRoomSettings.printPartyBalance || false,
@@ -281,7 +282,7 @@ export const Ledger = () => {
       },
       cellRenderer: (params: { data: any }) => (
         <div className='table_edit_buttons'>
-          <FaEdit
+          {permissions.updateAccess && <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
             onClick={() => {
               if (params.data.isPredefinedLedger) {
@@ -294,8 +295,8 @@ export const Ledger = () => {
                 setView({ type: 'add', data: params.data });
               }
             }}
-          />
-          <MdDeleteForever
+          />}
+          {permissions.deleteAccess &&<MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
             onClick={() => {
               if (params.data.isPredefinedLedger) {
@@ -308,7 +309,7 @@ export const Ledger = () => {
                 handleDelete(params.data);
               }
             }}
-          />
+          />}
         </div>
       ),
     },
@@ -331,6 +332,7 @@ export const Ledger = () => {
             <Button
               type='highlight'
               handleOnClick={() => setView({ type: 'add', data: {} })}
+              disable={!permissions.createAccess}
             >
               Add Ledger
             </Button>

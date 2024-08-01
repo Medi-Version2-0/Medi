@@ -14,10 +14,11 @@ import Button from '../../components/common/button/Button';
 import { getLedgerFormValidationSchema } from './validation_schema';
 import { sendAPIRequest } from '../../helper/api';
 import titleCase from '../../utilities/titleCase';
-import { Option } from '../../interface/global';
+import { Option, GroupFormData, StationFormData } from '../../interface/global';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { useQueryClient } from '@tanstack/react-query';
+import { useSelector } from 'react-redux';
 
 const initialState = {
   btn_1: false,
@@ -28,7 +29,8 @@ const initialState = {
 
 export const CreateLedger = ({ setView, data }: any) => {
   const { organizationId } = useParams();
-  const [stationData, setStationData] = useState<any[]>([]);
+  const {stations} = useSelector((state:any)=> state.global)
+  const {groups : groupDataList} = useSelector((state:any)=> state.global)
   const [showActiveElement, setShowActiveElement] = useState(initialState);
   const [groupOptions, setGroupOptions] = useState<Option[]>([]);
   const [isSUNDRY, setIsSUNDRY] = useState(false);
@@ -41,25 +43,14 @@ export const CreateLedger = ({ setView, data }: any) => {
 
   const prevClass = useRef('');
 
-  const fetchAllData = async () => {
-    const groupDataList = await sendAPIRequest<any[]>(
-      `/${organizationId}/group`
-    );
-    const stationList = await sendAPIRequest<
-      { station_id: number; station_name: string }[]
-    >(`/${organizationId}/station`);
-    setStationData(stationList);
+  useEffect(() => {
     setGroupOptions(
-      groupDataList.map((group) => ({
+      groupDataList.map((group: GroupFormData) => ({
         value: group.group_code,
         label: titleCase(group.group_name),
       }))
     );
-  };
-
-  useEffect(() => {
-    fetchAllData();
-  }, []);
+  }, [groupDataList])
 
   const initialValues = useMemo(
     () => ({
@@ -118,8 +109,8 @@ export const CreateLedger = ({ setView, data }: any) => {
     validateOnMount: true,
     onSubmit: async (values) => {
       const formattedOpeningBal = values.openingBal ? parseFloat(values.openingBal).toFixed(2) : null;
-      const matchingStation = stationData.find(
-        (station) => values.station_id === station.station_id
+      const matchingStation = stations.find(
+        (station:StationFormData) => values.station_id === station.station_id
       );
       const allData = {
         ...values,

@@ -14,6 +14,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import { groupValidationSchema } from './validation_schema';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
+import { useDispatch } from 'react-redux'
+import { setGroups } from '../../store/action/globalAction';
 
 
 export const Groups = () => {
@@ -42,6 +44,7 @@ export const Groups = () => {
   };
   const [subgroups, setSubgroups] = useState<GroupFormData[]>([]);
   const gridRef = useRef<any>(null);
+  const dispatch = useDispatch()
 
   const { data } = useQuery<GroupFormData[]>({
     queryKey: ['get-groups'],
@@ -151,6 +154,7 @@ export const Groups = () => {
     await sendAPIRequest(`/${organizationId}/group/${group_code}`, {
       method: 'DELETE',
     });
+    dispatch(setGroups(tableData?.filter((x:GroupFormData)=> x.group_code !== group_code)))
     queryClient.invalidateQueries({ queryKey: ['get-groups'] });
     getGroups();
   };
@@ -346,6 +350,7 @@ export const Groups = () => {
       const fetchedData = await sendAPIRequest<GroupFormData[]>(
         `/${organizationId}/group`
       );
+      dispatch(setGroups(fetchedData))
       setTableData([initialValue, ...fetchedData]);
       return fetchedData;
     } catch (error) {

@@ -4,7 +4,7 @@ import { FaEdit } from 'react-icons/fa';
 import { MdDeleteForever } from 'react-icons/md';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
-import { CompanyFormData, View } from '../../interface/global';
+import { CompanyFormData, View, } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { useParams } from 'react-router-dom';
 import { ValueFormatterParams } from 'ag-grid-community';
@@ -15,6 +15,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { getCompanyFormSchema } from './validation_schema';
 import { useSelector } from 'react-redux';
+import { setCompany } from '../../store/action/globalAction';
+import { useDispatch } from 'react-redux'
 
 export const Company = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
@@ -24,7 +26,8 @@ export const Company = () => {
   const { stations: stationData } = useSelector((state: any) => state.global)
 
   const editing = useRef(false);
-  const companyId = useRef('');
+  const companyId = useRef<string>('');
+  const dispatch = useDispatch()
   const queryClient = useQueryClient();
   let currTable: any[] = [];
   const [popupState, setPopupState] = useState({
@@ -45,6 +48,7 @@ export const Company = () => {
   });
   const getCompanyData = async () => {
     const data = await sendAPIRequest<any[]>(`/${organizationId}/company`);
+    dispatch(setCompany(data))
     setTableData(data);
   };
 
@@ -108,6 +112,8 @@ export const Company = () => {
     await sendAPIRequest(`/${organizationId}/company/${companyId.current}`, {
       method: 'DELETE',
     });
+    console.log("tableData------->",tableData)
+    dispatch(setCompany(tableData?.filter((x:CompanyFormData)=> x.company_id !== companyId.current)))
     await queryClient.invalidateQueries({ queryKey: ['get-companies'] });
   };
 
