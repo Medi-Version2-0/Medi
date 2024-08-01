@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Option } from '../../interface/global';
+import { Option, StationFormData } from '../../interface/global';
 import CustomSelect from '../custom_select/CustomSelect';
 import FormikInputField from '../common/FormikInputField';
 import titleCase from '../../utilities/titleCase';
@@ -33,7 +33,7 @@ export const GeneralInfo = ({
 
   useEffect(() => {
     setStationOptions(
-      stationData.map((station: any) => ({
+      stationData.map((station: StationFormData) => ({
         value: station.station_id,
         label: titleCase(station.station_name),
       }))
@@ -49,7 +49,7 @@ export const GeneralInfo = ({
     if (id === 'accountGroup') {
       onValueChange(option?.label);
       const groupId = groupOptions.find(
-        (e:any) => e.label === option?.value
+        (e:Option) => e.label === option?.value
       )?.value;
       formik.setFieldValue('accountCode', groupId);
       formik.setFieldValue(id, option?.value);
@@ -64,7 +64,7 @@ export const GeneralInfo = ({
   useEffect(() => {
     if (formik.values.stationName) {
       const matchingStation = stationData.find(
-        (station:any) => formik.values.station_id === station.station_id
+        (station:StationFormData) => formik.values.station_id === station.station_id
       );
       const state = matchingStation ? matchingStation.station_state : '';
       const pinCode = matchingStation ? matchingStation.station_pinCode : ' ';
@@ -137,7 +137,7 @@ export const GeneralInfo = ({
                     ? null
                     : {
                         label: groupOptions.find(
-                          (e: any) => e.value === formik.values.accountGroup
+                          (e: Option) => e.value === formik.values.accountGroup
                         )?.label,
                         value: formik.values.accountGroup,
                       }

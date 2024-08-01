@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ItemFormValues, ItemFormInfoType } from './create-item';
 import CustomSelect from '../../components/custom_select/CustomSelect';
 import FormikInputField from '../../components/common/FormikInputField';
-import { ItemGroupFormData, Option } from '../../interface/global';
+import { ItemGroupFormData, Option, CompanyFormData, SalesPurchaseFormData   } from '../../interface/global';
 import { sendAPIRequest } from '../../helper/api';
 import { useParams } from 'react-router-dom';
 import { useControls } from '../../ControlRoomContext';
@@ -198,33 +198,42 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
     setOptions((prevOption) => ({
       ...prevOption,
       company: companies,
-      companiesOptions: companies.map((company: any) => ({
+      companiesOptions: companies.map((company: CompanyFormData) => ({
         value: company.company_id,
         label: company.companyName,
       })),
     }));
+  }, [companies])
+
+  useEffect(() => {
     setOptions((prevOption) => ({
       ...prevOption,
-      salesOptions: salesList.map((sales: any) => ({
+      salesOptions: salesList.map((sales: SalesPurchaseFormData) => ({
         value: sales.sp_id,
         label: sales.sptype,
       })),
     }));
+  }, [salesList])
+
+  useEffect(() => {
     setOptions((prevOption) => ({
       ...prevOption,
-      purchaseOptions: purchaseList.map((purchase: any) => ({
+      purchaseOptions: purchaseList.map((purchase: SalesPurchaseFormData) => ({
         value: purchase.sp_id,
         label: purchase.sptype,
       })),
     }));
+  }, [purchaseList])
+
+  useEffect(() => {
     setOptions((prevOption) => ({
       ...prevOption,
-      groupOptions: itemGroups.map((group: any) => ({
+      groupOptions: itemGroups.map((group: ItemGroupFormData) => ({
         value: group.group_code,
         label: group.group_name,
       })),
     }));
-  }, [companies , salesList, purchaseList, itemGroups])
+  }, [itemGroups])
 
   useEffect(() => {
     const setForm = () => {

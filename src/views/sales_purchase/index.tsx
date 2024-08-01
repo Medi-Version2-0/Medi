@@ -177,7 +177,7 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
     const endpoint = `${endPoint}/${sp_id}`;
     togglePopup(false);
     await sendAPIRequest(endpoint, { method: 'DELETE' });
-    const filteredData = tableData?.filter((x: any) => x.sp_id !== sp_id);
+    const filteredData = tableData?.filter((x: SalesPurchaseFormData) => x.sp_id !== sp_id);
     type === 'Sales' ? dispatch(setSales(filteredData)) : dispatch(setPurchase(filteredData));
     getSalesData();
   };

@@ -7,7 +7,7 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import FormikInputField from '../../components/common/FormikInputField';
 import { getCompanyFormSchema } from './validation_schema';
-import { CompanyFormData, Option } from '../../interface/global';
+import { CompanyFormData, Option, StationFormData, SalesPurchaseFormData } from '../../interface/global';
 import CustomSelect from '../../components/custom_select/CustomSelect';
 import onKeyDown from '../../utilities/formKeyDown';
 import titleCase from '../../utilities/titleCase';
@@ -82,26 +82,30 @@ export const CreateCompany = ({ setView , data }: any) => {
 
   useEffect(() => {
     setStationOptions(
-      stations.map((station: any) => ({
+      stations.map((station: StationFormData) => ({
         value: station.station_id,
         label: titleCase(station.station_name),
       }))
     );
+  }, [stations])
 
+  useEffect(() => {
     setSalesOptions(
-      salesList.map((sales: any) => ({
+      salesList.map((sales: SalesPurchaseFormData) => ({
         value: sales.sp_id,
-        label: titleCase(sales.sptype),
+        label: titleCase(sales.sptype ?? ''),
       }))
     );
+  }, [salesList])
 
-  setPurchaseOptions(
-    purchaseList.map((purchase: any) => ({
-      value: purchase.sp_id,
-      label: titleCase(purchase.sptype),
-    }))
-  );
-  }, [stations, salesList, purchaseList])
+  useEffect(() => {
+    setPurchaseOptions(
+      purchaseList.map((purchase: SalesPurchaseFormData) => ({
+        value: purchase.sp_id,
+        label: titleCase(purchase.sptype ?? ''),
+      }))
+    );
+  }, [purchaseList])
 
   useEffect(() => {
     document.getElementById('companyName')?.focus();

@@ -154,7 +154,7 @@ export const Groups = () => {
     await sendAPIRequest(`/${organizationId}/group/${group_code}`, {
       method: 'DELETE',
     });
-    dispatch(setGroups(tableData?.filter((x:any)=> x.group_code !== group_code)))
+    dispatch(setGroups(tableData?.filter((x:GroupFormData)=> x.group_code !== group_code)))
     queryClient.invalidateQueries({ queryKey: ['get-groups'] });
     getGroups();
   };

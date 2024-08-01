@@ -14,7 +14,7 @@ import Button from '../../components/common/button/Button';
 import { getLedgerFormValidationSchema } from './validation_schema';
 import { sendAPIRequest } from '../../helper/api';
 import titleCase from '../../utilities/titleCase';
-import { Option } from '../../interface/global';
+import { Option, GroupFormData, StationFormData } from '../../interface/global';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { useQueryClient } from '@tanstack/react-query';
@@ -45,7 +45,7 @@ export const CreateLedger = ({ setView, data }: any) => {
 
   useEffect(() => {
     setGroupOptions(
-      groupDataList.map((group: any) => ({
+      groupDataList.map((group: GroupFormData) => ({
         value: group.group_code,
         label: titleCase(group.group_name),
       }))
@@ -110,7 +110,7 @@ export const CreateLedger = ({ setView, data }: any) => {
     onSubmit: async (values) => {
       const formattedOpeningBal = values.openingBal ? parseFloat(values.openingBal).toFixed(2) : null;
       const matchingStation = stations.find(
-        (station:any) => values.station_id === station.station_id
+        (station:StationFormData) => values.station_id === station.station_id
       );
       const allData = {
         ...values,
