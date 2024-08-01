@@ -1,3 +1,4 @@
+import { ThunkDispatch } from "redux-thunk";
 export interface GlobalState {
   stations: any;
   groups: any;
@@ -58,3 +59,4 @@ interface SetItemGroupAction {
   payload: any;
 }
 export type GlobalActionTypes = SetStationAction | SetGroupsAction | SetOrganizationAction | SetPermissionsAction | SetSalesAction | SetPurchaseAction | SetCompanyAction | SetItemGroupAction;
+export type AppDispatch = ThunkDispatch<GlobalState, void, GlobalActionTypes>;

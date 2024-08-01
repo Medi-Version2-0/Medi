@@ -15,14 +15,19 @@ import { userValidationSchema } from './validation_schema';
 import { getUserPermissions, updateUserPermissions } from '../../api/permissionsApi';
 import { insertOrganizationUser, updateOrganizationUser } from '../../api/organizationUserApi';
 import useToastManager from '../../helper/toastManager';
+import { useDispatch } from 'react-redux';
+import { AppDispatch } from '../../store/types/globalTypes';
+import { getAndSetPermssions } from '../../store/action/globalAction';
 
 const ResourcePermissionsGrid: React.FC<ResourcePermissionsGridProps> = ({ user, onCancel }) => {
     const { organizationId } = useParams();
     const gridRef = useRef<any>(null);
     const { successToast, errorToast } = useToastManager();
+    const dispatch = useDispatch<AppDispatch>()
     const [rowData, setRowData] = useState<ResourceI[]>([{
         id: 0,
         name: '',
+        value : '',
         description: '',
         RolePermission: {
             createAccess: false,
@@ -140,6 +145,7 @@ const ResourcePermissionsGrid: React.FC<ResourcePermissionsGridProps> = ({ user,
                 Resources: permissionsData
             }
             await updateUserPermissions(Number(organizationId), userId, data);
+            dispatch(getAndSetPermssions(organizationId))
         } catch (error) {
             console.error("Error saving permissions:-", error);
         }

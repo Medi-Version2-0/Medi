@@ -93,6 +93,7 @@ export interface OrganizationI {
 
 export interface ResourceI {
     id: number;
+    value: string;
     name: string;
     description: string;
     RolePermission: {

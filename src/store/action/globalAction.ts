@@ -1,4 +1,7 @@
-import { SET_STATION, SET_GROUPS, SET_ORGANIZATION, SET_PERMISSIONS, GlobalActionTypes, SET_SALES, SET_PURCHASE, SET_COMPANY, SET_ITEMGROUP } from '../types/globalTypes';
+import { Dispatch } from 'redux';
+import { getUserPermissions } from '../../api/permissionsApi';
+import { ResourceI } from '../../views/organization/types';
+import { SET_STATION, SET_GROUPS, SET_ORGANIZATION, SET_PERMISSIONS, GlobalActionTypes, SET_SALES, SET_PURCHASE, SET_COMPANY, SET_ITEMGROUP, GlobalState } from '../types/globalTypes';
 
 export const setStation = (station: any): GlobalActionTypes => ({
   type: SET_STATION,
@@ -19,6 +22,26 @@ export const setPermissions = (permissions: any): GlobalActionTypes => ({
   type: SET_PERMISSIONS,
   payload: permissions,
 });
+
+export const getAndSetPermssions = (organizationId: string|undefined) => async (dispatch: Dispatch<GlobalActionTypes>) => {
+  const userRole: any = await getUserPermissions(Number(organizationId), Number(1));
+  const permissions: any = {};
+  userRole.role.Resources.forEach((resource: ResourceI) => {
+    if (resource.RolePermission) {
+      const { value } = resource;
+      permissions[value.toLowerCase()] = {
+        createAccess: resource.RolePermission.createAccess,
+        readAccess: resource.RolePermission.readAccess,
+        updateAccess: resource.RolePermission.updateAccess,
+        deleteAccess: resource.RolePermission.deleteAccess
+      };
+    }
+  });
+  dispatch({
+    type: SET_PERMISSIONS,
+    payload: permissions,
+  });
+}
 
 export const setSales = (sales: any): GlobalActionTypes => ({
   type: SET_SALES,
