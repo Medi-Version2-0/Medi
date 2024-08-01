@@ -27,6 +27,7 @@ import PriceList from './PriceList';
 import SearchItem from './searchItem';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { itemFormValidations } from './validation_schema';
+import usePermission from '../../hooks/useRole';
 
 const initialPopupState = {
   setting: false,
@@ -57,7 +58,7 @@ const Items = () => {
     isAlertOpen: false,
     message: '',
   });
-
+  const { createAccess, updateAccess, deleteAccess } = usePermission('items')
   const itemSettingsInitialValues = {
     generateBarcodeBatchWise:
       controlRoomSettings.generateBarcodeBatchWise || false,
@@ -348,17 +349,17 @@ const Items = () => {
       },
       cellRenderer: (params: { data: any }) => (
         <div className='table_edit_buttons'>
-          <FaEdit
+          {updateAccess && <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
             onClick={() => {
               setView({ type: 'add', data: params.data });
             }}
-          />
+          />}
 
-          <MdDeleteForever
+          {deleteAccess && <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
             onClick={() => handleDelete(params.data)}
-          />
+          />}
         </div>
       ),
     },
@@ -401,14 +402,14 @@ const Items = () => {
                 >
                   <GiHamburgerMenu className='text-xl' />
                 </DropdownTippy>
-                <Button
+                {createAccess && <Button
                   type='highlight'
                   handleOnClick={() => {
                     setView({ type: 'add', data: {} });
                   }}
                 >
                   Add Item
-                </Button>
+                </Button>}
               </div>
             </div>
 

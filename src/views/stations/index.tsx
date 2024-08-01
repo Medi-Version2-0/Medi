@@ -20,6 +20,7 @@ import { stationValidationSchema } from './validation_schema';
 import { setStation } from '../../store/action/globalAction';
 import { useDispatch } from 'react-redux'
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
+import usePermission from '../../hooks/useRole';
 
 export const Stations = () => {
   const initialValue = {
@@ -41,6 +42,7 @@ export const Stations = () => {
   const dispatch = useDispatch()
   let currTable: any[] = [];
   const gridRef = useRef<any>(null);
+  const { createAccess, updateAccess, deleteAccess } = usePermission('items')
 
   const { controlRoomSettings } = useControls();
 
@@ -82,7 +84,7 @@ export const Stations = () => {
   const getStations = async () => {
     const stations = await sendAPIRequest<any[]>(`/${organizationId}/station`);
     dispatch(setStation(stations))
-    setTableData([initialValue , ...stations])
+    setTableData([...(createAccess ? [initialValue] :[]) , ...stations])
 
     };
 
@@ -250,7 +252,7 @@ export const Stations = () => {
     if (!valueChanged) return;
     const field = column.colId;
 
-    if (node.rowIndex === 0) {
+    if (node.rowIndex === 0 && createAccess) {
       if (data.state_code && data.station_name && data.station_pinCode) {
         try {
           await stationValidationSchema.validateAt(field, { [field]: newValue });
@@ -468,17 +470,17 @@ export const Stations = () => {
       },
       cellRenderer: (params: { data: StationFormData }) => (
         <div className='table_edit_buttons'>
-          <FaEdit
+          {updateAccess && <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
             onClick={() => handleUpdate(params.data)}
-          />
+          />}
 
-          <MdDeleteForever
+         {deleteAccess && <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
             onClick={() => {
               handleDelete(params.data);
             }}
-          />
+          />}
         </div>
       ),
     },
@@ -498,9 +500,9 @@ export const Stations = () => {
             >
               <IoSettingsOutline />
             </Button>
-            <Button type='highlight' handleOnClick={() => togglePopup(true)}>
+           {createAccess && <Button type='highlight' handleOnClick={() => togglePopup(true)}>
               Add Station
-            </Button>
+            </Button>}
           </div>
         </div>
         <div id='account_table' className='ag-theme-quartz'>

@@ -11,6 +11,7 @@ import { CreateStore } from './CreateStore';
 import { sendAPIRequest } from '../../helper/api';
 import { useParams } from 'react-router-dom';
 import { storeValidationSchema } from './validation_schema';
+import usePermission from '../../hooks/useRole';
 
 const initialValue = {
   store_code: '',
@@ -34,6 +35,7 @@ export const Store = () => {
   });
   const editing = useRef(false);
   const isDelete = useRef(false);
+  const { createAccess, updateAccess, deleteAccess } = usePermission('store')
 
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
@@ -314,7 +316,7 @@ export const Store = () => {
       },
       cellRenderer: (params: { data: StoreFormData }) => (
         <div className='table_edit_buttons'>
-          <FaEdit
+          {updateAccess && <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
             onClick={() => {
               if (params.data.isPredefinedStore) {
@@ -327,9 +329,9 @@ export const Store = () => {
                 handleUpdate(params.data);
               }
             }}
-          />
+          />}
 
-          <MdDeleteForever
+          {deleteAccess && <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
             onClick={() => {
               if (params.data.isPredefinedStore) {
@@ -342,7 +344,7 @@ export const Store = () => {
                 handleDelete(params.data);
               }
             }}
-          />
+          />}
         </div>
       ),
     },
@@ -353,13 +355,13 @@ export const Store = () => {
       <div className='w-full relative'>
         <div className='flex w-full items-center justify-between px-8 py-1'>
           <h1 className='font-bold'>Store List</h1>
-          <Button
+         {createAccess && <Button
             type='highlight'
             className=''
             handleOnClick={() => togglePopup(true)}
           >
             Add Store
-          </Button>
+          </Button>}
         </div>
         <div
           id='store_table'

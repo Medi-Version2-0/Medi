@@ -15,6 +15,7 @@ import { useParams } from 'react-router-dom';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { useDispatch } from 'react-redux'
 import { setSales, setPurchase } from '../../store/action/globalAction';
+import usePermission from '../../hooks/useRole';
 
 const initialValue: SalesPurchaseFormData = {
   sptype: '',
@@ -50,6 +51,8 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<SalesPurchaseFormData>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
+  const { createAccess, updateAccess, deleteAccess } = usePermission(type === 'Sales' ?'sales_account' : 'purchase_account')
+
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
@@ -315,14 +318,14 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
       },
       cellRenderer: (params: { data: SalesPurchaseFormData }) => (
         <div className='table_edit_buttons'>
-          <FaEdit
+         {updateAccess && <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
             onClick={() => handleUpdate(params.data)}
-          />
-          <MdDeleteForever
+          />}
+          {deleteAccess && <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
             onClick={() => handleDelete(params.data)}
-          />
+          />}
         </div>
       ),
     },
@@ -333,13 +336,13 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
       <div className='w-full relative'>
         <div className='flex w-full items-center justify-between px-8 py-1'>
           <h1 className='font-bold'>{type} Account</h1>
-          <Button
+          {createAccess &&<Button
             type='highlight'
             id='sp_button'
             handleOnClick={() => togglePopup(true)}
           >
             Add {type}
-          </Button>
+          </Button>}
         </div>
         <div
           id='account_table'

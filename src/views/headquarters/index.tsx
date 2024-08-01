@@ -15,6 +15,7 @@ import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { useSelector, useDispatch } from 'react-redux';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
 import { setStation } from '../../store/action/globalAction';
+import usePermission from '../../hooks/useRole';
 
 export const Headquarters = () => {
   const initialValue = {
@@ -29,6 +30,7 @@ export const Headquarters = () => {
   const [tableData, setTableData] = useState<StationFormData[]>([]);
   const { stations: allStations } = useSelector((state: any) => state.global);
   const [filteredStations, setFilteredStations] = useState([]);
+  const { createAccess, updateAccess, deleteAccess } = usePermission('headquarters')
 
   const editing = useRef(false);
   const isDelete = useRef(false);
@@ -56,11 +58,11 @@ export const Headquarters = () => {
     setSelectedRow(null);
   };
 
-  const filterStations =async (headQuarter?: any)=> {
+  const filterStations = async (headQuarter?: any) => {
     const filtered = allStations.filter(
       (station: any) =>
         !headQuarter.some((hq: any) => hq.station_id === station.station_id)
-    );  
+    );
     return filtered;
   }
 
@@ -73,7 +75,7 @@ export const Headquarters = () => {
       station_name: '',
       station_headQuarter: '',
     };
-    setTableData([pinnedRow, ...headQuarter]);
+    setTableData([...(createAccess ? [pinnedRow] : []), ...headQuarter]);
 
     const filteredStations = await filterStations(headQuarter);
 
@@ -139,7 +141,7 @@ export const Headquarters = () => {
       const mode = allStations.some((station: any) => {
         if (
           station.station_name ===
-            (formData.station_name || payload.station_name) &&
+          (formData.station_name || payload.station_name) &&
           station.station_headQuarter === null
         ) {
           return true;
@@ -204,8 +206,8 @@ export const Headquarters = () => {
       }
     );
     const updatedStation = [...allStations]
-    const stationIndex = allStations.findIndex((x:any) => x.station_id === station_id);
-    updatedStation[stationIndex] = {...updatedStation[stationIndex],station_headQuarter : null}
+    const stationIndex = allStations.findIndex((x: any) => x.station_id === station_id);
+    updatedStation[stationIndex] = { ...updatedStation[stationIndex], station_headQuarter: null }
     dispatch(setStation(updatedStation))
     filterStations(updatedStation);
     getHeadquarters();
@@ -239,7 +241,7 @@ export const Headquarters = () => {
 
     data[field] = field == 'station_name' ? stationName[0]?.station_name : newValue;
 
-    if (node.rowIndex === 0) {
+    if (node.rowIndex === 0 && createAccess) {
       if (data.station_name && data.station_headQuarter) {
         try {
           handleConfirmPopup(data);
@@ -293,7 +295,7 @@ export const Headquarters = () => {
       suppressMovable: true,
       cellRenderer: (params: any) => {
         return (
-          <PlaceholderCellRenderer  
+          <PlaceholderCellRenderer
             value={params.valueFormatted}
             rowIndex={params.node.rowIndex}
             column={params.colDef}
@@ -347,14 +349,14 @@ export const Headquarters = () => {
       },
       cellRenderer: (params: any) => (
         <div className='table_edit_buttons'>
-          <FaEdit
+          {updateAccess && <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
             onClick={() => handleUpdate(params.data)}
-          />
-          <MdDeleteForever
+          />}
+          {deleteAccess && <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
             onClick={() => handleDelete(params.data)}
-          />
+          />}
         </div>
       ),
     },
@@ -365,13 +367,13 @@ export const Headquarters = () => {
       <div className='w-full relative'>
         <div className='flex w-full items-center justify-between px-8 py-1'>
           <h1 className='font-bold'>Headquarters</h1>
-          <Button
+          {createAccess && <Button
             type='highlight'
             className=''
             handleOnClick={() => togglePopup(true)}
           >
             Add Headquarter
-          </Button>
+          </Button>}
         </div>
         <div id='account_table' className='ag-theme-quartz'>
           <AgGridReact
