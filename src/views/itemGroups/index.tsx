@@ -18,6 +18,7 @@ import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
 import { getAndSetItemGroups, setItemGroups } from '../../store/action/globalAction';
 import { useDispatch } from 'react-redux'
 import { AppDispatch } from '../../store/types/globalTypes';
+import usePermission from '../../hooks/useRole';
 
 export const ItemGroups = () => {
   const initialData = {
@@ -37,6 +38,7 @@ export const ItemGroups = () => {
   const queryClient = useQueryClient();
   const editing = useRef(false);
   const dispatch = useDispatch<AppDispatch>()
+  const {createAccess , updateAccess , deleteAccess} = usePermission('item_groups')
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
@@ -211,7 +213,7 @@ export const ItemGroups = () => {
     let { newValue } = e;
     if (!valueChanged) return;
     const field = column.colId;
-    if (node.rowIndex === 0) {
+    if (node.rowIndex === 0 && createAccess) {
       if (data.group_name && data.type) {
         try {
           await itemGroupValidationSchema.validate(data);
@@ -353,20 +355,20 @@ export const ItemGroups = () => {
         },
         cellRenderer: (params: { data: ItemGroupFormData }) => (
           <div className='table_edit_buttons'>
-            <FaEdit
+           {updateAccess &&  <FaEdit
               style={{ cursor: 'pointer', fontSize: '1.1rem' }}
               onClick={() => {
                 handleUpdate(params.data);
               }}
-            />
+            />}
 
-            <MdDeleteForever
+           {deleteAccess && <MdDeleteForever
               style={{ cursor: 'pointer', fontSize: '1.2rem' }}
               onClick={() => {
                 const groupToDelete = params.data;
                 handleDelete(groupToDelete);
               }}
-            />
+            />}
           </div>
         ),
       },
@@ -376,13 +378,13 @@ export const ItemGroups = () => {
       <div className='w-full relative'>
         <div className='flex w-full items-center justify-between px-8 py-1'>
           <h1 className='font-bold'>Item Groups</h1>
-          <Button
+          {createAccess && <Button
             type='highlight'
             className=''
             handleOnClick={() => togglePopup(true)}
           >
             Add Group
-          </Button>
+          </Button>}
         </div>
         <div id='account_table' className='ag-theme-quartz'>
           {

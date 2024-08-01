@@ -17,6 +17,7 @@ import { sendAPIRequest } from '../../helper/api';
 import { CreateDiscount } from './CreateDiscount';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
+import usePermission from '../../hooks/useRole';
 
 export const PartyWiseDiscount = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
@@ -28,6 +29,8 @@ export const PartyWiseDiscount = () => {
   const editing = useRef(false);
   const discountId = useRef('');
   const queryClient = useQueryClient();
+  const { createAccess, updateAccess, deleteAccess } = usePermission('party_wise_discount')
+
   let currTable: any[] = [];
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
@@ -352,16 +355,16 @@ export const PartyWiseDiscount = () => {
       },
       cellRenderer: (params: { data: any }) => (
         <div className='table_edit_buttons'>
-          <FaEdit
+          {updateAccess && <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
             onClick={() => {
               setView({ type: 'add', data: params.data });
             }}
-          />
-          <MdDeleteForever
+          />}
+          {deleteAccess && <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
             onClick={() => handleDelete(params.data)}
-          />
+          />}
         </div>
       ),
     },
@@ -371,14 +374,14 @@ export const PartyWiseDiscount = () => {
       <>
         <div className='flex w-full items-center justify-between px-8 py-1'>
           <h1 className='font-bold'>Partywise discount</h1>
-          <Button
+          {createAccess &&<Button
             type='highlight'
             handleOnClick={() => {
               setView({ type: 'add', data: {} });
             }}
           >
             Add PartyWise discount
-          </Button>
+          </Button>}
         </div>
         <div id='account_table' className='ag-theme-quartz'>
           {

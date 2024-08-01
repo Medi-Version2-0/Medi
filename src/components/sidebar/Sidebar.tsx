@@ -19,8 +19,7 @@ import { BillBook } from '../../views/BillBook';
 import { PartyWiseDiscount } from '../../views/discount';
 import DeliveryChallan from '../../views/DeliveryChallan';
 import { Organization } from '../../views/organization';
-import { useSelector } from 'react-redux';
-
+import usePermission from '../../hooks/useRole';
 type SubElementKey = 'master' | 'setup';
 
 interface SidebarProps {
@@ -38,8 +37,107 @@ const Sidebar: React.FC<SidebarProps> = ({
     master: false,
     setup: false,
   });
+  const permissions = usePermission()
   const [isSidebar, setIsSidebar] = useState<boolean>(true);
-  const { permissions } = useSelector((state: any) => state.global);
+
+  const isNotReadAccess = (key: string) => {
+    if (permissions[key]) {
+      return !permissions[key].readAccess
+    }
+    return false
+  }
+
+
+  const menuItems = [
+    {
+      url: '/ledger_table',
+      label: 'Ledger',
+      icon: <FaPlus className='fill-red-900' />,
+      onClick: () => openTab?.('Ledger', <Ledger />),
+      isDisabled: isNotReadAccess('ledger')
+    },
+    {
+      url: '/groups',
+      label: 'Groups',
+      onClick: () => openTab?.('Groups', <Groups />),
+      isDisabled: isNotReadAccess('groups')
+    },
+    {
+      url: '/subgroups',
+      label: 'Sub Groups',
+      onClick: () => openTab?.('Sub Groups', <SubGroups />),
+      isDisabled: isNotReadAccess('sub_groups')
+    },
+    {
+      url: '/itemGroup',
+      label: 'Item Groups',
+      onClick: () => openTab?.('Item Groups', <ItemGroups />),
+      isDisabled: isNotReadAccess('item_groups')
+    },
+    {
+      url: '/items',
+      label: 'Items',
+      onClick: () => openTab?.('Items', <Items />),
+      isDisabled: isNotReadAccess('items')
+    },
+    {
+      url: '/stations',
+      label: 'Station Setup',
+      onClick: () => openTab?.('Station Setup', <Stations />),
+      isDisabled: isNotReadAccess('station_setup')
+    },
+    {
+      url: '/headquarters',
+      label: 'Headquarters',
+      onClick: () => openTab?.('Headquarters', <Headquarters />),
+      isDisabled: isNotReadAccess('headquarters')
+    },
+    {
+      url: '/sales_purchase_table',
+      label: 'Sales Account',
+      onClick: () => openTab?.('Sales Account', <Sales_Table type={'Sales'} />),
+      isDisabled: isNotReadAccess('sales_account')
+    },
+    {
+      url: '/sales_purchase_table',
+      label: 'Purchase Account',
+      onClick: () => openTab?.('Purchase Account', <Sales_Table type='Purchase' />),
+      isDisabled: isNotReadAccess('purchase_account')
+    },
+    {
+      url: '/stores',
+      label: 'Store',
+      onClick: () => openTab?.('Store', <Store />),
+      isDisabled: isNotReadAccess('store')
+    },
+    {
+      url: '/company',
+      label: 'Company',
+      icon: <FaPlus className='fill-yellow-900' />,
+      onClick: () => openTab?.('Company', <Company />),
+      isDisabled: isNotReadAccess('company')
+    },
+    {
+      url: '/billBook',
+      label: 'Bill Book Setup',
+      onClick: () => openTab?.('Bill Book Setup', <BillBook />),
+      isDisabled: isNotReadAccess('bill_book_setup')
+    },
+    {
+      url: '/discount',
+      label: 'Party-wise discount',
+      icon: <FaPlus className='fill-yellow-900' />,
+      onClick: () => openTab?.('Party-wise discount', <PartyWiseDiscount />),
+      isDisabled: isNotReadAccess('party_wise_discount')
+    },
+    {
+      url: '/deliveryChallan',
+      label: 'Sale Challan',
+      onClick: () => openTab?.('Sale Challan', <DeliveryChallan />),
+      isDisabled: isNotReadAccess('sale_challan')
+    }
+  ];
+
 
   useEffect(() => {
     if (isGroup || isSubGroup) {
@@ -56,6 +154,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       [element]: !prevState[element],
     }));
   };
+
 
   return isSidebar ? (
     <div className='w-100 h-screen border relative transition-[width] duration-[0.3s] ease-[ease] pt-2.5 pb-0 px-0 border-solid border-black'>
@@ -101,88 +200,18 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
         {showSubElements.master && (
           <>
-            <MenuItem
-              url='/ledger_table'
-              label='Ledger'
-              icon={<FaPlus className='fill-red-900' />}
-              onClick={() => openTab?.('Ledger', <Ledger />)}
-              isDisabled={!permissions?.ledger?.readAccess}
-            />
-            <MenuItem
-              url='/groups'
-              label='Groups'
-              onClick={() => openTab?.('Groups', <Groups />)}
-            />
-            <MenuItem
-              url='/subgroups'
-              label='Sub Groups'
-              onClick={() => openTab?.('Sub Groups', <SubGroups />)}
-            />
-            <MenuItem
-              url='/itemGroup'
-              label='Item Groups'
-              onClick={() => openTab?.('Item Groups', <ItemGroups />)}
-            />
-            <MenuItem
-              url='/items'
-              label='Items'
-              onClick={() => openTab?.('Items', <Items />)}
-            />
-            <MenuItem
-              url='/stations'
-              label='Station Setup'
-              onClick={() => openTab?.('Station Setup', <Stations />)}
-            />
-            <MenuItem
-              url='/headquarters'
-              label='Headquarters'
-              onClick={() => openTab?.('Headquarters', <Headquarters />)}
-            />
-            <MenuItem
-              url='/sales_purchase_table'
-              label='Sales Account'
-              onClick={() =>
-                openTab?.('Sales Account', <Sales_Table type={'Sales'} />)
-              }
-            />
-            <MenuItem
-              url='/sales_purchase_table'
-              label='Purchase Account'
-              onClick={() =>
-                openTab?.('Purchase Account', <Sales_Table type='Purchase' />)
-              }
-            />
-            <MenuItem
-              url='/stores'
-              label='Store'
-              onClick={() => openTab?.('Store', <Store />)}
-            />
-            <MenuItem
-              url='/company'
-              label='Company'
-              icon={<FaPlus className='fill-yellow-900' />}
-              onClick={() => openTab?.('Company', <Company />)}
-            />
-            <MenuItem
-              url='/billBook'
-              label='Bill Book Setup'
-              onClick={() => openTab?.('Bill Book Setup', <BillBook />)}
-            />
-            <MenuItem
-              url='/discount'
-              label='Party-wise discount'
-              icon={<FaPlus className='fill-yellow-900' />}
-              onClick={() =>
-                openTab?.('Party-wise discount', <PartyWiseDiscount />)
-              }
-            />
-            <MenuItem
-              url='/deliveryChallan'
-              label='Sale Challan'
-              onClick={() =>
-                openTab?.('Sale Challan', <DeliveryChallan />)
-              }
-            />
+            {menuItems.map((item, index) => {
+              return (
+                <MenuItem
+                  key={index}
+                  url={item.url}
+                  label={item.label}
+                  icon={item.icon}
+                  onClick={() => item.onClick()}
+                  isDisabled={item.isDisabled}
+                />
+              )
+            })}
           </>
         )}
         <div className='flex justify-between bg-[#EAFBFCFF] cursor-pointer text-base p-2 border border-solid border-[#009196FF]'>

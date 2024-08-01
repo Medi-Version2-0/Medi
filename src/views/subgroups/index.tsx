@@ -14,6 +14,7 @@ import { useParams } from 'react-router-dom';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { subgroupValidationSchema } from './validation_schema';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
+import usePermission from '../../hooks/useRole';
 
 
 export const SubGroups = () => {
@@ -29,6 +30,7 @@ export const SubGroups = () => {
   const [tableData, setTableData] = useState<SubGroupFormData | any>(null);
   const [groupOptions, setGroupOptions] = useState<any[]>([]);
   const editing = useRef(false);
+  const permissions = usePermission('sub_groups')
   let currTable: any[] = [];
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
@@ -95,7 +97,7 @@ export const SubGroups = () => {
     const subGroups = await sendAPIRequest<any[]>(
       `/${organizationId}/group/sub`
     );
-    setTableData([pinnedRow, ...subGroups]);
+    setTableData([...(permissions.createAccess ?[pinnedRow]:[]), ...subGroups]);
     return subGroups
   };
 
@@ -171,7 +173,7 @@ export const SubGroups = () => {
     let { newValue } = e;
     if (!valueChanged) return;
     const field = column.colId;
-    if (node.rowIndex === 0) {
+    if (node.rowIndex === 0 && permissions.createAccess) {
       if (data.group_name && data.parent_code) {
         try { 
           await subgroupValidationSchema.validate(data);
@@ -362,19 +364,19 @@ export const SubGroups = () => {
         },
         cellRenderer: (params: { data: SubGroupFormData }) => (
           <div className='table_edit_buttons'>
-            <FaEdit
+            {permissions.updateAccess && <FaEdit
               style={{ cursor: 'pointer', fontSize: '1.1rem' }}
               onClick={() => {
                 handleUpdate(params.data);
               }}
-            />
+            />}
 
-            <MdDeleteForever
+           {permissions.deleteAccess &&  <MdDeleteForever
               style={{ cursor: 'pointer', fontSize: '1.2rem' }}
               onClick={() => {
                 handleDelete(params.data);
               }}
-            />
+            />}
           </div>
         ),
       },
@@ -384,13 +386,13 @@ export const SubGroups = () => {
       <div className='w-full relative'>
         <div className='flex w-full items-center justify-between px-8 py-1'>
           <h1 className='font-bold'>Sub Groups</h1>
-          <Button
+          {permissions.createAccess && <Button
             id='account_button'
             handleOnClick={() => togglePopup(true)}
             type='highlight'
           >
             Add Subgroup
-          </Button>
+          </Button>}
         </div>
         <div id='account_table' className='ag-theme-quartz'>
           {

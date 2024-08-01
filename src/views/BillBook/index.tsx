@@ -16,6 +16,7 @@ import { invoiceSettingFields } from '../../components/common/controlRoom/settin
 import { useControls } from '../../ControlRoomContext';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { billBookValidationSchema } from './validation_schema';
+import usePermission from '../../hooks/useRole';
 
 type SeriesOption = {
   id: number;
@@ -59,6 +60,8 @@ export const BillBook = () => {
   const editing = useRef(false);
   let currTable: any[] = [];
   const { controlRoomSettings } = useControls();
+  const { createAccess, updateAccess, deleteAccess } = usePermission('bill_book_setup')
+
 
   const initialValues = {
     stockNegative: controlRoomSettings.stockNegative || false,
@@ -406,17 +409,17 @@ export const BillBook = () => {
       },
       cellRenderer: (params: { data: BillBookForm }) => (
         <div className='table_edit_buttons'>
-          <FaEdit
+        {updateAccess && <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
             onClick={() => handleUpdate(params.data)}
-          />
+          />}
 
-          <MdDeleteForever
+         {deleteAccess && <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
             onClick={() => {
               handleDelete(params.data);
             }}
-          />
+          />}
         </div>
       ),
     },
@@ -437,9 +440,9 @@ export const BillBook = () => {
               >
                 <IoSettingsOutline />
               </Button>
-              <Button type='highlight' handleOnClick={() => togglePopup(true)}>
+             {createAccess && <Button type='highlight' handleOnClick={() => togglePopup(true)}>
                 Add Series
-              </Button>
+              </Button>}
             </div>
           </div>
 

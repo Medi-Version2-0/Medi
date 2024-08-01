@@ -17,6 +17,7 @@ import { getCompanyFormSchema } from './validation_schema';
 import { useSelector } from 'react-redux';
 import { setCompany } from '../../store/action/globalAction';
 import { useDispatch } from 'react-redux'
+import usePermission from '../../hooks/useRole';
 
 export const Company = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
@@ -35,6 +36,8 @@ export const Company = () => {
     isAlertOpen: false,
     message: '',
   });
+  const { createAccess, updateAccess, deleteAccess } = usePermission('company')
+
 
   const { data } = useQuery<CompanyFormData[]>({
     queryKey: ['get-companies'],
@@ -274,16 +277,16 @@ export const Company = () => {
       },
       cellRenderer: (params: { data: any }) => (
         <div className='table_edit_buttons'>
-          <FaEdit
+         {updateAccess && <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
             onClick={() => {
               setView({ type: 'add', data: params.data });
             }}
-          />
-          <MdDeleteForever
+          />}
+         {deleteAccess &&  <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
             onClick={() => handleDelete(params.data)}
-          />
+          />}
         </div>
       ),
     },
@@ -293,14 +296,14 @@ export const Company = () => {
       <>
         <div className='flex w-full items-center justify-between px-8 py-1'>
           <h1 className='font-bold'>Company Master</h1>
-          <Button
+         {createAccess && <Button
             type='highlight'
             handleOnClick={() => {
               setView({ type: 'add', data: {} });
             }}
           >
             Add Company
-          </Button>
+          </Button>}
         </div>
         <div id='account_table' className='ag-theme-quartz'>
           {

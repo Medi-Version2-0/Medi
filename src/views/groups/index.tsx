@@ -16,6 +16,7 @@ import { groupValidationSchema } from './validation_schema';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
 import { useDispatch } from 'react-redux'
 import { setGroups } from '../../store/action/globalAction';
+import usePermission from '../../hooks/useRole';
 
 
 export const Groups = () => {
@@ -45,6 +46,7 @@ export const Groups = () => {
   const [subgroups, setSubgroups] = useState<GroupFormData[]>([]);
   const gridRef = useRef<any>(null);
   const dispatch = useDispatch()
+  const permissions = usePermission('groups')
 
   const { data } = useQuery<GroupFormData[]>({
     queryKey: ['get-groups'],
@@ -219,7 +221,7 @@ export const Groups = () => {
     const { data, column, oldValue, newValue, valueChanged, node } = e;
     const field = column.colId;
     if (!valueChanged) return;
-    if (node.rowIndex === 0) {
+    if (node.rowIndex === 0 && permissions.createAccess) {  
       
       if (data.group_name && data.type) {
         try {
@@ -351,7 +353,7 @@ export const Groups = () => {
         `/${organizationId}/group`
       );
       dispatch(setGroups(fetchedData))
-      setTableData([initialValue, ...fetchedData]);
+      setTableData([...(permissions.createAccess ? [initialValue] :[]), ...fetchedData]);
       return fetchedData;
     } catch (error) {
       console.error('Error fetching group data:', error);
@@ -443,7 +445,7 @@ export const Groups = () => {
         },
         cellRenderer: (params: { data: GroupFormData }) => (
           <div className='table_edit_buttons'>
-            <FaEdit
+            {permissions.updateAccess && <FaEdit
               style={{ cursor: 'pointer', fontSize: '1.1rem' }}
               onClick={() => {
                 if (params.data.isPredefinedGroup === false) {
@@ -457,8 +459,8 @@ export const Groups = () => {
                 }
               }}
             />
-
-            <MdDeleteForever
+}
+            {permissions.deleteAccess &&<MdDeleteForever
               style={{ cursor: 'pointer', fontSize: '1.2rem' }}
               onClick={() => {
                 const groupToDelete = params.data;
@@ -485,7 +487,7 @@ export const Groups = () => {
                   }
                 }
               }}
-            />
+            />}
           </div>
         ),
       },
@@ -496,13 +498,13 @@ export const Groups = () => {
       <div className='w-full relative'>
         <div className='flex w-full items-center justify-between px-8 py-1'>
           <h1 className='font-bold'>Groups</h1>
-          <Button
+         {permissions.createAccess && <Button
             type='highlight'
             className=''
             handleOnClick={() => togglePopup(true)}
           >
             Add Group
-          </Button>
+          </Button>}
         </div>
         <div id='account_table' className='ag-theme-quartz'>
           {

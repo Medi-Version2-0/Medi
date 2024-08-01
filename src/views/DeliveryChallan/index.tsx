@@ -12,6 +12,7 @@ import { sendAPIRequest } from '../../helper/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import CreateDeliveryChallan from './createDeliveryChallan';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
+import usePermission from '../../hooks/useRole';
 
 const DeliveryChallan = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
@@ -21,6 +22,8 @@ const DeliveryChallan = () => {
     null
   );
   const editing = useRef(false);
+  const { createAccess, updateAccess, deleteAccess } = usePermission('sale_challan')
+
   const id = useRef('');
   const queryClient = useQueryClient();
   const [popupState, setPopupState] = useState({
@@ -149,17 +152,17 @@ const DeliveryChallan = () => {
       },
       cellRenderer: (params: { data: any }) => (
         <div className='table_edit_buttons'>
-          <FaEdit
+          {updateAccess &&<FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
             onClick={() => {
               setView({ type: 'add', data: params.data });
             }}
-          />
+          />}
 
-          <MdDeleteForever
+         {deleteAccess && <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
             onClick={() => handleDelete(params.data)}
-          />
+          />}
         </div>
       ),
     },
@@ -171,7 +174,7 @@ const DeliveryChallan = () => {
         <div className='w-full relative'>
           <div className='flex w-full items-center justify-between px-8 py-1'>
             <h1 className='font-bold'>Delivery Challan</h1>
-            <Button
+           {createAccess && <Button
               type='highlight'
               handleOnClick={async () => {
                 const challanNumber = await sendAPIRequest<string>(
@@ -184,7 +187,7 @@ const DeliveryChallan = () => {
               }}
             >
               Add Challan
-            </Button>
+            </Button>}
             {/* </div> */}
           </div>
 
