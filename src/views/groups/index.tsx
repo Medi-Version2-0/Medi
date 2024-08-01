@@ -91,7 +91,10 @@ export const Groups = () => {
   };
 
   const handleConfirmPopup = async (dataa?: any) => {
-    const respData = dataa ? dataa : formData;
+    console.log(dataa.type)
+    console.log(formData.type)
+
+   const respData = dataa ? dataa : formData;
     setPopupState({ ...popupState, isModalOpen: false });
     if (formData.group_name) {
       formData.group_name =
@@ -100,7 +103,7 @@ export const Groups = () => {
     }
     const payload = {
       group_name: respData.group_name || formData.group_name,
-      type: respData.type || formData.type,
+      type: formData.type || respData.type
     };
     if (payload !== initialValue) {
       try {
@@ -391,7 +394,9 @@ export const Groups = () => {
         field: 'group_name',
         flex: 1,
         filter: true,
-        editable: true,
+        editable: (params) => {
+          return !params.data.isPredefinedGroup || !params.data.group_code;
+        },
         headerClass: 'custom-header',
         suppressMovable: true,
         cellRenderer: (params: any) => (
@@ -410,7 +415,9 @@ export const Groups = () => {
         headerName: 'P&L / BL. Sheet',
         field: 'type',
         filter: true,
-        editable: true,
+        editable: (params) => {
+          return !params.data.isPredefinedGroup || !params.data.group_code;
+        },
         cellEditor: 'agSelectCellEditor',
         cellEditorParams: {
           values: types,
