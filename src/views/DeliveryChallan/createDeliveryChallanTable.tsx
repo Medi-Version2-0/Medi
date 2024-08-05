@@ -4,6 +4,9 @@ import { useParams } from 'react-router-dom';
 import { sendAPIRequest } from '../../helper/api';
 import CustomSelect from '../../components/custom_select/CustomSelect';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
+import { SchemeSection } from './createDeliveryChallan';
+import { DropDownPopup } from '../../components/common/dropDownPopup';
+import { headers, schemeTypeOptions, itemHeader, batchHeader } from './saleChallan'
 
 interface RowData {
   id: number;
@@ -12,34 +15,8 @@ interface RowData {
   };
 }
 
-const headers = [
-  { name: 'Item name', key: 'itemId', width: 'w-[15%]' },
-  { name: 'Batch no', key: 'batchNo', width: 'w-[15%]' },
-  { name: 'Qty', key: 'qty', width: 'w-[5%]' },
-  { name: 'Scheme', key: 'scheme', width: 'w-[7%]' },
-  { name: 'Scheme type', key: 'schemeType', width: 'w-[10%]' },
-  { name: 'Rate', key: 'rate', width: 'w-[5%]' },
-  { name: 'Dis.%', key: 'disPer', width: 'w-[5%]' },
-  { name: 'Amt', key: 'amt', width: 'w-[5%]' },
-  { name: 'MRP', key: 'mrp', width: 'w-[5%]' },
-  { name: 'Exp. Date', key: 'expDate', width: 'w-[8%]' },
-  { name: 'Tax type', key: 'taxType', width: 'w-[15%]' },
-  { name: 'GST', key: 'gstAmount', width: 'w-[5%]' },
-];
+export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTotalValue, challanTableData, setIsNetRateSymbol }: any) => {
 
-const schemeTypeOptions = [
-  { label: 'Pieces', value: 'P' },
-  { label: 'Percent', value: '%' },
-  { label: 'Rupees', value: 'R' },
-  { label: 'Rupees / PC', value: '/' },
-];
-
-export const CreateDeliveryChallanTable = ({
-  setDataFromTable,
-  setTotalAmt,
-  setTotalQty,
-  challanTableData,
-}: any) => {
   const initialRows: RowData[] = Array.from({ length: 1 }, (_, rowIndex) => ({
     id: rowIndex + 1,
     columns: headers.reduce(
@@ -47,13 +24,19 @@ export const CreateDeliveryChallanTable = ({
       {}
     ),
   }));
+
   const { organizationId } = useParams();
   const [gridData, setGridData] = useState<RowData[]>(initialRows);
-  const [itemOptions, setItemOptions] = useState<Option[]>([]);
   const [itemValue, setItemValue] = useState<any[]>([]);
-  const [batchOptions, setBatchOptions] = useState<Option[]>([]);
   const [batches, setBatches] = useState<any[]>([]);
   const [focused, setFocused] = useState('');
+  const [focusedRowIndex, setFocusedRowIndex] = useState<number | null>(null);
+  const [currentSavedData, setCurrentSavedData] = useState<{ item: any; batch: any; }>({ item: {}, batch: {} });
+  const [schemeValue, setSchemeValue] = useState<any>({ scheme1: null, scheme2: null });
+  const [open, setOpen] = useState<boolean>(false);
+  const [openDataPopup, setOpenDataPopup] = useState<boolean>(false);
+  const [tableData, setTableData] = useState<any[]>([]);
+  const [headerData, setHeaderData] = useState<any>({ isItem: false, isBatch: false });
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
@@ -61,11 +44,19 @@ export const CreateDeliveryChallanTable = ({
   });
 
   useEffect(() => {
-    fetchItems();
+    updateGridData();
+  }, [currentSavedData.item, currentSavedData.batch, focusedRowIndex]);
+
+  useEffect(() => {
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+    };
   }, []);
 
   useEffect(() => {
     if (challanTableData?.length > 0) {
+      console.log("challanTableData ------> ", challanTableData);
       const initialRows: RowData[] = challanTableData.map(
         (rowData: any, rowIndex: number) => {
           const obj = {
@@ -75,23 +66,18 @@ export const CreateDeliveryChallanTable = ({
 
               if (header.key === 'itemId') {
                 data = {
-                  label: itemValue.find((x) => x.id === rowData[header.key])
-                    ?.name,
+                  label: itemValue.find((x) => x.id === rowData[header.key])?.name,
                   value: rowData[header.key],
                 };
               } else if (header.key === 'batchNo') {
                 data = {
-                  label: (
-                    itemValue.find((x) => x.id === rowData['itemId'])
-                      ?.ItemBatches || []
-                  ).find((x: any) => x.id === rowData[header.key])?.batchNo,
+                  label: (itemValue.find((x) => x.id === rowData['itemId'])?.ItemBatches || []).find((x: any) => x.id === rowData[header.key])?.batchNo,
                   value: rowData[header.key],
                 };
-              } else if (header.key === 'schemeType') {
+              }
+              if (header.key === 'schemeType') {
                 data = {
-                  label: schemeTypeOptions.find(
-                    (x) => x.value === rowData[header.key]
-                  )?.label,
+                  label: schemeTypeOptions.find((x) => x.value === rowData[header.key])?.label,
                   value: rowData[header.key],
                 };
               }
@@ -101,7 +87,6 @@ export const CreateDeliveryChallanTable = ({
               };
             }, {}),
           };
-          handleBatchOptions(obj);
           return obj;
         }
       );
@@ -109,15 +94,75 @@ export const CreateDeliveryChallanTable = ({
     }
   }, [challanTableData, itemValue]);
 
+  const updateGridData = () => {
+    if (focusedRowIndex === null) return;
+    const newGridData = [...gridData];
+
+    if (currentSavedData.item) {
+      newGridData[focusedRowIndex].columns['itemId'] = {
+        label: currentSavedData.item.name,
+        value: currentSavedData.item.id,
+      };
+      const newValue = newGridData[focusedRowIndex].columns['itemId'];
+      setGridData(newGridData);
+      updateTaxAndGst(focusedRowIndex, newValue);
+    }
+
+    if (currentSavedData.batch) {
+      newGridData[focusedRowIndex].columns['batchNo'] = {
+        label: currentSavedData.batch.batchNo,
+        value: currentSavedData.batch.id,
+      };
+      setGridData(newGridData);
+      handleQtyInput(
+        focusedRowIndex,
+        newGridData[focusedRowIndex].columns['batchNo']
+      );
+    }
+  };
+
+  const togglePopup = (isOpen: boolean) => {
+    setOpen(isOpen);
+  };
+
+  const onKeyDown = (event: KeyboardEvent) => {
+    switch (event.key) {
+      case 'm':
+      case 'M':
+        if (event.ctrlKey) {
+          if (togglePopup) togglePopup(true);
+        }
+        break;
+      case 'Escape':
+        if (openDataPopup) setOpenDataPopup(false);
+        if (togglePopup) togglePopup(false);
+        break;
+      default:
+        break;
+    }
+  };
+
+  const handleFocus = (rowIndex: number, colIndex: number) => {
+    setFocusedRowIndex(rowIndex);
+    if(colIndex === 0){
+      fetchItems();
+      setHeaderData({ ...headerData, isItem: true, isBatch: false });
+    }
+    if(colIndex === 1){
+      const selectedItem = itemValue.find((item: any) => item.name === currentSavedData.item.name); 
+      if (selectedItem) {
+        setTableData(selectedItem.ItemBatches);
+        setBatches(selectedItem.ItemBatches);
+      }
+      setHeaderData({ ...headerData, isItem: false, isBatch: true });
+    }
+    return setOpenDataPopup(true);
+  }
+
   const fetchItems = async () => {
     const items = await sendAPIRequest<any>(`/${organizationId}/item`);
     setItemValue(items);
-    setItemOptions(
-      items.map((item: any) => ({
-        label: item.name,
-        value: item.id,
-      }))
-    );
+    setTableData(items);
   };
 
   const handleAlertCloseModal = () => {
@@ -134,75 +179,65 @@ export const CreateDeliveryChallanTable = ({
     return [...sale, ...purchase];
   };
 
-  const handleInputChange = async (
-    rowIndex: number,
-    header: string,
-    value: any
-  ) => {
+  const handleInputChange = async ( rowIndex: number, header: string, value: any ) => {
     const newGridData = [...gridData];
     newGridData[rowIndex].columns[header] = value;
-    if (header === 'itemId') await updateTaxAndGst(rowIndex, value);
     setGridData(newGridData);
   };
 
   const updateTaxAndGst = async (rowIndex: number, value: any) => {
     const newGridData = [...gridData];
     const company = await sendAPIRequest<any[]>(`/${organizationId}/company`);
-    const selectedItem = value.label;
-    const item = itemValue.find((item: any) => item.name === selectedItem);
+    let selectedItem = '';
+    if (value !== undefined || !!value) {
+      selectedItem = value.label;
+    }
+    const item = itemValue?.find((item: any) => item.name === selectedItem);
     const spData = await getSalesPurchaseData();
-    const salesPurchaseSelected = spData.find(
-      (data: any) => data.sp_id === item.saleAccId
-    );
+    const salesPurchaseSelected = spData.find( (data: any) => data.sp_id === item?.saleAccId );
     const taxTypeInitial = salesPurchaseSelected?.sptype;
-    const isStateInOut = company.find(
-      (comp: any) => comp.company_id === item.compId
-    )?.stateInOut;
+    const isStateInOut = company.find( (comp: any) => comp.company_id === item?.compId )?.stateInOut;
     newGridData[rowIndex].columns = {
       ...newGridData[rowIndex].columns,
       taxType: taxTypeInitial,
-      gstAmount:
-        isStateInOut === 'Within State'
-          ? Number(salesPurchaseSelected.cgst) +
-            Number(salesPurchaseSelected.sgst)
-          : isStateInOut === 'Out Of State'
-            ? Number(salesPurchaseSelected.igst)
-            : 0,
+      gstAmount: isStateInOut === 'Within State' ? Number(salesPurchaseSelected.cgst) + Number(salesPurchaseSelected.sgst) : isStateInOut === 'Out Of State' ? Number(salesPurchaseSelected.igst) : 0,
     };
     setGridData(newGridData);
   };
 
-  const handleSelectChange = (
-    selectedOption: Option | any,
-    rowIndex: number,
-    rowName: string
-  ) => {
-    if (selectedOption)
-      handleInputChange(rowIndex, rowName, selectedOption || {});
+  const handleSelectChange = ( selectedOption: Option | any, rowIndex: number, rowName: string ) => {
+    if (selectedOption) handleInputChange(rowIndex, rowName, selectedOption || {});
   };
 
   const handleTotalAmt = (rowIndex: number) => {
     const newGridData = [...gridData];
-    const { qty, scheme, schemeType, rate } = newGridData[rowIndex].columns;
+    const { qty, schemeType, rate, disPer } = newGridData[rowIndex].columns;
+    let { scheme } = newGridData[rowIndex].columns;
     let total = rate * qty;
+    // Todo:  confirm the net rate symbol calculations
+    if (schemeValue.scheme1 !== null) {
+      const value = +schemeValue.scheme1 + (schemeValue.scheme2 === null ? 0 : +schemeValue.scheme2);
+      scheme = +schemeValue.scheme1 / +value;
+    }
     if (schemeType.value === '%') total -= (total * scheme) / 100;
     else if (schemeType.value === 'R') total -= scheme;
     else if (schemeType.value === '/') total -= qty * scheme;
-    // total -= (total * disPer) / 100;
     newGridData[rowIndex].columns.amt = total;
     total = parseFloat(total.toFixed(2));
-    
-    const totalAmt = newGridData.reduce(
-      (acc, data) => acc + data.columns.amt + (data.columns.amt * data.columns.gstAmount)/100,
-      0
-    );
-    const totalQty = newGridData.reduce(
-      (acc, data) => acc + Number(data.columns.qty) + (data.columns.scheme !== '' && data.columns.schemeType.label === 'Pieces' ? Number(data.columns.scheme) : 0),
-      0
-    );
+
+    const totalDiscount = newGridData.reduce((acc, data) => acc + (data.columns.amt * data.columns.disPer) / 100, 0);
+    const totalGST = newGridData.reduce((acc, data) =>acc + ((data.columns.amt - (data.columns.amt * data.columns.disPer) / 100) * data.columns.gstAmount) / 100, 0);
+
+    const totalAmt = newGridData.reduce((acc, data) => acc + (data.columns.amt - (data.columns.amt * data.columns.disPer) / 100) + ((data.columns.amt - (data.columns.amt * data.columns.disPer) / 100) * data.columns.gstAmount) / 100, 0);
+    const totalQty = newGridData.reduce((acc, data) => acc + Number(data.columns.qty) + (data.columns.scheme !== '' && data.columns.schemeType.label === 'Pieces' ? Number(data.columns.scheme) : 0), 0);
     setGridData(newGridData);
-    setTotalAmt(totalAmt);
-    setTotalQty(totalQty);
+    setTotalValue({
+      ...totalValue,
+      totalAmt: totalAmt,
+      totalQty: totalQty,
+      totalDiscount: totalDiscount,
+      totalGST: totalGST,
+    });
   };
 
   const handleKeyDown = async (
@@ -232,8 +267,8 @@ export const CreateDeliveryChallanTable = ({
 
   const focusNextCell = async (rowIndex: number, colIndex: number) => {
     const nextInput = document.getElementById(`cell-${rowIndex}-${colIndex}`);
-    if(colIndex === 0 || colIndex === 4){
-      setFocused(`cell-${rowIndex}-${colIndex}`)
+    if (colIndex === 4) {
+      setFocused(`cell-${rowIndex}-${colIndex}`);
     }
     if (nextInput) {
       nextInput.focus();
@@ -259,7 +294,10 @@ export const CreateDeliveryChallanTable = ({
       id: row.id,
       ...row.columns,
     }));
-
+    if (schemeValue.scheme1 !== null) {
+      setIsNetRateSymbol('Yes');
+    }
+    console.log('Data to send : ----> ', dataToSend);
     setDataFromTable(dataToSend);
     setPopupState({
       ...popupState,
@@ -268,70 +306,44 @@ export const CreateDeliveryChallanTable = ({
     });
   };
 
-  const handleBatchOptions = (row: any) => {
-    const selectedItem = itemValue.find(
-      (item: any) => item.name === row.columns['itemId'].label
-    );
-    if (selectedItem) {
-      setBatches(selectedItem.ItemBatches);
-      setBatchOptions(
-        selectedItem.ItemBatches.map((batch: any) => ({
-          label: batch.batchNo,
-          value: batch.id,
-        }))
-      );
-    } else {
-      setBatchOptions([]);
-    }
-  };
-
   const handleRemainingQty = (rowIndex: number, selectedBatch: any) => {
     let remainingQty = selectedBatch?.currentStock;
     gridData.forEach((data: any, index: number) => {
-      if (
-        data.columns['batchNo'].label === selectedBatch.batchNo &&
-        index < rowIndex
-      ) {
-        if(data.columns['scheme'] !== '' && data.columns['schemeType'].label === 'Pieces'){
+      if ( index < rowIndex && data.columns['batchNo']?.label === selectedBatch?.batchNo ) {
+        if ( data.columns['scheme'] !== '' && data.columns['schemeType'].label === 'Pieces' ) {
           remainingQty = remainingQty - (Number(data.columns['qty']) + Number(data.columns['scheme']));
-        }else{
-          remainingQty -= (Number(data.columns['qty']));
+        } else {
+          remainingQty -= Number(data.columns['qty']);
         }
       }
     });
     return remainingQty;
   };
 
-  const handleQtyInput = (row: any, rowIndex: number, header: string) => {
+  const handleQtyInput = (rowIndex: number, value: any) => {
     const updatedGridData = [...gridData];
-    if (header === 'batchNo') {
-      const selectedBatch = row.columns[header];
-      const batch = batches?.find(
-        (batch: any) => batch.batchNo === selectedBatch.label
-      );
-      if (rowIndex) {
-        const remainingQty = handleRemainingQty(rowIndex, batch);
-        updatedGridData[rowIndex].columns.qty = remainingQty;
-      } else {
-        updatedGridData[rowIndex].columns.qty = batch.currentStock;
-      }
-      updatedGridData[rowIndex].columns.rate = batch.salePrice;
-      updatedGridData[rowIndex].columns.mrp = batch.mrp;
-      updatedGridData[rowIndex].columns.expDate = batch.expiryDate;
+    const selectedBatch = value?.label;
+    const batch = batches?.find((batch: any) => batch.batchNo === selectedBatch);
+    if (rowIndex) {
+      const remainingQty = handleRemainingQty(rowIndex, batch);
+      updatedGridData[rowIndex].columns.qty = remainingQty;
+    } else {
+      updatedGridData[rowIndex].columns.qty = batch?.currentStock;
     }
+    updatedGridData[rowIndex].columns.rate = batch?.salePrice;
+    updatedGridData[rowIndex].columns.mrp = batch?.mrp;
+    updatedGridData[rowIndex].columns.expDate = batch?.expiryDate;
     setGridData(updatedGridData);
   };
 
   const handleQtyChange = (row: any, rowIndex: number, colIndex: number) => {
     let sum = 0;
     const selectedBatch = row.columns['batchNo'];
-    const batch = batches?.find(
-      (batch: any) => batch.batchNo === selectedBatch?.label
-    );
+    const batch = batches?.find((batch: any) => batch.batchNo === selectedBatch?.label);
     for (const data of gridData) {
       if (data.columns['batchNo'].label === selectedBatch?.label) {
-        if(data.columns['scheme'] !== '' && data.columns['schemeType'].label === 'Pieces'){
-          sum = sum + Number(data.columns['qty']) + Number(data.columns['scheme']);    
+        if ( data.columns['scheme'] !== '' && data.columns['schemeType'].label === 'Pieces') {
+          sum = sum + Number(data.columns['qty']) + Number(data.columns['scheme']);
           if (sum > batch?.currentStock) {
             setPopupState({
               ...popupState,
@@ -339,10 +351,10 @@ export const CreateDeliveryChallanTable = ({
               message:
                 'No more available stocks. Please select a smaller quantity or scheme.',
             });
-              focusNextCell(rowIndex, colIndex);
+            focusNextCell(rowIndex, colIndex);
             break;
-          }      
-        }else{
+          }
+        } else {
           sum += Number(data.columns['qty']);
           if (sum > batch?.currentStock) {
             setPopupState({
@@ -355,7 +367,6 @@ export const CreateDeliveryChallanTable = ({
             break;
           }
         }
-        
       }
     }
   };
@@ -377,122 +388,19 @@ export const CreateDeliveryChallanTable = ({
           return (
             <div key={row.id} className='flex'>
               {headers.map((header, colIndex) => {
-                return colIndex === 0 ? (
-                  <span className={`h-fit ${header.width}`}>
-                    <CustomSelect
-                      isPopupOpen={false}
-                      key={colIndex}
-                      isSearchable={true}
-                      id={`cell-${rowIndex}-${colIndex}`}
-                      isFocused={focused === `cell-${rowIndex}-${colIndex}`}
-                      options={itemOptions}
-                      value={
-                        row.columns[header.key] === ''
-                          ? null
-                          : {
-                              label: itemOptions.find(
-                                (option) =>
-                                  option.value === row.columns[header.key].value
-                              )?.label,
-                              value: row.columns[header.key],
-                            }
-                      }
-                      onChange={(selectedOption) => {
-                        handleSelectChange(selectedOption, rowIndex, 'itemId');
-                        handleBatchOptions(row);
-                      }}
-                      containerClass={`flex-shrink-0 h-[3em] rounded-none w-fit`}
-                      className={`rounded-none text-lg w-fit h-[3em]`}
-                      onBlur={() => {
-                        setFocused('');
-                      }}
-                      onKeyDown={(
-                        e: React.KeyboardEvent<HTMLSelectElement>
-                      ) => {
-                        if (e.key === 'Enter') {
-                          const dropdown = document.querySelector(
-                            '.custom-select__menu'
-                          );
-                          if (!dropdown) {
-                            e.preventDefault();
-                          }
-                          setFocused(`cell-${rowIndex}-${colIndex + 1}`);
-                        }
-                      }}
-                    />
-                  </span>
-                ) : colIndex === 1 ? (
-                  <span
-                    onFocus={() => handleBatchOptions(row)}
-                    className={`h-fit ${header.width}`}
-                  >
-                    <CustomSelect
-                      isPopupOpen={false}
-                      key={colIndex}
-                      isSearchable={true}
-                      isFocused={focused === `cell-${rowIndex}-${colIndex}`}
-                      id={`cell-${rowIndex}-${colIndex}`}
-                      options={batchOptions}
-                      value={
-                        row.columns[header.key] === ''
-                          ? null
-                          : {
-                              label: (
-                                itemValue.find(
-                                  (x) => x.id === row.columns['itemId'].value
-                                )?.ItemBatches || []
-                              ).find(
-                                (x: any) =>
-                                  x.id === row.columns[header.key].value
-                              )?.batchNo,
-                              value: row.columns[header.key],
-                            }
-                      }
-                      onChange={(selectedOption) => {
-                        handleSelectChange(selectedOption, rowIndex, 'batchNo');
-                        handleQtyInput(row, rowIndex, 'batchNo');
-                      }}
-                      containerClass={`flex-shrink-0 h-[3em]  rounded-none w-fit`}
-                      className={`rounded-none text-lg w-fit h-[3em]`}
-                      onKeyDown={(
-                        e: React.KeyboardEvent<HTMLSelectElement>
-                      ) => {
-                        if (e.key === 'Enter') {
-                          const dropdown = document.querySelector(
-                            '.custom-select__menu'
-                          );
-                          if (!dropdown) {
-                            e.preventDefault();
-                          }
-                          document
-                            .getElementById(`cell-${rowIndex}-${colIndex + 1}`)
-                            ?.focus();
-                        }
-                      }}
-                    />
-                  </span>
-                ) : colIndex === 2 || colIndex === 3 ? (
+                return [0, 1].includes(colIndex) ? (
                   <input
                     key={colIndex}
                     id={`cell-${rowIndex}-${colIndex}`}
-                    type='text'
-                    value={row.columns[header.key]}
-                    onChange={(e) => {
-                      handleInputChange(rowIndex, header.key, e.target.value);
-                      handleTotalAmt(rowIndex);
+                    onFocus={() => {
+                      return handleFocus(rowIndex, colIndex);
                     }}
+                    value={row.columns[header.key]?.label}
                     onKeyDown={(e) => handleKeyDown(e, rowIndex, colIndex)}
-                    className={`flex-shrink-0  border-[1px] p-2 text-xs border-solid border-gray-400 ${header.width}`}
-                    onBlur={() => {
-                      handleQtyChange(row, rowIndex, colIndex);
-                      handleTotalAmt(rowIndex);
-                    }}
+                    className={`flex-shrink-0 border-[1px] p-2 text-xs border-solid border-gray-400 ${header.width}`}
                   />
                 ) : colIndex === 4 ? (
-                  <span
-                    onFocus={() => handleBatchOptions(row)}
-                    className={`h-fit ${header.width}`}
-                  >
+                  <span className={`h-fit ${header.width}`}>
                     <CustomSelect
                       isPopupOpen={false}
                       key={colIndex}
@@ -504,59 +412,46 @@ export const CreateDeliveryChallanTable = ({
                         row.columns[header.key] === ''
                           ? null
                           : {
-                              label: schemeTypeOptions.find(
-                                (option) =>
-                                  option.value === row.columns[header.key].value
-                              )?.label,
+                              label: schemeTypeOptions.find((option) => option.value === row.columns[header.key].value)?.label,
                               value: row.columns[header.key],
                             }
                       }
                       onChange={(selectedOption) => {
-                        handleSelectChange(
-                          selectedOption,
-                          rowIndex,
-                          'schemeType'
-                        );
+                        handleSelectChange(selectedOption, rowIndex, 'schemeType');
                         handleQtyChange(row, rowIndex, colIndex);
                         handleTotalAmt(rowIndex);
                       }}
                       containerClass={`flex-shrink-0 h-[3em] rounded-none w-fit`}
                       className={`rounded-none text-lg w-fit h-[3em]`}
-                      onKeyDown={(
-                        e: React.KeyboardEvent<HTMLSelectElement>
-                      ) => {
+                      onKeyDown={( e: React.KeyboardEvent<HTMLSelectElement> ) => {
                         if (e.key === 'Enter') {
-                          const dropdown = document.querySelector(
-                            '.custom-select__menu'
-                          );
-                          if (!dropdown) {
-                            e.preventDefault();
-                          }
-                          document
-                            .getElementById(`cell-${rowIndex}-${colIndex + 1}`)
-                            ?.focus();
+                          const dropdown = document.querySelector('.custom-select__menu');
+                          if (!dropdown) e.preventDefault();
+                          document.getElementById(`cell-${rowIndex}-${colIndex + 1}`)?.focus();
                         }
                       }}
                     />
                   </span>
                 ) : (
                   <input
-                    key={colIndex}
-                    id={`cell-${rowIndex}-${colIndex}`}
-                    type='text'
-                    value={row.columns[header.key]}
-                    onChange={(e) => {
-                      handleInputChange(rowIndex, header.key, e.target.value);
+                  key={colIndex}
+                  id={`cell-${rowIndex}-${colIndex}`}
+                  type={[2, 3, 5, 6, 8].includes(colIndex) ? 'number' : colIndex === 9 ? 'date' : 'text'}
+                  value={row.columns[header.key]}
+                  onChange={(e) => {
+                    handleInputChange(rowIndex, header.key, e.target.value);
+                    handleTotalAmt(rowIndex);
+                  }}
+                  onKeyDown={(e) => handleKeyDown(e, rowIndex, colIndex)}
+                  className={`flex-shrink-0 border-[1px] p-2 ${[2, 3, 5, 6, 7, 8, 9, 11].includes(colIndex) ? 'text-right' : ''} text-xs border-solid border-gray-400 ${header.width}`}
+                  disabled={[7, 10, 11].includes(colIndex) ? true : false}
+                  onBlur={() => {
+                    if([2, 3].includes(colIndex)){
+                      handleQtyChange(row, rowIndex, colIndex);
                       handleTotalAmt(rowIndex);
-                    }}
-                    onKeyDown={(e) => handleKeyDown(e, rowIndex, colIndex)}
-                    className={`flex-shrink-0 border-[1px] p-2 text-xs  border-solid border-gray-400 ${header.width}`}
-                    disabled={
-                      colIndex === 11 || colIndex === 10 || colIndex === 7
-                        ? true
-                        : false
-                    }
-                  />
+                    }                    
+                  }}
+                />
                 );
               })}
             </div>
@@ -579,6 +474,21 @@ export const CreateDeliveryChallanTable = ({
           onConfirm={handleAlertCloseModal}
           message={popupState.message}
           isAlert={popupState.isAlertOpen}
+        />
+      )}
+      {open && (
+        <SchemeSection
+          togglePopup={togglePopup}
+          setSchemeValue={setSchemeValue}
+        />
+      )}
+      {openDataPopup && (headerData.isItem || headerData.isBatch) && (
+        <DropDownPopup
+          heading={headerData.isItem ? 'Items' : headerData.isBatch ? 'Batches' : ''}
+          setOpenDataPopup={setOpenDataPopup}
+          headers={headerData.isItem ? itemHeader : headerData.isBatch ? batchHeader : []}
+          tableData={tableData}
+          setCurrentSavedData={setCurrentSavedData}
         />
       )}
     </div>

@@ -99,52 +99,32 @@ const DeliveryChallan = () => {
     );
   };
 
-  const commonColDefConfig = {
-    flex: 1,
-    filter: true,
-    editable: true,
-    suppressMovable: true,
-    headerClass: 'custom-header',
-  };
   const colDefs: any[] = [
     {
       headerName: 'Challan No.',
       field: 'challanNumber',
-      ...commonColDefConfig,
-      editable: false,
     },
     {
       headerName: 'Station One / All',
       field: 'oneStation',
-      ...commonColDefConfig,
-      editable: false,
     },
     {
       headerName: 'Station Name',
       field: 'stationId',
-      ...commonColDefConfig,
-      editable: false,
     },
     {
       headerName: 'Party',
       field: 'partyId',
-      ...commonColDefConfig,
       headerClass: 'custom-header custom_header_class ag-right-aligned-header',
-      editable: false,
     },
 
     {
       headerName: 'Balance',
       field: 'runningBalance',
-      ...commonColDefConfig,
-      editable: false,
     },
     {
       headerName: 'Actions',
       headerClass: 'custom-header-class custom-header',
-      sortable: false,
-      suppressMovable: true,
-      flex: 1,
       cellStyle: {
         display: 'flex',
         justifyContent: 'center',
@@ -197,6 +177,11 @@ const DeliveryChallan = () => {
               columnDefs={colDefs}
               defaultColDef={{
                 floatingFilter: true,
+                flex: 1,
+                filter: true,
+                editable: false,
+                suppressMovable: true,
+                headerClass: 'custom-header',
               }}
               onCellClicked={onCellClicked}
               onCellEditingStarted={cellEditingStarted}
