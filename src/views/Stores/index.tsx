@@ -299,7 +299,20 @@ export const Store = () => {
       field: 'store_name',
       flex: 3,
       filter: true,
-      editable: updateAccess,
+      editable: (p:any)=>{
+       if(updateAccess){
+        const isPredefined = !p.data.isPredefinedStore
+        if(!isPredefined){
+          setPopupState({
+            ...popupState,
+            isAlertOpen: true,
+            message: 'Predefined Stores are not editable',
+          });
+        }
+        return isPredefined
+       }
+       return updateAccess
+      },
       headerClass: 'custom-header',
       suppressMovable: true,
     },

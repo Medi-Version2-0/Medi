@@ -25,7 +25,7 @@ import usePermission from '../../hooks/useRole';
 const ledgerValidationSchema = Yup.object().shape({
   partyName: Yup.string()
     .required('Party Name is required')
-    .matches(/^\D+$/, 'Only Numbers not allowed')
+    .matches(/^(?!\d+$).+/, 'Only Numbers not allowed')
     .max(100, 'Party name cannot exceed 100 characters'),
   station_id: Yup.number().nullable(),
   openingBal: Yup.number()
@@ -39,6 +39,7 @@ const ledgerValidationSchema = Yup.object().shape({
       }
     )
     .min(0, 'Opening Balance must be at least 0'),
+    openingBalType:Yup.string()
 });
 
 const validateField = async (field: string, value: any) => {
@@ -125,6 +126,7 @@ export const Ledger = () => {
     ledgerStationsMap[station.station_id] = station.station_name;
   });
 
+
   const types = useMemo(() => Object.keys(typeMapping), [typeMapping]);
   const extractKeys = (mappings: {
     [x: number]: string;
@@ -176,10 +178,10 @@ export const Ledger = () => {
   const handleCellEditingStopped = async (e: any) => {
     if (!e.data.isPredefinedLedger) {
       editing.current = false;
-      const { column, oldValue, valueChanged, node, data } = e;
+      const { column, oldValue, node, data } = e;
       let { newValue } = e;
 
-      if (!valueChanged) return;
+      if (newValue === oldValue) return;
 
       const field = column.colId;
       const errorMessage = await validateField(field, newValue);

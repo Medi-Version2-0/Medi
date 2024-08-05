@@ -58,7 +58,7 @@ const LicencseSection = ({ formik }: any) => {
                 inputClassName='bg-[#d8ddde54]'
                 formik={formik}
                 isPopupOpen={false}
-                nextField='corporateIdNumber'
+                nextField='CIN'
                 prevField='gstNumber'
                 isUpperCase={true}
                 isTitleCase={false}
@@ -67,9 +67,9 @@ const LicencseSection = ({ formik }: any) => {
                 }
             />
             <FormikInputField
-                label='Corporate ID Number'
-                id='corporateIdNumber'
-                name='corporateIdNumber'
+                label='Company Identification Number'
+                id='CIN'
+                name='CIN'
                 className='!mb-0'
                 labelClassName='font-semibold text-gray-600 min-w-[10vw]'
                 inputClassName='bg-[#d8ddde54]'
@@ -78,7 +78,7 @@ const LicencseSection = ({ formik }: any) => {
                 nextField='panNumber'
                 prevField='fssaiNumber'
                 showErrorTooltip={
-                    !!(formik.touched.corporateIdNumber && formik.errors.name)
+                    !!(formik.touched.CIN && formik.errors.name)
                 }
             />
             <FormikInputField
@@ -91,7 +91,7 @@ const LicencseSection = ({ formik }: any) => {
                 formik={formik}
                 isPopupOpen={false}
                 nextField='tdsTanNumber'
-                prevField='corporateIdNumber'
+                prevField='CIN'
                 showErrorTooltip={
                     !!(formik.touched.panNumber && formik.errors.panNumber)
                 }

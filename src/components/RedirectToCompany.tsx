@@ -45,7 +45,7 @@ export const RedirectToCompany = () => {
     };
 
     handleRedirect();
-  }, [organizations, navigate, setSelectedOrganization]);
+  }, [navigate, setSelectedOrganization]);
 
   const handleOrganizationSelect = (organizationId: number) => {
     setSelectedOrganization(organizationId);
