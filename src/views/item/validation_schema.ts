@@ -27,4 +27,7 @@ export const itemFormValidations = Yup.object({
         return Number(value) > Number(minQty);
       }
     ),
+  itemGroupCode: Yup.string(),
+  saleAccId: Yup.string(),
+  purAccId: Yup.string()
 });

@@ -198,7 +198,7 @@ const Items = () => {
     editing.current = false;
     const { column, oldValue, valueChanged, node, data } = e;
     let { newValue } = e;
-    if (!valueChanged) return;
+    if (oldValue === newValue) return;
     const field = column.colId;
 
     try {

@@ -16,51 +16,27 @@ export const organizationValidationSchema = Yup.object({
         (val) => !val || val.toString().length === 6
     ),
     jurisdiction: Yup.string().required('Jurisdiction is required'),
-    // phoneNo1: Yup.number().required('Phone No 1 is required').typeError('Phone No 1 must be a number').test(
-    //     'len',
-    //     'Phone No 1 must be exactly 10 digits',
-    //     (val) => !val || val.toString().length === 10
-    // ),
-    // phoneNo2: Yup.number().nullable().typeError('Phone No 2 must be a number').test(
-    //     'len',
-    //     'Phone No 2 must be exactly 10 digits',
-    //     (val) => !val || val.toString().length === 10
-    // ),
-    // phoneNo3: Yup.number().nullable().typeError('Phone No 3 must be a number').test(
-    //     'len',
-    //     'Phone No 3 must be exactly 10 digits',
-    //     (val) => !val || val.toString().length === 10
-    // ),
-    // contactEmail: Yup.string().email('Invalid email format').required('Contact Email is required'),
-    // drugLicenseNo20B: Yup.string().nullable().test(
-    //     'len',
-    //     'Drug License No 20B must be exactly 20 characters',
-    //     (val) => !val || val.length === 20
-    // ),
-    // drugLicenseNo21B: Yup.string().nullable().test(
-    //     'len',
-    //     'Drug License No 21B must be exactly 20 characters',
-    //     (val) => !val || val.length === 20
-    // ),
-    // gstNumber: Yup.string().nullable().test(
-    //     'len',
-    //     'GST Number must be exactly 15 characters',
-    //     (val) => !val || val.length === 15
-    // ),
-    // fssaiNumber: Yup.string().nullable().test(
-    //     'len',
-    //     'FSSAI Number must be exactly 14 characters',
-    //     (val) => !val || val.length === 14
-    // ),
-    // corporateIdNumber: Yup.string().nullable(),
-    // panNumber: Yup.string().nullable().test(
-    //     'len',
-    //     'PAN Number must be exactly 10 characters',
-    //     (val) => !val || val.length === 10
-    // ),
-    // tdsTanNumber: Yup.string().nullable().test(
-    //     'len',
-    //     'TDS TAN Number must be exactly 10 characters',
-    //     (val) => !val || val.length === 10
-    // )
+    phoneNo1: Yup.number().typeError('Phone No 1 must be a number').test(
+        'len',
+        'Phone No 1 must be exactly 10 digits',
+        (val) => !val || val.toString().length === 10
+    ),
+    phoneNo2: Yup.number().nullable().typeError('Phone No 2 must be a number').test(
+        'len',
+        'Phone No 2 must be exactly 10 digits',
+        (val) => !val || val.toString().length === 10
+    ),
+    phoneNo3: Yup.number().nullable().typeError('Phone No 3 must be a number').test(
+        'len',
+        'Phone No 3 must be exactly 10 digits',
+        (val) => !val || val.toString().length === 10
+    ),
+    contactEmail: Yup.string().matches(/^[a-zA-Z0-9._%]+@[a-zA-Z0-9]+\.[a-zA-Z]{2,}$/, 'Invalid email format'),
+    drugLicenseNo20B: Yup.string().matches(/^[a-zA-Z]{2}-\d{6}-\d{5}-[a-zA-Z]{2}$/, 'Invalid Drug License Number format'),
+    drugLicenseNo21B: Yup.string().matches(/^\d{2}-\d{6}-[a-zA-Z]$/, 'Invalid Drug License Number format'),
+    gstNumber: Yup.string().matches(/^[0-9]{2}[a-zA-Z]{5}[0-9]{4}[a-zA-Z][a-zA-Z0-9]{1}[Z][a-zA-Z0-9]{1}$/, 'Invalid GST number format'),
+    fssaiNumber: Yup.string().matches(/^(?:[a-zA-Z]{2}\.\d{6}\/?\d{0,4}\/?[a-zA-Z\d]{0,2})$/, 'Invalid FSSAI Number format'),
+    CIN: Yup.string().matches(/^([LUu]{1})([0-9]{5})([A-Za-z]{2})([0-9]{4})([A-Za-z]{3})([0-9]{6})$/, 'Invalid  Company Identification Number format'),
+    panNumber: Yup.string().matches(/^[a-zA-Z]{5}[0-9]{4}[a-zA-Z]$/, 'Invalid PAN Card Number format'),
+    tdsTanNumber: Yup.string().matches(/^[a-zA-Z]{4}\d{5}[a-zA-Z]$/, 'Invalid TAN Number format')
 });
