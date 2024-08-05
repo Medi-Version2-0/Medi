@@ -1,19 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { FormikProps, useFormik } from 'formik';
+import { FormikProps, Formik, Form, useFormik } from 'formik';
 import Button from '../../components/common/button/Button';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { sendAPIRequest } from '../../helper/api';
 import { useQueryClient } from '@tanstack/react-query';
-import { CompanyFormData, Option } from '../../interface/global';
+import { CompanyFormData, Option, schemeSectionFormProps, schemeSectionProps } from '../../interface/global';
 import onKeyDown from '../../utilities/formKeyDown';
 import FormikInputField from '../../components/common/FormikInputField';
 import CustomSelect from '../../components/custom_select/CustomSelect';
 import titleCase from '../../utilities/titleCase';
 import { CreateDeliveryChallanTable } from './createDeliveryChallanTable';
 import { saleChallanFormValidations } from './validation_schema';
+import { Popup } from '../../components/popup/Popup';
 
 export interface DeliveryChallanFormValues {
   oneStation: string;
@@ -22,27 +23,111 @@ export interface DeliveryChallanFormValues {
   runningBalance: number;
   runningBalanceType: string;
   challanNumber: string;
-  netRateSymbol: string;
+  // netRateSymbol: string;
   personName: string;
   date: string;
   qtyTotal: string;
   total: string;
 }
 
-export type DeliveryChallanFormInfoType =
-  FormikProps<DeliveryChallanFormValues>;
+export type DeliveryChallanFormInfoType = FormikProps<DeliveryChallanFormValues>;
+
+export const SchemeSection = ({ togglePopup, heading, className, setOpenDataPopup, setSchemeValue }: schemeSectionProps) => {
+  const formikRef = useRef<FormikProps<schemeSectionFormProps>>(null);
+
+  useEffect(() => {
+    const focusTarget = document.getElementById('scheme1');
+    focusTarget?.focus();
+  }, []);
+
+  const handleSubmit = async (values: any) => {
+    console.log('values ------------> ', values);
+    setSchemeValue({ scheme1: values.scheme1, scheme2: values.scheme2 });
+    setOpenDataPopup(false)
+    togglePopup(false);
+  };
+  return (
+    <Popup heading={heading} childClass='!max-h-fit' className={className}>
+      <Formik
+        innerRef={formikRef}
+        initialValues={{ scheme1: null, scheme2: null }}
+        onSubmit={handleSubmit}
+      >
+        {(formik) => (
+          <Form className='flex flex-col gap-3 items-center px-2'>
+            <div className='flex gap-3 w-full justify-evenly'>
+              <div className='w-[40%]'>
+                <FormikInputField
+                  type='number'
+                  id='scheme1'
+                  placeholder='0.00'
+                  name='scheme1'
+                  formik={formik as FormikProps<schemeSectionFormProps>}
+                  className='!gap-0'
+                  nextField='scheme2'
+                  prevField='scheme1'
+                  sideField='scheme1'
+                  showErrorTooltip={ !!(formik.touched.scheme1 && formik.errors.scheme1)}
+                />
+              </div>
+              <div className=''> + </div>
+              <div className='w-[40%]'>
+                <FormikInputField
+                  type='number'
+                  id='scheme2'
+                  name='scheme2'
+                  placeholder='0.00'
+                  formik={formik as FormikProps<schemeSectionFormProps>}
+                  className='!gap-0'
+                  nextField='submit_button'
+                  prevField='scheme1'
+                  sideField='scheme1'
+                  showErrorTooltip={!!(formik.touched.scheme1 && formik.errors.scheme1)}
+                />
+              </div>
+            </div>
+            <div className='flex w-full justify-between m-2 px-[0.4em]'>
+              <Button
+                autoFocus={true}
+                type='fog'
+                id='cancel_button'
+                handleOnClick={() => togglePopup(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                id='submit_button'
+                type='fill'
+                autoFocus
+                handleOnClick={formik.handleSubmit}
+              >
+                Save
+              </Button>
+            </div>
+          </Form>
+        )}
+      </Formik>
+    </Popup>
+  );
+};
 
 const CreateDeliveryChallan = ({ setView, data }: any) => {
+
   const { organizationId } = useParams();
   const [stationOptions, setStationOptions] = useState<Option[]>([]);
   const [partyOptions, setPartyOptions] = useState<Option[]>([]);
   const [dataFromTable, setDataFromTable] = useState<any[]>([]);
   const [challanTableData, setChallanTableData] = useState<any[]>([]);
+  const [isNetRateSymbol, setIsNetRateSymbol] = useState<string>('');
   const [partyData, setPartyData] = useState<any[]>([]);
-  const queryClient = useQueryClient();
-  const [totalAmt, setTotalAmt] = useState<number>(0);
-  const [totalQty, setTotalQty] = useState<number>(0);
   const [focused, setFocused] = useState('');
+  const queryClient = useQueryClient();
+  const [totalValue, setTotalValue] = useState({
+    totalAmt: 0.0,
+    totalQty: 0.0,
+    totalDiscount: 0.0,
+    totalGST: 0.0,
+  });
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
@@ -57,15 +142,9 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
       runningBalance: data?.runningBalance || 0.0,
       runningBalanceType: data?.runningBalanceType || '',
       challanNumber: data?.challanNumber || '',
-      netRateSymbol: data?.netRateSymbol || '',
+      // netRateSymbol: data?.netRateSymbol || '',
       personName: data?.personName || '',
-      date:
-        data?.date ||
-        new Date().toLocaleDateString('en-GB', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-        }), // dd//mm//yyyy
+      date: data?.date || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric'}), // dd//mm//yyyy
       qtyTotal: data?.qtyTotal || '',
       total: data?.total || '',
     },
@@ -84,26 +163,21 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
         if (values.oneStation === 'All Stations') {
           values.stationId = null;
         }
-        values.total = (+totalAmt)?.toFixed(2);
-        values.qtyTotal = (+totalQty)?.toFixed(2);
-        const finalData = { ...values, challans: dataFromTable };
-        if (data.id) {
-          await sendAPIRequest(
-            `/${organizationId}/deliveryChallan/${data.id}`,
-            {
-              method: 'PUT',
-              body: finalData,
-            }
-          );
-        } else {
-          await sendAPIRequest(`/${organizationId}/deliveryChallan`, {
-            method: 'POST',
-            body: finalData,
-          });
+        if(isNetRateSymbol !== ''){
+          values.netRateSymbol = isNetRateSymbol;
+        }else{
+          values.netRateSymbol = 'No';
         }
-        await queryClient.invalidateQueries({
-          queryKey: ['get-deliveryChallan'],
-        });
+        values.total = (+totalValue.totalAmt)?.toFixed(2);
+        values.qtyTotal = (+totalValue.totalQty)?.toFixed(2);
+        const finalData = { ...values, challans: dataFromTable };
+        console.log("final Data ----> ", finalData);
+        if (data.id) {
+          await sendAPIRequest(`/${organizationId}/deliveryChallan/${data.id}`,{ method: 'PUT', body: finalData });
+        } else {
+          await sendAPIRequest(`/${organizationId}/deliveryChallan`, { method: 'POST', body: finalData });
+        }
+        await queryClient.invalidateQueries({ queryKey: ['get-deliveryChallan'] });
 
         setPopupState({
           isModalOpen: false,
@@ -133,9 +207,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
       }))
     );
     if (formik.values.oneStation === 'One Station') {
-      const requiredParty = partyList.filter(
-        (party) => party.station_id === formik.values.stationId
-      );
+      const requiredParty = partyList.filter((party) => party.station_id === formik.values.stationId);
       setPartyOptions(
         requiredParty.map((party: any) => ({
           value: party.party_id,
@@ -182,11 +254,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
 
   useEffect(() => {
     if (formik.values.partyId !== '') {
-      const party = partyData.find(
-        (party) => party.party_id === formik.values.partyId
-      );
-      formik.setFieldValue('runningBalance', party.currentOpeningBal);
-      formik.setFieldValue('runningBalanceType', party.currentOpeningBalType);
+      const party = partyData.find((party) => party.party_id === formik.values.partyId);
     }
   }, [formik.values.partyId]);
 
@@ -250,17 +318,10 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
                 }}
                 onKeyDown={(e: any) => {
                   if (e.key === 'Enter' || e.key === 'Tab') {
-                    const dropdown = document.querySelector(
-                      '.custom-select__menu'
-                    );
-                    if (!dropdown) {
-                      e.preventDefault();
-                    }
-                    if (formik.values.oneStation === 'One Station') {
-                      setFocused('stationId');
-                    } else if (formik.values.oneStation === 'All Stations') {
-                      setFocused('partyId');
-                    }
+                    const dropdown = document.querySelector('.custom-select__menu');
+                    if (!dropdown) e.preventDefault();
+                    if (formik.values.oneStation === 'One Station') setFocused('stationId');
+                    else if (formik.values.oneStation === 'All Stations') setFocused('partyId');
                   }
                 }}
                 showErrorTooltip={true}
@@ -279,9 +340,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
                       formik.values.stationId === ''
                         ? null
                         : {
-                            label: stationOptions.find(
-                              (e) => e.value === formik.values.stationId
-                            )?.label,
+                            label: stationOptions.find((e) => e.value === formik.values.stationId)?.label,
                             value: formik.values.stationId,
                           }
                     }
@@ -291,9 +350,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
                     disableArrow={true}
                     hidePlaceholder={false}
                     className='!h-6 rounded-sm'
-                    isRequired={
-                      formik.values.oneStation === 'One Station' ? true : false
-                    }
+                    isRequired={formik.values.oneStation === 'One Station' ? true : false}
                     error={formik.errors.stationId}
                     isTouched={formik.touched.stationId}
                     showErrorTooltip={true}
@@ -303,17 +360,11 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
                     }}
                     onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
                       if (e.key === 'Enter' || e.key === 'Tab') {
-                        const dropdown = document.querySelector(
-                          '.custom-select__menu'
-                        );
-                        if (!dropdown) {
-                          e.preventDefault();
-                        }
+                        const dropdown = document.querySelector('.custom-select__menu');
+                        if (!dropdown) e.preventDefault();
                         setFocused('partyId');
                       }
-                      if (e.shiftKey && e.key === 'Tab') {
-                        setFocused('oneStation');
-                      }
+                      if (e.shiftKey && e.key === 'Tab') setFocused('oneStation');
                     }}
                   />
                 )}
@@ -331,9 +382,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
                   formik.values.partyId === ''
                     ? null
                     : {
-                        label: partyOptions.find(
-                          (e) => e.value === formik.values.partyId
-                        )?.label,
+                        label: partyOptions.find((e) => e.value === formik.values.partyId)?.label,
                         value: formik.values.partyId,
                       }
                 }
@@ -360,20 +409,13 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
                 }}
                 onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
                   if (e.key === 'Enter' || e.key === 'Tab') {
-                    const dropdown = document.querySelector(
-                      '.custom-select__menu'
-                    );
-                    if (!dropdown) {
-                      e.preventDefault();
-                    }
-                    setFocused('netRateSymbol');
+                    const dropdown = document.querySelector('.custom-select__menu');
+                    if (!dropdown) e.preventDefault();
+                    document.getElementById('personName')?.focus();
                   }
                   if (e.shiftKey && e.key === 'Tab') {
-                    if (formik.values.oneStation === 'One Station') {
-                      setFocused('stationId');
-                    } else if (formik.values.oneStation === 'All Stations') {
-                      setFocused('oneStation');
-                    }
+                    if (formik.values.oneStation === 'One Station') setFocused('stationId');
+                    else if (formik.values.oneStation === 'All Stations') setFocused('oneStation');
                   }
                 }}
               />
@@ -415,16 +457,12 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
                 name='personName'
                 formik={formik}
                 className='!mb-0'
-                prevField='netRateSymbol'
+                prevField='partyId'
                 nextField='cell-0-0'
                 labelClassName='min-w-[140px] text-base text-gray-700'
                 isRequired={false}
-                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                  handleKeyDown(e)
-                }
-                showErrorTooltip={
-                  formik.touched.personName && !!formik.errors.personName
-                }
+                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => handleKeyDown(e)}
+                showErrorTooltip={formik.touched.personName && !!formik.errors.personName}
               />
             </div>
             <div className='w-[35%]'>
@@ -439,12 +477,8 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
                 inputClassName='disabled:text-gray-800'
                 labelClassName='min-w-[140px] mr-[3em] text-base text-gray-700'
                 isRequired={false}
-                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                  handleKeyDown(e)
-                }
-                showErrorTooltip={
-                  formik.touched.challanNumber && !!formik.errors.challanNumber
-                }
+                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => handleKeyDown(e)}
+                showErrorTooltip={formik.touched.challanNumber && !!formik.errors.challanNumber}
               />
             </div>
           </div>
@@ -468,23 +502,37 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
         <div className='my-4 mx-8'>
           <CreateDeliveryChallanTable
             setDataFromTable={setDataFromTable}
-            setTotalAmt={setTotalAmt}
-            setTotalQty={setTotalQty}
+            setTotalValue={setTotalValue}
+            totalValue={totalValue}
             challanTableData={challanTableData}
+            setIsNetRateSymbol={setIsNetRateSymbol}
           />
         </div>
         <div className='border-[1px] border-solid border-gray-400 my-4 p-4 mx-8'>
-          <div className='flex gap-12 justify-end'>
+          <div className='flex gap-12 justify-between'>
             <span className='flex gap-2 text-base text-gray-900'>
-              Quantity Total :{' '}
+              Total Discount :{' '}
               <span className='min-w-[50px] text-gray-700'>
-                {parseFloat(totalQty.toFixed(2))}
+                {data.id ? '' : parseFloat(Number(totalValue.totalDiscount)?.toFixed(2))}
+              </span>
+            </span>
+            <span className='flex gap-2 text-base text-gray-900'>
+              Total GST :{' '}
+              <span className='min-w-[50px] text-gray-700'>
+                {data.id ? '' : parseFloat(Number(totalValue.totalGST)?.toFixed(2))}
+              </span>
+            </span>
+
+            <span className='flex gap-2 text-base text-gray-900'>
+              Total Quantity :{' '}
+              <span className='min-w-[50px] text-gray-700'>
+                {data.id ? data.qtyTotal : parseFloat(Number(totalValue.totalQty)?.toFixed(2))}
               </span>
             </span>
             <span className='flex gap-2 text-base text-gray-900'>
               Total :{' '}
               <span className='min-w-[50px] text-gray-700'>
-                {parseFloat(Number(totalAmt)?.toFixed(2))}
+                {data.id ? data.total : parseFloat(Number(totalValue.totalAmt)?.toFixed(2))}
               </span>
             </span>
           </div>
@@ -495,11 +543,9 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
             padding='px-4 py-2'
             id='submit_all'
             disable={!formik.isValid}
-            handleOnClick={formik.handleSubmit}
+            handleOnClick={() => formik.handleSubmit}
             handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
-              if (e.key === 'ArrowUp') {
-                e.preventDefault();
-              }
+              if (e.key === 'ArrowUp') e.preventDefault();
             }}
           >
             {data.id ? 'Update' : 'Submit'}

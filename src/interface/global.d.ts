@@ -85,6 +85,10 @@ export interface FormDataProps {
   station_pinCode: string;
   station_headQuarter: string;
 }
+export interface schemeSectionFormProps {
+  scheme1: number | null;
+  scheme2?: number | null;
+}
 
 export interface GroupFormDataProps {
   group_name: string;
@@ -181,11 +185,12 @@ export interface CreateSubGroupProps {
 
 export interface PopupProps {
   togglePopup?: Function;
-  heading: string;
+  heading?: string;
   children: any;
   className?: string;
   childClass?: string;
   onClose?: () => void;
+  isSuggestionPopup?: boolean;
 }
 
 export interface Confirm_Alert_PopupProps {
@@ -355,4 +360,19 @@ export interface UserFormI {
   password?: string;
   role?: number;
   status?: boolean;
+}
+export interface schemeSectionProps {
+  togglePopup: Function;
+  heading?: string;
+  setSchemeValue: any;
+  setOpenDataPopup?: any;
+  className?: string;
+}
+export interface dropDownPopupProps {
+  heading: string;
+  setOpenDataPopup?: any;
+  className?: string;
+  headers?:any;
+  tableData?: any;
+  setCurrentSavedData?:any;
 }
