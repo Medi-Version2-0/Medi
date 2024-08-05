@@ -280,7 +280,6 @@ export const PartyWiseDiscount = () => {
       field: 'partyId',
       flex: 2,
       filter: true,
-      editable: true,
       headerClass: 'custom-header',
       cellEditor: 'agSelectCellEditor',
       cellEditorParams: {
@@ -308,7 +307,6 @@ export const PartyWiseDiscount = () => {
       valueFormatter: (params: { value: string | number }) => {
         return lookupValue(discountTypeMap, params.value);
       },
-      editable: true,
       headerClass: 'custom-header',
       suppressMovable: true,
     },
@@ -317,7 +315,6 @@ export const PartyWiseDiscount = () => {
       field: 'companyId',
       flex: 1,
       filter: true,
-      editable: true,
       type: 'rightAligned',
       headerClass: 'custom-header custom_header_class ag-right-aligned-header',
 
@@ -336,7 +333,6 @@ export const PartyWiseDiscount = () => {
       headerName: 'Discount',
       field: 'discount',
       filter: true,
-      editable: true,
       flex: 1,
       valueFormatter: decimalFormatter,
       headerClass: 'custom-header',
@@ -347,6 +343,7 @@ export const PartyWiseDiscount = () => {
       headerClass: 'custom-header-class custom-header',
       sortable: false,
       suppressMovable: true,
+      editable : false,
       flex: 1,
       cellStyle: {
         display: 'flex',
@@ -390,6 +387,7 @@ export const PartyWiseDiscount = () => {
               columnDefs={colDefs}
               defaultColDef={{
                 floatingFilter: true,
+                editable : updateAccess
               }}
               onCellClicked={onCellClicked}
               onCellEditingStarted={cellEditingStarted}

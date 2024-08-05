@@ -320,7 +320,6 @@ export const BillBook = () => {
       headerName: 'Series Name',
       field: 'billName',
       filter: true,
-      editable: true,
       sortable: true,
       flex: 1,
       headerClass: 'custom-header',
@@ -330,7 +329,6 @@ export const BillBook = () => {
       headerName: 'Prefix',
       field: 'billBookPrefix',
       filter: true,
-      editable: true,
       flex: 1,
       headerClass: 'custom-header',
       sortable: true,
@@ -343,7 +341,6 @@ export const BillBook = () => {
       headerName: 'Company',
       field: 'company',
       filter: true,
-      editable: true,
       sortable: true,
       flex: 1,
       cellEditor: 'agSelectCellEditor',
@@ -359,7 +356,6 @@ export const BillBook = () => {
       headerName: 'Cash/Credit',
       field: 'billType',
       filter: true,
-      editable: true,
       sortable: true,
       flex: 1,
       cellEditor: 'agSelectCellEditor',
@@ -376,7 +372,6 @@ export const BillBook = () => {
       field: 'orderOfBill',
       filter: true,
       headerClass: 'custom-header-class custom-header',
-      editable: true,
       sortable: true,
       suppressMovable: true,
       flex: 1,
@@ -385,7 +380,6 @@ export const BillBook = () => {
       headerName: 'Lock Bill',
       field: 'locked',
       filter: true,
-      editable: true,
       flex: 1,
       cellEditor: 'agSelectCellEditor',
       cellEditorParams: {
@@ -401,6 +395,7 @@ export const BillBook = () => {
       headerClass: 'custom-header-class custom-header',
       sortable: false,
       suppressMovable: true,
+      editable :false,
       flex: 1,
       cellStyle: {
         display: 'flex',
@@ -470,6 +465,7 @@ export const BillBook = () => {
                 columnDefs={colDefs}
                 defaultColDef={{
                   floatingFilter: true,
+                  editable : updateAccess
                 }}
                 onCellClicked={onCellClicked}
                 onCellEditingStarted={cellEditingStarted}

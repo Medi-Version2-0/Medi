@@ -256,7 +256,7 @@ const Items = () => {
   const commonColDefConfig = {
     flex: 1,
     filter: true,
-    editable: true,
+    editable: updateAccess,
     suppressMovable: true,
     headerClass: 'custom-header',
   };
@@ -275,7 +275,7 @@ const Items = () => {
       headerClass: 'custom-header custom_header_class ag-right-aligned-header',
       flex: 1,
       filter: true,
-      editable: true,
+      editable: updateAccess,
       suppressMovable: true,
     },
     {

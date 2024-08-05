@@ -42,7 +42,7 @@ export const Stations = () => {
   const dispatch = useDispatch()
   let currTable: any[] = [];
   const gridRef = useRef<any>(null);
-  const { createAccess, updateAccess, deleteAccess } = usePermission('items')
+  const { createAccess, updateAccess, deleteAccess } = usePermission('station_setup')
 
   const { controlRoomSettings } = useControls();
 
@@ -353,7 +353,6 @@ export const Stations = () => {
       field: 'station_name',
       flex: 1,
       filter: true,
-      editable: true,
       headerClass: 'custom-header',
       suppressMovable: true,
       cellRenderer: (params: any) => (
@@ -375,7 +374,6 @@ export const Stations = () => {
             field: 'igst_sale',
             flex: 1,
             filter: true,
-            editable: true,
             cellEditor: 'agSelectCellEditor',
             cellEditorParams: {
               values: types,
@@ -403,7 +401,6 @@ export const Stations = () => {
       field: 'state_code',
       flex: 1,
       filter: true,
-      editable: true,
       cellEditor: 'agSelectCellEditor',
       cellEditorParams: {
         values: states,
@@ -438,7 +435,6 @@ export const Stations = () => {
       field: 'station_pinCode',
       flex: 1,
       filter: true,
-      editable: true,
       headerClass: 'custom-header custom_header_class',
       suppressMovable: true,
       cellEditorParams: {
@@ -462,6 +458,7 @@ export const Stations = () => {
       headerClass: 'custom-header-class custom-header',
       sortable: false,
       suppressMovable: true,
+      editable : false,
       flex: 1,
       cellStyle: {
         display: 'flex',
@@ -513,6 +510,7 @@ export const Stations = () => {
               columnDefs={colDefs}
               defaultColDef={{
                 floatingFilter: true,
+                editable : updateAccess
               }}
               onCellClicked={onCellClicked}
               onCellEditingStarted={cellEditingStarted}
