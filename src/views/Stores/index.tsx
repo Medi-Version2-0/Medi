@@ -299,7 +299,7 @@ export const Store = () => {
       field: 'store_name',
       flex: 3,
       filter: true,
-      editable: true,
+      editable: updateAccess,
       headerClass: 'custom-header',
       suppressMovable: true,
     },

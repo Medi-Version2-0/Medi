@@ -212,7 +212,6 @@ export const Company = () => {
       flex: 2,
       menuTabs: ['filterMenuTab'],
       filter: true,
-      editable: true,
       suppressMovable: true,
       headerClass: 'custom-header',
     },
@@ -234,7 +233,6 @@ export const Company = () => {
       valueGetter: (params: { data: any }) => {
         return lookupValue(ledgerStationsMap, params.data.stationId);
       },
-      editable: true,
       headerClass: 'custom-header',
       suppressMovable: true,
     },
@@ -243,7 +241,6 @@ export const Company = () => {
       field: 'openingBal',
       flex: 1,
       filter: true,
-      editable: true,
       type: 'rightAligned',
       valueFormatter: decimalFormatter,
       headerClass: 'custom-header custom_header_class ag-right-aligned-header',
@@ -253,7 +250,6 @@ export const Company = () => {
       headerName: 'Debit/Credit',
       field: 'openingBalType',
       filter: true,
-      editable: true,
       cellEditor: 'agSelectCellEditor',
       flex: 1,
       cellEditorParams: {
@@ -270,6 +266,7 @@ export const Company = () => {
       sortable: false,
       suppressMovable: true,
       flex: 1,
+      editable :false,
       cellStyle: {
         display: 'flex',
         justifyContent: 'center',
@@ -312,6 +309,7 @@ export const Company = () => {
               columnDefs={colDefs}
               defaultColDef={{
                 floatingFilter: true,
+                editable:updateAccess
               }}
               onCellClicked={onCellClicked}
               onCellEditingStarted={cellEditingStarted}

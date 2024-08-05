@@ -67,7 +67,7 @@ export const Ledger = () => {
   });
 
   const { controlRoomSettings } = useControls();
-  const permissions = usePermission('ledger')
+  const { createAccess, updateAccess, deleteAccess } = usePermission('ledger')
   const initialValues = {
     multiplePriceList: controlRoomSettings.multiplePriceList || true,
     printPartyBalance: controlRoomSettings.printPartyBalance || false,
@@ -223,7 +223,7 @@ export const Ledger = () => {
       field: 'partyName',
       flex: 2,
       filter: 'agTextColumnFilter',
-      editable: (params: any) => !params.data.isPredefinedLedger,
+      editable: (params: any) => !params.data.isPredefinedLedger && updateAccess,
       suppressMovable: true,
       headerClass: 'custom-header',
     },
@@ -241,7 +241,7 @@ export const Ledger = () => {
       valueGetter: (params: { data: any }) => {
         return lookupValue(ledgerStationsMap, params.data.station_id);
       },
-      editable: true,
+      editable: updateAccess,
       headerClass: 'custom-header',
       suppressMovable: true,
     },
@@ -250,7 +250,7 @@ export const Ledger = () => {
       field: 'openingBal',
       flex: 1,
       filter: true,
-      editable: (params: any) => !params.data.isPredefinedLedger,
+      editable: (params: any) => !params.data.isPredefinedLedger && updateAccess,
       type: 'rightAligned',
       valueFormatter: decimalFormatter,
       headerClass: 'custom-header custom_header_class ag-right-aligned-header',
@@ -261,7 +261,7 @@ export const Ledger = () => {
       field: 'openingBalType',
       flex: 1,
       filter: 'agTextColumnFilter',
-      editable: (params: any) => !params.data.isPredefinedLedger,
+      editable: (params: any) => !params.data.isPredefinedLedger && updateAccess,
       cellEditor: 'agSelectCellEditor',
       cellEditorParams: { values: types },
       valueFormatter: (params: ValueFormatterParams) =>
@@ -282,7 +282,7 @@ export const Ledger = () => {
       },
       cellRenderer: (params: { data: any }) => (
         <div className='table_edit_buttons'>
-          {permissions.updateAccess && <FaEdit
+          {updateAccess && <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
             onClick={() => {
               if (params.data.isPredefinedLedger) {
@@ -296,7 +296,7 @@ export const Ledger = () => {
               }
             }}
           />}
-          {permissions.deleteAccess &&<MdDeleteForever
+          {deleteAccess &&<MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
             onClick={() => {
               if (params.data.isPredefinedLedger) {
@@ -332,7 +332,7 @@ export const Ledger = () => {
             <Button
               type='highlight'
               handleOnClick={() => setView({ type: 'add', data: {} })}
-              disable={!permissions.createAccess}
+              disable={!createAccess}
             >
               Add Ledger
             </Button>

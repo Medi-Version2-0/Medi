@@ -301,7 +301,6 @@ export const ItemGroups = () => {
         field: 'group_name',
         flex: 1,
         filter: true,
-        editable: true,
         headerClass: 'custom-header',
         suppressMovable: true,
         cellRenderer: (params: any) => (
@@ -320,7 +319,6 @@ export const ItemGroups = () => {
         headerName: 'P&L / BL. Sheet',
         field: 'type',
         filter: true,
-        editable: true,
         cellEditor: 'agSelectCellEditor',
         cellEditorParams: {
           values: types,
@@ -346,6 +344,7 @@ export const ItemGroups = () => {
         headerName: 'Actions',
         headerClass: 'custom-header-class custom-header',
         sortable: false,
+        editable :false,
         suppressMovable: true,
         flex: 1,
         cellStyle: {
@@ -393,6 +392,7 @@ export const ItemGroups = () => {
               columnDefs={colDefs}
               defaultColDef={{
                 floatingFilter: true,
+                editable : updateAccess
               }}
               onCellClicked={onCellClicked}
               onCellEditingStarted={cellEditingStarted}

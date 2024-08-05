@@ -395,7 +395,7 @@ export const Groups = () => {
         flex: 1,
         filter: true,
         editable: (params) => {
-          return !params.data.isPredefinedGroup || !params.data.group_code;
+          return (!params.data.isPredefinedGroup || !params.data.group_code) && permissions.updateAccess;
         },
         headerClass: 'custom-header',
         suppressMovable: true,
@@ -416,7 +416,7 @@ export const Groups = () => {
         field: 'type',
         filter: true,
         editable: (params) => {
-          return !params.data.isPredefinedGroup || !params.data.group_code;
+          return (!params.data.isPredefinedGroup || !params.data.group_code) && permissions.updateAccess
         },
         cellEditor: 'agSelectCellEditor',
         cellEditorParams: {

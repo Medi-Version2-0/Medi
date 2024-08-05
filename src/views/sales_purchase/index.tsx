@@ -254,7 +254,6 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
       field: 'sptype',
       flex: 1,
       filter: true,
-      editable: true,
       suppressMovable: true,
       headerClass: 'custom-header',
     },
@@ -263,7 +262,6 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
       field: 'igst',
       flex: 1,
       filter: true,
-      editable: true,
       valueFormatter: decimalFormatter,
       headerClass: 'custom-header',
       suppressMovable: true,
@@ -273,6 +271,7 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
       field: 'cgst',
       flex: 1,
       filter: true,
+      editable : false,
       valueFormatter: decimalFormatter,
       headerClass: 'custom-header custom_header_class',
       suppressMovable: true,
@@ -282,6 +281,7 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
       field: 'sgst',
       flex: 1,
       filter: true,
+      editable : false,
       valueFormatter: decimalFormatter,
       headerClass: 'custom-header',
       suppressMovable: true,
@@ -291,7 +291,6 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
       field: 'surCharge',
       flex: 1,
       filter: true,
-      editable: true,
       valueFormatter: decimalFormatter,
       headerClass: 'custom-header',
       suppressMovable: true,
@@ -301,7 +300,6 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
       field: 'shortName',
       flex: 1,
       filter: true,
-      editable: true,
       headerClass: 'custom-header',
       suppressMovable: true,
     },
@@ -309,6 +307,7 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
       headerName: 'Actions',
       headerClass: 'custom-header-class custom-header',
       sortable: false,
+      editable: false,
       suppressMovable: true,
       flex: 1,
       cellStyle: {
@@ -353,6 +352,7 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
             columnDefs={colDefs}
             defaultColDef={{
               floatingFilter: true,
+              editable : updateAccess
             }}
             onCellClicked={onCellClicked}
             onCellEditingStarted={cellEditingStarted}

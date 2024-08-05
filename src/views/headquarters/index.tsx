@@ -280,7 +280,7 @@ export const Headquarters = () => {
       field: 'station_name',
       flex: 1,
       filter: true,
-      editable: (params) => params.node.rowIndex === 0,
+      editable: (params) => (createAccess && params.node.rowIndex === 0),
       cellEditor: 'agSelectCellEditor',
       cellEditorParams: {
         values: stationValues.length > 0 ? Object.keys(stationOptions).map((key) => Number(key)) : ['No station left'],
@@ -312,7 +312,7 @@ export const Headquarters = () => {
       field: 'station_headQuarter',
       flex: 1,
       filter: true,
-      editable: true,
+      editable: (params) => (params.node.rowIndex === 0 && createAccess) ? createAccess : updateAccess,
       cellEditor: 'agSelectCellEditor',
       cellEditorParams: {
         values: Object.keys(stationHeadquarterMap).map((key) => Number(key)),

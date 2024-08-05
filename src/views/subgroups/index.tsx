@@ -301,7 +301,6 @@ export const SubGroups = () => {
         field: 'group_name',
         flex: 1,
         filter: true,
-        editable: true,
         headerClass: 'custom-header',
         suppressMovable: true,
         cellRenderer: (params: any) => (
@@ -321,7 +320,6 @@ export const SubGroups = () => {
         field: 'parent_code',
         flex: 1,
         filter: true,
-        editable: true,
         cellEditor: 'agSelectCellEditor',
         cellEditorParams: {
           values: parentGroup,
@@ -356,6 +354,7 @@ export const SubGroups = () => {
         headerClass: 'custom-header-class custom-header',
         sortable: false,
         suppressMovable: true,
+        editable:false,
         flex: 1,
         cellStyle: {
           display: 'flex',
@@ -401,6 +400,7 @@ export const SubGroups = () => {
               columnDefs={colDefs}
               defaultColDef={{
                 floatingFilter: true,
+                editable : permissions.updateAccess
               }}
               onCellClicked={onCellClicked}
               onCellEditingStarted={cellEditingStarted}
