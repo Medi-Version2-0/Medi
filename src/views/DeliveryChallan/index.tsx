@@ -110,11 +110,11 @@ const DeliveryChallan = () => {
     },
     {
       headerName: 'Station Name',
-      field: 'stationId',
+      field: 'stationName',
     },
     {
       headerName: 'Party',
-      field: 'partyId',
+      field: 'partyName',
       headerClass: 'custom-header custom_header_class ag-right-aligned-header',
     },
 
