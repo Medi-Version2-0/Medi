@@ -20,6 +20,13 @@ export const DropDownPopup = ({ heading, className, setOpenDataPopup, headers, t
     };
   }, [focusedRowData, heading, tableData.length]);
 
+  useEffect(() => {
+    document.body.classList.add("!overflow-hidden");
+    return () => {
+        document.body.classList.remove("!overflow-hidden");
+    };
+}, []);
+
   const handleKeyDown = (event: KeyboardEvent) => {
     if (event.key === 'ArrowDown') {
       setFocusedRowIndex((prevIndex) => prevIndex === tableData.length - 1 ? 0 : prevIndex + 1);

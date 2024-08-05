@@ -94,6 +94,10 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     }
   }, [challanTableData, itemValue]);
 
+  useEffect(()=>{
+    fetchItems();
+  },[challanTableData])
+
   const updateGridData = () => {
     if (focusedRowIndex === null) return;
     const newGridData = [...gridData];
@@ -372,8 +376,8 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
   };
 
   return (
-    <div className={`flex flex-col h-[30em] overflow-scroll`}>
-      <div className='flex sticky border-solid border-[1px] border-blue-800 top-0 overflow-scroll'>
+    <div className={`flex flex-col h-[30em] overflow-scroll w-full border-[1px] border-solid border-gray-400 `}>
+      <div className='flex sticky border-solid border-[1px] border-blue-800 top-0 w-[100vw]'>
         {headers.map((header, index) => (
           <div
             key={index}
@@ -383,7 +387,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
           </div>
         ))}
       </div>
-      <div className='flex flex-col h-[22em] border-[1px] border-solid border-gray-400 overflow-auto'>
+      <div className='flex flex-col h-[22rem] w-[100vw]'>
         {gridData.map((row, rowIndex) => {
           return (
             <div key={row.id} className='flex'>
@@ -422,7 +426,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
                         handleTotalAmt(rowIndex);
                       }}
                       containerClass={`flex-shrink-0 h-[3em] rounded-none w-fit`}
-                      className={`rounded-none text-lg w-fit h-[3em]`}
+                      className={`rounded-none text-lg w-fit !leading-[2rem]`}
                       onKeyDown={( e: React.KeyboardEvent<HTMLSelectElement> ) => {
                         if (e.key === 'Enter') {
                           const dropdown = document.querySelector('.custom-select__menu');
@@ -459,7 +463,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
         })}
       </div>
 
-      <div className='flex justify-end mt-[2em]'>
+      <div className='flex justify-end sticky left-0 mt-[2em]'>
         <button
           type='button'
           className='px-4 py-2 bg-[#009196FF] hover:bg-[#009196e3] font-medium text-white rounded-md border-none focus:border-yellow-500 focus-visible:border-yellow-500'
