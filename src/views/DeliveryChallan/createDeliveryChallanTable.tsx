@@ -56,7 +56,6 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
 
   useEffect(() => {
     if (challanTableData?.length > 0) {
-      console.log("challanTableData ------> ", challanTableData);
       const initialRows: RowData[] = challanTableData.map(
         (rowData: any, rowIndex: number) => {
           const obj = {
@@ -145,6 +144,10 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
         break;
     }
   };
+
+  useEffect(() => {
+    fetchItems();
+  }, [])
 
   const handleFocus = (rowIndex: number, colIndex: number) => {
     setFocusedRowIndex(rowIndex);

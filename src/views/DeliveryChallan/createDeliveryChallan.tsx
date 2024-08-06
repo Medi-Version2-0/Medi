@@ -28,6 +28,8 @@ export interface DeliveryChallanFormValues {
   date: string;
   qtyTotal: string;
   total: string;
+  totalDiscount: string;
+  totalGST: string;
 }
 
 export type DeliveryChallanFormInfoType = FormikProps<DeliveryChallanFormValues>;
@@ -147,6 +149,8 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
       date: data?.date || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric'}), // dd//mm//yyyy
       qtyTotal: data?.qtyTotal || '',
       total: data?.total || '',
+      totalDiscount: data?.totalDiscount || '',
+      totalGST: data?.totalGST || '',
     },
     validationSchema: saleChallanFormValidations,
     onSubmit: async (values: any) => {
@@ -170,8 +174,10 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
         }
         values.total = (+totalValue.totalAmt)?.toFixed(2);
         values.qtyTotal = (+totalValue.totalQty)?.toFixed(2);
+        values.totalDiscount = (+totalValue.totalDiscount)?.toFixed(2);
+        values.totalGST = (+totalValue.totalGST)?.toFixed(2);
         const finalData = { ...values, challans: dataFromTable };
-        console.log("final Data ----> ", finalData);
+
         if (data.id) {
           await sendAPIRequest(`/${organizationId}/deliveryChallan/${data.id}`,{ method: 'PUT', body: finalData });
         } else {
@@ -513,13 +519,13 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
             <span className='flex gap-2 text-base text-gray-900'>
               Total Discount :{' '}
               <span className='min-w-[50px] text-gray-700'>
-                {data.id ? '' : parseFloat(Number(totalValue.totalDiscount)?.toFixed(2))}
+                {data.id ? data.totalDiscount : parseFloat(Number(totalValue.totalDiscount)?.toFixed(2))}
               </span>
             </span>
             <span className='flex gap-2 text-base text-gray-900'>
               Total GST :{' '}
               <span className='min-w-[50px] text-gray-700'>
-                {data.id ? '' : parseFloat(Number(totalValue.totalGST)?.toFixed(2))}
+                {data.id ? data.totalGST : parseFloat(Number(totalValue.totalGST)?.toFixed(2))}
               </span>
             </span>
 
