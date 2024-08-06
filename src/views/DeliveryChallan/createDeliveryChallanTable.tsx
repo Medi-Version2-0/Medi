@@ -96,7 +96,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
 
   useEffect(()=>{
     fetchItems();
-  },[challanTableData])
+  },[])
 
   const updateGridData = () => {
     if (focusedRowIndex === null) return;
@@ -153,11 +153,20 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
       setHeaderData({ ...headerData, isItem: true, isBatch: false });
     }
     if(colIndex === 1){
-      const selectedItem = itemValue.find((item: any) => item.name === currentSavedData.item.name); 
-      if (selectedItem) {
-        setTableData(selectedItem.ItemBatches);
-        setBatches(selectedItem.ItemBatches);
-      }
+      if(challanTableData && challanTableData.length > 0){
+        const item = challanTableData[rowIndex]; 
+        const selectedItem = itemValue.find((data: any) => data.id === item.itemId); 
+        if(selectedItem){
+          setTableData(selectedItem.ItemBatches);
+          setBatches(selectedItem.ItemBatches);
+        }
+      }else {
+        const selectedItem = itemValue.find((item: any) => item.name === currentSavedData.item.name); 
+        if (selectedItem) {
+          setTableData(selectedItem.ItemBatches);
+          setBatches(selectedItem.ItemBatches);
+        }
+      }      
       setHeaderData({ ...headerData, isItem: false, isBatch: true });
     }
     return setOpenDataPopup(true);
@@ -165,6 +174,15 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
 
   const fetchItems = async () => {
     const items = await sendAPIRequest<any>(`/${organizationId}/item`);
+    const company = await sendAPIRequest<any>(`/${organizationId}/company`);
+    const sales = await sendAPIRequest<any>(`/${organizationId}/sale`);
+    const purchases = await sendAPIRequest<any>(`/${organizationId}/purchase`);
+
+    items.map((item: any) => {
+      item.company = company.find((comp: any) => comp.company_id === item.compId)?.companyName;
+      item.sales = sales.find((sale: any) => sale.sp_id === item.saleAccId)?.sptype;
+      item.purchase = purchases.find((purchase: any) => purchase.sp_id === item.purAccId)?.sptype;
+    })
     setItemValue(items);
     setTableData(items);
   };
@@ -381,7 +399,8 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
         {headers.map((header, index) => (
           <div
             key={index}
-            className={`flex-shrink-0 border-[1px] border-solid bg-[#009196FF] border-gray-400 text-center text-white p-2 ${header.width}`}
+            className={`flex-shrink-0 border-[1px] border-solid bg-[#009196FF] border-gray-400 text-center text-white p-2`}
+            style={{width : header.width}}
           >
             {header.name}
           </div>
@@ -401,10 +420,11 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
                     }}
                     value={row.columns[header.key]?.label}
                     onKeyDown={(e) => handleKeyDown(e, rowIndex, colIndex)}
-                    className={`flex-shrink-0 border-[1px] p-2 text-xs border-solid border-gray-400 ${header.width}`}
+                    className={`flex-shrink-0 border-[1px] p-2 text-xs border-solid border-gray-400`}
+                    style={{width : header.width}}
                   />
                 ) : colIndex === 4 ? (
-                  <span className={`h-fit ${header.width}`}>
+                  <span className={`h-fit`} style={{width :header.width}}>
                     <CustomSelect
                       isPopupOpen={false}
                       key={colIndex}
@@ -447,7 +467,8 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
                     handleTotalAmt(rowIndex);
                   }}
                   onKeyDown={(e) => handleKeyDown(e, rowIndex, colIndex)}
-                  className={`flex-shrink-0 border-[1px] p-2 ${[2, 3, 5, 6, 7, 8, 9, 11].includes(colIndex) ? 'text-right' : ''} text-xs border-solid border-gray-400 ${header.width}`}
+                  className={`flex-shrink-0 border-[1px] p-2 ${[2, 3, 5, 6, 7, 8, 9, 11].includes(colIndex) ? 'text-right' : ''} text-xs border-solid border-gray-400`}
+                  style={{width : header.width}}
                   disabled={[7, 10, 11].includes(colIndex) ? true : false}
                   onBlur={() => {
                     if([2, 3].includes(colIndex)){
