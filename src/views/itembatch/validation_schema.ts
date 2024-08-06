@@ -8,7 +8,7 @@ export const batchSchema = yup.object().shape({
     mrp: yup
         .number()
         .required('MRP is required')
-        .test('mrp-valid', 'MRP must be greater than or equal to both sale prices', function (value, context) {
+        .test('mrp-valid', 'MRP must be greater than or equal to purchase price', function (value, context) {
             const { salePrice, salePrice2 } = context.parent;
             if (salePrice2 === undefined || salePrice === undefined) return true;
             if (salePrice2 !== null) {
@@ -33,7 +33,7 @@ export const batchSchema = yup.object().shape({
             return value >= purPrice;
         }),
     purPrice: yup.number().required('Purchase price is required'),
-    opFree: yup.number().required('Scheme stock is required'),
+    opFree: yup.number().notRequired(),
     opBalance: yup.number().required('Opening Stock is required'),
     expiryDate: yup
         .string()
@@ -50,16 +50,27 @@ export const batchSchema = yup.object().shape({
 
 export const validatePrices = (newBatch: any) => {
     const { mrp, purPrice, salePrice, salePrice2 } = newBatch;
+    if (mrp !== null && purPrice !== null && mrp < purPrice) {
+        throw new Error('MRP must be greater than or equal to purchase price');
+    }
+
+    if (mrp !== null && purPrice !== null && purPrice > mrp) {
+        throw new Error('Purchase price must be less than or equal to mrp');
+    }
 
     if (mrp !== null && salePrice !== null && mrp < salePrice) {
-        throw new Error('MRP must be greater than or equal to sale price');
+        throw new Error('Sale price must be less than or equal to mrp');
     }
 
     if (mrp !== null && salePrice2 !== null && mrp < salePrice2) {
-        throw new Error('MRP must be greater than or equal to sale price 2');
+        throw new Error('Sale price 2 must be less than or equal to mrp');
     }
 
     if (salePrice !== null && purPrice !== null && salePrice < purPrice) {
         throw new Error('Sale price must be greater than or equal to purchase price');
+    }
+
+    if (salePrice2 !== null && purPrice !== null && salePrice2 < purPrice) {
+        throw new Error('Sale price 2 must be greater than or equal to purchase price');
     }
 }

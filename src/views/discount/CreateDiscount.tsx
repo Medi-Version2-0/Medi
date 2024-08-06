@@ -13,6 +13,7 @@ import { sendAPIRequest } from '../../helper/api';
 import { useQueryClient } from '@tanstack/react-query';
 import './discount.css';
 import * as Yup from 'yup';
+import { useSelector } from 'react-redux'
 
 export const CreateDiscount = ({
   setView,
@@ -25,6 +26,7 @@ export const CreateDiscount = ({
   const [partyOptions, setPartyOptions] = useState<Option[]>([]);
   const [focused, setFocused] = useState('');
   const queryClient = useQueryClient();
+  const { company: companiesData } = useSelector((state: any) => state.global)
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
@@ -41,7 +43,7 @@ export const CreateDiscount = ({
   useEffect(() => {
     fetchAllData();
     setFocused('partyId');
-  }, []);
+  }, [companiesData]);
 
   const formik: any = useFormik({
     initialValues: {
@@ -95,7 +97,7 @@ export const CreateDiscount = ({
     const companies = await sendAPIRequest<any[]>(`/${organizationId}/company`);
     const parties = await sendAPIRequest<any[]>(`/${organizationId}/ledger`);
     setCompanyOptions(
-      companies.map((company: any) => ({
+      companiesData.map((company: any) => ({
         value: company.company_id,
         label: titleCase(company.companyName),
       }))

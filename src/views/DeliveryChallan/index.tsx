@@ -157,13 +157,24 @@ const DeliveryChallan = () => {
            {createAccess && <Button
               type='highlight'
               handleOnClick={async () => {
-                const challanNumber = await sendAPIRequest<string>(
-                  `/${organizationId}/deliveryChallan/challanNumber`
-                );
-                setView({
-                  type: 'add',
-                  data: { challanNumber: challanNumber },
-                });
+                try{
+                  const challanNumber = await sendAPIRequest<string>(
+                    `/${organizationId}/deliveryChallan/challanNumber`
+                  );
+                  setView({
+                    type: 'add',
+                    data: { challanNumber: challanNumber },
+                  });
+                }
+                catch(error: any){
+                  setPopupState({
+                    ...popupState,
+                    isAlertOpen: true,
+                    message: 'Add series first in bill book setup ...',
+                  });
+                  return;
+                }
+                
               }}
             >
               Add Challan

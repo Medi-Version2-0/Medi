@@ -25,7 +25,7 @@ const CustomToggleSwitch = ({ field, form, label, index, formik }: any) => {
     <div
       className={`flex flex-col w-full ${index !== 0 ? 'border-t-0' : ''}`}
     >
-      <div className='flex flex-row justify-between items-center border-[1px] border-solid border-[#009196FF] pr-4'>
+      <div className={`flex flex-row justify-between items-center border-[1px] border-solid border-[#009196FF] pr-4 ${field.name === 'dpcoAct' && formik.values.dpcoAct && 'border-b-0'}`}>
         <span className='ml-[0.7rem] w-[70%] p-2 border-r-[1px] border-solid border-[#009196FF]'>
           {label}
         </span>
@@ -56,18 +56,18 @@ const CustomToggleSwitch = ({ field, form, label, index, formik }: any) => {
         )}
       </div>
       {field.name === 'dpcoAct' && formik.values.dpcoAct && (
-        <div className='flex flex-row justify-between items-center border-[1px] border-solid border-[#009196FF] pr-4'>
+        <div className='flex flex-row justify-between items-center border-[1px] border-t-0 border-solid border-[#009196FF] pr-4 bg-[#EAFBFC]'>
           <span className='ml-[0.7rem] w-[70%] p-2 border-r-[1px] border-solid border-[#009196FF]'>
             Discount
           </span>
-          <label className='w-[12rem] h-[1.3rem]'>
+          <label className='w-[12vw] h-[1.3rem]'>
             <input
               id='dpcoDiscount'
               name='dpcoDiscount'
               type='text'
               value={formik.values.dpcoDiscount}
               placeholder='Enter discount'
-              className='input-class w-full h-full text-right border-none outline-none px-2 '
+              className='input-class w-full h-full text-right border-none outline-none px-2 bg-[#EAFBFC]'
               onChange={handleDiscountChange}
               required
             />

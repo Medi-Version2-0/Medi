@@ -100,7 +100,7 @@ export const Stations = () => {
   };
 
   const handleAlertCloseModal = () => {
-    setPopupState({ ...popupState, isAlertOpen: false });
+    setPopupState({ ...popupState, isAlertOpen: false,isModalOpen: false });
   };
 
   const handleClosePopup = () => {
@@ -181,11 +181,15 @@ export const Stations = () => {
   const deleteAcc = async (station_id: string) => {
     isDelete.current = false;
     togglePopup(false);
-    await sendAPIRequest(`/${organizationId}/station/${station_id}`, {
-      method: 'DELETE',
-    });
-    dispatch(setStation(tableData.filter((x:any)=> x.station_id !== station_id)))
-    queryClient.invalidateQueries({ queryKey: ['get-stations'] });
+    try{
+      await sendAPIRequest(`/${organizationId}/station/${station_id}`, {
+        method: 'DELETE',
+      });
+      dispatch(setStation(tableData.filter((x:any)=> x.station_id !== station_id)))
+      queryClient.invalidateQueries({ queryKey: ['get-stations'] });
+    }catch{
+      setPopupState({ ...popupState, isAlertOpen: true, message:'This Station is associated' });
+    }
   };
 
   const handleDelete = (oldData: StationFormData) => {

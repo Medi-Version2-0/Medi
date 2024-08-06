@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import Button from './button/Button';
 import { Popup } from '../popup/Popup';
 import { dropDownPopupProps } from '../../interface/global';
 
@@ -11,8 +10,7 @@ export const DropDownPopup = ({ heading, className, setOpenDataPopup, headers, t
   useEffect(() => {
     tableRefs.current[focusedRowIndex]?.focus();
     setFocusedRowData(tableData[focusedRowIndex]);
-  }, [focusedRowIndex]);
-
+  }, [focusedRowIndex, tableData]);
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
     return () => {
