@@ -232,11 +232,11 @@ export const Batch = ({
           await queryClient.invalidateQueries({ queryKey: ['get-itemBatches'] });
         }
       } catch (err: any) {
-        if (err.response.data.message || err.message) {
+        if (err.response?.data.message || err.message) {
           setPopupState({
             ...popupState,
             isAlertOpen: true,
-            message:err.response.data.message || err.message,
+            message:err.response?.data.message || err.message,
           });
         } else {
           console.error('Error:-', err);

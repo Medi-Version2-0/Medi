@@ -170,7 +170,7 @@ const Items = () => {
   }, [selectedRow]);
 
   const handleAlertCloseModal = () => {
-    setPopupState({ ...popupState, isAlertOpen: false });
+    setPopupState({ ...popupState, isAlertOpen: false, isModalOpen: false });
   };
 
   const handleClosePopup = () => {
@@ -179,9 +179,14 @@ const Items = () => {
 
   const handleConfirmPopup = async () => {
     setPopupState({ ...popupState, isModalOpen: false });
-    await sendAPIRequest(`/${organizationId}/item/${id.current}`, {
+    try{
+      await sendAPIRequest(`/${organizationId}/item/${id.current}`, {
       method: 'DELETE',
-    });
+      });
+    }catch{
+      setPopupState({ ...popupState, isAlertOpen: true, message:'This item is associated' });
+    }
+    
     queryClient.invalidateQueries({ queryKey: ['get-items'] });
   };
 

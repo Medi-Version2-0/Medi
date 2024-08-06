@@ -148,17 +148,21 @@ export const Ledger = () => {
   };
 
   const handleAlertCloseModal = () => {
-    setPopupState({ ...popupState, isAlertOpen: false });
+    setPopupState({ ...popupState, isAlertOpen: false,isModalOpen: false  });
   };
   const handleClosePopup = () => {
     setPopupState({ ...popupState, isModalOpen: false });
   };
   const handleConfirmPopup = async () => {
     setPopupState({ ...popupState, isModalOpen: false });
-    await sendAPIRequest(`/${organizationId}/ledger/${partyId.current}`, {
-      method: 'DELETE',
-    });
-    queryClient.invalidateQueries({ queryKey: ['get-ledger'] });
+    try{
+      await sendAPIRequest(`/${organizationId}/ledger/${partyId.current}`, {
+        method: 'DELETE',
+      });
+      queryClient.invalidateQueries({ queryKey: ['get-ledger'] });
+    }catch{
+      setPopupState({ ...popupState, isAlertOpen: true, message:'This Party is associated' });
+    }
   };
 
   const decimalFormatter = (params: ValueFormatterParams): any =>

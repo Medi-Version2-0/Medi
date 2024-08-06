@@ -5,7 +5,7 @@ import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import Button from '../../components/common/button/Button';
-import { companyHeaders, userHeaders } from './types';
+import { companyHeaders, userHeaders } from '../../constants/organisation';
 import ActionCell from '../../components/ag_grid/ActionCell';
 import ResourcePermissionsGrid from './ResourcePermissionsGrid';
 import OrganizationForm from './OrganizationForm';
