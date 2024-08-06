@@ -525,20 +525,20 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
             <span className='flex gap-2 text-base text-gray-900'>
               Total GST :{' '}
               <span className='min-w-[50px] text-gray-700'>
-                {data.id ? data.totalGST : parseFloat(Number(totalValue.totalGST)?.toFixed(2))}
+                {totalValue.totalGST ? parseFloat(Number(totalValue.totalGST)?.toFixed(2)) : (data?.totalGST || 0)}
               </span>
             </span>
 
             <span className='flex gap-2 text-base text-gray-900'>
               Total Quantity :{' '}
               <span className='min-w-[50px] text-gray-700'>
-                {data.id ? data.qtyTotal : parseFloat(Number(totalValue.totalQty)?.toFixed(2))}
+                {totalValue.totalQty ?  parseFloat(Number(totalValue.totalQty)?.toFixed(2)) : (data?.qtyTotal || 0)}
               </span>
             </span>
             <span className='flex gap-2 text-base text-gray-900'>
               Total :{' '}
               <span className='min-w-[50px] text-gray-700'>
-                {data.id ? data.total : parseFloat(Number(totalValue.totalAmt)?.toFixed(2))}
+                {totalValue.totalAmt ? parseFloat(Number(totalValue.totalAmt)?.toFixed(2)) : (data?.total || 0)}
               </span>
             </span>
           </div>
