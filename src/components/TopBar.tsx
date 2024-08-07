@@ -25,6 +25,7 @@ export const TopBar = () => {
     specialSale: controlRoomSettings.specialSale || false,
     displayRackLocation: controlRoomSettings.displayRackLocation,
     rxNonrxGeneral: controlRoomSettings.rxNonrxGeneral || false,
+    pricewisePartyList: controlRoomSettings.pricewisePartyList || false,
     salePriceListOptionsAllowed: controlRoomSettings.salePriceListOptionsAllowed || false,
     printPriceToRetailer: controlRoomSettings.printPriceToRetailer || false,
     removeStripOption: controlRoomSettings.removeStripOption || false,

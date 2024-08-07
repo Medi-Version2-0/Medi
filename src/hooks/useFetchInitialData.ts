@@ -2,7 +2,7 @@ import { useDispatch } from 'react-redux';
 import { AppDispatch } from '../store/types/globalTypes';
 import { sendAPIRequest } from '../helper/api';
 import { getOrganizations } from '../api/organizationApi';
-import { getAndSetItemGroups, getAndSetPermssions, setOrganization, setStation, getAndSetCompany, getAndSetPurchase, getAndSetSales, getAndSetGroups } from '../store/action/globalAction';
+import { getAndSetItemGroups, getAndSetPermssions, setOrganization, setStation, getAndSetCompany, getAndSetPurchase, getAndSetSales, getAndSetGroups, getAndSetParty, getAndSetItem } from '../store/action/globalAction';
 import { useUser } from '../UserContext';
 
 const useFetchInitialData = (organizationId: string|undefined) => {
@@ -20,6 +20,8 @@ const useFetchInitialData = (organizationId: string|undefined) => {
       dispatch(getAndSetPurchase(organizationId))
       dispatch(getAndSetSales(organizationId))
       dispatch(getAndSetGroups(organizationId))
+      dispatch(getAndSetParty(organizationId))
+      dispatch(getAndSetItem(organizationId))
     }
   }
   return {fetchInitialData : hanlder}

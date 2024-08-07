@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './toast.css';
@@ -17,7 +17,7 @@ const CustomToast: React.FC<CustomToastProps> = ({ message, type = 'info' }) => 
     return (
         <div className={`flex flex-col gap-2 w-full items-center custom-toast ${type === 'error' && ' !text-red-600'}`} >
             <span> {message}</span>
-            <Button type='fill' handleOnClick={handleClose} className='w-fit'> OK </Button>
+            <Button autoFocus={true} type='fill' handleOnClick={handleClose} className='w-fit'> OK </Button>
         </div>
 
     );

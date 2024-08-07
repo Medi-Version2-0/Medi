@@ -21,6 +21,11 @@ import DeliveryChallan from '../../views/DeliveryChallan';
 import { Organization } from '../../views/organization';
 import usePermission from '../../hooks/useRole';
 type SubElementKey = 'master' | 'setup';
+import { useSelector } from 'react-redux';
+import { generalSettingFields } from '../common/controlRoom/settings';
+import { ControlRoomSettings } from '../common/controlRoom/ControlRoomSettings';
+import { useControls } from '../../ControlRoomContext';
+import PriceList from '../../views/partywisePriceList/PriceList';
 
 interface SidebarProps {
   isGroup?: boolean;
@@ -39,6 +44,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   });
   const permissions = usePermission()
   const [isSidebar, setIsSidebar] = useState<boolean>(true);
+  const { controlRoomSettings } = useControls();
 
   const isNotReadAccess = (key: string) => {
     if (permissions[key]) {
@@ -130,6 +136,15 @@ const Sidebar: React.FC<SidebarProps> = ({
       onClick: () => openTab?.('Party-wise discount', <PartyWiseDiscount />),
       isDisabled: isNotReadAccess('party_wise_discount')
     },
+    ...(controlRoomSettings.pricewisePartyList ? [
+      {
+        url: '/partywisePriceList',
+        label: 'Party-wise PriceList',
+        icon: <FaPlus className='fill-yellow-900' />,
+        onClick: () => openTab?.('Party-Wise PriceList', <PriceList />),
+        isDisabled: isNotReadAccess('partywise_pricelist')
+      }
+    ] : []),
     {
       url: '/deliveryChallan',
       label: 'Sale Challan',

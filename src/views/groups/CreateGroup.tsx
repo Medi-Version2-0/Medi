@@ -63,7 +63,7 @@ export const CreateGroup = ({
       <Formik
         initialValues={{
           group_name: data?.group_name || '',
-          type: data?.type || '',
+        type: data?.type || '',
         }}
         validationSchema={groupValidationSchema}
         onSubmit={handleSubmit}

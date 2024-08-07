@@ -2,11 +2,25 @@ import { useEffect, useRef, useState } from 'react';
 import { Popup } from '../popup/Popup';
 import { dropDownPopupProps } from '../../interface/global';
 
-export const DropDownPopup = ({ heading, className, setOpenDataPopup, headers, tableData, setCurrentSavedData }: dropDownPopupProps) => {
+interface DropDownPopupProps extends dropDownPopupProps {
+  dataKeys: {
+    [key: string]: string;
+  };
+}
 
+export const DropDownPopup = ({
+  heading,
+  className,
+  setOpenDataPopup,
+  headers,
+  tableData,
+  setCurrentSavedData,
+  dataKeys
+}: DropDownPopupProps) => {
   const [focusedRowIndex, setFocusedRowIndex] = useState<number>(0);
-  const [focusedRowData, setFocusedRowData] = useState<any[]>(tableData[0]);
+  const [focusedRowData, setFocusedRowData] = useState<any>(tableData[0]);
   const tableRefs = useRef<(HTMLTableRowElement | null)[]>([]);
+
   useEffect(() => {
     tableRefs.current[focusedRowIndex]?.focus();
     setFocusedRowData(tableData[focusedRowIndex]);
@@ -31,12 +45,13 @@ export const DropDownPopup = ({ heading, className, setOpenDataPopup, headers, t
     } else if (event.key === 'ArrowUp') {
       setFocusedRowIndex((prevIndex) => prevIndex === 0 ? tableData.length - 1 : prevIndex - 1);
     } else if (event.key === 'Enter') {
-      setCurrentSavedData((prevData: any) => ({
-        ...prevData,
-        item: heading === 'Items' ? focusedRowData : prevData.item,
-        batch: heading === 'Batches' ? focusedRowData : prevData.batch,
-      }));
-      console.log('Saved data: ', focusedRowData);
+      const key = dataKeys[heading];
+      if (key) {
+        setCurrentSavedData((prevData: any) => ({
+          ...prevData,
+          [key]: focusedRowData,
+        }));
+      }
       setOpenDataPopup(false);
     }
     else if(event.key === 'Escape'){
@@ -58,7 +73,7 @@ export const DropDownPopup = ({ heading, className, setOpenDataPopup, headers, t
               {headers.map((header: any, index: number) => (
                 <th
                   key={index}
-                  className='border-[1px] border-solid bg-[#009196FF] border-gray-400 text-center text-white p-2'
+                  className='w-fit border-[1px] border-solid bg-[#009196FF] border-gray-400 text-center text-white p-2'
                 >
                   {header.label}
                 </th>

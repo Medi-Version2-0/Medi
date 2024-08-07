@@ -1,9 +1,9 @@
 import { Dispatch } from 'redux';
 import { getUserPermissions } from '../../api/permissionsApi';
 import { ResourceI } from '../../views/organization/types';
-import { SET_STATION, SET_GROUPS, SET_ORGANIZATION, SET_PERMISSIONS, GlobalActionTypes, SET_SALES, SET_PURCHASE, SET_COMPANY, SET_ITEMGROUP, GlobalState, } from '../types/globalTypes';
+import { SET_STATION, SET_GROUPS, SET_ORGANIZATION, SET_PERMISSIONS, GlobalActionTypes, SET_SALES, SET_PURCHASE, SET_COMPANY, SET_ITEMGROUP, SET_CONTROLROOMSETTINGS, SET_PARTY, SET_ITEM } from '../types/globalTypes';
 import { sendAPIRequest } from '../../helper/api';
-import { ItemGroupFormData, GroupFormData } from '../../interface/global';
+import { ItemGroupFormData, GroupFormData, LedgerFormData, SalesPurchaseFormData, ItemFormData } from '../../interface/global';
 
 
 export const setStation = (station: any): GlobalActionTypes => ({
@@ -83,7 +83,7 @@ export const getAndSetCompany = (organizationId: string|undefined) => async (dis
 }
 
 export const getAndSetPurchase = (organizationId: string|undefined) => async (dispatch: Dispatch<GlobalActionTypes>) => {
-  const purchase = await sendAPIRequest<GroupFormData[]>(`/${organizationId}/purchase`)
+  const purchase = await sendAPIRequest<SalesPurchaseFormData[]>(`/${organizationId}/purchase`)
   dispatch({
     type: SET_PURCHASE,
     payload: purchase ||[],
@@ -91,7 +91,7 @@ export const getAndSetPurchase = (organizationId: string|undefined) => async (di
 }
 
 export const getAndSetSales = (organizationId: string|undefined) => async (dispatch: Dispatch<GlobalActionTypes>) => {
-  const sales = await sendAPIRequest<GroupFormData[]>(`/${organizationId}/sale`)
+  const sales = await sendAPIRequest<SalesPurchaseFormData[]>(`/${organizationId}/sale`)
   dispatch({
     type: SET_SALES,
     payload: sales ||[],
@@ -102,6 +102,37 @@ export const getAndSetGroups = (organizationId: string|undefined) => async (disp
   const groups = await sendAPIRequest<GroupFormData[]>(`/${organizationId}/group`)
   dispatch({
     type: SET_GROUPS,
-  payload: groups || [],
+    payload: groups || [],
   });
 }
+
+export const getAndSetParty = (organizationId: string|undefined) => async (dispatch: Dispatch<GlobalActionTypes>) => {
+  const party = await sendAPIRequest<LedgerFormData[]>(`/${organizationId}/ledger`)
+  dispatch({
+    type: SET_PARTY,
+    payload:  party|| [],
+  });
+}
+
+export const getAndSetItem = (organizationId: string|undefined) => async (dispatch: Dispatch<GlobalActionTypes>) => {
+  const item = await sendAPIRequest<{ data: ItemFormData }>(`/${organizationId}/item`)
+  dispatch({
+    type: SET_ITEM,
+    payload: item || [],
+  });
+}
+
+export const setControlRoomSettings = (controlRoomSettings: any): GlobalActionTypes => ({
+  type: SET_CONTROLROOMSETTINGS,
+  payload: controlRoomSettings,
+});
+
+export const setParty = (party: any): GlobalActionTypes => ({
+  type: SET_PARTY,
+  payload: party,
+});
+
+export const setItem = (item: any): GlobalActionTypes => ({
+  type: SET_ITEM,
+  payload: item,
+});

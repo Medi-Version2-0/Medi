@@ -375,4 +375,5 @@ export interface dropDownPopupProps {
   headers?:any;
   tableData?: any;
   setCurrentSavedData?:any;
+  dataKeys?: any;
 }

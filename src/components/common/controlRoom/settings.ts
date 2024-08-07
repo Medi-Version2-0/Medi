@@ -80,9 +80,9 @@ export const itemSettingFields: SettingField[] = [
     name: 'rackNumber',
   },
   {
-    label: 'Dual-Price List',
-    id: 'dualPriceList',
-    name: 'dualPriceList',
+    label: 'Multi-Price List',
+    id: 'multiPriceList',
+    name: 'multiPriceList',
   },
 ];
 
@@ -137,6 +137,11 @@ export const generalSettingFields: SettingField[] = [
     label: 'RX and Non RX item',
     id: 'rxNonrxGeneral',
     name: 'rxNonrxGeneral',
+  },
+  {
+    label: 'PriceWise Party List',
+    id: 'pricewisePartyList',
+    name: 'pricewisePartyList',
   },
 ];
 

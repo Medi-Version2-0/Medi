@@ -32,6 +32,30 @@ export const batchSchema = yup.object().shape({
             if (purPrice === undefined) return true;
             return value >= purPrice;
         }),
+    salePrice3: yup
+        .number()
+        .notRequired()
+        .test('sale-price3-valid', 'Sale price 3 must be greater than or equal to purchase price', function (value, context) {
+            const purPrice = context.parent.purPrice;
+            if (purPrice === undefined || value === undefined || value === null) return true;
+            return value >= purPrice;
+        }),
+    salePrice4: yup
+        .number()
+        .notRequired()
+        .test('sale-price4-valid', 'Sale price4 must be greater than or equal to purchase price', function (value, context) {
+            const purPrice = context.parent.purPrice;
+            if (purPrice === undefined || value === undefined || value === null) return true;
+            return value >= purPrice;
+        }),
+    salePrice5: yup
+        .number()
+        .notRequired()
+        .test('sale-price5-valid', 'Sale price 5 must be greater than or equal to purchase price', function (value, context) {
+            const purPrice = context.parent.purPrice;
+            if (purPrice === undefined || value === undefined || value === null) return true;
+            return value >= purPrice;
+        }),
     purPrice: yup.number().required('Purchase price is required'),
     opFree: yup.number().notRequired(),
     opBalance: yup.number().required('Opening Stock is required'),
