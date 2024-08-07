@@ -7,6 +7,8 @@ import { sendAPIRequest } from '../../helper/api';
 import { useParams } from 'react-router-dom';
 import onKeyDown from '../../utilities/formKeyDown';
 import { useSelector } from 'react-redux';
+import { useControls } from '../../ControlRoomContext';
+import { ItemFormData, } from '../../interface/global';
 
 interface GeneralInfoProps {
   onValueChange?: any;
@@ -21,7 +23,6 @@ export const GeneralInfo = ({
   selectedGroup,
   groupOptions,
 }: GeneralInfoProps) => {
-  const { organizationId } = useParams();
   const {stations : stationData} = useSelector((state:any)=> state.global)
   const [stationOptions, setStationOptions] = useState<Option[]>([]);
   const isSUNDRY =
@@ -30,6 +31,7 @@ export const GeneralInfo = ({
     selectedGroup.toUpperCase() === 'GENERAL GROUP' ||
     selectedGroup.toUpperCase() === 'DISTRIBUTORS, C & F';
   const [focused, setFocused] = useState('');
+  const { controlRoomSettings } = useControls();
 
   useEffect(() => {
     setStationOptions(
@@ -56,6 +58,9 @@ export const GeneralInfo = ({
     }
     if (id === 'stationName') {
       formik.setFieldValue('station_id', option?.value);
+    }
+    if (id === 'salesPriceList') {
+      formik.setFieldValue(id, option?.label);
     }
 
     formik.setFieldValue(id, option?.value);
@@ -361,11 +366,67 @@ export const GeneralInfo = ({
               const dropdown = document.querySelector('.custom-select__menu');
               if (e.key === 'Enter') {
                 !dropdown && e.preventDefault();
-                document.getElementById('openingBal')?.focus();
+                const nextFieldId = isSpecialGroup &&  controlRoomSettings.multiPriceList ? 'salesPriceList' : 'openingBal';
+                document.getElementById(nextFieldId)?.focus();                    
+                setFocused(nextFieldId);
               }
             }}
           />
         </div>
+        </div>
+        <div>
+          {isSpecialGroup &&  controlRoomSettings.multiPriceList && (
+              <div className='w-[50.3%]'>
+                <CustomSelect
+                  isPopupOpen={false}
+                  label='Select Price List'
+                  id='salesPriceList'
+                  labelClass='items-center w-[55%]'
+                  value={
+                    formik.values.salesPrice === ''
+                      ? null
+                      : {
+                          value: formik.values.salesPriceList,
+                          label: `Sales Price ${formik.values.salesPriceList}`
+                        }
+                  }
+                  onChange={(option) => handleFieldChange(option, 'salesPriceList')}
+                  options={
+                    controlRoomSettings.salesPriceLimit < 1 
+                      ? [{ value: 1, label: 'Sales Price' }]
+                      : Array.from({ length: controlRoomSettings.salesPriceLimit }, (_, i) => ({
+                          value: i + 1,
+                          label: `Sales Price ${i + 1}`
+                        }))
+                  }
+                  isSearchable={true}
+                  placeholder='Price List'
+                  disableArrow={true}
+                  hidePlaceholder={false}
+                  className='!h-6 rounded-sm'
+                  isRequired={false}
+                  isFocused={focused === 'salesPriceList'}
+                  error={formik.errors.salesPriceList}
+                  isTouched={formik.touched.salesPriceList}
+                    onBlur={() => {
+                      formik.setFieldTouched('salesPriceList', true);
+                      setFocused('');
+                    }}
+                    onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+                      const dropdown = document.querySelector(
+                        '.custom-select__menu'
+                      );
+                      if (e.key === 'Enter') {
+                        !dropdown && e.preventDefault();
+                        document.getElementById('openingBal')?.focus();
+                        setFocused('openingBal')
+                      }
+                    }}
+                  showErrorTooltip={true}
+                  noOptionsMsg='No Sales Price found,create one...'
+                />
+              </div>
+          )}
         </div>
       </div>
     </div>

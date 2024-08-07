@@ -1,4 +1,4 @@
-import { GlobalState, GlobalActionTypes, SET_STATION, SET_GROUPS, SET_ORGANIZATION, SET_PERMISSIONS, SET_SALES, SET_PURCHASE, SET_COMPANY, SET_ITEMGROUP } from '../types/globalTypes';
+import { GlobalState, GlobalActionTypes, SET_STATION, SET_GROUPS, SET_ORGANIZATION, SET_PERMISSIONS, SET_SALES, SET_PURCHASE, SET_COMPANY, SET_ITEMGROUP, SET_CONTROLROOMSETTINGS, SET_PARTY, SET_ITEM } from '../types/globalTypes';
 
 const initialState: GlobalState = {
   stations: [],
@@ -9,6 +9,9 @@ const initialState: GlobalState = {
   purchase:[],
   company:[],
   itemGroups:[],
+  controlRoomSettings:[],
+  party:[],
+  item:[],
 };
 
 const globalReducer = (state = initialState, action: GlobalActionTypes): GlobalState => {
@@ -28,8 +31,14 @@ const globalReducer = (state = initialState, action: GlobalActionTypes): GlobalS
     case SET_COMPANY:
       return { ...state, company: action.payload };
     case SET_ITEMGROUP:
-    return { ...state, itemGroups: action.payload };
-    default:
+      return { ...state, itemGroups: action.payload };
+    case SET_CONTROLROOMSETTINGS:
+      return { ...state, controlRoomSettings: action.payload };
+    case SET_PARTY:
+      return { ...state, party: action.payload };
+    case SET_ITEM:
+      return { ...state, item: action.payload };
+  default:
       return state;
   }
 };

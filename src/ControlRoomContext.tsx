@@ -11,6 +11,8 @@ import React, {
 import { sendAPIRequest } from './helper/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useUser } from './UserContext';
+import { useDispatch } from 'react-redux'
+import { setControlRoomSettings } from './store/action/globalAction';
 export interface ControlFields {
   //LEDGER
   multiplePriceList: boolean;
@@ -28,7 +30,8 @@ export interface ControlFields {
   dpcoAct: boolean;
   dpcoDiscount: number;
   packaging: boolean;
-  dualPriceList: boolean;
+  multiPriceList: boolean;
+  salesPriceLimit: number;
   rackNumber: boolean;
   //GENERAL
   gstRefundBenefit: boolean;
@@ -37,6 +40,7 @@ export interface ControlFields {
   specialSale: boolean;
   displayRackLocation: boolean;
   rxNonrxGeneral: boolean;
+  pricewisePartyList: boolean;
   salePriceListOptionsAllowed: boolean;
   printPriceToRetailer: boolean;
   removeStripOption: boolean;
@@ -79,7 +83,8 @@ const defaultSettings: ControlFields = {
   dpcoAct: false,
   dpcoDiscount: 0,
   packaging: false,
-  dualPriceList: false,
+  multiPriceList: false,
+  salesPriceLimit: 0,
   rackNumber: false,
   gstRefundBenefit: false,
   itemWiseDiscount: false,
@@ -87,6 +92,7 @@ const defaultSettings: ControlFields = {
   specialSale: false,
   displayRackLocation: false,
   rxNonrxGeneral: false,
+  pricewisePartyList: false,
   salePriceListOptionsAllowed: false,
   printPriceToRetailer: false,
   removeStripOption: false,
@@ -113,6 +119,7 @@ const controlRoomContext = createContext<ControlRoomContextType | undefined>(
 export const ControlRoomProvider = ({ children }: { children: ReactNode }) => {
   const queryClient = useQueryClient();
   const { selectedCompany } = useUser();
+  const dispatch = useDispatch()
   //TO-DO: Add default settings if custom settings not available
   const [controlRoomSettings, updateControlRoomSettings] =
     useState<ControlFields>(defaultSettings);
@@ -126,7 +133,8 @@ export const ControlRoomProvider = ({ children }: { children: ReactNode }) => {
     !isPending && data && getControls();
   }, [data]);
   const getControls = async () => {
-    updateControlRoomSettings(data);
+    updateControlRoomSettings(data)
+    dispatch(setControlRoomSettings(data))
   };
 
   const updateControls = async (values: object) => {

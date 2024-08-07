@@ -115,7 +115,6 @@ export const Company = () => {
     await sendAPIRequest(`/${organizationId}/company/${companyId.current}`, {
       method: 'DELETE',
     });
-    console.log("tableData------->",tableData)
     dispatch(setCompany(tableData?.filter((x:CompanyFormData)=> x.company_id !== companyId.current)))
     await queryClient.invalidateQueries({ queryKey: ['get-companies'] });
   };

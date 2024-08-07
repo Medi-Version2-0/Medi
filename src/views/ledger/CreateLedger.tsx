@@ -68,6 +68,7 @@ export const CreateLedger = ({ setView, data }: any) => {
       state: data?.state || '',
       pinCode: data?.pinCode || '',
       stateInout: data?.stateInout || '',
+      salesPriceList: data?.salesPriceList || '',
       transport: data?.transport || '',
       creditPrivilege: data?.creditPrivilege || '',
       excessRate: data?.excessRate || '',

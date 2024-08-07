@@ -8,6 +8,9 @@ export interface GlobalState {
   purchase: any;
   company: any;
   itemGroups: any;
+  controlRoomSettings: any;
+  party: any;
+  item: any;
 }
 
 export const SET_STATION = 'SET_STATION';
@@ -18,6 +21,9 @@ export const SET_SALES = 'SET_SALES';
 export const SET_PURCHASE = 'SET_PURCHASE';
 export const SET_COMPANY = 'SET_COMPANY';
 export const SET_ITEMGROUP = 'SET_ITEMGROUP';
+export const SET_CONTROLROOMSETTINGS = 'SET_CONTROLROOMSETTINGS';
+export const SET_PARTY = 'SET_PARTY'
+export const SET_ITEM = 'SET_ITEM'
 
 interface SetStationAction {
   type: typeof SET_STATION;
@@ -58,5 +64,20 @@ interface SetItemGroupAction {
   type: typeof SET_ITEMGROUP;
   payload: any;
 }
-export type GlobalActionTypes = SetStationAction | SetGroupsAction | SetOrganizationAction | SetPermissionsAction | SetSalesAction | SetPurchaseAction | SetCompanyAction | SetItemGroupAction;
+interface SetControlRoomSettings {
+  type: typeof SET_CONTROLROOMSETTINGS;
+  payload: any;
+}
+
+interface SetParty {
+  type: typeof SET_PARTY;
+  payload: any;
+}
+
+interface SetItem {
+  type: typeof SET_ITEM;
+  payload: any;
+}
+
+export type GlobalActionTypes = SetStationAction | SetGroupsAction | SetOrganizationAction | SetPermissionsAction | SetSalesAction | SetPurchaseAction | SetCompanyAction | SetItemGroupAction | SetControlRoomSettings | SetParty | SetItem;
 export type AppDispatch = ThunkDispatch<GlobalState, void, GlobalActionTypes>;

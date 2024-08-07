@@ -1,7 +1,10 @@
 import React from 'react';
 import '../../../index.css';
+import useToastManager from '../../../helper/toastManager';
 
 const CustomToggleSwitch = ({ field, form, label, index, formik }: any) => {
+  const { successToast } = useToastManager();
+
   const handleDiscountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.currentTarget.value;
     const id = e.currentTarget.id;
@@ -13,11 +16,26 @@ const CustomToggleSwitch = ({ field, form, label, index, formik }: any) => {
     formik.setFieldValue(id, numericInput);
   };
 
+  const handleSalesPriceLimitChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.currentTarget.value;
+    const id = e.currentTarget.id;
+    const numericInput = input.replace(/[^0-9.]/g, '');
+    if (parseInt(numericInput, 10) > 5) {
+      successToast('Maximum limit is 5');
+      formik.setFieldValue(id, '');
+    } else {
+      formik.setFieldValue(id, numericInput);
+    }
+  };
+
   const handleToggleChange = () => {
     const newValue = !field.value;
     form.setFieldValue(field.name, newValue);
     if (field.name === 'dpcoAct' && !newValue) {
       form.setFieldValue('dpcoDiscount', 0);
+    }
+    if (field.name === 'multiPriceList' && !newValue) {
+      form.setFieldValue('salesPriceLimit', 0);
     }
   };
 
@@ -69,6 +87,25 @@ const CustomToggleSwitch = ({ field, form, label, index, formik }: any) => {
               placeholder='Enter discount'
               className='input-class w-full h-full text-right border-none outline-none px-2 bg-[#EAFBFC]'
               onChange={handleDiscountChange}
+              required
+            />
+          </label>
+        </div>
+      )}
+       {field.name === 'multiPriceList' && formik.values.multiPriceList && (
+        <div className='flex flex-row justify-between items-center border-[1px] border-solid border-[#009196FF] pr-4'>
+          <span className='ml-[0.7rem] w-[70%] p-2 border-r-[1px] border-solid border-[#009196FF]'>
+          Number of sale price list required
+          </span>
+          <label className='w-[12rem] h-[1.3rem]'>
+            <input
+              id='salesPriceLimit'
+              name='salesPriceLimit'
+              type='text'
+              value={formik.values.salesPriceLimit}
+              placeholder='Enter SalesPrice Limit'
+              className='input-class w-full h-full text-right border-none outline-none px-2 '
+              onChange={handleSalesPriceLimitChange}
               required
             />
           </label>

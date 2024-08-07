@@ -33,7 +33,7 @@ export const Batch = ({
     opFree: null,
     purPrice: null,
     salePrice: null,
-    ...(controlRoomSettings.dualPriceList ? { salePrice2: null } : {}),
+    ...(controlRoomSettings.multiPriceList ? { salePrice2: null } : {}),
     mrp: null,
     locked: '',
     ...(controlRoomSettings.batchWiseManufacturingCode ? { mfgCode: '', } : {}),
@@ -116,7 +116,6 @@ export const Batch = ({
         batchNo: inputRow.batchNo.toUpperCase(),
         locked: inputRow.locked.toUpperCase(),
       };
-
       await sendAPIRequest(`/${organizationId}/item/${id}/batch`, {
         method: 'POST',
         body: formattedInputRow,
@@ -224,12 +223,28 @@ export const Batch = ({
             }
           }
         } else {
-          await batchSchema.validate({ ...data, [field]: newValue });
-          await sendAPIRequest(`/${organizationId}/item/${id}/batch/${batchId}`, {
-            method: 'PUT',
-            body: { ...data, [field]: newValue },
-          });
-          await queryClient.invalidateQueries({ queryKey: ['get-itemBatches'] });
+          try {
+            await batchSchema.validate({ ...data, [field]: newValue });
+            validatePrices({ ...data, [field]: newValue });
+            await sendAPIRequest(`/${organizationId}/item/${id}/batch/${batchId}`, {
+              method: 'PUT',
+              body: { ...data, [field]: newValue },
+            });
+            await queryClient.invalidateQueries({ queryKey: ['get-itemBatches'] });          
+          } catch (err: any) {
+            if (err.message) {
+              await gridRef.current?.api?.startEditingCell({
+                rowIndex: node.rowIndex,
+                colKey: field,
+              });
+              node.setDataValue(field, oldValue);
+              setPopupState({
+                ...popupState,
+                isAlertOpen: true,
+                message: err.message,
+              });
+            }
+          }
         }
       } catch (err: any) {
         if (err.response?.data.message || err.message) {
@@ -345,75 +360,87 @@ export const Batch = ({
   };
 
 
-  const colDefs: ColDef[] = [
-    {
-      headerName: 'Batch No',
-      field: 'batchNo',
-      cellDataType: 'text',
-    },
-    {
-      headerName: 'Expiry Date',
-      field: 'expiryDate',
-    },
-    {
-      headerName: 'Opening Stock',
-      field: 'opBalance',
-      cellDataType: 'number',
-    },
-    {
-      headerName: 'Current Stock',
-      field: 'currentStock',
-      editable: false
-    },
-    {
-      headerName: 'Scheme Stock',
-      field: 'opFree',
-      cellDataType: 'number',
-    },
-    {
-      headerName: 'Purchase Price',
-      field: 'purPrice',
+  const salePriceColumns: ColDef[] = [];
+
+  if (controlRoomSettings.multiPriceList && controlRoomSettings.salesPriceLimit > 1) {
+    salePriceColumns.push({
+      headerName: 'Sale Price 1',
+      field: 'salePrice',
       cellDataType: 'number',
       headerClass: 'custom-header-class custom-header',
-      cellStyle: {
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-      },
-    },
-    {
+    });
+    for (let i = 2; i <= controlRoomSettings.salesPriceLimit; i++) {
+      salePriceColumns.push({
+        headerName: `Sale Price ${i}`,
+        field: `salePrice${i}`,
+        cellDataType: 'number',
+        headerClass: 'custom-header-class custom-header',
+      });
+    }
+  } else {
+    salePriceColumns.push({
       headerName: 'Sale Price',
       field: 'salePrice',
       cellDataType: 'number',
       headerClass: 'custom-header-class custom-header',
-    },
-    ...(controlRoomSettings.dualPriceList
-      ? [
-        {
-          headerName: 'Sale Price 2',
-          field: 'salePrice2',
-          cellDataType: 'number',
+    });
+  }
+
+    const colDefs: ColDef[] = [
+      {
+        headerName: 'Batch No',
+        field: 'batchNo',
+        cellDataType: 'text',
+      },
+      {
+        headerName: 'Expiry Date',
+        field: 'expiryDate',
+      },
+      {
+        headerName: 'Opening Stock',
+        field: 'opBalance',
+        cellDataType: 'number',
+      },
+      {
+        headerName: 'Scheme Stock',
+        field: 'opFree',
+        cellDataType: 'number',
+      },
+      {
+        headerName: 'Purchase Price',
+        field: 'purPrice',
+        cellDataType: 'number',
+        headerClass: 'custom-header-class custom-header',
+        cellStyle: {
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
         },
-      ]
-      : []),
-    {
-      headerName: 'MRP',
-      field: 'mrp',
-      cellDataType: 'number',
-    },
-    {
-      headerName: 'Lock Batch',
-      field: 'locked',
-    },
-    ...(controlRoomSettings.batchWiseManufacturingCode
-      ? [
-        {
-          headerName: 'MFG Code',
-          field: 'mfgCode',
-        },
-      ]
-      : []),
-  ];
+      },
+      ...salePriceColumns,
+      {
+        headerName: 'MRP',
+        field: 'mrp',
+        cellDataType: 'number',
+      },
+      {
+        headerName: 'Current Stock',
+        field: 'currentStock',
+        editable: false
+      },
+      {
+        headerName: 'Lock Batch',
+        field: 'locked',
+      },
+      ...(controlRoomSettings.batchWiseManufacturingCode
+        ? [
+          {
+            headerName: 'MFG Code',
+            field: 'mfgCode',
+          },
+        ]
+        : []),
+    ];
 
   return (
     <div ref={containerRef}>

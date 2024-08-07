@@ -21,6 +21,8 @@ import { CreateLedger } from './CreateLedger';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { useSelector } from 'react-redux'
 import usePermission from '../../hooks/useRole';
+import { useDispatch } from 'react-redux'
+import { setParty } from '../../store/action/globalAction';
 
 const ledgerValidationSchema = Yup.object().shape({
   partyName: Yup.string()
@@ -66,6 +68,7 @@ export const Ledger = () => {
     isAlertOpen: false,
     message: '',
   });
+  const dispatch = useDispatch()
 
   const { controlRoomSettings } = useControls();
   const { createAccess, updateAccess, deleteAccess } = usePermission('ledger')
@@ -90,6 +93,7 @@ export const Ledger = () => {
   const fetchLedgerData = async () => {
     data.map((e: any) => (e.stationName = e.Station?.station_name || ''));
     setTableData(data);
+    dispatch(setParty(data))
   };
 
   const togglePopup = (isOpen: boolean) => {
@@ -157,14 +161,11 @@ export const Ledger = () => {
   };
   const handleConfirmPopup = async () => {
     setPopupState({ ...popupState, isModalOpen: false });
-    try{
-      await sendAPIRequest(`/${organizationId}/ledger/${partyId.current}`, {
-        method: 'DELETE',
-      });
-      queryClient.invalidateQueries({ queryKey: ['get-ledger'] });
-    }catch{
-      setPopupState({ ...popupState, isAlertOpen: true, message:'This Party is associated' });
-    }
+    await sendAPIRequest(`/${organizationId}/ledger/${partyId.current}`, {
+      method: 'DELETE',
+    });
+    dispatch(setParty(tableData.filter((x:LedgerFormData)=> x.party_id !== partyId.current)))
+    queryClient.invalidateQueries({ queryKey: ['get-ledger'] });
   };
 
   const decimalFormatter = (params: ValueFormatterParams): any =>

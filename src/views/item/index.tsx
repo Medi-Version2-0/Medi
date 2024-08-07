@@ -23,11 +23,13 @@ import { ControlRoomSettings } from '../../components/common/controlRoom/Control
 import { itemSettingFields } from '../../components/common/controlRoom/settings';
 import { GiHamburgerMenu } from 'react-icons/gi';
 import DropdownTippy from '../../components/common/dropdown/dropdown';
-import PriceList from './PriceList';
+import PriceList from '../partywisePriceList/PriceList';
 import SearchItem from './searchItem';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { itemFormValidations } from './validation_schema';
 import usePermission from '../../hooks/useRole';
+import { useDispatch } from 'react-redux'
+import { setItem } from '../../store/action/globalAction';
 
 const initialPopupState = {
   setting: false,
@@ -59,6 +61,8 @@ const Items = () => {
     message: '',
   });
   const { createAccess, updateAccess, deleteAccess } = usePermission('items')
+  const dispatch = useDispatch()
+
   const itemSettingsInitialValues = {
     generateBarcodeBatchWise:
       controlRoomSettings.generateBarcodeBatchWise || false,
@@ -69,7 +73,8 @@ const Items = () => {
     dpcoDiscount: controlRoomSettings.dpcoDiscount || 0,
     packaging: controlRoomSettings.packaging || false,
     rackNumber: controlRoomSettings.rackNumber || false,
-    dualPriceList: controlRoomSettings.dualPriceList || false,
+    multiPriceList: controlRoomSettings.multiPriceList || false,
+    salesPriceLimit: controlRoomSettings.salesPriceLimit || 0,
   };
 
   const { data } = useQuery<{ data: ItemFormData }>({
@@ -88,6 +93,7 @@ const Items = () => {
 
   const getItemData = async () => {
     setTableData(data);
+    dispatch(setItem(data))
   };
 
   const getCompany = async () => {
@@ -182,14 +188,14 @@ const Items = () => {
     try{
       await sendAPIRequest(`/${organizationId}/item/${id.current}`, {
       method: 'DELETE',
-      });
-    }catch{
-      setPopupState({ ...popupState, isAlertOpen: true, message:'This item is associated' });
-    }
-    
+    });
+    dispatch(setItem(tableData.filter((x:ItemFormData)=> x.id !== id.current)))
     queryClient.invalidateQueries({ queryKey: ['get-items'] });
-  };
-
+  }
+  catch{
+    setPopupState({ ...popupState, isAlertOpen: true, message:'This item is associated' });
+  }
+  }
   const handleDelete = (oldData: any) => {
     setPopupState({
       ...popupState,
@@ -470,5 +476,4 @@ const Items = () => {
 
   return <div className='w-full'>{renderView()}</div>;
 };
-
 export default Items;

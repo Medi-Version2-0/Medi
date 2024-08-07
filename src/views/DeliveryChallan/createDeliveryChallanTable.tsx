@@ -391,6 +391,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
           headers={headerData.isItem ? itemHeader : headerData.isBatch ? batchHeader : []}
           tableData={tableData}
           setCurrentSavedData={setCurrentSavedData}
+          dataKeys={{ 'Items': 'item',  'Batches': 'batch' }}
         />
       )}
     </div>
