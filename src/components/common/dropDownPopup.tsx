@@ -47,11 +47,11 @@ export const DropDownPopup = ({ heading, className, setOpenDataPopup, headers, t
   return (
     <Popup
       heading={heading}
-      childClass='!max-h-fit w-full'
+      childClass='!max-h-fit w-full min-w-[50vw]'
       className={className}
       isSuggestionPopup={true}
     >
-      <div className='w-[90%] mx-auto h-fit max-h-[40rem] overflow-auto border-[1px] border-gray-400 border-solid my-4'>
+      <div className='mx-4 h-fit max-h-[40rem] overflow-auto border-[1px] border-gray-400 border-solid my-4'>
         <table className='table-auto w-full border-collapse'>
           <thead className='sticky top-0 overflow-auto'>
             <tr>
