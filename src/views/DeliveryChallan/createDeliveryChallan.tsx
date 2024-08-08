@@ -43,7 +43,6 @@ export const SchemeSection = ({ togglePopup, heading, className, setOpenDataPopu
   }, []);
 
   const handleSubmit = async (values: any) => {
-    console.log('values ------------> ', values);
     setSchemeValue({ scheme1: values.scheme1, scheme2: values.scheme2 });
     setOpenDataPopup(false)
     togglePopup(false);
@@ -512,6 +511,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
             totalValue={totalValue}
             challanTableData={challanTableData}
             setIsNetRateSymbol={setIsNetRateSymbol}
+            setChallanTableData={setChallanTableData}
           />
         </div>
         <div className='border-[1px] border-solid border-gray-400 my-4 p-4 mx-8'>

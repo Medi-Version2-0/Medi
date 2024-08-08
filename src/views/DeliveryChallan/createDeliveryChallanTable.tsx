@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { sendAPIRequest } from '../../helper/api';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
@@ -14,7 +14,7 @@ interface RowData {
 }
 
 
-export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTotalValue, challanTableData, setIsNetRateSymbol }: any) => {
+export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTotalValue, challanTableData, setIsNetRateSymbol, setChallanTableData }: any) => {
   const headers = [
     { name: 'Item name', key: 'itemId', width: '15%', type: 'input', props: { inputType: 'text', label: true, handleFocus: (rowIndex: number, colIndex: number) => handleFocus(rowIndex, colIndex) } },
     { name: 'Batch no', key: 'batchNo', width: '15%', type: 'input', props: { inputType: 'text', label: true, handleFocus: (rowIndex: number, colIndex: number) => handleFocus(rowIndex, colIndex) } },
@@ -25,7 +25,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     { name: 'Dis.%', key: 'disPer', width: '5%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
     { name: 'Amt', key: 'amt', width: '5%', type: 'input', props: { inputType: 'number', disable: true } },
     { name: 'MRP', key: 'mrp', width: '5%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
-    { name: 'Exp. Date', key: 'expDate', width: '8%', type: 'input', props: { inputType: 'date', handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
+    { name: 'Exp. Date', key: 'expDate', width: '8%', type: 'input', props: { inputType: 'text', handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
     { name: 'Tax type', key: 'taxType', width: '15%', type: 'input', props: { inputType: 'text', disable: true } },
     { name: 'GST', key: 'gstAmount', width: '5%', type: 'input', props: { inputType: 'number', disable: true } },
   ];
@@ -55,6 +55,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     isAlertOpen: false,
     message: '',
   });
+  const focusColIndex = useRef(0);
 
   useEffect(() => {
     updateGridData();
@@ -96,6 +97,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
               return {
                 ...acc,
                 [header.key]: data,
+                rowId : rowData.id
               };
             }, {}),
           };
@@ -106,12 +108,8 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     }
   }, [challanTableData, itemValue]);
 
-  useEffect(() => {
-    fetchItems();
-  }, [])
 
   const updateGridData = () => {
-    console.log('callind update grid' , currentSavedData)
     if (focusedRowIndex === null) return;
     const newGridData = [...gridData];
     if (Object.keys(currentSavedData.item).length) {
@@ -135,6 +133,15 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
         newGridData[focusedRowIndex].columns['batchNo']
       );
     }
+
+    if(focusColIndex.current === 0){
+      handleFocus(focusedRowIndex,1)
+       }
+
+    if(focusColIndex.current === 1){
+      document.getElementById(`cell-${focusedRowIndex}-${focusColIndex.current + 1}`)?.focus();
+      }
+
   };
 
   const togglePopup = (isOpen: boolean) => {
@@ -163,14 +170,14 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
   }, [])
 
   const handleFocus = (rowIndex: number, colIndex: number) => {
-    console.log(rowIndex,colIndex , 'indexs')
+    focusColIndex.current = colIndex;
     setFocusedRowIndex(rowIndex);
     if (colIndex === 0) {
-      fetchItems();
+      setTableData(itemValue);
       setHeaderData({ ...headerData, isItem: true, isBatch: false });
     }
-    if (colIndex === 1) {
-      if (challanTableData && challanTableData.length > 0) {
+    if (colIndex === 1 ) {
+      if (challanTableData && challanTableData.length > 0 && rowIndex < challanTableData.length) {
         const item = challanTableData[rowIndex];
         const selectedItem = itemValue.find((data: any) => data.id === item.itemId);
         if (selectedItem) {
@@ -288,7 +295,6 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     if (schemeValue.scheme1 !== null) {
       setIsNetRateSymbol('Yes');
     }
-    console.log('Data to send : ----> ', dataToSend);
     setDataFromTable(dataToSend);
     setPopupState({
       ...popupState,
@@ -360,6 +366,18 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     }
   };
 
+  const handleDeleteRow =(rowIndex:number, data:any)=>{
+    const updateItems = [...itemValue]
+    const itemIndex = updateItems.findIndex((x:any)=> x.id === data.columns.itemId?.value)
+    const batchIndex = updateItems[itemIndex].ItemBatches.findIndex((x:any)=> x.id === data.columns.batchNo?.value)
+    updateItems[itemIndex].ItemBatches[batchIndex].currentStock += data.columns.qty
+    console.log(challanTableData , data)
+    if(challanTableData?.length && challanTableData.find((x:any)=> x.id === data.columns.rowId)){
+        setChallanTableData(challanTableData.filter((x:any)=> x.id !== data.columns.rowId))
+    }
+    setItemValue(updateItems)
+  }
+
   return (
     <div className="">
       <ChallanTable
@@ -368,6 +386,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
         setGridData={setGridData}
         handleSave={handleSave}
         withAddRow = {()=> setCurrentSavedData({ item: {}, batch: {} })}
+        rowDeleteCallback={handleDeleteRow}
       />
 
       {popupState.isAlertOpen && (
