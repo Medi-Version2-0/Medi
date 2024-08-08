@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useRef } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
@@ -8,9 +8,7 @@ import { DropDownPopup } from '../../components/common/dropDownPopup';
 import { itemHeaders, partyHeaders } from './partywiseHeader';
 import { sendAPIRequest } from '../../helper/api';
 import Button from '../../components/common/button/Button';
-import { getAndSetItem } from '../../store/action/globalAction';
-import { useDispatch } from 'react-redux'
-import { AppDispatch } from '../../store/types/globalTypes';
+import ExportData from '../../components/common/ExportData';
 
 const PriceList = () => {
   const { organizationId } = useParams<{ organizationId: string }>();
@@ -20,20 +18,22 @@ const PriceList = () => {
   const [headerData, setHeaderData] = useState<{isParty: boolean; isItem: boolean;}>({ isParty: false, isItem: false });
   const [currentSavedData, setCurrentSavedData] = useState<{party: any; item: any;}>({ party: {}, item: {} });
   const [tableData, setTableData] = useState<any[]>([]);
-  let checkItemData = false;
-  const dispatch = useDispatch<AppDispatch>()
+  const [options , setOptions] = useState()
+  const checkItemData = useRef(false);
 
-  const getItemData = async(partyId:any) =>{
+  const getItemData = async(partyId?:any) =>{
     const itemData = await sendAPIRequest<any[]>(`/${organizationId}/partyWisePriceList/${partyId}`, {
       method: 'GET',
     });
-    if (itemData.length ){
-      checkItemData = true
+    const hasMatchingId = itemData.some(item => item.partyId === partyId,itemData);
+    if (hasMatchingId){
+      checkItemData.current = true;
       setTableData(itemData)
-    } 
+    } else {
+      checkItemData.current = false;
+    }
   }
 
-  console.log("tableData-------2------>",tableData)
   const colDefs = useMemo(
     () => [
       {
@@ -72,7 +72,7 @@ const PriceList = () => {
       method: 'PUT',
       body: { [field]: newValue },
     });
-    dispatch(getAndSetItem(organizationId))
+    getItemData(data.partyId);
 
   };
 
@@ -111,21 +111,24 @@ const PriceList = () => {
     });
   }
 
-  useEffect(() => {
-    if (Object.keys(currentSavedData.party).length !== 0) {
-      getItemData(currentSavedData.party.party_id);
-      if (!checkItemData) handleItemData(itemData);
-      console.log("currentSavedData----------->",currentSavedData)
-      setSelectedPartyStation(
-        currentSavedData.party.Station?.station_name || ''
-      );
 
-    }
+  useEffect(() => {
+    const fetchData = async () => {
+      if (Object.keys(currentSavedData.party).length !== 0) {
+        await getItemData(currentSavedData.party.party_id);
+        if (!checkItemData.current) {
+          handleItemData(itemData);
+        }
+        setSelectedPartyStation(
+          currentSavedData.party.Station?.station_name || ''
+        );
+      }
+    };
+  
+    fetchData();
   }, [currentSavedData.party?.party_id]);
+  
 
-  useEffect(() => {
-    console.log('Updated tableData:', tableData);
-  }, [tableData]);
 
   const handleItemData = async (itemData : any) => {
    itemData?.forEach((item : any) => {
@@ -156,7 +159,8 @@ const PriceList = () => {
                   placeholder='Select Party...'
                   onFocus={() => {
                     setHeaderData({ isParty: true, isItem: false });
-                    setTableData(partyData);
+                    // setTableData(partyData);
+                    setOptions(partyData);
                     setOpenDataPopup(true);
                   }}
                   value={currentSavedData.party.partyName}
@@ -192,7 +196,7 @@ const PriceList = () => {
               type='fill'
               padding='px-8 py-6'
               handleOnClick={() => {
-                // Print functino
+                <ExportData data={tableData} fields={colDefs} />
                 console.log('Print button clicked');
               }}
             >
@@ -201,7 +205,7 @@ const PriceList = () => {
           </div>
         </div>
       </div>
-      {selectedPartyStation && (
+      {headerData && (
         <div
           id='priceListTable'
           className='ag-theme-quartz w-full my-4'
@@ -231,7 +235,8 @@ const PriceList = () => {
                 ? itemHeaders
                 : []
           }
-          tableData={tableData}
+          // tableData={tableData}
+          tableData={options}
           setCurrentSavedData={setCurrentSavedData}
           dataKeys={{ 'Select Party': 'party', 'Select Item': 'item'}}
         />  
