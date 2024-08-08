@@ -370,8 +370,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     const updateItems = [...itemValue]
     const itemIndex = updateItems.findIndex((x:any)=> x.id === data.columns.itemId?.value)
     const batchIndex = updateItems[itemIndex].ItemBatches.findIndex((x:any)=> x.id === data.columns.batchNo?.value)
-    updateItems[itemIndex].ItemBatches[batchIndex].currentStock += data.columns.qty
-    console.log(challanTableData , data)
+    updateItems[itemIndex].ItemBatches[batchIndex].currentStock += (Number(data.columns.qty) + (data.columns.scheme !== '' && data.columns.schemeType.label === 'Pieces' ? Number(data.columns.scheme) : 0))
     if(challanTableData?.length && challanTableData.find((x:any)=> x.id === data.columns.rowId)){
         setChallanTableData(challanTableData.filter((x:any)=> x.id !== data.columns.rowId))
     }
