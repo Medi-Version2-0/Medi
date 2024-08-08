@@ -111,11 +111,11 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
         setPopupState({ ...popupState, isAlertOpen: false });
       };
     const deleteRow = (rowIndex :number , row:any)=> {
+        const updatedGridData = gridData.filter((_:any, index:number) => index !== rowIndex);
+        setGridData(updatedGridData)
         if(rowDeleteCallback){
             rowDeleteCallback(rowIndex , row)
         }
-        const updatedGridData = gridData.filter((_:any, index:number) => index !== rowIndex);
-        setGridData(updatedGridData)
      
     }
 

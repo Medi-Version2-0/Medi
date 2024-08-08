@@ -13,6 +13,9 @@ import { useParams } from 'react-router-dom';
 import { useControls } from '../../ControlRoomContext';
 import { batchSchema, validatePrices } from './validation_schema';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
+import { useDispatch } from 'react-redux';
+import { AppDispatch } from '../../store/types/globalTypes';
+import { getAndSetItem } from '../../store/action/globalAction';
 
 export const Batch = ({
   params,
@@ -46,6 +49,7 @@ export const Batch = ({
   const [item, setItem] = useState<any>(null);
   const editing = useRef(false);
   const gridRef = useRef<any>(null);
+  const dispatch = useDispatch<AppDispatch>()
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
@@ -246,6 +250,7 @@ export const Batch = ({
             }
           }
         }
+        dispatch(getAndSetItem(organizationId))
       } catch (err: any) {
         if (err.response?.data.message || err.message) {
           setPopupState({

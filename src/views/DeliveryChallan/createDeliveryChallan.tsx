@@ -128,11 +128,13 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
     totalQty: 0.0,
     totalDiscount: 0.0,
     totalGST: 0.0,
+    isDefault :true
   });
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
     message: '',
+    shouldBack : true
   });
 
   const formik: DeliveryChallanFormInfoType = useFormik({
@@ -188,12 +190,14 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
           isModalOpen: false,
           isAlertOpen: true,
           message: `Delivery Challan ${data.id ? 'updated' : 'created'} successfully`,
+          shouldBack:true
         });
       } catch (error) {
         setPopupState({
           isModalOpen: false,
           isAlertOpen: true,
           message: `Failed to ${data.id ? 'update' : 'create'} delivery challan`,
+          shouldBack:false
         });
       }
     },
@@ -230,8 +234,10 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
   };
 
   const handleAlertCloseModal = () => {
-    setPopupState({ ...popupState, isAlertOpen: false });
-    setView({ type: '', data: {} });
+    setPopupState({ ...popupState, isAlertOpen: false , shouldBack:true});
+    if(popupState.shouldBack){
+      setView({ type: '', data: {} });
+    }
   };
 
   const handleFieldChange = (option: Option | null, id: string) => {
@@ -519,26 +525,26 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
             <span className='flex gap-2 text-base text-gray-900'>
               Total Discount :{' '}
               <span className='min-w-[50px] text-gray-700'>
-                {data.id ? data.totalDiscount : parseFloat(Number(totalValue.totalDiscount)?.toFixed(2))}
+                {totalValue.totalDiscount >=0 && !totalValue.isDefault ? parseFloat(Number(totalValue.totalDiscount)?.toFixed(2)) : (data?.totalDiscount || 0)}
               </span>
             </span>
             <span className='flex gap-2 text-base text-gray-900'>
               Total GST :{' '}
               <span className='min-w-[50px] text-gray-700'>
-                {totalValue.totalGST ? parseFloat(Number(totalValue.totalGST)?.toFixed(2)) : (data?.totalGST || 0)}
+                {totalValue.totalGST >=0 && !totalValue.isDefault ? parseFloat(Number(totalValue.totalGST)?.toFixed(2)) : (data?.totalGST || 0)}
               </span>
             </span>
 
             <span className='flex gap-2 text-base text-gray-900'>
               Total Quantity :{' '}
               <span className='min-w-[50px] text-gray-700'>
-                {totalValue.totalQty ?  parseFloat(Number(totalValue.totalQty)?.toFixed(2)) : (data?.qtyTotal || 0)}
+                {totalValue.totalQty >=0 && !totalValue.isDefault ?  parseFloat(Number(totalValue.totalQty)?.toFixed(2)) : (data?.qtyTotal || 0)}
               </span>
             </span>
             <span className='flex gap-2 text-base text-gray-900'>
               Total :{' '}
               <span className='min-w-[50px] text-gray-700'>
-                {totalValue.totalAmt ? parseFloat(Number(totalValue.totalAmt)?.toFixed(2)) : (data?.total || 0)}
+                {totalValue.totalAmt >=0 && !totalValue.isDefault ? parseFloat(Number(totalValue.totalAmt)?.toFixed(2)) : (data?.total || 0)}
               </span>
             </span>
           </div>
