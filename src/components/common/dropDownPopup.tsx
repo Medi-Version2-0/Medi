@@ -26,9 +26,9 @@ export const DropDownPopup = ({
     setFocusedRowData(tableData[focusedRowIndex]);
   }, [focusedRowIndex, tableData]);
   useEffect(() => {
-    document.addEventListener('keydown', handleKeyDown);
+    document.getElementById('dropDownPopup')?.addEventListener('keydown', handleKeyDown);
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
+      document.getElementById('dropDownPopup')?.removeEventListener('keydown', handleKeyDown);
     };
   }, [focusedRowData, heading, tableData.length]);
 
@@ -39,7 +39,9 @@ export const DropDownPopup = ({
     };
 }, []);
 
+
   const handleKeyDown = (event: KeyboardEvent) => {
+    event.preventDefault()
     if (event.key === 'ArrowDown') {
       setFocusedRowIndex((prevIndex) => prevIndex === tableData.length - 1 ? 0 : prevIndex + 1);
     } else if (event.key === 'ArrowUp') {
@@ -58,7 +60,6 @@ export const DropDownPopup = ({
       setOpenDataPopup(false);
     }
   };
-
   return (
     <Popup
       heading={heading}
@@ -66,7 +67,7 @@ export const DropDownPopup = ({
       className={className}
       isSuggestionPopup={true}
     >
-      <div className='mx-4 h-fit max-h-[40rem] overflow-auto border-[1px] border-gray-400 border-solid my-4'>
+      <div className='mx-4 h-fit max-h-[40rem] overflow-auto border-[1px] border-gray-400 border-solid my-4' id='dropDownPopup'>
         <table className='table-auto w-full border-collapse'>
           <thead className='sticky top-0 overflow-auto'>
             <tr>
@@ -86,7 +87,7 @@ export const DropDownPopup = ({
                 key={rowIndex}
                 ref={(el) => (tableRefs.current[rowIndex] = el)}
                 tabIndex={-1}
-                className={focusedRowIndex === rowIndex ? 'bg-[#EAFBFCFF] border-[1px] border-solid border-[#009196FF]' : ''}
+                className={focusedRowIndex === rowIndex ? 'bg-[#EAFBFCFF] border-[2px] focus:outline-0 !rounded-lg border-solid border-black' : ''}
               >
                 {headers.map((header: any, colIndex: number) => (
                   <td key={colIndex} className='border border-gray-400 p-2'>

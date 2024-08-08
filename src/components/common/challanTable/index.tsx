@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, {useState } from 'react';
 import CustomSelect from '../../custom_select/CustomSelect';
+import { dateSchema } from '../../../views/DeliveryChallan/validation_schema';
+import Confirm_Alert_Popup from '../../popup/Confirm_Alert_Popup';
 
 interface RowData {
     id: number;
@@ -34,6 +36,11 @@ interface ChallanTableProps {
 
 export const ChallanTable = ({ headers, gridData, setGridData, handleSave , withAddRow }: ChallanTableProps) => {
     const [focused, setFocused] = useState('');
+    const [popupState, setPopupState] = useState({
+        isModalOpen: false,
+        isAlertOpen: false,
+        message: '',
+      });
     const handleKeyDown = async (
         e: React.KeyboardEvent<HTMLInputElement>,
         rowIndex: number,
@@ -60,7 +67,6 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
     };
 
     const focusNextCell = async (rowIndex: number, colIndex: number) => {
-        console.log('calling next foucust')
         const nextInput = document.getElementById(`cell-${rowIndex}-${colIndex}`);
         if (colIndex === 4) {
             setFocused(`cell-${rowIndex}-${colIndex}`);
@@ -70,7 +76,9 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
         }
     };
 
-    const addRows = (numRows: number) => {
+    const addRows = async(numRows: number) => {
+      try{
+        await dateSchema.validate(gridData[gridData.length-1].columns.expDate)
         if(withAddRow){
             withAddRow()
         }
@@ -85,7 +93,22 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
             })
         );
         setGridData([...gridData, ...newRows]);
+        }
+        catch(e:any){
+            setPopupState({
+                ...popupState,
+                isAlertOpen: true,
+                message: e.message,
+            });
+        }
     };
+
+    const handleClosePopup = () => {
+        setPopupState({ ...popupState, isModalOpen: false });
+      };
+      const handleAlertCloseModal = () => {
+        setPopupState({ ...popupState, isAlertOpen: false });
+      };
 
     return (
         <div className="flex flex-col h-[30em] overflow-scroll w-full border-[1px] border-solid border-gray-400">
@@ -124,7 +147,7 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
                                                         }
                                                 }
                                                 onChange={(selectedOption) => {
-                                                    let args = {
+                                                    const args = {
                                                         selectedOption, row, rowIndex, colIndex, header: header.key
                                                     }
                                                     if (header.props.handleChange) {
@@ -155,7 +178,7 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
                                                 return header.props.handleFocus ? header.props.handleFocus(rowIndex, colIndex) : () => { }
                                             }}
                                             onChange={(e) => {
-                                                let args = {
+                                                const args = {
                                                     rowIndex,
                                                     header: header.key,
                                                     value: e.target.value
@@ -169,7 +192,7 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
                                             style={{ width: header.width }}
                                             disabled={header.props.disable}
                                             onBlur={() => {
-                                                let args = {
+                                                const args = {
                                                     row, rowIndex, colIndex
                                                 }
                                                 if (header.props.handleBlur) {
@@ -186,6 +209,15 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
                     </div>
                 ))}
             </div>
+
+            {popupState.isAlertOpen && (
+                <Confirm_Alert_Popup
+                    onClose={handleClosePopup}
+                    onConfirm={handleAlertCloseModal}
+                    message={popupState.message}
+                    isAlert={popupState.isAlertOpen}
+                />
+            )}
 
             <div className="flex justify-end sticky left-0 mt-[2em]">
                 <button
