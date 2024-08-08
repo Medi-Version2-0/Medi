@@ -6,6 +6,7 @@ import { SchemeSection } from './createDeliveryChallan';
 import { DropDownPopup } from '../../components/common/dropDownPopup';
 import { schemeTypeOptions, itemHeader, batchHeader } from '../../constants/saleChallan';
 import { ChallanTable } from '../../components/common/challanTable';
+import { useSelector } from 'react-redux';
 interface RowData {
   id: number;
   columns: {
@@ -43,6 +44,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
   const [gridData, setGridData] = useState<RowData[]>(initialRows);
   const [itemValue, setItemValue] = useState<any[]>([]);
   const [batches, setBatches] = useState<any[]>([]);
+  const { item: globalItems , sales ,company , purchase } = useSelector((state: any) => state.global)
   const [focusedRowIndex, setFocusedRowIndex] = useState<number | null>(null);
   const [currentSavedData, setCurrentSavedData] = useState<{ item: any; batch: any; }>({ item: {}, batch: {} });
   const [schemeValue, setSchemeValue] = useState<any>({ scheme1: null, scheme2: null });
@@ -181,32 +183,39 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
         const item = challanTableData[rowIndex];
         const selectedItem = itemValue.find((data: any) => data.id === item.itemId);
         if (selectedItem) {
-          setTableData(selectedItem.ItemBatches);
+          setTableData(selectedItem.ItemBatches.filter((x:any)=> x.locked.toLowerCase() !== 'y'));
           setBatches(selectedItem.ItemBatches);
         }
+        setHeaderData({ ...headerData, isItem: false, isBatch: true });
       }
       else {
         const selectedItem = itemValue.find((item: any) => item.name === currentSavedData.item.name);
-        if (selectedItem) {
-          setTableData(selectedItem.ItemBatches);
-          setBatches(selectedItem.ItemBatches);
+        const unlockedBatch = selectedItem.ItemBatches.filter((x:any)=> x.locked.toLowerCase() !== 'y')
+        if (selectedItem && unlockedBatch.length) {
+          setTableData(unlockedBatch);
+          setBatches(unlockedBatch);
+          setHeaderData({ ...headerData, isItem: false, isBatch: true });
+        }
+        else {
+          setPopupState({
+            ...popupState,
+            isAlertOpen: true,
+            message:
+              'No unlocked batch associated with this items',
+          });
+         return document.getElementById(`cell-${rowIndex}-${focusColIndex.current + 1}`)?.focus();
         }
       }
-      setHeaderData({ ...headerData, isItem: false, isBatch: true });
     }
     return setOpenDataPopup(true);
   }
 
   const fetchItems = async () => {
-    const items = await sendAPIRequest<any>(`/${organizationId}/item`);
-    const company = await sendAPIRequest<any>(`/${organizationId}/company`);
-    const sales = await sendAPIRequest<any>(`/${organizationId}/sale`);
-    const purchases = await sendAPIRequest<any>(`/${organizationId}/purchase`);
-
+    const items = globalItems
     items.map((item: any) => {
       item.company = company.find((comp: any) => comp.company_id === item.compId)?.companyName;
       item.sales = sales.find((sale: any) => sale.sp_id === item.saleAccId)?.sptype;
-      item.purchase = purchases.find((purchase: any) => purchase.sp_id === item.purAccId)?.sptype;
+      item.purchase = purchase.find((purchase: any) => purchase.sp_id === item.purAccId)?.sptype;
     })
     setItemValue(items);
     setTableData(items);
@@ -256,8 +265,8 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     if (selectedOption) handleInputChange({ rowIndex, header, value: selectedOption || {} });
   };
 
-  const handleTotalAmt = ({ rowIndex }: any) => {
-    const newGridData = [...gridData];
+  const handleTotalAmt = ({ rowIndex , data }: {rowIndex : number , data?:any[]}) => {
+    const newGridData =  [...(data?.length ? data :gridData)];
     const { qty, schemeType, rate, disPer } = newGridData[rowIndex].columns;
     let { scheme } = newGridData[rowIndex].columns;
     let total = rate * qty;
@@ -284,6 +293,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
       totalQty: totalQty,
       totalDiscount: totalDiscount,
       totalGST: totalGST,
+      isDefault: false
     });
   };
 
@@ -370,11 +380,14 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     const updateItems = [...itemValue]
     const itemIndex = updateItems.findIndex((x:any)=> x.id === data.columns.itemId?.value)
     const batchIndex = updateItems[itemIndex].ItemBatches.findIndex((x:any)=> x.id === data.columns.batchNo?.value)
-    updateItems[itemIndex].ItemBatches[batchIndex].currentStock += (Number(data.columns.qty) + (data.columns.scheme !== '' && data.columns.schemeType.label === 'Pieces' ? Number(data.columns.scheme) : 0))
-    if(challanTableData?.length && challanTableData.find((x:any)=> x.id === data.columns.rowId)){
-        setChallanTableData(challanTableData.filter((x:any)=> x.id !== data.columns.rowId))
+    if(itemIndex >=0 && batchIndex >=0){
+      updateItems[itemIndex].ItemBatches[batchIndex].currentStock += (Number(data.columns.qty) + (data.columns.scheme !== '' && data.columns.schemeType.label === 'Pieces' ? Number(data.columns.scheme) : 0))
+      if(challanTableData?.length && challanTableData.find((x:any)=> x.id === data.columns.rowId)){
+          setChallanTableData(challanTableData.filter((x:any)=> x.id !== data.columns.rowId))
+            handleTotalAmt({rowIndex : rowIndex-1 , data : gridData.filter((_ , ind)=> ind !== rowIndex)})
+      }
+      setItemValue(updateItems)
     }
-    setItemValue(updateItems)
   }
 
   return (
