@@ -14,7 +14,7 @@ interface RowData {
 }
 
 
-export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTotalValue, challanTableData, setIsNetRateSymbol }: any) => {
+export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTotalValue, challanTableData, setIsNetRateSymbol, setChallanTableData }: any) => {
   const headers = [
     { name: 'Item name', key: 'itemId', width: '15%', type: 'input', props: { inputType: 'text', label: true, handleFocus: (rowIndex: number, colIndex: number) => handleFocus(rowIndex, colIndex) } },
     { name: 'Batch no', key: 'batchNo', width: '15%', type: 'input', props: { inputType: 'text', label: true, handleFocus: (rowIndex: number, colIndex: number) => handleFocus(rowIndex, colIndex) } },
@@ -97,6 +97,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
               return {
                 ...acc,
                 [header.key]: data,
+                rowId : rowData.id
               };
             }, {}),
           };
@@ -107,9 +108,6 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     }
   }, [challanTableData, itemValue]);
 
-  useEffect(() => {
-    fetchItems();
-  }, [])
 
   const updateGridData = () => {
     if (focusedRowIndex === null) return;
@@ -175,11 +173,11 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     focusColIndex.current = colIndex;
     setFocusedRowIndex(rowIndex);
     if (colIndex === 0) {
-      fetchItems();
+      setTableData(itemValue);
       setHeaderData({ ...headerData, isItem: true, isBatch: false });
     }
-    if (colIndex === 1) {
-      if (challanTableData && challanTableData.length > 0) {
+    if (colIndex === 1 ) {
+      if (challanTableData && challanTableData.length > 0 && rowIndex < challanTableData.length) {
         const item = challanTableData[rowIndex];
         const selectedItem = itemValue.find((data: any) => data.id === item.itemId);
         if (selectedItem) {
@@ -297,7 +295,6 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     if (schemeValue.scheme1 !== null) {
       setIsNetRateSymbol('Yes');
     }
-    console.log('Data to send : ----> ', dataToSend);
     setDataFromTable(dataToSend);
     setPopupState({
       ...popupState,
@@ -369,6 +366,18 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     }
   };
 
+  const handleDeleteRow =(rowIndex:number, data:any)=>{
+    const updateItems = [...itemValue]
+    const itemIndex = updateItems.findIndex((x:any)=> x.id === data.columns.itemId?.value)
+    const batchIndex = updateItems[itemIndex].ItemBatches.findIndex((x:any)=> x.id === data.columns.batchNo?.value)
+    updateItems[itemIndex].ItemBatches[batchIndex].currentStock += data.columns.qty
+    console.log(challanTableData , data)
+    if(challanTableData?.length && challanTableData.find((x:any)=> x.id === data.columns.rowId)){
+        setChallanTableData(challanTableData.filter((x:any)=> x.id !== data.columns.rowId))
+    }
+    setItemValue(updateItems)
+  }
+
   return (
     <div className="">
       <ChallanTable
@@ -377,6 +386,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
         setGridData={setGridData}
         handleSave={handleSave}
         withAddRow = {()=> setCurrentSavedData({ item: {}, batch: {} })}
+        rowDeleteCallback={handleDeleteRow}
       />
 
       {popupState.isAlertOpen && (

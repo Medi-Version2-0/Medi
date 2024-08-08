@@ -2,6 +2,7 @@ import React, {useState } from 'react';
 import CustomSelect from '../../custom_select/CustomSelect';
 import { dateSchema } from '../../../views/DeliveryChallan/validation_schema';
 import Confirm_Alert_Popup from '../../popup/Confirm_Alert_Popup';
+import { BsTrash } from 'react-icons/bs';
 
 interface RowData {
     id: number;
@@ -32,9 +33,9 @@ interface ChallanTableProps {
     setGridData: (data: any[]) => void;
     handleSave: () => void;
     withAddRow?: ()=> void;
+    rowDeleteCallback? : (rowIndex:number , data : any)=> void;
 }
-
-export const ChallanTable = ({ headers, gridData, setGridData, handleSave , withAddRow }: ChallanTableProps) => {
+export const ChallanTable = ({ headers, gridData, setGridData, handleSave , withAddRow , rowDeleteCallback }: ChallanTableProps) => {
     const [focused, setFocused] = useState('');
     const [popupState, setPopupState] = useState({
         isModalOpen: false,
@@ -109,6 +110,14 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
       const handleAlertCloseModal = () => {
         setPopupState({ ...popupState, isAlertOpen: false });
       };
+    const deleteRow = (rowIndex :number , row:any)=> {
+        if(rowDeleteCallback){
+            rowDeleteCallback(rowIndex , row)
+        }
+        const updatedGridData = gridData.filter((_:any, index:number) => index !== rowIndex);
+        setGridData(updatedGridData)
+     
+    }
 
     return (
         <div className="flex flex-col h-[30em] overflow-scroll w-full border-[1px] border-solid border-gray-400">
@@ -125,7 +134,7 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
             </div>
             <div className="flex flex-col h-[22rem] w-[100vw]">
                 {gridData.map((row: any, rowIndex: number) => (
-                    <div key={row.id} className="flex">
+                    <div key={row.id} className="flex relative">
                         {headers.map((header, colIndex) => {
                             const columnValue = header.props.label ? row.columns[header.key]?.label || '' : row.columns[header.key] || '';
                             switch (header.type) {
@@ -206,6 +215,9 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
                                     return null;
                             }
                         })}
+                        {rowIndex > 0 &&
+                            <BsTrash className='text-xl absolute right-[-30px] cursor-pointer' onClick={() => deleteRow(rowIndex, row)} />
+                        }
                     </div>
                 ))}
             </div>
