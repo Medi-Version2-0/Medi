@@ -191,6 +191,7 @@ export interface PopupProps {
   childClass?: string;
   onClose?: () => void;
   isSuggestionPopup?: boolean;
+  id?: string;
 }
 
 export interface Confirm_Alert_PopupProps {
@@ -372,8 +373,8 @@ export interface dropDownPopupProps {
   heading: string;
   setOpenDataPopup?: any;
   className?: string;
-  headers?:any;
+  headers?: any;
   tableData?: any;
-  setCurrentSavedData?:any;
+  setCurrentSavedData?: any;
   dataKeys?: any;
 }

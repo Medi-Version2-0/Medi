@@ -25,20 +25,40 @@ export const DropDownPopup = ({
     tableRefs.current[focusedRowIndex]?.focus();
     setFocusedRowData(tableData[focusedRowIndex]);
   }, [focusedRowIndex, tableData]);
+
+  useEffect(() => {
+    document.body.classList.add("!overflow-hidden");
+    const handleClickOutside = (event: Event) => {
+      event.preventDefault();
+      tableRefs.current[0]?.click()
+      const target = event.target as HTMLElement
+      const parentElement = target.parentElement
+      if (parentElement?.getAttribute('tabindex') === '-1') {
+        const key = dataKeys[heading]
+        const rowIndex = +parentElement.children[0].innerHTML - 1;
+        setFocusedRowIndex(() => rowIndex);
+        setCurrentSavedData((prevData: any) => ({
+          ...{
+            ...prevData,
+            [key]: focusedRowData,
+          }
+        }));
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.body.classList.remove("!overflow-hidden");
+    };
+  }, [])
+
   useEffect(() => {
     document.getElementById('dropDownPopup')?.addEventListener('keydown', handleKeyDown);
     return () => {
       document.getElementById('dropDownPopup')?.removeEventListener('keydown', handleKeyDown);
     };
   }, [focusedRowData, heading, tableData.length]);
-
-  useEffect(() => {
-    document.body.classList.add("!overflow-hidden");
-    return () => {
-        document.body.classList.remove("!overflow-hidden");
-    };
-}, []);
-
 
   const handleKeyDown = (event: KeyboardEvent) => {
     event.preventDefault()
@@ -56,18 +76,20 @@ export const DropDownPopup = ({
       }
       setOpenDataPopup(false);
     }
-    else if(event.key === 'Escape'){
+    else if (event.key === 'Escape') {
       setOpenDataPopup(false);
     }
   };
+
   return (
     <Popup
       heading={heading}
       childClass='!max-h-fit w-full min-w-[50vw]'
       className={className}
       isSuggestionPopup={true}
+      id='dropDownPopup'
     >
-      <div className='mx-4 h-fit max-h-[40rem] overflow-auto border-[1px] border-gray-400 border-solid my-4' id='dropDownPopup'>
+      <div className='mx-4 h-fit max-h-[40rem] overflow-auto border-[1px] border-gray-400 border-solid my-4'>
         <table className='table-auto w-full border-collapse'>
           <thead className='sticky top-0 overflow-auto'>
             <tr>
