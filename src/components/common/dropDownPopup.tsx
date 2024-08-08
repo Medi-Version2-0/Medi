@@ -37,12 +37,6 @@ export const DropDownPopup = ({
         const key = dataKeys[heading]
         const rowIndex = +parentElement.children[0].innerHTML - 1;
         setFocusedRowIndex(() => rowIndex);
-        setCurrentSavedData((prevData: any) => ({
-          ...{
-            ...prevData,
-            [key]: focusedRowData,
-          }
-        }));
       }
     };
 
