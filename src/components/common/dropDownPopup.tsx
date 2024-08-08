@@ -47,9 +47,10 @@ export const DropDownPopup = ({
     } else if (event.key === 'Enter') {
       const key = dataKeys[heading];
       if (key) {
+        
         setCurrentSavedData((prevData: any) => ({
-          ...prevData,
-          [key]: focusedRowData,
+        ...{  ...prevData,
+          [key]: focusedRowData,}
         }));
       }
       setOpenDataPopup(false);

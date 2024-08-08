@@ -26,6 +26,7 @@ import { generalSettingFields } from '../common/controlRoom/settings';
 import { ControlRoomSettings } from '../common/controlRoom/ControlRoomSettings';
 import { useControls } from '../../ControlRoomContext';
 import PriceList from '../../views/partywisePriceList/PriceList';
+import CopyPratywisePriceList from '../../views/partywisePriceList/copyPartyWisePriseList';
 
 interface SidebarProps {
   isGroup?: boolean;
@@ -143,6 +144,15 @@ const Sidebar: React.FC<SidebarProps> = ({
         icon: <FaPlus className='fill-yellow-900' />,
         onClick: () => openTab?.('Party-Wise PriceList', <PriceList />),
         isDisabled: isNotReadAccess('partywise_pricelist')
+      }
+    ] : []),
+    ...(controlRoomSettings.pricewisePartyList ? [
+      {
+        url: '/copyPartywisePriceList',
+        label: 'Copy Party-wise PriceList',
+        icon: <FaPlus className='fill-yellow-900' />,
+        onClick: () => openTab?.('Party-Wise PriceList', <CopyPratywisePriceList />),
+        isDisabled: isNotReadAccess('copy_partywise_pricelist')
       }
     ] : []),
     {
