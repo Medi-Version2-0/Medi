@@ -378,3 +378,13 @@ export interface dropDownPopupProps {
   setCurrentSavedData?: any;
   dataKeys?: any;
 }
+
+export interface selectListProps {
+  heading: string;
+  closeList: ()=> void;
+  className?: string;
+  headers: any[];
+  tableData: any[];
+  handleSelect: (rowData : any)=> void;
+  dataKeys?: any;
+}
