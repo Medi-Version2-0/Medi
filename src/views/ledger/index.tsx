@@ -24,6 +24,7 @@ import { getAndSetParty, setParty } from '../../store/action/globalAction';
 import { getLedgerFormValidationSchema } from './validation_schema';
 import { validateField, decimalFormatter, createMap, extractKeys, lookupValue } from '../../helper/helper';
 import { AppDispatch } from '../../store/types/globalTypes';
+import useHandleKeydown from '../../hooks/useHandleKeydown';
 
 export const Ledger = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
@@ -79,6 +80,7 @@ export const Ledger = () => {
       setView
     );
   };
+  useHandleKeydown(handleKeyDown, [selectedRow, popupState])
 
   const typeMapping = useMemo(() => ({ Dr: 'DR', Cr: 'CR' }), []);
   const ledgerStationsMap = createMap( stationData, (item) => item.station_id, (item) => item.station_name);
@@ -242,7 +244,7 @@ export const Ledger = () => {
       ),
     },
   ];
-
+  
   const ledger = () => {
     return (
       <>
