@@ -378,3 +378,4 @@ export interface dropDownPopupProps {
   setCurrentSavedData?: any;
   dataKeys?: any;
 }
+export type Mapping = { [key: number]: string };
