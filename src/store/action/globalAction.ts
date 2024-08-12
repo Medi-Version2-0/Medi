@@ -1,9 +1,9 @@
 import { Dispatch } from 'redux';
 import { getUserPermissions } from '../../api/permissionsApi';
 import { ResourceI } from '../../views/organization/types';
-import { SET_STATION, SET_GROUPS, SET_ORGANIZATION, SET_PERMISSIONS, GlobalActionTypes, SET_SALES, SET_PURCHASE, SET_COMPANY, SET_ITEMGROUP, SET_CONTROLROOMSETTINGS, SET_PARTY, SET_ITEM } from '../types/globalTypes';
+import { SET_STATION, SET_GROUPS, SET_ORGANIZATION, SET_PERMISSIONS, GlobalActionTypes, SET_SALES, SET_PURCHASE, SET_COMPANY, SET_ITEMGROUP, SET_CONTROLROOMSETTINGS, SET_PARTY, SET_ITEM, SET_BILLBOOK } from '../types/globalTypes';
 import { sendAPIRequest } from '../../helper/api';
-import { ItemGroupFormData, GroupFormData, LedgerFormData, SalesPurchaseFormData, ItemFormData } from '../../interface/global';
+import { ItemGroupFormData, GroupFormData, SalesPurchaseFormData,  CompanyFormData, BillBookForm, BillBookFormData, LedgerFormData, ItemFormData } from '../../interface/global';
 
 
 export const setStation = (station: any): GlobalActionTypes => ({
@@ -66,6 +66,16 @@ export const setItemGroups = (itemGroups: any): GlobalActionTypes => ({
   payload: itemGroups,
 });
 
+export const setBillBook = (billBookSeries: any): GlobalActionTypes => ({
+  type: SET_BILLBOOK,
+  payload: billBookSeries,
+});
+
+export const setLedgerParty = (ledgerParty: any): GlobalActionTypes => ({
+  type: SET_PARTY,
+  payload: ledgerParty,
+});
+
 export const getAndSetItemGroups = (organizationId: string|undefined) => async (dispatch: Dispatch<GlobalActionTypes>) => {
   const itemGroups = await sendAPIRequest<ItemGroupFormData[]>(`/${organizationId}/itemGroup`)
   dispatch({
@@ -75,7 +85,7 @@ export const getAndSetItemGroups = (organizationId: string|undefined) => async (
 }
 
 export const getAndSetCompany = (organizationId: string|undefined) => async (dispatch: Dispatch<GlobalActionTypes>) => {
-  const company = await sendAPIRequest<any[]>(`/${organizationId}/company`)
+  const company = await sendAPIRequest<CompanyFormData[]>(`/${organizationId}/company`)
   dispatch({
     type: SET_COMPANY,
     payload: company ||[],
@@ -107,10 +117,10 @@ export const getAndSetGroups = (organizationId: string|undefined) => async (disp
 }
 
 export const getAndSetParty = (organizationId: string|undefined) => async (dispatch: Dispatch<GlobalActionTypes>) => {
-  const party = await sendAPIRequest<LedgerFormData[]>(`/${organizationId}/ledger`)
+  const ledgerParty = await sendAPIRequest<LedgerFormData[]>(`/${organizationId}/ledger`)
   dispatch({
     type: SET_PARTY,
-    payload:  party|| [],
+    payload:  ledgerParty|| [],
   });
 }
 
@@ -136,3 +146,11 @@ export const setItem = (item: any): GlobalActionTypes => ({
   type: SET_ITEM,
   payload: item,
 });
+
+export const getAndSetBillBook = (organizationId: string|undefined) => async (dispatch: Dispatch<GlobalActionTypes>) => {
+  const billBookSeries = await sendAPIRequest<BillBookFormData[]>(`/${organizationId}/billBook`)
+  dispatch({
+    type: SET_BILLBOOK,
+  payload: billBookSeries || [],
+  });
+}
