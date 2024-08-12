@@ -23,6 +23,7 @@ import { useSelector } from 'react-redux'
 import usePermission from '../../hooks/useRole';
 import { useDispatch } from 'react-redux'
 import { setParty } from '../../store/action/globalAction';
+import useHandleKeydown from '../../hooks/useHandleKeydown';
 
 const ledgerValidationSchema = Yup.object().shape({
   partyName: Yup.string()
@@ -41,7 +42,7 @@ const ledgerValidationSchema = Yup.object().shape({
       }
     )
     .min(0, 'Opening Balance must be at least 0'),
-    openingBalType:Yup.string()
+  openingBalType: Yup.string()
 });
 
 const validateField = async (field: string, value: any) => {
@@ -57,8 +58,9 @@ export const Ledger = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const { stations: stationData } = useSelector((state: any) => state.global)
+  const { party: partyData } = useSelector((state: any) => state.global)
   const { organizationId } = useParams();
-  const [tableData, setTableData] = useState<LedgerFormData[]>([]);
+  const [tableData, setTableData] = useState<LedgerFormData[]>(partyData);
   const editing = useRef(false);
   const partyId = useRef('');
   const queryClient = useQueryClient();
@@ -83,33 +85,13 @@ export const Ledger = () => {
     fssaiNumber: controlRoomSettings.fssaiNumber || false,
   };
 
-  const { data } = useQuery<LedgerFormData[]>({
-    queryKey: ['get-ledger'],
-    queryFn: () =>
-      sendAPIRequest<LedgerFormData[]>(`/${organizationId}/ledger`),
-    initialData: [],
-  });
-
-  const fetchLedgerData = async () => {
-    data.map((e: any) => (e.stationName = e.Station?.station_name || ''));
-    setTableData(data);
-    dispatch(setParty(data))
-  };
+  useEffect(() => {
+    setTableData(partyData)
+  }, [partyData])
 
   const togglePopup = (isOpen: boolean) => {
     setOpen(isOpen);
   };
-
-  useEffect(() => {
-    fetchLedgerData();
-  }, [data]);
-
-  useEffect(() => {
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [selectedRow, popupState]);
 
   const handleKeyDown = (event: KeyboardEvent) => {
     handleKeyDownCommon(
@@ -121,6 +103,8 @@ export const Ledger = () => {
       setView
     );
   };
+
+  useHandleKeydown(handleKeyDown, [selectedRow, popupState])
 
   const typeMapping = useMemo(() => ({ Dr: 'DR', Cr: 'CR' }), []);
 
@@ -154,7 +138,7 @@ export const Ledger = () => {
   };
 
   const handleAlertCloseModal = () => {
-    setPopupState({ ...popupState, isAlertOpen: false,isModalOpen: false  });
+    setPopupState({ ...popupState, isAlertOpen: false, isModalOpen: false });
   };
   const handleClosePopup = () => {
     setPopupState({ ...popupState, isModalOpen: false });
@@ -164,7 +148,7 @@ export const Ledger = () => {
     await sendAPIRequest(`/${organizationId}/ledger/${partyId.current}`, {
       method: 'DELETE',
     });
-    dispatch(setParty(tableData.filter((x:LedgerFormData)=> x.party_id !== partyId.current)))
+    dispatch(setParty(tableData.filter((x: LedgerFormData) => x.party_id !== partyId.current)))
     queryClient.invalidateQueries({ queryKey: ['get-ledger'] });
   };
 
@@ -303,7 +287,7 @@ export const Ledger = () => {
               }
             }}
           />}
-          {deleteAccess &&<MdDeleteForever
+          {deleteAccess && <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
             onClick={() => {
               if (params.data.isPredefinedLedger) {
