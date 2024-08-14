@@ -115,7 +115,7 @@ export const getAndSetParty = (organizationId: string|undefined) => async (dispa
 }
 
 export const getAndSetItem = (organizationId: string|undefined) => async (dispatch: Dispatch<GlobalActionTypes>) => {
-  const item = await sendAPIRequest<{ data: ItemFormData }>(`/${organizationId}/item`)
+  const item = await sendAPIRequest< ItemFormData >(`/${organizationId}/item`)
   dispatch({
     type: SET_ITEM,
     payload: item || [],

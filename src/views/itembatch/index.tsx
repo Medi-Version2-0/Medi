@@ -8,7 +8,6 @@ import Button from '../../components/common/button/Button';
 import { ColDef } from 'ag-grid-community';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { sendAPIRequest } from '../../helper/api';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import { useControls } from '../../ControlRoomContext';
 import { batchSchema, validatePrices } from './validation_schema';
@@ -16,6 +15,7 @@ import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
 import { useDispatch } from 'react-redux';
 import { AppDispatch } from '../../store/types/globalTypes';
 import { getAndSetItem } from '../../store/action/globalAction';
+import { useSelector } from 'react-redux';
 
 export const Batch = ({
   params,
@@ -41,44 +41,36 @@ export const Batch = ({
     locked: '',
     ...(controlRoomSettings.batchWiseManufacturingCode ? { mfgCode: '', } : {}),
   };
-  const queryClient = useQueryClient();
   const { organizationId } = useParams();
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [inputRow, setInputRow] = useState<BatchForm | any>(pinnedRow);
   const [tableData, setTableData] = useState<BatchForm | any>(null);
-  const [item, setItem] = useState<any>(null);
+  const [item, setItems] = useState<any>(null);
   const editing = useRef(false);
   const gridRef = useRef<any>(null);
-  const dispatch = useDispatch<AppDispatch>()
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
     message: '',
   });
+  const dispatch = useDispatch<AppDispatch>()
+  const {item: itemsData} = useSelector((state: any) => state.global);
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const { data } = useQuery<BatchForm[]>({
-    queryKey: ['get-itemBatches'],
-    queryFn: () =>
-      sendAPIRequest<BatchForm[]>(
-        `/${organizationId}/item/${id}/batch`
-      ),
-  });
-  const getItem = async () => {
-    const itemData = await sendAPIRequest<any>(`/${organizationId}/item/${id}`);
-    setItem(itemData);
+  const getItem =  () => {
+    const itemData = itemsData.find((item: any) => item.id === id);
+    setItems(itemData);
     return itemData;
   };
 
   const getBatch = (async () => {
     setInputRow(pinnedRow);
-    const itemData = await getItem();
+    const itemData =  getItem();
     let newRow = { ...pinnedRow, itemId: 0 };
     if (controlRoomSettings.batchWiseManufacturingCode) {
       newRow = { ...newRow, mfgCode: itemData?.shortName || '' };
     }
-    const combinedData = data && [newRow, ...data];
-    setTableData(combinedData);
+    setTableData([newRow, ...itemData.ItemBatches]);
   });
 
   const onGridReady = () => {
@@ -90,19 +82,23 @@ export const Batch = ({
       });
     }
   };
+
+  useEffect(() => {
+    getBatch();
+  }, [itemsData])
+
   useEffect(() => {
     onGridReady();
   }, [tableData])
 
   useEffect(() => {
-    getBatch();
     onGridReady();
-  }, [data]);
+  }, []);
 
   const handleBatchAdd = async () => {
     try {
       await batchSchema.validate(inputRow);
-      const existingBatch = data?.find(
+      const existingBatch = item.ItemBatches.find(
         (tableBatch: BatchForm) =>
           numberedStringLowerCase(tableBatch?.batchNo) === numberedStringLowerCase(inputRow.batchNo)
       );
@@ -125,8 +121,7 @@ export const Batch = ({
         body: formattedInputRow,
       });
       setInputRow(pinnedRow);
-      await queryClient.invalidateQueries({ queryKey: ['get-itemBatches'] });
-      getBatch();
+      dispatch(getAndSetItem(organizationId))
     } catch (err: any) {
       if (err.message) {
         setPopupState({
@@ -234,7 +229,7 @@ export const Batch = ({
               method: 'PUT',
               body: { ...data, [field]: newValue },
             });
-            await queryClient.invalidateQueries({ queryKey: ['get-itemBatches'] });          
+            dispatch(getAndSetItem(organizationId))          
           } catch (err: any) {
             if (err.message) {
               await gridRef.current?.api?.startEditingCell({
@@ -250,7 +245,6 @@ export const Batch = ({
             }
           }
         }
-        dispatch(getAndSetItem(organizationId))
       } catch (err: any) {
         if (err.response?.data.message || err.message) {
           setPopupState({

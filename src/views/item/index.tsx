@@ -16,7 +16,6 @@ import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
 import { ICellRendererParams } from 'ag-grid-community';
 import CreateItem from './create-item';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Batch } from '../itembatch';
 import { useControls } from '../../ControlRoomContext';
 import { ControlRoomSettings } from '../../components/common/controlRoom/ControlRoomSettings';
@@ -29,7 +28,9 @@ import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { itemFormValidations } from './validation_schema';
 import usePermission from '../../hooks/useRole';
 import { useDispatch } from 'react-redux'
-import { setItem } from '../../store/action/globalAction';
+import { getAndSetItem } from '../../store/action/globalAction';
+import { AppDispatch } from '../../store/types/globalTypes';
+import { useSelector } from 'react-redux';
 
 const initialPopupState = {
   setting: false,
@@ -54,14 +55,14 @@ const Items = () => {
 
   const editing = useRef(false);
   const id = useRef('');
-  const queryClient = useQueryClient();
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
     message: '',
   });
   const { createAccess, updateAccess, deleteAccess } = usePermission('items')
-  const dispatch = useDispatch()
+  const dispatch = useDispatch<AppDispatch>()
+  const {item: itemData} = useSelector((state: any) => state.global);
 
   const itemSettingsInitialValues = {
     generateBarcodeBatchWise:
@@ -77,11 +78,6 @@ const Items = () => {
     salesPriceLimit: controlRoomSettings.salesPriceLimit || 0,
   };
 
-  const { data } = useQuery<{ data: ItemFormData }>({
-    queryKey: ['get-items'],
-    queryFn: () =>
-      sendAPIRequest<{ data: ItemFormData }>(`/${organizationId}/item`),
-  });
 
   const togglePopup = (isOpen: boolean, key?: string) => {
     if (key) {
@@ -92,8 +88,7 @@ const Items = () => {
   };
 
   const getItemData = async () => {
-    setTableData(data);
-    dispatch(setItem(data))
+    setTableData(itemData)
   };
 
   const getCompany = async () => {
@@ -127,7 +122,7 @@ const Items = () => {
     getGroups();
     getCompany();
     getItemData();
-  }, [data]);
+  }, [itemData]);
 
   const companyCodeMap: { [key: number]: string } = {};
   const groupCodeMap: { [key: number]: string } = {};
@@ -189,8 +184,7 @@ const Items = () => {
       await sendAPIRequest(`/${organizationId}/item/${id.current}`, {
       method: 'DELETE',
     });
-    dispatch(setItem(tableData.filter((x:ItemFormData)=> x.id !== id.current)))
-    queryClient.invalidateQueries({ queryKey: ['get-items'] });
+    dispatch(getAndSetItem(organizationId))
   }
   catch{
     setPopupState({ ...popupState, isAlertOpen: true, message:'This item is associated' });
@@ -234,7 +228,7 @@ const Items = () => {
       method: 'PUT',
       body: { [field]: newValue },
     });
-    queryClient.invalidateQueries({ queryKey: ['get-items'] });
+    dispatch(getAndSetItem(organizationId))
   };
 
   const onCellClicked = (params: { data: any }) => {

@@ -8,27 +8,27 @@ import { DropDownPopup } from '../../components/common/dropDownPopup';
 import { itemHeaders, partyHeaders } from './partywiseHeader';
 import { sendAPIRequest } from '../../helper/api';
 import Button from '../../components/common/button/Button';
-import ExportData from '../../components/common/ExportData';
+import { printData } from '../../components/common/ExportData';
 
 const PriceList = () => {
   const { organizationId } = useParams<{ organizationId: string }>();
-  const {party: partyData, company: companyData, sales: salesData, purchase: purchaseData, item: itemData} = useSelector((state: any) => state.global);
+  const { party: partyData, company: companyData, sales: salesData, purchase: purchaseData, item: itemData } = useSelector((state: any) => state.global);
   const [selectedPartyStation, setSelectedPartyStation] = useState<string>('');
   const [openDataPopup, setOpenDataPopup] = useState<boolean>(false);
-  const [headerData, setHeaderData] = useState<{isParty: boolean; isItem: boolean;}>({ isParty: false, isItem: false });
-  const [currentSavedData, setCurrentSavedData] = useState<{party: any; item: any;}>({ party: {}, item: {} });
+  const [headerData, setHeaderData] = useState<{ isParty: boolean; isItem: boolean; }>({ isParty: false, isItem: false });
+  const [currentSavedData, setCurrentSavedData] = useState<{ party: any; item: any; }>({ party: {}, item: {} });
   const [tableData, setTableData] = useState<any[]>([]);
-  const [options , setOptions] = useState()
+  const [options, setOptions] = useState()
   const checkItemData = useRef(false);
 
-  const getItemData = async(partyId?:any) =>{
-    const itemData = await sendAPIRequest<any[]>(`/${organizationId}/partyWisePriceList/${partyId}`, {
+  const getItemData = async (partyId?: any) => {
+    const getItemData = await sendAPIRequest<any[]>(`/${organizationId}/partyWisePriceList/${partyId}`, {
       method: 'GET',
     });
-    const hasMatchingId = itemData.some(item => item.partyId === partyId,itemData);
-    if (hasMatchingId){
+    const hasMatchingId = getItemData.some(item => item.partyId === partyId);
+    if (hasMatchingId && (itemData.length === getItemData.length)) {
       checkItemData.current = true;
-      setTableData(itemData)
+      setTableData(getItemData)
     } else {
       checkItemData.current = false;
     }
@@ -39,20 +39,11 @@ const PriceList = () => {
       {
         headerName: 'Item Name',
         field: 'name',
-        filter: true,
-        flex: 1,
-        editable: false,
-        suppressMovable: true,
-        headerClass: 'custom-header',
       },
       {
         headerName: 'Sale Price',
         field: 'salePrice',
-        filter: true,
-        flex: 1,
         editable: true,
-        suppressMovable: true,
-        headerClass: 'custom-header',
       },
     ],
     []
@@ -64,38 +55,26 @@ const PriceList = () => {
     if (!valueChanged) return;
     const field = column.colId;
 
-    if(newValue < 0){
+    if (newValue < 0) {
       node.setDataValue(field, oldValue);
       return;
     }
-    await sendAPIRequest(`/${organizationId}/partyWisePriceList/${data.id}`, {
+    await sendAPIRequest(`/${organizationId}/partyWisePriceList/${data.combinedId}`, {
       method: 'PUT',
       body: { [field]: newValue },
     });
-    getItemData(data.partyId);
+    getItemData(currentSavedData.party?.party_id);
 
   };
 
   useEffect(() => {
     partyData.forEach((party: any) => {
       party.station = party.Station?.station_name;
-      party.openingBal = party.openingBal ?? 0;
     });
-    itemData.forEach((item: any) => {
-      item.company = companyData.find(
-        (company: any) => company.company_id === item.compId
-      )?.companyName;
-      item.sales = salesData.find(
-        (sale: any) => sale.sp_id === item.saleAccId
-      )?.sptype;
-      item.purchase = purchaseData.find(
-        (purchase: any) => purchase.sp_id === item.purAccId
-      )?.sptype;
-    });
-  }, [partyData, itemData, companyData, salesData, purchaseData]);
+  }, [partyData]);
 
-  const handleAdd = async  (itemData: any) => {
-    const finalData:any = [];
+  const handleAdd = async (itemData: any) => {
+    const finalData: any = [];
     itemData.map((data: any) => {
       const value = {
         partyId: currentSavedData.party.party_id,
@@ -109,6 +88,7 @@ const PriceList = () => {
       method: 'POST',
       body: finalData,
     });
+    getItemData(currentSavedData.party.party_id);
   }
 
 
@@ -130,24 +110,36 @@ const PriceList = () => {
   
 
 
-  const handleItemData = async (itemData : any) => {
-   itemData?.forEach((item : any) => {
+  const handleItemData = async (itemData: any) => {
+    const filteredItemData = itemData?.filter((item: any) => {
       let batches = item.ItemBatches;
       batches = batches?.sort((a: any, b: any) => a.id - b.id);
-      const batch = batches[batches.length-1];
-      const party = currentSavedData.party?.salesPriceList;
-      if(batch) item.salePrice = party === '1' ? batch[`salePrice`] : batch[`salePrice${party}`] ?? 0;
-    })
-    setTableData(itemData); 
-    await handleAdd(itemData);
-  }
+
+      const unlockedBatches = batches.filter((batch: any) => batch.locked !== "Y");
+      if (unlockedBatches.length > 0) {
+        const batch = unlockedBatches[unlockedBatches.length - 1];
+        const party = currentSavedData.party?.salesPriceList;
+        item.salePrice = (party === '1' || !party) ? batch[`salePrice`] ?? 0 : batch[`salePrice${party}`] ?? 0;
+        return true;
+      }
+      return false;
+    });
+    if (filteredItemData.length > 0) {
+      setTableData(filteredItemData);
+    }
+    await handleAdd(filteredItemData);
+  };
+
+  const handleDelete = (id: any) => {
+    sendAPIRequest(`/${organizationId}/partyWisePriceList/${id}`, { method: 'Delete' });
+  };
 
 
   return (
     <>
       <div className='w-full relative mb-4'>
         <h1 className='font-bold'>Party-Wise PriceList</h1>
-        <div className='mb-4 flex flex-row justify-between items-center'>
+        <div className='mb-4 flex flex-row justify-between items-end'>
           <div className='flex flex-row gap-10 items-center'>
             <div className='flex flex-col'>
               <label htmlFor='partySelect' className='block mb-2'>
@@ -159,7 +151,6 @@ const PriceList = () => {
                   placeholder='Select Party...'
                   onFocus={() => {
                     setHeaderData({ isParty: true, isItem: false });
-                    // setTableData(partyData);
                     setOptions(partyData);
                     setOpenDataPopup(true);
                   }}
@@ -182,22 +173,21 @@ const PriceList = () => {
           <div className='flex space-x-6'>
             <Button
               id='del_button'
-              type='fill'
-              padding='px-8 py-6'
+              type='highlight'
+              padding='px-6 py-4'
               handleOnClick={() => {
+                handleDelete(currentSavedData.party.party_id)
                 setTableData([]);
-                sendAPIRequest(`/${organizationId}/partyWisePriceList/${currentSavedData.party.party_id}`, { method: 'Delete' });
               }}
             >
               Delete
             </Button>
             <Button
               id='print_button'
-              type='fill'
-              padding='px-8 py-6'
+              type='highlight'
+              padding='px-6 py-4'
               handleOnClick={() => {
-                <ExportData data={tableData} fields={colDefs} />
-                console.log('Print button clicked');
+                printData(tableData, colDefs);
               }}
             >
               Print
@@ -209,11 +199,18 @@ const PriceList = () => {
         <div
           id='priceListTable'
           className='ag-theme-quartz w-full my-4'
-          style={{ height: '800px'  }}
+          style={{ height: '800px' }}
         >
           <AgGridReact
             rowData={tableData}
             columnDefs={colDefs}
+            defaultColDef={{
+              filter: true,
+              flex: 1,
+              suppressMovable: true,
+              headerClass: 'custom-header',
+            }
+            }
             onCellEditingStopped={handleCellEditingStopped}
           />
         </div>
@@ -235,15 +232,13 @@ const PriceList = () => {
                 ? itemHeaders
                 : []
           }
-          // tableData={tableData}
           tableData={options}
           setCurrentSavedData={setCurrentSavedData}
-          dataKeys={{ 'Select Party': 'party', 'Select Item': 'item'}}
+          dataKeys={{ 'Select Party': 'party', 'Select Item': 'item' }}
         />  
       )}
     </>
   );
-  
 };
 
 export default PriceList;

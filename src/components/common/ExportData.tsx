@@ -14,6 +14,22 @@ interface ExportDataProps {
   fields: { headerName: string; field: string }[];
 }
 
+export const printData = (data: any[], fields: { headerName: string; field: string }[]) => {
+  const doc = new jsPDF();
+  doc.text('Exported Data', 20, 10);
+  autoTable(doc, {
+    head: [fields.map((field) => field.headerName)],
+    body: data.map((item) => fields.map((field) => item[field.field])),
+  });
+
+  const pdfOutput = doc.output('dataurlstring');
+  const win = window.open('', '', 'width=800,height=600');
+  win?.document.write(`
+    <iframe width="100%" height="100%" src="${pdfOutput}"></iframe>
+  `);
+  win?.document.close();
+};
+
 const ExportData = ({ data, fields }: ExportDataProps) => {
   const [emailOptionsVisible, setEmailOptionsVisible] = useState(false);
   const [selectedFormats, setSelectedFormats] = useState<string[]>([]);
@@ -44,21 +60,6 @@ const ExportData = ({ data, fields }: ExportDataProps) => {
     saveAs(blob, 'exported_data.csv');
   };
 
-  const printData = () => {
-    const doc = new jsPDF();
-    doc.text('Exported Data', 20, 10);
-    autoTable(doc, {
-      head: [fields.map((field) => field.headerName)],
-      body: data.map((item) => fields.map((field) => item[field.field])),
-    });
-
-    const pdfOutput = doc.output('dataurlstring');
-    const win = window.open('', '', 'width=800,height=600');
-    win?.document.write(`
-      <iframe width="100%" height="100%" src="${pdfOutput}"></iframe>
-    `);
-    win?.document.close();
-  };
 
   const pdfBlob = () => {
     const doc = new jsPDF();
@@ -312,7 +313,7 @@ const ExportData = ({ data, fields }: ExportDataProps) => {
               <BsFiletypeCsv size={25} />
             </button>
             <button
-              onClick={printData}
+              onClick={() => printData(data, fields)}
               className='items-center text-nowrap px-4 py-3 bg-red-600 text-white rounded-md shadow-md hover:bg-red-700 transition duration-300'
             >
               <BsPrinter size={25} />
