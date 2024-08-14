@@ -2,6 +2,7 @@ import { ThunkDispatch } from "redux-thunk";
 export interface GlobalState {
   stations: any;
   groups: any;
+  subGroups: any;
   organizations: any;
   permissions: any;
   sales: any;
@@ -11,10 +12,12 @@ export interface GlobalState {
   controlRoomSettings: any;
   party: any;
   item: any;
+  billBookSeries: any;
 }
 
 export const SET_STATION = 'SET_STATION';
 export const SET_GROUPS = 'SET_GROUPS';
+export const SET_SUB_GROUPS = 'SET_SUB_GROUPS';
 export const SET_ORGANIZATION = 'SET_ORGANIZATION';
 export const SET_PERMISSIONS = 'SET_PERMISSIONS';
 export const SET_SALES = 'SET_SALES';
@@ -24,6 +27,7 @@ export const SET_ITEMGROUP = 'SET_ITEMGROUP';
 export const SET_CONTROLROOMSETTINGS = 'SET_CONTROLROOMSETTINGS';
 export const SET_PARTY = 'SET_PARTY'
 export const SET_ITEM = 'SET_ITEM'
+export const SET_BILLBOOK = 'SET_BILLBOOK';
 
 interface SetStationAction {
   type: typeof SET_STATION;
@@ -32,6 +36,10 @@ interface SetStationAction {
 
 interface SetGroupsAction {
   type: typeof SET_GROUPS;
+  payload: any;
+}
+interface SetSubGroupsAction {
+  type: typeof SET_SUB_GROUPS;
   payload: any;
 }
 
@@ -78,6 +86,10 @@ interface SetItem {
   type: typeof SET_ITEM;
   payload: any;
 }
+interface setBillBookAction {
+  type: typeof SET_BILLBOOK;
+  payload: any;
+}
 
-export type GlobalActionTypes = SetStationAction | SetGroupsAction | SetOrganizationAction | SetPermissionsAction | SetSalesAction | SetPurchaseAction | SetCompanyAction | SetItemGroupAction | SetControlRoomSettings | SetParty | SetItem;
+export type GlobalActionTypes = SetStationAction | SetGroupsAction | SetSubGroupsAction | SetOrganizationAction | SetPermissionsAction | SetSalesAction | SetPurchaseAction | SetCompanyAction | SetItemGroupAction | SetControlRoomSettings | SetParty | SetItem | setBillBookAction;
 export type AppDispatch = ThunkDispatch<GlobalState, void, GlobalActionTypes>;

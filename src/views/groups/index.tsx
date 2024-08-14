@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { FaEdit } from 'react-icons/fa';
 import { MdDeleteForever } from 'react-icons/md';
@@ -6,18 +6,19 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { GroupFormData } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
-import { ColDef, ColGroupDef } from 'ag-grid-community';
+import { ColDef, ColGroupDef, ValueFormatterParams } from 'ag-grid-community';
 import { CreateGroup } from './CreateGroup';
 import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import { groupValidationSchema } from './validation_schema';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
-import { useDispatch } from 'react-redux'
-import { setGroups } from '../../store/action/globalAction';
+import { useDispatch, useSelector } from 'react-redux'
+import { getAndSetGroups, getAndSetSubGroups, setGroups } from '../../store/action/globalAction';
 import usePermission from '../../hooks/useRole';
-
+import { lookupValue } from '../../helper/helper';
+import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
+import { AppDispatch } from '../../store/types/globalTypes';
 
 export const Groups = () => {
   const initialValue = {
@@ -27,13 +28,14 @@ export const Groups = () => {
     parent_code: '',
     isPredefinedGroup: true,
   };
+  const { createAccess, updateAccess, deleteAccess } = usePermission('ledger')
   const { organizationId } = useParams();
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<GroupFormData>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
-  const [tableData, setTableData] = useState<GroupFormData[] | null>();
+  const { groups: groupsData, subGroups: subGroupsData } = useSelector((state: any) => state.global);
+  const [tableData, setTableData] = useState([...(createAccess ? [initialValue] :[]), ...groupsData]);
   const editing = useRef(false);
-  const queryClient = useQueryClient();
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
@@ -43,44 +45,23 @@ export const Groups = () => {
     group_name: '',
     type: '',
   };
-  const [subgroups, setSubgroups] = useState<GroupFormData[]>([]);
+  const [subgroups, setSubgroups] = useState<GroupFormData[]>(subGroupsData);
   const gridRef = useRef<any>(null);
-  const dispatch = useDispatch()
-  const permissions = usePermission('groups')
+  const dispatch = useDispatch<AppDispatch>() 
 
-  const { data } = useQuery<GroupFormData[]>({
-    queryKey: ['get-groups'],
-    queryFn: () => sendAPIRequest<GroupFormData[]>(`/${organizationId}/group`),
-    initialData: [],
-  });
+  const settingPopupState = (isModal: boolean, message: string) => {
+    setPopupState({
+      ...popupState,
+      [isModal ? 'isModalOpen' : 'isAlertOpen']: true,
+      message: message,
+    });
+  };
 
   useEffect(() => {
-    const fetchSubgroups = async () => {
-      const subgroups = await sendAPIRequest<GroupFormData[]>(
-        `/${organizationId}/group/sub`
-      );
-      setSubgroups(subgroups);
-    };
-    fetchSubgroups();
-  }, []);
+    setSubgroups(subGroupsData);
+  }, [subGroupsData]);
 
-  const typeMapping = {
-    p_and_l: 'P&L',
-    balance_sheet: 'Balance Sheet',
-  };
-
-  const extractKeys = (mappings: any) => {
-    const value = Object.keys(mappings);
-    value[0] = 'P&L';
-    value[1] = 'Balance Sheet';
-    return value;
-  };
-
-  const types = extractKeys(typeMapping);
-
-  const lookupValue = (mappings: any, key: string | number) => {
-    return mappings[key];
-  };
+  const typeMapping = useMemo(() => ({p_and_l: 'P&L', balance_sheet: 'Balance Sheet'}), []);
 
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
@@ -91,9 +72,6 @@ export const Groups = () => {
   };
 
   const handleConfirmPopup = async (dataa?: any) => {
-    console.log(dataa.type)
-    console.log(formData.type)
-
    const respData = dataa ? dataa : formData;
     setPopupState({ ...popupState, isModalOpen: false });
     if (formData.group_name) {
@@ -108,33 +86,21 @@ export const Groups = () => {
     if (payload !== initialValue) {
       try {
         if (formData.group_code) {
-         await sendAPIRequest(
-            `/${organizationId}/group/${formData.group_code}`,
-            {
+          await sendAPIRequest(`/${organizationId}/group/${formData.group_code}`,{
               method: 'PUT',
               body: formData,
             }
           );
-          await queryClient.invalidateQueries({
-            queryKey: ['get-itemBatches'],
-          });
-          getGroups();
+          dispatch(getAndSetGroups(organizationId));
         } else {
           const response: any = await sendAPIRequest(`/${organizationId}/group`, {
             method: 'POST',
             body: payload,
           });
           if (respData.group_name && !response.error) {
-            setPopupState({
-              ...popupState,
-              isAlertOpen: true,
-              message: 'Group saved successfully',
-            });
+            settingPopupState(false, 'Group saved successfully');
           }
-          await queryClient.invalidateQueries({
-            queryKey: ['get-itemBatches'],
-          });
-          getGroups();
+          dispatch(getAndSetGroups(organizationId));
         }
         togglePopup(false);
         setFormData(pinnedRow)
@@ -159,24 +125,37 @@ export const Groups = () => {
     await sendAPIRequest(`/${organizationId}/group/${group_code}`, {
       method: 'DELETE',
     });
-    dispatch(setGroups(tableData?.filter((x:GroupFormData)=> x.group_code !== group_code)))
-    queryClient.invalidateQueries({ queryKey: ['get-groups'] });
-    getGroups();
+    dispatch(getAndSetGroups(organizationId));
   };
 
-  const handleDelete = (oldData: GroupFormData) => {
-    isDelete.current = true;
-    setFormData(oldData);
-    togglePopup(true);
-    setSelectedRow(null);
+  const handleDelete = (rowData: GroupFormData) => {
+    if (rowData.isPredefinedGroup) {
+      settingPopupState(false, 'Predefined Groups should not be deleted')
+      return;
+    }
+      const isParentGroup = subgroups.some((subgroup: GroupFormData) => subgroup?.parent_code === (selectedRow?.group_code || rowData?.group_code));
+      if (isParentGroup) {
+        settingPopupState(false, 'This group is associated with sub group')
+        return;
+      } else {
+        isDelete.current = true;
+        setFormData(rowData);
+        togglePopup(true);
+        setSelectedRow(null);
+      }
   };
 
-  const handleUpdate = (oldData: GroupFormData) => {
-    setFormData(oldData);
-    isDelete.current = false;
-    editing.current = true;
-    togglePopup(true);
-    setSelectedRow(null);
+  const handleUpdate = (rowData: GroupFormData) => {
+    if (rowData.isPredefinedGroup) {
+      settingPopupState(false, 'Predefined Groups are not editable');
+      return;
+    } else {
+      setFormData(rowData);
+      isDelete.current = false;
+      editing.current = true;
+      togglePopup(true);
+      setSelectedRow(null);
+    }
   };
 
   const handelFormSubmit = (values: GroupFormData) => {
@@ -192,11 +171,7 @@ export const Groups = () => {
       );
     });
     if (existingGroup) {
-      setPopupState({
-        ...popupState,
-        isAlertOpen: true,
-        message: 'Group with this name already exists!',
-      });
+      settingPopupState(false, 'Group with this name already exists!')
       return;
     }
     if (values.group_name) {
@@ -204,11 +179,7 @@ export const Groups = () => {
         values.group_name.charAt(0).toUpperCase() + values.group_name.slice(1);
     }
     if (values !== initialValue) {
-      setPopupState({
-        ...popupState,
-        isModalOpen: true,
-        message: `Are you sure you want to ${mode} this group?`,
-      });
+      settingPopupState(true, `Are you sure you want to ${mode} this group?`); 
       setFormData(values);
     }
   };
@@ -224,18 +195,14 @@ export const Groups = () => {
     const { data, column, oldValue, newValue, valueChanged, node } = e;
     const field = column.colId;
     if (!valueChanged) return;
-    if (node.rowIndex === 0 && permissions.createAccess) {  
+    if (node.rowIndex === 0 && createAccess) {  
       
       if (data.group_name && data.type) {
         try {
           await groupValidationSchema.validate(data);
           handleConfirmPopup(data);
         } catch (error: any) {
-          setPopupState({
-            ...popupState,
-            isAlertOpen: true,
-            message: error.message,
-          });
+          settingPopupState(false, `${error.message}`);
         }
       }
       node.setDataValue(field, newValue);
@@ -246,14 +213,9 @@ export const Groups = () => {
           method: 'PUT',
           body: { [field]: newValue },
         });
-        queryClient.invalidateQueries({ queryKey: ['get-groups'] });
-        getGroups();
+        dispatch(getAndSetGroups(organizationId));
       } catch (error: any) {
-        setPopupState({
-          ...popupState,
-          isAlertOpen: true,
-          message: error.message,
-        });
+        settingPopupState(false, `${error.message}`);
         node.setDataValue(field, oldValue);
         return;
       }
@@ -261,85 +223,22 @@ export const Groups = () => {
   };
 
   const onCellClicked = (params: { data: any }) => {
-    setSelectedRow(selectedRow !== null ? null : params.data);
+    setSelectedRow(params.data);
   };
 
   const cellEditingStarted = () => {
     editing.current = true;
   };
 
-  const handleKeyDown = async (event: KeyboardEvent) => {
-    switch (event.key) {
-      case 'Escape':
-        togglePopup(false);
-        break;
-      case 'n':
-      case 'N':
-        if (event.ctrlKey) {
-          togglePopup(true);
-        }
-        break;
-      case 'd':
-      case 'D':
-        if (
-          event.ctrlKey &&
-          selectedRow &&
-          selectedRow.isPredefinedGroup === false
-        ) {
-          const isParentGroup = subgroups.some(
-            (subgroup: GroupFormData) =>
-              subgroup.parent_code === selectedRow.group_code
-          );
-          if (isParentGroup) {
-            setPopupState({
-              ...popupState,
-              isAlertOpen: true,
-              message: 'This group is associated with sub group',
-            });
-          } else {
-            handleDelete(selectedRow);
-          }
-        } else if (
-          event.ctrlKey &&
-          selectedRow &&
-          selectedRow.isPredefinedGroup === true
-        ) {
-          setPopupState({
-            ...popupState,
-            isAlertOpen: true,
-            message: 'Predefined Groups should not be deleted',
-          });
-        } else if (event.ctrlKey && selectedRow && !!selectedRow.parent_code) {
-          setPopupState({
-            ...popupState,
-            isAlertOpen: true,
-            message: 'This group is already associated with sub group.',
-          });
-        }
-        break;
-      case 'e':
-      case 'E':
-        if (
-          event.ctrlKey &&
-          selectedRow &&
-          selectedRow.isPredefinedGroup === false
-        ) {
-          handleUpdate(selectedRow);
-        } else if (
-          event.ctrlKey &&
-          selectedRow &&
-          selectedRow.isPredefinedGroup === true
-        ) {
-          setPopupState({
-            ...popupState,
-            isAlertOpen: true,
-            message: 'Predefined Groups are not editable',
-          });
-        }
-        break;
-      default:
-        break;
-    }
+  const handleKeyDown = (event: KeyboardEvent) => {
+    handleKeyDownCommon(
+      event,
+      ()=> handleDelete(selectedRow),
+      ()=>handleUpdate(selectedRow),
+      togglePopup,
+      selectedRow,
+      undefined
+    );
   };
 
   useEffect(() => {
@@ -350,23 +249,8 @@ export const Groups = () => {
   }, [selectedRow]);
 
 
-  const fetchGroupData = async () => {
-    try {
-      const fetchedData = await sendAPIRequest<GroupFormData[]>(
-        `/${organizationId}/group`
-      );
-      dispatch(setGroups(fetchedData))
-      setTableData([...(permissions.createAccess ? [initialValue] :[]), ...fetchedData]);
-      return fetchedData;
-    } catch (error) {
-      console.error('Error fetching group data:', error);
-    }
-  };
-
-  const getGroups = async () => {
-    const getGroupData: any = await fetchGroupData();
-    const combinedData = [pinnedRow, ...getGroupData];
-    setTableData(combinedData);
+  const fetchGroupData = () => {
+      setTableData([...(createAccess ? [initialValue] :[]), ...groupsData]);
   };
 
   const onGridReady = () => {
@@ -380,71 +264,49 @@ export const Groups = () => {
   };
   useEffect(() => {
     onGridReady();
-  }, [tableData]);
+  }, [tableData, groupsData]);
 
   useEffect(() => {
     fetchGroupData();
-    onGridReady();
-  }, [data]);
+  }, [groupsData]);
+
+  const defaultCols = {
+    floatingFilter: true,
+    flex: 1,
+    filter: true,
+    suppressMovable: true,
+    headerClass: 'custom-header',
+    editable: (params: any) => (!params.data.isPredefinedGroup || !params.data.group_code) && updateAccess,
+    cellRenderer: (params: any) => (
+      <PlaceholderCellRenderer
+        value={params.value}
+        rowIndex={params.node.rowIndex}
+        column={params.colDef}
+        startEditingCell={(editParams : any) => {
+          gridRef.current?.api?.startEditingCell(editParams);
+        }}
+        placeholderText={params.colDef.headerName}
+      />
+    ),
+  }
 
   const colDefs: ColDef<any, any>[]| ColGroupDef<any> | null | undefined[] = 
     [
       {
         headerName: 'Group Name',
         field: 'group_name',
-        flex: 1,
-        filter: true,
-        editable: (params) => {
-          return (!params.data.isPredefinedGroup || !params.data.group_code) && permissions.updateAccess;
-        },
-        headerClass: 'custom-header',
-        suppressMovable: true,
-        cellRenderer: (params: any) => (
-          <PlaceholderCellRenderer
-            value={params.value}
-            rowIndex={params.node.rowIndex}
-            column={params.colDef}
-            startEditingCell={(editParams : any) => {
-              gridRef.current?.api?.startEditingCell(editParams);
-            }}
-            placeholderText={params.colDef.headerName}
-          />
-        ),
       },
       {
         headerName: 'P&L / BL. Sheet',
         field: 'type',
-        filter: true,
-        editable: (params) => {
-          return (!params.data.isPredefinedGroup || !params.data.group_code) && permissions.updateAccess
-        },
         cellEditor: 'agSelectCellEditor',
-        cellEditorParams: {
-          values: types,
-        },
-        valueFormatter: (params: { value: string | number }) =>
-          lookupValue(typeMapping, params.value),
-        flex: 1,
-        headerClass: 'custom-header',
-        suppressMovable: true,
-        cellRenderer: (params: any) => (
-          <PlaceholderCellRenderer
-            value={params.value}
-            rowIndex={params.node.rowIndex}
-            column={params.colDef}
-            startEditingCell={(editParams : any) => {
-              gridRef.current?.api?.startEditingCell(editParams);
-            }}
-            placeholderText={params.colDef.headerName}
-          />
-        ),
+        cellEditorParams: { values: Object.values(typeMapping) },
+        valueFormatter: (params: ValueFormatterParams) => lookupValue(typeMapping, params.value),
       },
       {
         headerName: 'Actions',
         headerClass: 'custom-header-class custom-header',
         sortable: false,
-        suppressMovable: true,
-        flex: 1,
         cellStyle: {
           display: 'flex',
           justifyContent: 'center',
@@ -452,48 +314,17 @@ export const Groups = () => {
         },
         cellRenderer: (params: { data: GroupFormData }) => (
           <div className='table_edit_buttons'>
-            {permissions.updateAccess && <FaEdit
+            {updateAccess && <FaEdit
               style={{ cursor: 'pointer', fontSize: '1.1rem' }}
               onClick={() => {
-                if (params.data.isPredefinedGroup === false) {
-                  handleUpdate(params.data);
-                } else if (params.data.isPredefinedGroup === true) {
-                  setPopupState({
-                    ...popupState,
-                    isAlertOpen: true,
-                    message: 'Predefined Groups are not editable',
-                  });
-                }
+                setSelectedRow(selectedRow !== null ? null : params.data);
+                handleUpdate(params.data);
               }}
             />
 }
-            {permissions.deleteAccess &&<MdDeleteForever
+            {deleteAccess &&<MdDeleteForever
               style={{ cursor: 'pointer', fontSize: '1.2rem' }}
-              onClick={() => {
-                const groupToDelete = params.data;
-                if (groupToDelete.isPredefinedGroup) {
-                  setPopupState({
-                    ...popupState,
-                    isAlertOpen: true,
-                    message: 'Predefined Groups should not be deleted',
-                  });
-                } else {
-                  const isParentGroup = subgroups.some(
-                    (subgroup: GroupFormData) =>
-                      subgroup.parent_code === groupToDelete.group_code
-                  );
-                  if (isParentGroup) {
-                    setPopupState({
-                      ...popupState,
-                      isAlertOpen: true,
-                      message:
-                        'This group is already associated with sub group',
-                    });
-                  } else {
-                    handleDelete(groupToDelete);
-                  }
-                }
-              }}
+              onClick={() => handleDelete(params.data)}
             />}
           </div>
         ),
@@ -505,7 +336,7 @@ export const Groups = () => {
       <div className='w-full relative'>
         <div className='flex w-full items-center justify-between px-8 py-1'>
           <h1 className='font-bold'>Groups</h1>
-         {permissions.createAccess && <Button
+         {createAccess && <Button
             type='highlight'
             className=''
             handleOnClick={() => togglePopup(true)}
@@ -518,9 +349,7 @@ export const Groups = () => {
             <AgGridReact
               rowData={tableData}
               columnDefs={colDefs}
-              defaultColDef={{
-                floatingFilter: true,
-              }}
+              defaultColDef={defaultCols}
               onCellClicked={onCellClicked}
               onCellEditingStarted={cellEditingStarted}
               onCellEditingStopped={handleCellEditingStopped}
