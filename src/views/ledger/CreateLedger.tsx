@@ -17,8 +17,9 @@ import titleCase from '../../utilities/titleCase';
 import { Option, GroupFormData, StationFormData } from '../../interface/global';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
-import { useQueryClient } from '@tanstack/react-query';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch } from '../../store/types/globalTypes';
+import { getAndSetParty } from '../../store/action/globalAction';
 
 const initialState = {
   btn_1: false,
@@ -29,12 +30,12 @@ const initialState = {
 
 export const CreateLedger = ({ setView, data }: any) => {
   const { organizationId } = useParams();
+  const dispatch = useDispatch<AppDispatch>()
   const {stations} = useSelector((state:any)=> state.global)
   const {groups : groupDataList} = useSelector((state:any)=> state.global)
   const [showActiveElement, setShowActiveElement] = useState(initialState);
   const [groupOptions, setGroupOptions] = useState<Option[]>([]);
   const [isSUNDRY, setIsSUNDRY] = useState(false);
-  const queryClient = useQueryClient();
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
@@ -57,7 +58,7 @@ export const CreateLedger = ({ setView, data }: any) => {
       partyName: data?.partyName || '',
       accountGroup: data?.Group?.group_code || '',
       accountCode: data?.accountCode || '',
-      isPredefinedParty: data?.isPredefinedParty ?? true,
+      isPredefinedLedger: data?.isPredefinedLedger ?? true,
       station_id: data?.station_id || '',
       stationName: data?.stationName || '',
       mailTo: data?.mailTo || '',
@@ -130,7 +131,7 @@ export const CreateLedger = ({ setView, data }: any) => {
       const method = data?.party_id ? 'PUT' : 'POST';
 
       await sendAPIRequest(apiPath, { method, body: allData });
-      await queryClient.invalidateQueries({ queryKey: ['get-ledger'] });
+      dispatch(getAndSetParty(organizationId));
     },
   });
 

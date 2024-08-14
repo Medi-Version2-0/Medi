@@ -8,12 +8,10 @@ import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { LedgerFormData, View } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { useParams } from 'react-router-dom';
-import { ValueFormatterParams } from 'ag-grid-community';
+import { ColDef, ValueFormatterParams } from 'ag-grid-community';
 import Button from '../../components/common/button/Button';
 import { IoSettingsOutline } from 'react-icons/io5';
-import * as Yup from 'yup';
 import { sendAPIRequest } from '../../helper/api';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useControls } from '../../ControlRoomContext';
 import { ControlRoomSettings } from '../../components/common/controlRoom/ControlRoomSettings';
 import { ledgerSettingFields } from '../../components/common/controlRoom/settings';
@@ -22,53 +20,27 @@ import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { useSelector } from 'react-redux'
 import usePermission from '../../hooks/useRole';
 import { useDispatch } from 'react-redux'
-import { setParty } from '../../store/action/globalAction';
-
-const ledgerValidationSchema = Yup.object().shape({
-  partyName: Yup.string()
-    .required('Party Name is required')
-    .matches(/^(?!\d+$).+/, 'Only Numbers not allowed')
-    .max(100, 'Party name cannot exceed 100 characters'),
-  station_id: Yup.number().nullable(),
-  openingBal: Yup.number()
-    .nullable()
-    .test(
-      'is-valid',
-      'Opening Balance must be a positive number with at most two decimal places',
-      value => {
-        if (value === undefined || value === null) return true;
-        return /^\d+(\.\d{0,2})?$/.test(value.toString()) && value >= 0;
-      }
-    )
-    .min(0, 'Opening Balance must be at least 0'),
-    openingBalType:Yup.string()
-});
-
-const validateField = async (field: string, value: any) => {
-  try {
-    await ledgerValidationSchema.validateAt(field, { [field]: value });
-    return null;
-  } catch (error: any) {
-    return error.message;
-  }
-};
+import { getAndSetParty, setParty } from '../../store/action/globalAction';
+import { getLedgerFormValidationSchema } from './validation_schema';
+import { validateField, decimalFormatter, createMap, extractKeys, lookupValue } from '../../helper/helper';
+import { AppDispatch } from '../../store/types/globalTypes';
+import useHandleKeydown from '../../hooks/useHandleKeydown';
 
 export const Ledger = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
   const [selectedRow, setSelectedRow] = useState<any>(null);
-  const { stations: stationData } = useSelector((state: any) => state.global)
+  const { stations: stationData, party: partyData } = useSelector((state: any) => state.global);
   const { organizationId } = useParams();
-  const [tableData, setTableData] = useState<LedgerFormData[]>([]);
+  const [tableData, setTableData] = useState(partyData);
   const editing = useRef(false);
   const partyId = useRef('');
-  const queryClient = useQueryClient();
   const [open, setOpen] = useState<boolean>(false);
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
     message: '',
   });
-  const dispatch = useDispatch()
+  const dispatch = useDispatch<AppDispatch>()
 
   const { controlRoomSettings } = useControls();
   const { createAccess, updateAccess, deleteAccess } = usePermission('ledger')
@@ -83,26 +55,13 @@ export const Ledger = () => {
     fssaiNumber: controlRoomSettings.fssaiNumber || false,
   };
 
-  const { data } = useQuery<LedgerFormData[]>({
-    queryKey: ['get-ledger'],
-    queryFn: () =>
-      sendAPIRequest<LedgerFormData[]>(`/${organizationId}/ledger`),
-    initialData: [],
-  });
-
-  const fetchLedgerData = async () => {
-    data.map((e: any) => (e.stationName = e.Station?.station_name || ''));
-    setTableData(data);
-    dispatch(setParty(data))
-  };
-
   const togglePopup = (isOpen: boolean) => {
     setOpen(isOpen);
   };
 
   useEffect(() => {
-    fetchLedgerData();
-  }, [data]);
+    setTableData(partyData);
+  }, [partyData]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
@@ -121,37 +80,12 @@ export const Ledger = () => {
       setView
     );
   };
+  useHandleKeydown(handleKeyDown, [selectedRow, popupState])
 
   const typeMapping = useMemo(() => ({ Dr: 'DR', Cr: 'CR' }), []);
-
-  const ledgerStationsMap: { [key: number]: string } = {};
-
-  stationData?.forEach((station: any) => {
-    ledgerStationsMap[station.station_id] = station.station_name;
-  });
-
-
-  const types = useMemo(() => Object.keys(typeMapping), [typeMapping]);
-  const extractKeys = (mappings: {
-    [x: number]: string;
-    Dr?: string;
-    Cr?: string;
-  }) => {
-    return Object.keys(mappings).map((key) => Number(key));
-  };
+  const ledgerStationsMap = createMap( stationData, (item) => item.station_id, (item) => item.station_name);
   const ledgerStations = extractKeys(ledgerStationsMap);
-
-  const lookupValue = (
-    mappings: {
-      [x: string]: any;
-      [x: number]: string;
-      Dr?: string;
-      Cr?: string;
-    },
-    key: string | number
-  ) => {
-    return mappings[key];
-  };
+  const lookupStation = (key: number) => lookupValue(ledgerStationsMap, key);
 
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false,isModalOpen: false  });
@@ -161,15 +95,18 @@ export const Ledger = () => {
   };
   const handleConfirmPopup = async () => {
     setPopupState({ ...popupState, isModalOpen: false });
-    await sendAPIRequest(`/${organizationId}/ledger/${partyId.current}`, {
-      method: 'DELETE',
-    });
-    dispatch(setParty(tableData.filter((x:LedgerFormData)=> x.party_id !== partyId.current)))
-    queryClient.invalidateQueries({ queryKey: ['get-ledger'] });
+    try {
+      await sendAPIRequest(`/${organizationId}/ledger/${partyId.current}`, { method: 'DELETE' });
+      dispatch(setParty(tableData.filter((x: LedgerFormData) => x.party_id !== partyId.current)));
+      
+    } catch {
+      setPopupState({
+        ...popupState,
+        isAlertOpen: true,
+        message: 'This Party is associated',
+      });
+    }
   };
-
-  const decimalFormatter = (params: ValueFormatterParams): any =>
-    params.value ? parseFloat(params.value).toFixed(2) : '';
 
   const handleDelete = (oldData: any) => {
     setPopupState({
@@ -181,107 +118,93 @@ export const Ledger = () => {
   };
 
   const handleCellEditingStopped = async (e: any) => {
-    if (!e.data.isPredefinedLedger) {
-      editing.current = false;
-      const { column, oldValue, node, data } = e;
-      let { newValue } = e;
+    editing.current = false;
+    const { column, oldValue, node, data } = e;
+    let { newValue } = e;
 
-      if (newValue === oldValue) return;
+    if (newValue === oldValue) return;
 
-      const field = column.colId;
-      const errorMessage = await validateField(field, newValue);
-      if (errorMessage) {
-        setPopupState({
-          ...popupState,
-          isAlertOpen: true,
-          message: errorMessage,
-        });
-        node.setDataValue(field, oldValue);
-        return;
-      }
-
-      if (field === 'partyName')
-        newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
-      node.setDataValue(field, newValue);
-      await sendAPIRequest(`/${organizationId}/ledger/${data.party_id}`, {
-        method: 'PUT',
-        body: { [field]: newValue },
+    const field = column.colId;
+    const schema = getLedgerFormValidationSchema();
+    const errorMessage = await validateField(schema, field, newValue);
+    if (errorMessage) {
+      setPopupState({
+        ...popupState,
+        isAlertOpen: true,
+        message: errorMessage,
       });
-      queryClient.invalidateQueries({ queryKey: ['get-ledger'] });
-    } else {
-      const { column, oldValue, node } = e;
+      node.setDataValue(field, oldValue);
+      return;
+    }
+
+    if (field === 'partyName')
+      newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
+    node.setDataValue(field, newValue);
+    await sendAPIRequest(`/${organizationId}/ledger/${data.party_id}`, {
+      method: 'PUT',
+      body: { [field]: newValue },
+    });
+    dispatch(getAndSetParty(organizationId));
+  };
+
+  const onCellClicked = (params: { data: any }) =>{
+    if(params.data.isPredefinedLedger){
       setPopupState({
         ...popupState,
         isAlertOpen: true,
         message: 'Predefined Ledgers are not editable',
       });
-      node.setDataValue(column.colId, oldValue);
+      return; 
+    }else{
+      setSelectedRow(selectedRow !== null ? null : params.data);
     }
+  }
+
+  const cellEditingStarted = (e: any) => {
+      editing.current = true
   };
 
-  const onCellClicked = (params: { data: any }) =>
-    setSelectedRow(selectedRow !== null ? null : params.data);
+  const defaultCols = {
+    floatingFilter: true,
+    flex: 1,
+    filter: true,
+    suppressMovable: true,
+    headerClass: 'custom-header',
+    editable: (params: any) => !params.data.isPredefinedLedger && updateAccess,
+  }
 
-  const cellEditingStarted = () => (editing.current = true);
-
-  const colDefs = [
+  const colDefs: ColDef[]= [
     {
       headerName: 'Ledger Name',
       field: 'partyName',
       flex: 2,
-      filter: 'agTextColumnFilter',
-      editable: (params: any) => !params.data.isPredefinedLedger && updateAccess,
-      suppressMovable: true,
-      headerClass: 'custom-header',
     },
     {
       headerName: 'Station',
       field: 'station_id',
-      flex: 1,
-      filter: 'agTextColumnFilter',
       cellDataType: 'text',
       cellEditor: 'agSelectCellEditor',
       cellEditorParams: { values: ledgerStations },
-      valueFormatter: (params: { value: string | number }) => {
-        return lookupValue(ledgerStationsMap, params.value);
-      },
-      valueGetter: (params: { data: any }) => {
-        return lookupValue(ledgerStationsMap, params.data.station_id);
-      },
-      editable: updateAccess,
-      headerClass: 'custom-header',
-      suppressMovable: true,
+      valueFormatter: (params: { value: string | number }) => lookupStation(Number(params.value)),
+      valueGetter: (params: { data: any }) => lookupStation(params.data.station_id),
     },
     {
       headerName: 'Opening Balance( ₹ )',
       field: 'openingBal',
-      flex: 1,
-      filter: true,
-      editable: (params: any) => !params.data.isPredefinedLedger && updateAccess,
       type: 'rightAligned',
       valueFormatter: decimalFormatter,
       headerClass: 'custom-header custom_header_class ag-right-aligned-header',
-      suppressMovable: true,
     },
     {
       headerName: 'Debit/Credit',
       field: 'openingBalType',
-      flex: 1,
-      filter: 'agTextColumnFilter',
-      editable: (params: any) => !params.data.isPredefinedLedger && updateAccess,
       cellEditor: 'agSelectCellEditor',
-      cellEditorParams: { values: types },
-      valueFormatter: (params: ValueFormatterParams) =>
-        lookupValue(typeMapping, params.value),
-      headerClass: 'custom-header',
-      suppressMovable: true,
+      cellEditorParams: { values: Object.keys(typeMapping) },
+      valueFormatter: (params: ValueFormatterParams) => lookupValue(typeMapping, params.value),
     },
     {
       headerName: 'Actions',
-      flex: 1,
       sortable: false,
-      suppressMovable: true,
-      headerClass: 'custom-header',
       cellStyle: {
         display: 'flex',
         justifyContent: 'center',
@@ -321,7 +244,7 @@ export const Ledger = () => {
       ),
     },
   ];
-
+  
   const ledger = () => {
     return (
       <>
@@ -349,7 +272,7 @@ export const Ledger = () => {
           <AgGridReact
             rowData={tableData}
             columnDefs={colDefs}
-            defaultColDef={{ floatingFilter: true }}
+            defaultColDef={defaultCols}
             onCellClicked={onCellClicked}
             onCellEditingStarted={cellEditingStarted}
             onCellEditingStopped={handleCellEditingStopped}

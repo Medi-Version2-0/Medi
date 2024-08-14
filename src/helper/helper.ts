@@ -1,4 +1,6 @@
 import { APIURL } from './api';
+import { Mapping } from '../interface/global';
+import { ValueFormatterParams } from "ag-grid-community";
 
 export const sendEmail = async ({
   email,
@@ -23,4 +25,33 @@ export const sendEmail = async ({
     method: 'POST',
     body: formData,
   }).then((res) => res.text());
+};
+
+export const createMap = ( data: { [key: string]: any }[], keyExtractor: (item: any) => number, valueExtractor: (item: any) => string): Mapping => {
+  const mapp: Mapping = {};
+  data.forEach((d) => {
+    mapp[keyExtractor(d)] = valueExtractor(d);
+  });
+  return mapp;
+};
+
+export const extractKeys = (mappings: Mapping): number[] => {
+  return Object.keys(mappings).map((key) => Number(key));
+};
+
+export const lookupValue = (mappings: Mapping, key: number): string | any => {
+  return mappings[key];
+};
+
+// value formatter
+export const decimalFormatter = (params: ValueFormatterParams): any => params.value ? parseFloat(params.value).toFixed(2) : '';
+
+// cell editing validation
+export const validateField = async (schema: any, field: string, value: any) => {
+  try {
+    await schema.validateAt(field, { [field]: value });
+    return null;
+  } catch (error: any) {
+    return error.message;
+  }
 };
