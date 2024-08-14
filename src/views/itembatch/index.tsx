@@ -38,7 +38,7 @@ export const Batch = ({
     salePrice: null,
     ...(controlRoomSettings.multiPriceList ? { salePrice2: null } : {}),
     mrp: null,
-    locked: '',
+    locked: 'N',
     ...(controlRoomSettings.batchWiseManufacturingCode ? { mfgCode: '', } : {}),
   };
   const { organizationId } = useParams();
@@ -201,10 +201,11 @@ export const Batch = ({
       const field = column.colId;
       if (newValue === oldValue) return;
       try {
+        const finalValue = field === 'locked' ? newValue.toUpperCase() : newValue;
         if (node.rowIndex === 0 && !isAnyFilterActive()) {
           try {
-            await batchSchema.validateAt(field, { [field]: newValue });
-            const newBatch = { ...inputRow, [field]: newValue };
+            await batchSchema.validateAt(field, { [field]: finalValue });
+            const newBatch = { ...inputRow, [field]: finalValue };
             validatePrices(newBatch);
             setInputRow(newBatch);
           } catch (err: any) {
@@ -223,11 +224,11 @@ export const Batch = ({
           }
         } else {
           try {
-            await batchSchema.validate({ ...data, [field]: newValue });
-            validatePrices({ ...data, [field]: newValue });
+            await batchSchema.validate({ ...data, [field]: finalValue });
+            validatePrices({ ...data, [field]: finalValue });    
             await sendAPIRequest(`/${organizationId}/item/${id}/batch/${batchId}`, {
               method: 'PUT',
-              body: { ...data, [field]: newValue },
+              body: { ...data, [field]: finalValue },
             });
             dispatch(getAndSetItem(organizationId))          
           } catch (err: any) {

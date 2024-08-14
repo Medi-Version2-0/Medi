@@ -18,7 +18,7 @@ const PriceList = () => {
   const [headerData, setHeaderData] = useState<{ isParty: boolean; isItem: boolean; }>({ isParty: false, isItem: false });
   const [currentSavedData, setCurrentSavedData] = useState<{ party: any; item: any; }>({ party: {}, item: {} });
   const [tableData, setTableData] = useState<any[]>([]);
-  const [options, setOptions] = useState()
+  const [options, setOptions] = useState<{value: string|number , label: string , [key:string]:any}[]>([]);
   const checkItemData = useRef(false);
 
   const getItemData = async (partyId?: any) => {
@@ -106,7 +106,7 @@ const PriceList = () => {
     };
   
     fetchData();
-  }, [currentSavedData.party?.party_id]);
+  }, [currentSavedData.party?.party_id,itemData]);
   
 
 
@@ -130,10 +130,16 @@ const PriceList = () => {
     await handleAdd(filteredItemData);
   };
 
-  const handleDelete = (id: any) => {
-    sendAPIRequest(`/${organizationId}/partyWisePriceList/${id}`, { method: 'Delete' });
+  const handleDelete = async (id: any) => {
+      await sendAPIRequest(`/${organizationId}/partyWisePriceList/${id}`, { method: 'DELETE' });
+      setOptions([]);
+      setSelectedPartyStation('');
+      setCurrentSavedData(prevState => ({
+        ...prevState,
+        party: {}
+      }));
+      setOpenDataPopup(false);
   };
-
 
   return (
     <>
@@ -154,7 +160,7 @@ const PriceList = () => {
                     setOptions(partyData);
                     setOpenDataPopup(true);
                   }}
-                  value={currentSavedData.party.partyName}
+                  value={currentSavedData.party.partyName || ''}
                   className='p-2 border border-gray-300 rounded min-w-52'
                 />
               </div>
