@@ -139,7 +139,7 @@ export const generalSettingFields: SettingField[] = [
     name: 'rxNonrxGeneral',
   },
   {
-    label: 'PratyWise Price List',
+    label: 'PartyWise Price List',
     id: 'pricewisePartyList',
     name: 'pricewisePartyList',
   },

@@ -8,7 +8,9 @@ import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { sendAPIRequest } from '../../helper/api';
-import { useQueryClient } from '@tanstack/react-query';
+import { AppDispatch } from '../../store/types/globalTypes';
+import { useDispatch } from 'react-redux'
+import { getAndSetItem } from '../../store/action/globalAction';
 
 export interface ItemFormValues {
   name: string;
@@ -37,7 +39,6 @@ export type ItemFormInfoType = FormikProps<ItemFormValues>;
 
 const CreateItem = ({ setView, data, setShowBatch }: any) => {
   const { organizationId } = useParams();
-  const queryClient = useQueryClient();
   const [newItem, setNewItem] = useState();
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
@@ -45,6 +46,7 @@ const CreateItem = ({ setView, data, setShowBatch }: any) => {
     message: '',
     addText: '',
   });
+  const dispatch = useDispatch<AppDispatch>()
 
   const itemFormInfo: ItemFormInfoType = useFormik({
     initialValues: {
@@ -94,7 +96,7 @@ const CreateItem = ({ setView, data, setShowBatch }: any) => {
           });
           setNewItem(resp);
         }
-        await queryClient.invalidateQueries({ queryKey: ['get-items'] });
+        dispatch(getAndSetItem(organizationId))
 
         setPopupState({
           isModalOpen: false,

@@ -151,7 +151,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         url: '/copyPartywisePriceList',
         label: 'Copy Party-wise PriceList',
         icon: <FaPlus className='fill-yellow-900' />,
-        onClick: () => openTab?.('Party-Wise PriceList', <CopyPratywisePriceList />),
+        onClick: () => openTab?.('Copy Party-wise PriceList', <CopyPratywisePriceList />),
         isDisabled: isNotReadAccess('copy_partywise_pricelist')
       }
     ] : []),
