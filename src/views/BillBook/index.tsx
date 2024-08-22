@@ -17,12 +17,12 @@ import { useControls } from '../../ControlRoomContext';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { getAndSetBillBook } from '../../store/action/globalAction';
 import { billBookValidationSchema } from './validation_schema';
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 import usePermission from '../../hooks/useRole';
 import { ValueFormatterParams } from 'ag-grid-community';
 import { lookupValue } from '../../helper/helper';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
-import { AppDispatch } from '../../store/types/globalTypes';
+import { useGetSetData } from '../../hooks/useGetSetData';
 
 type SeriesOption = {
   id: number;
@@ -57,7 +57,7 @@ const seriesOptions: SeriesOption[] = [
 
 export const BillBook = () => {
   const { organizationId } = useParams();
-  const dispatch = useDispatch<AppDispatch>();
+  const getAndSetBillBookHandler = useGetSetData(getAndSetBillBook);
   const { billBookSeries: billBookSeriesData } = useSelector((state: any) => state.global);
   const [open, setOpen] = useState<boolean>(false);
   const [settingToggleOpen, setSettingToggleOpen] = useState<boolean>(false);
@@ -69,7 +69,6 @@ export const BillBook = () => {
   let currTable: any[] = [];
   const { controlRoomSettings } = useControls();
   const { createAccess, updateAccess, deleteAccess } = usePermission('bill_book_setup')
-
 
   const initialValues = {
     stockNegative: controlRoomSettings.stockNegative || false,
@@ -106,8 +105,8 @@ export const BillBook = () => {
   };
 
   const getBillBook = async () => {
-      const data = billBookSeriesData?.filter((data: any) => data.seriesId === +selectedSeries);
-      setTableData(data);
+    const data = billBookSeriesData?.filter((data: any) => data.seriesId === +selectedSeries);
+    setTableData(data);
   };
 
   useEffect(() => {
@@ -155,7 +154,7 @@ export const BillBook = () => {
       }
 
       togglePopup(false);
-      dispatch(getAndSetBillBook(organizationId));
+      getAndSetBillBookHandler();
     }
   };
 
@@ -183,12 +182,12 @@ export const BillBook = () => {
   const deleteAcc = async (id: string) => {
     isDelete.current = false;
     togglePopup(false);
-    try{
+    try {
       await sendAPIRequest(`/${organizationId}/billBook/${id}`, {
         method: 'DELETE',
       });
-      dispatch(getAndSetBillBook(organizationId));
-    }catch{
+      getAndSetBillBookHandler();
+    } catch {
       settingPopupState(false, 'This bill book series is associated');
     }
     
@@ -213,16 +212,16 @@ export const BillBook = () => {
     setSelectedSeries(event.target.value);
   };
 
-  const companyMapping = useMemo(() => ({'All Companies': 'All Companies', 'One Company': 'One Company'}), []);
-  const billTypeMapping = useMemo(() => ({'Only Cash': 'Only Cash', 'Only Credit': 'Only Credit', 'Both': 'Both'}), []);
-  const lockedMapping = useMemo(() => ({Yes: 'Yes', No: 'No'}), []);
+  const companyMapping = useMemo(() => ({ 'All Companies': 'All Companies', 'One Company': 'One Company' }), []);
+  const billTypeMapping = useMemo(() => ({ 'Only Cash': 'Only Cash', 'Only Credit': 'Only Credit', 'Both': 'Both' }), []);
+  const lockedMapping = useMemo(() => ({ Yes: 'Yes', No: 'No' }), []);
 
   const handleCellEditingStopped = async (e: any) => {
     currTable = [];
     editing.current = false;
     const { data, column, oldValue, valueChanged, node } = e;
     let { newValue } = e;
-    if (!valueChanged) return;
+    if (newValue == oldValue) return;
     const field = column.colId;
 
     try {
@@ -258,8 +257,7 @@ export const BillBook = () => {
       method: 'PUT',
       body: { [field]: newValue },
     });
-
-    dispatch(getAndSetBillBook(organizationId));
+    getAndSetBillBookHandler();
   };
 
   const onCellClicked = (params: { data: any }) => {
@@ -273,8 +271,8 @@ export const BillBook = () => {
   const handleKeyDown = (event: KeyboardEvent) => {
     handleKeyDownCommon(
       event,
-      ()=> handleDelete(selectedRow),
-      ()=>handleUpdate(selectedRow),
+      () => handleDelete(selectedRow),
+      () => handleUpdate(selectedRow),
       togglePopup,
       selectedRow,
       undefined
@@ -308,14 +306,14 @@ export const BillBook = () => {
       headerName: 'Company',
       field: 'company',
       cellEditor: 'agSelectCellEditor',
-      cellEditorParams: {values: Object.values(companyMapping)},
+      cellEditorParams: { values: Object.values(companyMapping) },
       valueFormatter: (params: ValueFormatterParams) => lookupValue(companyMapping, params.value),
     },
     {
       headerName: 'Cash/Credit',
       field: 'billType',
       cellEditor: 'agSelectCellEditor',
-      cellEditorParams: {values: Object.values(billTypeMapping)},
+      cellEditorParams: { values: Object.values(billTypeMapping) },
       valueFormatter: (params: ValueFormatterParams) => lookupValue(billTypeMapping, params.value),
     },
     {
@@ -327,7 +325,7 @@ export const BillBook = () => {
       headerName: 'Lock Bill',
       field: 'locked',
       cellEditor: 'agSelectCellEditor',
-      cellEditorParams: {values: Object.values(lockedMapping)},
+      cellEditorParams: { values: Object.values(lockedMapping) },
       valueFormatter: (params: ValueFormatterParams) => lookupValue(lockedMapping, params.value),
     },
     {
@@ -342,7 +340,7 @@ export const BillBook = () => {
       },
       cellRenderer: (params: { data: BillBookForm }) => (
         <div className='table_edit_buttons'>
-        {updateAccess && <FaEdit
+          {updateAccess && <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
             onClick={() => {
               setSelectedRow(selectedRow !== null ? null : params.data);
@@ -350,7 +348,7 @@ export const BillBook = () => {
             }}
           />}
 
-         {deleteAccess && <MdDeleteForever
+          {deleteAccess && <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
             onClick={() => handleDelete(params.data)}
           />}
@@ -369,7 +367,7 @@ export const BillBook = () => {
               <Button type='highlight' handleOnClick={() => toggleSettingPopup(true)}>
                 <IoSettingsOutline />
               </Button>
-             {createAccess && <Button type='highlight' handleOnClick={() => togglePopup(true)}>
+              {createAccess && <Button type='highlight' handleOnClick={() => togglePopup(true)}>
                 Add Series
               </Button>}
             </div>

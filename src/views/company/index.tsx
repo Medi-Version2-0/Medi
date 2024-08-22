@@ -15,11 +15,10 @@ import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { getCompanyFormSchema } from './validation_schema';
 import { useSelector } from 'react-redux';
 import { getAndSetCompany } from '../../store/action/globalAction';
-import { useDispatch } from 'react-redux'
 import usePermission from '../../hooks/useRole';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
-import { AppDispatch } from '../../store/types/globalTypes';
 import { createMap, extractKeys, lookupValue, decimalFormatter } from '../../helper/helper';
+import { useGetSetData } from '../../hooks/useGetSetData';
 
 export const Company = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
@@ -30,7 +29,7 @@ export const Company = () => {
 
   const editing = useRef(false);
   const companyId = useRef<string>('');
-  const dispatch = useDispatch<AppDispatch>()
+  const getAndSetCompanyHandler = useGetSetData(getAndSetCompany);
   let currTable: any[] = [];
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
@@ -70,7 +69,7 @@ export const Company = () => {
     await sendAPIRequest(`/${organizationId}/company/${companyId.current}`, {
       method: 'DELETE',
     });
-    dispatch(getAndSetCompany(organizationId))
+    getAndSetCompanyHandler();
   };
 
   const handleDelete = (oldData: any) => {
@@ -118,7 +117,7 @@ export const Company = () => {
       method: 'PUT',
       body: { [field]: newValue },
     });
-    dispatch(getAndSetCompany(organizationId))
+    getAndSetCompanyHandler();
   };
 
   const onCellClicked = (params: { data: any }) => {

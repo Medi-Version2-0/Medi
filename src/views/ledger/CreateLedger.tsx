@@ -17,9 +17,9 @@ import titleCase from '../../utilities/titleCase';
 import { Option, GroupFormData, StationFormData } from '../../interface/global';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
-import { useDispatch, useSelector } from 'react-redux';
-import { AppDispatch } from '../../store/types/globalTypes';
+import { useSelector } from 'react-redux';
 import { getAndSetParty } from '../../store/action/globalAction';
+import { useGetSetData } from '../../hooks/useGetSetData';
 
 const initialState = {
   btn_1: false,
@@ -30,7 +30,7 @@ const initialState = {
 
 export const CreateLedger = ({ setView, data }: any) => {
   const { organizationId } = useParams();
-  const dispatch = useDispatch<AppDispatch>()
+  const getAndSetLedgerHandler = useGetSetData(getAndSetParty);
   const {stations} = useSelector((state:any)=> state.global)
   const {groups : groupDataList} = useSelector((state:any)=> state.global)
   const [showActiveElement, setShowActiveElement] = useState(initialState);
@@ -131,7 +131,7 @@ export const CreateLedger = ({ setView, data }: any) => {
       const method = data?.party_id ? 'PUT' : 'POST';
 
       await sendAPIRequest(apiPath, { method, body: allData });
-      dispatch(getAndSetParty(organizationId));
+      getAndSetLedgerHandler();
     },
   });
 

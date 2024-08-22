@@ -16,14 +16,13 @@ import { stationSettingFields } from '../../components/common/controlRoom/settin
 import { useControls } from '../../ControlRoomContext';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { stationValidationSchema } from './validation_schema';
-import { useDispatch } from 'react-redux'
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
 import usePermission from '../../hooks/useRole';
 import { useSelector } from 'react-redux';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
 import { extractKeys, lookupValue } from '../../helper/helper';
 import { getAndSetStations } from '../../store/action/globalAction';
-import { AppDispatch } from '../../store/types/globalTypes';
+import { useGetSetData } from '../../hooks/useGetSetData';
 
 export const Stations = () => {
   const initialValue = {
@@ -41,7 +40,7 @@ export const Stations = () => {
   const [tableData, setTableData] = useState<StationFormData | any>(null);
   const [stateData, setStateData] = useState<any[]>([]);
   const editing = useRef(false);
-  const dispatch = useDispatch<AppDispatch>()
+  const getAndSetStationHandler = useGetSetData(getAndSetStations);
   let currTable: any[] = [];
   const gridRef = useRef<any>(null);
   const { stations } = useSelector((state: any) => state.global);
@@ -132,7 +131,7 @@ export const Stations = () => {
         });
       }
       togglePopup(false);
-      dispatch(getAndSetStations(organizationId));
+      getAndSetStationHandler();
     }
   };
 
@@ -168,7 +167,7 @@ export const Stations = () => {
       await sendAPIRequest(`/${organizationId}/station/${station_id}`, {
         method: 'DELETE',
       });
-      dispatch(getAndSetStations(organizationId))
+      getAndSetStationHandler();
     } catch {
       settingPopupState(false, 'This Station is associated')
     }
@@ -260,7 +259,7 @@ export const Stations = () => {
             body: { [field]: newValue },
           });
         }
-        dispatch(getAndSetStations(organizationId));
+        getAndSetStationHandler();
       } catch (error: any) {
         data[field] = oldValue;
         settingPopupState(false, error.message)

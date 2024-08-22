@@ -15,11 +15,11 @@ import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { itemGroupValidationSchema } from './validation_schema';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
 import { getAndSetItemGroups } from '../../store/action/globalAction';
-import { useDispatch, useSelector } from 'react-redux'
-import { AppDispatch } from '../../store/types/globalTypes';
+import { useSelector } from 'react-redux'
 import usePermission from '../../hooks/useRole';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
 import { lookupValue } from '../../helper/helper';
+import { useGetSetData } from '../../hooks/useGetSetData';
 
 export const ItemGroups = () => {
   const initialData = {
@@ -36,7 +36,7 @@ export const ItemGroups = () => {
   });
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const editing = useRef(false);
-  const dispatch = useDispatch<AppDispatch>()
+  const getAndSetItemGroupHandler = useGetSetData(getAndSetItemGroups);
   const {createAccess , updateAccess , deleteAccess} = usePermission('item_groups')
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
@@ -97,7 +97,7 @@ export const ItemGroups = () => {
           settingPopupState(false, 'Item Group saved successfully');
         }
       }
-      dispatch(getAndSetItemGroups(organizationId))
+      getAndSetItemGroupHandler();
       togglePopup(false);
     }
   };
@@ -124,7 +124,7 @@ export const ItemGroups = () => {
     await sendAPIRequest(`/${organizationId}/itemGroup/${group_code}`, {
       method: 'DELETE',
     });
-    dispatch(getAndSetItemGroups(organizationId))
+    getAndSetItemGroupHandler();
   };
 
   const handleDelete = (oldData: ItemGroupFormData) => {
@@ -208,7 +208,7 @@ export const ItemGroups = () => {
             body: { [field]: newValue },
           }
         );
-        dispatch(getAndSetItemGroups(organizationId))
+        getAndSetItemGroupHandler();
       } catch (error: any) {
         settingPopupState(false, `${error.message}`);
         node.setDataValue(field, oldValue);

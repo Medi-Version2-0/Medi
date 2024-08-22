@@ -12,12 +12,12 @@ import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
 import { useParams } from 'react-router-dom';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
 import { getAndSetStations } from '../../store/action/globalAction';
 import usePermission from '../../hooks/useRole';
-import { AppDispatch } from '../../store/types/globalTypes';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
+import { useGetSetData } from '../../hooks/useGetSetData';
 
 export const Headquarters = () => {
   const initialValue = {
@@ -37,7 +37,7 @@ export const Headquarters = () => {
   const editing = useRef(false);
   const isDelete = useRef(false);
   const gridRef = useRef<any>(null);
-  const dispatch = useDispatch<AppDispatch>()
+  const getAndSetHeadQuarterHandler = useGetSetData(getAndSetStations);
 
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
@@ -149,7 +149,7 @@ export const Headquarters = () => {
         body: payload,
       });
     }
-    dispatch(getAndSetStations(organizationId))
+    getAndSetHeadQuarterHandler();
     togglePopup(false);
   };
 
@@ -182,7 +182,7 @@ export const Headquarters = () => {
         method: 'DELETE',
       }
     );
-    dispatch(getAndSetStations(organizationId))
+    getAndSetHeadQuarterHandler();
   };
 
   const stationHeadquarterMap: { [key: number]: string } = {};
@@ -230,7 +230,7 @@ export const Headquarters = () => {
           body: { [field]: +newValue },
         }
       );
-      dispatch(getAndSetStations(organizationId))
+      getAndSetHeadQuarterHandler();
     }
   };
 
