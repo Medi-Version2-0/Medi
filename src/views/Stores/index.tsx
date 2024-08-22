@@ -12,6 +12,11 @@ import { sendAPIRequest } from '../../helper/api';
 import { useParams } from 'react-router-dom';
 import { storeValidationSchema } from './validation_schema';
 import usePermission from '../../hooks/useRole';
+import { useDispatch, useSelector } from 'react-redux'
+import { AppDispatch } from '../../store/types/globalTypes';
+import useHandleKeydown from '../../hooks/useHandleKeydown';
+import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
+import { getAndSetStore } from '../../store/action/globalAction';
 
 const initialValue = {
   store_code: '',
@@ -27,7 +32,6 @@ export const Store = () => {
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<StoreFormData | any>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
-  const [tableData, setTableData] = useState<StoreFormData | any>(null);
   const [selectedStoreAddress, setSelectedStoreAddress] = useState({
     address1: '',
     address2: '',
@@ -42,22 +46,13 @@ export const Store = () => {
     isAlertOpen: false,
     message: '',
   });
+  const dispatch = useDispatch<AppDispatch>()
+  const { store: storeData } = useSelector((state: any) => state.global);
+  const [tableData, setTableData] = useState([...(createAccess ? [initialValue] :[]), ...storeData]);
 
   useEffect(() => {
-    getStores();
-  }, []);
-
-  useEffect(() => {
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [selectedRow]);
-
-  const getStores = async () => {
-    const stores = await sendAPIRequest(`/${organizationId}/store`);
-    setTableData(stores);
-  };
+    setTableData(storeData);
+  }, [storeData]);
 
   const togglePopup = (isOpen: boolean) => {
     if (!isOpen) {
@@ -97,8 +92,8 @@ export const Store = () => {
           body: formData,
         });
       }
+      dispatch(getAndSetStore(organizationId))
       togglePopup(false);
-      getStores();
     }
   };
 
@@ -145,7 +140,7 @@ export const Store = () => {
     await sendAPIRequest(`/${organizationId}/store/${store_code}`, {
       method: 'DELETE',
     });
-    getStores();
+    dispatch(getAndSetStore(organizationId))
   };
 
   const handleDelete = (oldData: StoreFormData) => {
@@ -205,7 +200,7 @@ export const Store = () => {
       method: 'PUT',
       body: { [field]: newValue },
     });
-    getStores();
+    dispatch(getAndSetStore(organizationId))
   };
 
   const onCellClicked = (params: { data: any }) => {
@@ -222,76 +217,17 @@ export const Store = () => {
   };
 
   const handleKeyDown = (event: KeyboardEvent) => {
-    switch (event.key) {
-      case 'Escape':
-        togglePopup(false);
-        break;
-      case 'n':
-      case 'N':
-        if (event.ctrlKey) {
-          togglePopup(true);
-        }
-        break;
-      case 'd':
-      case 'D':
-        if (
-          event.ctrlKey &&
-          selectedRow &&
-          selectedRow.isPredefinedStore === false
-        ) {
-          handleDelete(selectedRow);
-        } else if (
-          event.ctrlKey &&
-          selectedRow &&
-          selectedRow.isPredefinedStore === true
-        ) {
-          setPopupState({
-            ...popupState,
-            isAlertOpen: true,
-            message: 'Predefined Stores should not be deleted',
-          });
-        }
-
-        break;
-      case 'e':
-      case 'E':
-        if (event.ctrlKey && selectedRow) {
-          if (selectedRow.isPredefinedStore === false) {
-            handleUpdate(selectedRow);
-          } else if (selectedRow.isPredefinedStore === true) {
-            setPopupState({
-              ...popupState,
-              isAlertOpen: true,
-              message: 'Predefined Stores are not editable',
-            });
-          }
-        }
-        break;
-      default:
-        break;
-    }
+    handleKeyDownCommon(
+      event,
+      handleDelete,
+      handleUpdate,
+      togglePopup,
+      selectedRow,
+      undefined
+    );
   };
 
-  const handleCellKeyDown = (event: any) => {
-    const { node } = event;
-
-    if (event.event.key === 'ArrowDown' || event.event.key === 'ArrowUp') {
-      const nextRowIndex =
-        event.event.key === 'ArrowDown' ? node.rowIndex + 1 : node.rowIndex - 1;
-
-      const nextRowNode = event.api.getDisplayedRowAtIndex(nextRowIndex);
-
-      if (nextRowNode) {
-        const nextRowData = nextRowNode.data;
-        setSelectedRow(nextRowData);
-        setSelectedStoreAddress({
-          address1: nextRowData.address1,
-          address2: nextRowData.address2,
-          address3: nextRowData.address3,
-        });
-      }
-    }
-  };
+  useHandleKeydown(handleKeyDown, [selectedRow, popupState])
 
   const colDefs: any[] = [
     {
@@ -390,7 +326,6 @@ export const Store = () => {
               onCellClicked={onCellClicked}
               onCellEditingStarted={cellEditingStarted}
               onCellEditingStopped={handleCellEditingStopped}
-              onCellKeyDown={handleCellKeyDown}
             />
           }
         </div>

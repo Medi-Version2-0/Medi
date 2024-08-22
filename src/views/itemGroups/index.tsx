@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { FaEdit } from 'react-icons/fa';
 import { MdDeleteForever } from 'react-icons/md';
@@ -6,19 +6,20 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { ItemGroupFormData } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
-import { ColDef, ColGroupDef } from 'ag-grid-community';
+import { ColDef, ColGroupDef, ValueFormatterParams } from 'ag-grid-community';
 import { CreateItemGroup } from './createItemGroup';
 import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { itemGroupValidationSchema } from './validation_schema';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
-import { getAndSetItemGroups, setItemGroups } from '../../store/action/globalAction';
-import { useDispatch } from 'react-redux'
+import { getAndSetItemGroups } from '../../store/action/globalAction';
+import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch } from '../../store/types/globalTypes';
 import usePermission from '../../hooks/useRole';
+import useHandleKeydown from '../../hooks/useHandleKeydown';
+import { lookupValue } from '../../helper/helper';
 
 export const ItemGroups = () => {
   const initialData = {
@@ -34,8 +35,6 @@ export const ItemGroups = () => {
     type: '',
   });
   const [selectedRow, setSelectedRow] = useState<any>(null);
-  const [tableData, setTableData] = useState<ItemGroupFormData | any>(null);
-  const queryClient = useQueryClient();
   const editing = useRef(false);
   const dispatch = useDispatch<AppDispatch>()
   const {createAccess , updateAccess , deleteAccess} = usePermission('item_groups')
@@ -45,32 +44,19 @@ export const ItemGroups = () => {
     message: '',
   });
   const gridRef = useRef<any>(null);
+  const { itemGroups: itemGroups } = useSelector((state: any) => state.global);
+  const [tableData, setTableData] = useState([...(createAccess ? [initialData] :[]), ...itemGroups]);
+  const isDelete = useRef(false);
 
-  const { data } = useQuery<{ data: ItemGroupFormData }>({
-    queryKey: ['get-itemGroups'],
-    queryFn: () =>
-      sendAPIRequest<{ data: ItemGroupFormData }>(
-        `/${organizationId}/itemGroup`
-      ),
-  });
-
-  const typeMapping = {
-    p_and_l: 'P&L',
-    balance_sheet: 'Balance Sheet',
+  const settingPopupState = (isModal: boolean, message: string) => {
+    setPopupState({
+      ...popupState,
+      [isModal ? 'isModalOpen' : 'isAlertOpen']: true,
+      message: message,
+    });
   };
 
-  const extractKeys = (mappings: any) => {
-    const value = Object.keys(mappings);
-    value[0] = 'P&L';
-    value[1] = 'Balance Sheet';
-    return value;
-  };
-
-  const types = extractKeys(typeMapping);
-
-  const lookupValue = (mappings: any, key: string | number) => {
-    return mappings[key];
-  };
+  const typeMapping = useMemo(() => ({p_and_l: 'P&L', balance_sheet: 'Balance Sheet'}), []);
 
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
@@ -102,27 +88,19 @@ export const ItemGroups = () => {
             body: formData,
           }
         );
-        dispatch(getAndSetItemGroups(organizationId))
-        queryClient.invalidateQueries({ queryKey: ['get-itemGroups'] });
       } else {
         const response: any = await sendAPIRequest(`/${organizationId}/itemGroup`, {
           method: 'POST',
           body: payload,
         });
         if (respData.group_name && !response.error) {
-          setPopupState({
-            ...popupState,
-            isAlertOpen: true,
-            message: 'Item Group saved successfully',
-          });
+          settingPopupState(false, 'Item Group saved successfully');
         }
-        setTableToInitialState();
       }
+      dispatch(getAndSetItemGroups(organizationId))
       togglePopup(false);
-      queryClient.invalidateQueries({ queryKey: ['get-itemGroups'] });
     }
   };
-  const isDelete = useRef(false);
 
   const togglePopup = (isOpen: boolean) => {
     if (!isOpen) {
@@ -133,11 +111,10 @@ export const ItemGroups = () => {
   };
 
   const getGroups = async () => {
-    dispatch(setItemGroups(data))
-    if (Array.isArray(data)) {
-      setTableData([initialData, ...data]);
+    if (Array.isArray(itemGroups)) {
+      setTableData([initialData, ...itemGroups]);
     }
-    return data;
+    return itemGroups;
   };
 
   const deleteAcc = async (group_code: string) => {
@@ -147,8 +124,7 @@ export const ItemGroups = () => {
     await sendAPIRequest(`/${organizationId}/itemGroup/${group_code}`, {
       method: 'DELETE',
     });
-    dispatch(setItemGroups(tableData?.filter((x:ItemGroupFormData)=> x.group_code !== group_code)))
-    queryClient.invalidateQueries({ queryKey: ['get-itemGroups'] });
+    dispatch(getAndSetItemGroups(organizationId))
   };
 
   const handleDelete = (oldData: ItemGroupFormData) => {
@@ -179,11 +155,7 @@ export const ItemGroups = () => {
       );
     });
     if (existingGroup) {
-      setPopupState({
-        ...popupState,
-        isAlertOpen: true,
-        message: 'Item Group with this name already exists!',
-      });
+      settingPopupState(false, 'Item Group with this name already exists!')
       return;
     }
     if (values.group_name) {
@@ -191,11 +163,7 @@ export const ItemGroups = () => {
         values.group_name.charAt(0).toUpperCase() + values.group_name.slice(1);
     }
     if (values !== initialData) {
-      setPopupState({
-        ...popupState,
-        isModalOpen: true,
-        message: `Are you sure you want to ${mode} this group?`,
-      });
+      settingPopupState(true, `Are you sure you want to ${mode} this group?`);
       setFormData(values);
     }
   };
@@ -225,11 +193,7 @@ export const ItemGroups = () => {
           }
           handleConfirmPopup(data);
         } catch (error: any) {
-          setPopupState({
-            ...popupState,
-            isAlertOpen: true,
-            message: error.message,
-          });
+          settingPopupState(false, `${error.message}`);
         }
       }
 
@@ -245,27 +209,16 @@ export const ItemGroups = () => {
           }
         );
         dispatch(getAndSetItemGroups(organizationId))
-        queryClient.invalidateQueries({ queryKey: ['get-itemGroups'] });
       } catch (error: any) {
-        setPopupState({
-          ...popupState,
-          isAlertOpen: true,
-          message: error.message,
-        });
+        settingPopupState(false, `${error.message}`);
         node.setDataValue(field, oldValue);
       }
     }
   };
 
-  const setTableToInitialState = async () => {
-    if (Array.isArray(data)) {
-      const combinedData = [initialData, ...data];
-      setTableData(combinedData);
-    }
-  };
 
   const onCellClicked = (params: { data: any }) => {
-    setSelectedRow(selectedRow !== null ? null : params.data);
+    setSelectedRow(params.data);
   };
 
   const cellEditingStarted = () => {
@@ -283,62 +236,44 @@ export const ItemGroups = () => {
     );
   };
 
-  useEffect(() => {
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [selectedRow]);
+  useHandleKeydown(handleKeyDown, [selectedRow, popupState])
 
   useEffect(() => {
     getGroups();
-  }, [data]);
+  }, [itemGroups]);
+
+  const defaultCols = {
+      flex: 1,
+      filter: true,
+      headerClass: 'custom-header',
+      suppressMovable: true,
+      floatingFilter: true,
+      editable : updateAccess,
+      cellRenderer: (params: any) => (
+        <PlaceholderCellRenderer
+          value={params.value}
+          rowIndex={params.node.rowIndex}
+          column={params.colDef}
+          startEditingCell={(editParams: any) => {
+            gridRef.current?.api?.startEditingCell(editParams);
+          }}
+          placeholderText={params.colDef.headerName}
+        />
+      )
+  }
 
   const colDefs: (ColDef<any, any> | ColGroupDef<any>)[] | null | undefined[] =
     [
       {
         headerName: 'Group Name',
         field: 'group_name',
-        flex: 1,
-        filter: true,
-        headerClass: 'custom-header',
-        suppressMovable: true,
-        cellRenderer: (params: any) => (
-          <PlaceholderCellRenderer
-            value={params.value}
-            rowIndex={params.node.rowIndex}
-            column={params.colDef}
-            startEditingCell={(editParams: any) => {
-              gridRef.current?.api?.startEditingCell(editParams);
-            }}
-            placeholderText={params.colDef.headerName}
-          />
-        ),
       },
       {
         headerName: 'P&L / BL. Sheet',
         field: 'type',
-        filter: true,
         cellEditor: 'agSelectCellEditor',
-        cellEditorParams: {
-          values: types,
-        },
-        valueFormatter: (params: { value: string | number }) =>
-          lookupValue(typeMapping, params.value),
-        flex: 1,
-        headerClass: 'custom-header',
-        suppressMovable: true,
-        cellRenderer: (params: any) => (
-          <PlaceholderCellRenderer
-            value={params.value}
-            rowIndex={params.node.rowIndex}
-            column={params.colDef}
-            startEditingCell={(editParams: any) => {
-              gridRef.current?.api?.startEditingCell(editParams);
-            }}
-            placeholderText={params.colDef.headerName}
-          />
-        ),
+        cellEditorParams: { values: Object.values(typeMapping) },
+        valueFormatter: (params: ValueFormatterParams) => lookupValue(typeMapping, params.value),
       },
       {
         headerName: 'Actions',
@@ -364,8 +299,7 @@ export const ItemGroups = () => {
            {deleteAccess && <MdDeleteForever
               style={{ cursor: 'pointer', fontSize: '1.2rem' }}
               onClick={() => {
-                const groupToDelete = params.data;
-                handleDelete(groupToDelete);
+                handleDelete(params.data);
               }}
             />}
           </div>
@@ -390,10 +324,7 @@ export const ItemGroups = () => {
             <AgGridReact
               rowData={tableData}
               columnDefs={colDefs}
-              defaultColDef={{
-                floatingFilter: true,
-                editable : updateAccess
-              }}
+              defaultColDef={defaultCols}
               onCellClicked={onCellClicked}
               onCellEditingStarted={cellEditingStarted}
               onCellEditingStopped={handleCellEditingStopped}
