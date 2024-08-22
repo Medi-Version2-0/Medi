@@ -39,12 +39,12 @@ export const extractKeys = (mappings: Mapping): number[] => {
   return Object.keys(mappings).map((key) => Number(key));
 };
 
-export const lookupValue = (mappings: Mapping, key: number): string | any => {
+export const lookupValue = (mappings: Mapping, key: string | number): string | any => {
   return mappings[key];
 };
 
 // value formatter
-export const decimalFormatter = (params: ValueFormatterParams): any => params.value ? parseFloat(params.value).toFixed(2) : '';
+export const decimalFormatter = (params: ValueFormatterParams): any => (params.value === 0 || params.value) ?  parseFloat(params.value).toFixed(2) : ''
 
 // cell editing validation
 export const validateField = async (schema: any, field: string, value: any) => {
