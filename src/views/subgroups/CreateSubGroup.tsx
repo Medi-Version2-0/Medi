@@ -10,9 +10,8 @@ import CustomSelect from '../../components/custom_select/CustomSelect';
 import Button from '../../components/common/button/Button';
 import onKeyDown from '../../utilities/formKeyDown';
 import FormikInputField from '../../components/common/FormikInputField';
-import { sendAPIRequest } from '../../helper/api';
-import { useParams } from 'react-router-dom';
 import { subgroupValidationSchema } from './validation_schema';
+import { useSelector } from 'react-redux';
 
 export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
   togglePopup,
@@ -22,10 +21,13 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
   deleteAcc,
   className,
 }) => {
-  const { organizationId } = useParams();
   const { group_code } = data;
   const formikRef = useRef<FormikProps<SubGroupFormDataProps>>(null);
-  const [parentGrpOptions, setParentGrpOptions] = useState<Option[]>([]);
+  const { groups: groupList } = useSelector((state: any) => state.global);
+  const parentGrpOptions: Option[] = groupList.map((grp: any) => ({
+    value: grp.group_code,
+    label: grp.group_name.toUpperCase(),
+  }))
   const [focused, setFocused] = useState('');
 
   useEffect(() => {
@@ -33,20 +35,6 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
       ? document.getElementById('group_name')
       : document.getElementById('del_button');
     focusTarget?.focus();
-  }, []);
-
-  const getGroups = async () => {
-    const groupList = await sendAPIRequest<any[]>(`/${organizationId}/group`);
-    setParentGrpOptions(
-      groupList.map((grp: any) => ({
-        value: grp.group_code,
-        label: grp.group_name.toUpperCase(),
-      }))
-    );
-  };
-
-  useEffect(() => {
-    getGroups();
   }, []);
 
   const handleParentChange = (option: Option | null) => {
@@ -143,7 +131,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                       isDisabled={isDelete && group_code}
                       disableArrow={true}
                       hidePlaceholder={false}
-                      className='!h-6 rounded-sm text-xs'
+                      className='!h-8 rounded-sm text-xs'
                       isFocused={focused === 'parent_code'}
                       error={formik.errors.parent_code}
                       isTouched={formik.touched.parent_code}
@@ -157,7 +145,13 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                         const dropdown = document.querySelector(
                           '.custom-select__menu'
                         );
-                        if (e.key === 'Enter' || e.key === 'Tab') {
+                        if(e.key === 'Tab'){
+                          if (!dropdown) {
+                            e.preventDefault();
+                          }
+                          document.getElementById('cancel_button')?.focus();
+                        }
+                        if (e.key === 'Enter') {
                           if (!dropdown) {
                             e.preventDefault();
                           }
