@@ -12,9 +12,9 @@ import CustomSelect from '../../components/custom_select/CustomSelect';
 import onKeyDown from '../../utilities/formKeyDown';
 import titleCase from '../../utilities/titleCase';
 import { sendAPIRequest } from '../../helper/api';
-import { useSelector, useDispatch } from 'react-redux'
-import { AppDispatch } from '../../store/types/globalTypes';
+import { useSelector } from 'react-redux'
 import { getAndSetCompany } from '../../store/action/globalAction';
+import { useGetSetData } from '../../hooks/useGetSetData';
 
 export const CreateCompany = ({ setView , data }: any) => {
   const { organizationId } = useParams();
@@ -28,7 +28,7 @@ export const CreateCompany = ({ setView , data }: any) => {
     isAlertOpen: false,
     message: '',
   });
-  const dispatch = useDispatch<AppDispatch>()
+  const getAndSetCompanyHandler = useGetSetData(getAndSetCompany);
 
   const formik: any = useFormik({
     initialValues: {
@@ -76,7 +76,7 @@ export const CreateCompany = ({ setView , data }: any) => {
           body: allData,
         });
       }
-      dispatch(getAndSetCompany(organizationId))
+      getAndSetCompanyHandler();
     },
   });
 

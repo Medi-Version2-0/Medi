@@ -15,11 +15,11 @@ import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { subgroupValidationSchema } from './validation_schema';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
 import usePermission from '../../hooks/useRole';
-import { useSelector, useDispatch } from 'react-redux';
-import { AppDispatch } from '../../store/types/globalTypes';
+import { useSelector } from 'react-redux';
 import { getAndSetSubGroups } from '../../store/action/globalAction';
 import { extractKeys, lookupValue } from '../../helper/helper';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
+import { useGetSetData } from '../../hooks/useGetSetData';
 
 export const SubGroups = () => {
   const initialValue = {
@@ -51,7 +51,7 @@ export const SubGroups = () => {
   const pinnedRow: SubGroupFormData = {
     group_name: ''
   };
-  const dispatch = useDispatch<AppDispatch>()
+  const getAndSetSubGroupsHandler = useGetSetData(getAndSetSubGroups);
   const { subGroups, groups: groupList } = useSelector((state: any) => state.global);
   const gridRef = useRef<any>(null);
 
@@ -92,7 +92,7 @@ export const SubGroups = () => {
         });
       }
       togglePopup(false);
-      dispatch(getAndSetSubGroups(organizationId));
+      getAndSetSubGroupsHandler();
     }
   };
   const isDelete = useRef(false);
@@ -114,7 +114,7 @@ export const SubGroups = () => {
     await sendAPIRequest(`/${organizationId}/group/sub/${group_code}`, {
       method: 'DELETE',
     });
-    dispatch(getAndSetSubGroups(organizationId));
+    getAndSetSubGroupsHandler();
   };
 
   const handleDelete = (oldData: SubGroupFormData) => {
@@ -204,7 +204,7 @@ export const SubGroups = () => {
         method: 'PUT',
         body: { [field]: newValue },
       });
-      dispatch(getAndSetSubGroups(organizationId));
+      getAndSetSubGroupsHandler();
     }catch(err){
       settingPopupState(false, 'Subgroup name should not be empty');
       node.setDataValue(field, oldValue);

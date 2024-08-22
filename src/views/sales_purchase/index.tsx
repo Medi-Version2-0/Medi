@@ -6,19 +6,18 @@ import {
   SalesPurchaseFormData,
   SalesPurchaseTableProps,
 } from '../../interface/global';
-import { ValueFormatterParams } from 'ag-grid-community';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import Button from '../../components/common/button/Button';
 import { CreateSalePurchase } from './CreateSalePurchase';
 import { sendAPIRequest } from '../../helper/api';
 import { useParams } from 'react-router-dom';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 import { getAndSetSales, getAndSetPurchase } from '../../store/action/globalAction';
 import usePermission from '../../hooks/useRole';
-import { AppDispatch } from '../../store/types/globalTypes';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
 import { decimalFormatter } from '../../helper/helper';
+import { useGetSetData } from '../../hooks/useGetSetData';
 
 const initialValue: SalesPurchaseFormData = {
   sptype: '',
@@ -30,6 +29,8 @@ const initialValue: SalesPurchaseFormData = {
 
 export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
   const { organizationId } = useParams();
+  const getAndSetSalesHandler = useGetSetData(getAndSetSales);
+  const getAndSetPurchaseHandler = useGetSetData(getAndSetPurchase);
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<SalesPurchaseFormData>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
@@ -44,7 +45,6 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
   });
   const editing = useRef(false);
   const isDelete = useRef(false);
-  const dispatch = useDispatch<AppDispatch>()
 
   const togglePopup = (isOpen: boolean) => {
     if (!isOpen) {
@@ -105,7 +105,7 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
       const method = formData.sp_id ? 'PUT' : 'POST';
 
       await sendAPIRequest(endpoint, { method, body: formData });
-      type === 'Sales' ?  dispatch(getAndSetSales(organizationId)) : dispatch(getAndSetPurchase(organizationId));
+      type === 'Sales' ?  getAndSetSalesHandler() : getAndSetPurchaseHandler();
       togglePopup(false);
     }
   };
@@ -155,7 +155,7 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
     const endpoint = `${endPoint}/${sp_id}`;
     togglePopup(false);
     await sendAPIRequest(endpoint, { method: 'DELETE' });
-    type === 'Sales' ? await dispatch(getAndSetSales(organizationId)) : await dispatch(getAndSetPurchase(organizationId));
+    type === 'Sales' ? await getAndSetSalesHandler() : await getAndSetPurchaseHandler();
   };
 
   const handleDelete = (oldData: SalesPurchaseFormData) => {
@@ -214,7 +214,7 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
       method: 'PUT',
       body: { ...data, [field]: newValue },
     });
-    type === 'Sales' ? dispatch(getAndSetSales(organizationId)) : dispatch(getAndSetPurchase(organizationId));
+    type === 'Sales' ? getAndSetSalesHandler() : getAndSetPurchaseHandler();
   };
 
     const defaultCols={

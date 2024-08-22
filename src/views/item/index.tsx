@@ -27,10 +27,9 @@ import SearchItem from './searchItem';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { itemFormValidations } from './validation_schema';
 import usePermission from '../../hooks/useRole';
-import { useDispatch } from 'react-redux'
 import { getAndSetItem } from '../../store/action/globalAction';
-import { AppDispatch } from '../../store/types/globalTypes';
 import { useSelector } from 'react-redux';
+import { useGetSetData } from '../../hooks/useGetSetData';
 
 const initialPopupState = {
   setting: false,
@@ -40,6 +39,7 @@ const initialPopupState = {
 const Items = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
   const { organizationId } = useParams();
+  const getAndSetItemHandler = useGetSetData(getAndSetItem);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<ItemFormData | any>(null);
   const [open, setOpen] = useState(initialPopupState);
@@ -61,7 +61,6 @@ const Items = () => {
     message: '',
   });
   const { createAccess, updateAccess, deleteAccess } = usePermission('items')
-  const dispatch = useDispatch<AppDispatch>()
   const {item: itemData} = useSelector((state: any) => state.global);
 
   const itemSettingsInitialValues = {
@@ -184,7 +183,7 @@ const Items = () => {
       await sendAPIRequest(`/${organizationId}/item/${id.current}`, {
       method: 'DELETE',
     });
-    dispatch(getAndSetItem(organizationId))
+    getAndSetItemHandler();
   }
   catch{
     setPopupState({ ...popupState, isAlertOpen: true, message:'This item is associated' });
@@ -228,7 +227,7 @@ const Items = () => {
       method: 'PUT',
       body: { [field]: newValue },
     });
-    dispatch(getAndSetItem(organizationId))
+    getAndSetItemHandler();
   };
 
   const onCellClicked = (params: { data: any }) => {

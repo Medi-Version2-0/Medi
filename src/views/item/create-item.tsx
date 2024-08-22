@@ -8,9 +8,8 @@ import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { sendAPIRequest } from '../../helper/api';
-import { AppDispatch } from '../../store/types/globalTypes';
-import { useDispatch } from 'react-redux'
 import { getAndSetItem } from '../../store/action/globalAction';
+import { useGetSetData } from '../../hooks/useGetSetData';
 
 export interface ItemFormValues {
   name: string;
@@ -46,7 +45,7 @@ const CreateItem = ({ setView, data, setShowBatch }: any) => {
     message: '',
     addText: '',
   });
-  const dispatch = useDispatch<AppDispatch>()
+  const getAndSetItemHandler = useGetSetData(getAndSetItem);
 
   const itemFormInfo: ItemFormInfoType = useFormik({
     initialValues: {
@@ -96,7 +95,7 @@ const CreateItem = ({ setView, data, setShowBatch }: any) => {
           });
           setNewItem(resp);
         }
-        dispatch(getAndSetItem(organizationId))
+        getAndSetItemHandler();
 
         setPopupState({
           isModalOpen: false,
