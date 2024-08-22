@@ -31,7 +31,7 @@ export const billBookValidationSchema = (billBookData: any[], selectedSeries: st
             return !isPrefixDuplicate(value, selectedSeries, billBookData);
           }
         ),
-    orderOfBill: Yup.string().matches(
+    orderOfBill: Yup.string().nullable().matches(
       /^[0-9]*$/,
       'Only numeric values are allowed'
     ),

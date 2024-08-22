@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { FaEdit } from 'react-icons/fa';
 import { MdDeleteForever } from 'react-icons/md';
@@ -15,8 +15,14 @@ import { ControlRoomSettings } from '../../components/common/controlRoom/Control
 import { invoiceSettingFields } from '../../components/common/controlRoom/settings';
 import { useControls } from '../../ControlRoomContext';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
+import { getAndSetBillBook } from '../../store/action/globalAction';
 import { billBookValidationSchema } from './validation_schema';
+import { useDispatch, useSelector } from 'react-redux'
 import usePermission from '../../hooks/useRole';
+import { ValueFormatterParams } from 'ag-grid-community';
+import { lookupValue } from '../../helper/helper';
+import useHandleKeydown from '../../hooks/useHandleKeydown';
+import { AppDispatch } from '../../store/types/globalTypes';
 
 type SeriesOption = {
   id: number;
@@ -51,6 +57,8 @@ const seriesOptions: SeriesOption[] = [
 
 export const BillBook = () => {
   const { organizationId } = useParams();
+  const dispatch = useDispatch<AppDispatch>();
+  const { billBookSeries: billBookSeriesData } = useSelector((state: any) => state.global);
   const [open, setOpen] = useState<boolean>(false);
   const [settingToggleOpen, setSettingToggleOpen] = useState<boolean>(false);
   const [selectedSeries, setSelectedSeries] = useState<string>('1');
@@ -89,23 +97,22 @@ export const BillBook = () => {
     message: '',
   });
 
+  const settingPopupState = (isModal: boolean, message: string) => {
+    setPopupState({
+      ...popupState,
+      [isModal ? 'isModalOpen' : 'isAlertOpen']: true,
+      message: message,
+    });
+  };
+
   const getBillBook = async () => {
-    const data = await sendAPIRequest<{ data: BillBookForm }>(
-      `/${organizationId}/billBook?seriesId=${selectedSeries}`
-    );
-    setTableData(data);
+      const data = billBookSeriesData?.filter((data: any) => data.seriesId === +selectedSeries);
+      setTableData(data);
   };
 
   useEffect(() => {
     getBillBook();
-  }, [selectedSeries]);
-
-  useEffect(() => {
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [selectedRow]);
+  }, [billBookSeriesData, selectedSeries]);
 
   const toggleSettingPopup = (isOpen: boolean) => {
     setSettingToggleOpen(isOpen);
@@ -148,7 +155,7 @@ export const BillBook = () => {
       }
 
       togglePopup(false);
-      getBillBook();
+      dispatch(getAndSetBillBook(organizationId));
     }
   };
 
@@ -163,20 +170,12 @@ export const BillBook = () => {
       );
     });
     if (existingBill) {
-      setPopupState({
-        ...popupState,
-        isAlertOpen: true,
-        message: 'Bill with this name already exists!',
-      });
+      settingPopupState(false, 'Bill with this name already exists!');
       return;
     }
 
     if (values !== initialValue) {
-      setPopupState({
-        ...popupState,
-        isModalOpen: true,
-        message: `Are you sure you want to ${mode} this bill?`,
-      });
+      settingPopupState(true, `Are you sure you want to ${mode} this bill?`);
       setFormData(values);
     }
   };
@@ -184,10 +183,15 @@ export const BillBook = () => {
   const deleteAcc = async (id: string) => {
     isDelete.current = false;
     togglePopup(false);
-    await sendAPIRequest(`/${organizationId}/billBook/${id}`, {
-      method: 'DELETE',
-    });
-    getBillBook();
+    try{
+      await sendAPIRequest(`/${organizationId}/billBook/${id}`, {
+        method: 'DELETE',
+      });
+      dispatch(getAndSetBillBook(organizationId));
+    }catch{
+      settingPopupState(false, 'This bill book series is associated');
+    }
+    
   };
 
   const handleDelete = (oldData: BillBookForm) => {
@@ -209,40 +213,9 @@ export const BillBook = () => {
     setSelectedSeries(event.target.value);
   };
 
-  const companyMapping = {
-    'All Companies': 'All Companies',
-    'One Company': 'One Company',
-  };
-  const billTypeMapping = {
-    'Only Cash': 'Only Cash',
-    'Only Credit': 'Only Credit',
-    Both: 'Both',
-  };
-  const lockedMapping = {
-    Yes: 'Yes',
-    No: 'No',
-  };
-
-  const extractKey = (mappings: {
-    [x: number]: string;
-    [x: string]: string;
-  }) => {
-    return Object.keys(mappings);
-  };
-
-  const company = extractKey(companyMapping);
-  const billType = extractKey(billTypeMapping);
-  const locked = extractKey(lockedMapping);
-
-  const lookupValue = (
-    mappings: {
-      [x: string]: any;
-      [x: number]: string;
-    },
-    key: string | number
-  ) => {
-    return mappings[key];
-  };
+  const companyMapping = useMemo(() => ({'All Companies': 'All Companies', 'One Company': 'One Company'}), []);
+  const billTypeMapping = useMemo(() => ({'Only Cash': 'Only Cash', 'Only Credit': 'Only Credit', 'Both': 'Both'}), []);
+  const lockedMapping = useMemo(() => ({Yes: 'Yes', No: 'No'}), []);
 
   const handleCellEditingStopped = async (e: any) => {
     currTable = [];
@@ -253,7 +226,8 @@ export const BillBook = () => {
     const field = column.colId;
 
     try {
-      await billBookValidationSchema(tableData, selectedSeries, false).validateAt(field, { [field]: newValue });
+      const billBookTableData = tableData.filter((e: any) => e.id !== data.id);
+      await billBookValidationSchema(billBookTableData, selectedSeries, false).validateAt(field, { [field]: newValue });
 
       if (field === 'billName') {
         newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
@@ -269,21 +243,13 @@ export const BillBook = () => {
         );
 
         if (existingBill) {
-          setPopupState({
-            ...popupState,
-            isAlertOpen: true,
-            message: 'Bill with this name already exists!',
-          });
+          settingPopupState(false, 'Bill with this name already exists!');
           node.setDataValue(field, oldValue);
           return;
         }
       }
     } catch (error: any) {
-      setPopupState({
-        ...popupState,
-        isAlertOpen: true,
-        message: error.message,
-      });
+      settingPopupState(false, `${error.message}`);
       node.setDataValue(field, oldValue);
       return;
     }
@@ -293,11 +259,11 @@ export const BillBook = () => {
       body: { [field]: newValue },
     });
 
-    getBillBook();
+    dispatch(getAndSetBillBook(organizationId));
   };
 
   const onCellClicked = (params: { data: any }) => {
-    setSelectedRow(selectedRow !== null ? null : params.data);
+    setSelectedRow(params.data);
   };
 
   const cellEditingStarted = () => {
@@ -307,32 +273,33 @@ export const BillBook = () => {
   const handleKeyDown = (event: KeyboardEvent) => {
     handleKeyDownCommon(
       event,
-      handleDelete,
-      handleUpdate,
+      ()=> handleDelete(selectedRow),
+      ()=>handleUpdate(selectedRow),
       togglePopup,
       selectedRow,
       undefined
     );
   };
 
+  useHandleKeydown(handleKeyDown, [selectedRow, popupState])
+
+  const defaultCols = {
+    floatingFilter: true,
+    flex: 1,
+    filter: true,
+    suppressMovable: true,
+    headerClass: 'custom-header',
+    editable: updateAccess,
+  }
+
   const colDefs: any[] = [
     {
       headerName: 'Series Name',
       field: 'billName',
-      filter: true,
-      sortable: true,
-      flex: 1,
-      headerClass: 'custom-header',
-      suppressMovable: true,
     },
     {
       headerName: 'Prefix',
       field: 'billBookPrefix',
-      filter: true,
-      flex: 1,
-      headerClass: 'custom-header',
-      sortable: true,
-      suppressMovable: true,
       valueParser: (params: { newValue: string }) => {
         return params.newValue.toUpperCase().slice(0, 2);
       },
@@ -340,63 +307,34 @@ export const BillBook = () => {
     {
       headerName: 'Company',
       field: 'company',
-      filter: true,
-      sortable: true,
-      flex: 1,
       cellEditor: 'agSelectCellEditor',
-      cellEditorParams: {
-        values: company,
-      },
-      valueFormatter: (params: { value: string | number }) =>
-        lookupValue(companyMapping, params.value),
-      headerClass: 'custom-header',
-      suppressMovable: true,
+      cellEditorParams: {values: Object.values(companyMapping)},
+      valueFormatter: (params: ValueFormatterParams) => lookupValue(companyMapping, params.value),
     },
     {
       headerName: 'Cash/Credit',
       field: 'billType',
-      filter: true,
-      sortable: true,
-      flex: 1,
       cellEditor: 'agSelectCellEditor',
-      cellEditorParams: {
-        values: billType,
-      },
-      valueFormatter: (params: { value: string | number }) =>
-        lookupValue(billTypeMapping, params.value),
-      headerClass: 'custom-header',
-      suppressMovable: true,
+      cellEditorParams: {values: Object.values(billTypeMapping)},
+      valueFormatter: (params: ValueFormatterParams) => lookupValue(billTypeMapping, params.value),
     },
     {
       headerName: 'Sequence of Bill',
       field: 'orderOfBill',
-      filter: true,
       headerClass: 'custom-header-class custom-header',
-      sortable: true,
-      suppressMovable: true,
-      flex: 1,
     },
     {
       headerName: 'Lock Bill',
       field: 'locked',
-      filter: true,
-      flex: 1,
       cellEditor: 'agSelectCellEditor',
-      cellEditorParams: {
-        values: locked,
-      },
-      valueFormatter: (params: { value: string | number }) =>
-        lookupValue(lockedMapping, params.value),
-      headerClass: 'custom-header',
-      suppressMovable: true,
+      cellEditorParams: {values: Object.values(lockedMapping)},
+      valueFormatter: (params: ValueFormatterParams) => lookupValue(lockedMapping, params.value),
     },
     {
       headerName: 'Actions',
       headerClass: 'custom-header-class custom-header',
+      editable: false,
       sortable: false,
-      suppressMovable: true,
-      editable :false,
-      flex: 1,
       cellStyle: {
         display: 'flex',
         justifyContent: 'center',
@@ -406,14 +344,15 @@ export const BillBook = () => {
         <div className='table_edit_buttons'>
         {updateAccess && <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
-            onClick={() => handleUpdate(params.data)}
+            onClick={() => {
+              setSelectedRow(selectedRow !== null ? null : params.data);
+              handleUpdate(params.data);
+            }}
           />}
 
          {deleteAccess && <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
-            onClick={() => {
-              handleDelete(params.data);
-            }}
+            onClick={() => handleDelete(params.data)}
           />}
         </div>
       ),
@@ -427,12 +366,7 @@ export const BillBook = () => {
           <div className='flex w-full items-center justify-between px-8 py-1'>
             <h1 className='font-bold'>Bill Book Setup</h1>
             <div className='flex gap-5'>
-              <Button
-                type='highlight'
-                handleOnClick={() => {
-                  toggleSettingPopup(true);
-                }}
-              >
+              <Button type='highlight' handleOnClick={() => toggleSettingPopup(true)}>
                 <IoSettingsOutline />
               </Button>
              {createAccess && <Button type='highlight' handleOnClick={() => togglePopup(true)}>
@@ -442,7 +376,7 @@ export const BillBook = () => {
           </div>
 
           <div className='seriesSelection flex px-8 py-1 my-2 items-center gap-10'>
-            <label htmlFor='series-select' className=''>
+            <label htmlFor='series-select'>
               Select Series:
             </label>
             <select
@@ -463,10 +397,7 @@ export const BillBook = () => {
               <AgGridReact
                 rowData={tableData}
                 columnDefs={colDefs}
-                defaultColDef={{
-                  floatingFilter: true,
-                  editable : updateAccess
-                }}
+                defaultColDef={defaultCols}
                 onCellClicked={onCellClicked}
                 onCellEditingStarted={cellEditingStarted}
                 onCellEditingStopped={handleCellEditingStopped}
