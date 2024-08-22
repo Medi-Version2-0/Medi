@@ -12,7 +12,6 @@ import Button from '../../components/common/button/Button';
 import onKeyDown from '../../utilities/formKeyDown';
 import FormikInputField from '../../components/common/FormikInputField';
 import titleCase from '../../utilities/titleCase';
-import { sendAPIRequest } from '../../helper/api';
 import { useControls } from '../../ControlRoomContext';
 import { stationValidationSchema } from './validation_schema';
 
@@ -23,10 +22,14 @@ export const CreateStation = ({
   isDelete,
   deleteAcc,
   className,
+  states,
 }: CreateStationProps) => {
   const { station_id } = data;
   const formikRef = useRef<FormikProps<FormDataProps>>(null);
-  const [stateOptions, setStateOptions] = useState<Option[]>([]);
+  const stateOptions = states!.map((state) => ({
+    value: state.state_code,
+    label: titleCase(state.state_name),
+  }))
   const { controlRoomSettings } = useControls();
   const [focused, setFocused] = useState('');
 
@@ -35,20 +38,6 @@ export const CreateStation = ({
       ? document.getElementById('station_name')
       : document.getElementById('cancel_button');
     focusTarget?.focus();
-  }, []);
-
-  const getStates = async () => {
-    const statesList = await sendAPIRequest<any[]>('/state');
-    setStateOptions(
-      statesList.map((state) => ({
-        value: state.state_code,
-        label: titleCase(state.state_name),
-      }))
-    );
-  };
-
-  useEffect(() => {
-    getStates();
   }, []);
 
   const handleSubmit = async (values: object) => {
@@ -156,7 +145,7 @@ export const CreateStation = ({
                       isSearchable={true}
                       disableArrow={true}
                       hidePlaceholder={false}
-                      className='!h-6 rounded-sm text-xs'
+                      className='!h-8 rounded-sm text-xs'
                       isFocused={focused === 'state_code'}
                       error={formik.errors.state_code}
                       isDisabled={isDelete && station_id}
@@ -197,8 +186,14 @@ export const CreateStation = ({
               // sideField='igst_sale'
               nextField={`${controlRoomSettings.igstSaleFacility ? 'igst_sale' : 'submit_button'}`}
               prevField='state_code'
-              onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
+              onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>{
+                if (e.key === 'Tab' && !controlRoomSettings.igstSaleFacility) {
+                  e.preventDefault();
+                  document.getElementById('cancel_button')?.focus();
+                  return;
+                }
                 handleKeyDown(e)
+              }
               }
               onChange={handleChange}
               showErrorTooltip={
@@ -243,7 +238,7 @@ export const CreateStation = ({
                         setFocused('');
                       }}
                       onKeyDown={(e: any) => {
-                        if (e.key === 'Enter' || e.key === 'Tab') {
+                        if (e.key === 'Enter') {
                           const dropdown = document.querySelector(
                             '.custom-select__menu'
                           );
@@ -251,6 +246,10 @@ export const CreateStation = ({
                             e.preventDefault();
                           }
                           document.getElementById('submit_button')?.focus();
+                        }
+                        if (e.key === 'Tab'){
+                          e.preventDefault();
+                          document.getElementById('cancel_button')?.focus();
                         }
                         if (e.shiftKey && e.key === 'Tab') {
                           document.getElementById('station_pinCode')?.focus();
@@ -270,7 +269,7 @@ export const CreateStation = ({
                 handleOnClick={() => togglePopup(false)}
                 handleOnKeyDown={(e) => {
                   if (e.key === 'Tab') {
-                    document.getElementById(`${isDelete ? 'del_button' : 'station_name'}`)?.focus();
+                    document.getElementById(`${isDelete ? 'del_button' : 'submit_button'}`)?.focus();
                     e.preventDefault();
                   }
                   if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab')) {

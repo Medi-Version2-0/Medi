@@ -5,11 +5,14 @@ import { SET_STATION, SET_GROUPS, SET_ORGANIZATION, SET_PERMISSIONS, GlobalActio
 import { sendAPIRequest } from '../../helper/api';
 import { ItemGroupFormData, GroupFormData, SalesPurchaseFormData,  CompanyFormData, BillBookForm, BillBookFormData, LedgerFormData, ItemFormData, StoreFormData } from '../../interface/global';
 
+export const getAndSetStations = (organizationId: string | undefined) => async (dispatch: Dispatch<GlobalActionTypes>) => {
+  const stations = await sendAPIRequest<any[]>(`/${organizationId}/station`);
 
-export const setStation = (station: any): GlobalActionTypes => ({
-  type: SET_STATION,
-  payload: station,
-});
+  dispatch({
+    type: SET_STATION,
+    payload: stations || [],
+  });
+} 
 
 export const setGroups = (groups: any): GlobalActionTypes => ({
   type: SET_GROUPS,
@@ -117,7 +120,7 @@ export const getAndSetGroups = (organizationId: string|undefined) => async (disp
 export const getAndSetSubGroups = (organizationId: string|undefined) => async (dispatch: Dispatch<GlobalActionTypes>) => {
   const subGroups = await sendAPIRequest<GroupFormData[]>(`/${organizationId}/group/sub`)
   dispatch({
-    type: SET_GROUPS,
+    type: SET_SUB_GROUPS,
     payload: subGroups || [],
   });
 }
