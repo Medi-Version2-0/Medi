@@ -117,7 +117,7 @@ export const getAndSetGroups = (organizationId: string|undefined) => async (disp
 export const getAndSetSubGroups = (organizationId: string|undefined) => async (dispatch: Dispatch<GlobalActionTypes>) => {
   const subGroups = await sendAPIRequest<GroupFormData[]>(`/${organizationId}/group/sub`)
   dispatch({
-    type: SET_GROUPS,
+    type: SET_SUB_GROUPS,
     payload: subGroups || [],
   });
 }

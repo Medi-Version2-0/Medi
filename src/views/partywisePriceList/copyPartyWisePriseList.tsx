@@ -1,17 +1,22 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import Select from 'react-select';
 import { sendAPIRequest } from '../../helper/api';
 import { useParams } from 'react-router-dom';
 import { AgGridReact } from 'ag-grid-react';
 import Button from '../../components/common/button/Button';
+import { partyHeaders } from './partywiseHeader';
+import { SelectList } from '../../components/common/selectList';
 
 const CopyPratywisePriceList: React.FC = () => {
-  const [copyFrom, setCopyFrom] = useState<any>(null);
+  const [copyFrom, setCopyFrom] = useState<{ [key: string]: string }>({});
   const [copyTo, setCopyTo] = useState<any>(null);
   const { party: partyData } = useSelector((state: any) => state.global);
   const { organizationId } = useParams<{ organizationId: string }>();
   const [tableData, setTableData] = useState<any[]>([]);
+  const [popupList, setPopupList] = useState<{ isOpen: boolean, data: any }>({
+    isOpen: false,
+    data: {}
+  })
 
   const getItemData = async (partyId?: any) => {
     const itemData = await sendAPIRequest<any[]>(
@@ -40,17 +45,9 @@ const CopyPratywisePriceList: React.FC = () => {
       }
     );
 
-    console.log(`Copying from ${copyFrom.partyName} to ${copyTo.partyName}`);
     getItemData(copyTo.party_id);
   };
   
-  const options = partyData?.map((party: any) => ({
-    value: party.party_id,
-    label: party.partyName,
-    party_id: party.party_id,
-    partyName: party.partyName,
-  }));
-
   const colDefs = useMemo(
     () => [
       {
@@ -85,17 +82,24 @@ const CopyPratywisePriceList: React.FC = () => {
           >
             Party
           </label>
-          <Select
+          <input
             id='copyFrom'
-            options={options}
-            value={
-              copyFrom
-                ? { value: copyFrom.party_id, label: copyFrom.partyName }
-                : null
-            }
-            onChange={(selectedOption: any) => setCopyFrom(selectedOption)}
-            className='mt-1 w-full'
-            placeholder='Select an option'
+            placeholder='Select Party...'
+            onFocus={() => {
+              if (partyData.length) {
+                setPopupList({
+                  isOpen: true,
+                  data: {
+                    heading: 'Select Party',
+                    headers: [...partyHeaders],
+                    tableData: partyData,
+                    handleSelect: (rowData: any) => setCopyFrom(rowData)
+                  }
+                })
+              }
+            }}
+            value={copyFrom?.partyName || ''}
+            className='w-full mt-1 p-2 border border-gray-300 rounded min-w-52'
           />
         </div>
         <div className='flex-1'>
@@ -105,17 +109,24 @@ const CopyPratywisePriceList: React.FC = () => {
           >
             Copy To
           </label>
-          <Select
+          <input
             id='copyTo'
-            options={options}
-            value={
-              copyTo
-                ? { value: copyTo.party_id, label: copyTo.partyName }
-                : null
-            }
-            onChange={(selectedOption: any) => setCopyTo(selectedOption)}
-            className='mt-1 w-full'
-            placeholder='Select an option'
+            placeholder='Select Party...'
+            onFocus={() => {
+              if (partyData.length) {
+                setPopupList({
+                  isOpen: true,
+                  data: {
+                    heading: 'Select Party',
+                    headers: [...partyHeaders],
+                    tableData: partyData,
+                    handleSelect: (rowData: any) => setCopyTo(rowData)
+                  }
+                })
+              }
+            }}
+            value={copyTo?.partyName || ''}
+            className='w-full mt-1 p-2 border border-gray-300 rounded min-w-52'
           />
         </div>
         <Button
@@ -129,13 +140,23 @@ const CopyPratywisePriceList: React.FC = () => {
       </div>
       <div className='flex w-full'>
         <Button type='highlight' btnType='button' handleOnClick={() => {
-          setCopyFrom(null);
+          setCopyFrom({});
           setCopyTo(null);
           setTableData([]);
         }} >
           Add More
         </Button>
       </div>
+
+      {popupList.isOpen && (
+        <SelectList
+          heading={popupList.data.heading}
+          closeList={() => setPopupList({ isOpen: false, data: {} })}
+          headers={popupList.data.headers}
+          tableData={popupList.data.tableData}
+          handleSelect={(rowData) => { popupList.data.handleSelect(rowData) }}
+        />
+      )}
 
       {!!tableData.length && (
         <div

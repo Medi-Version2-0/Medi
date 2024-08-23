@@ -379,3 +379,13 @@ export interface dropDownPopupProps {
   dataKeys?: any;
 }
 export type Mapping = { [key: number]: string };
+
+export interface selectListProps {
+  heading: string;
+  closeList: ()=> void;
+  className?: string;
+  headers: any[];
+  tableData: any[];
+  handleSelect: (rowData : any)=> void;
+  dataKeys?: any;
+}
