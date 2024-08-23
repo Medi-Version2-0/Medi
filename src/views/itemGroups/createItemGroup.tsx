@@ -93,12 +93,12 @@ export const CreateItemGroup: React.FC<CreateItemGroupProps> = ({
             </div>
             <div className='radio_fields relative w-full rounded-sm border border-solid border-[#9ca3af] p-[3px]'>
               <span
-                className={`label_prefix bg-white px-1 absolute top-0 left-1 -translate-y-1/2 text-xs ${!!(formik.touched.type && formik.errors.type) && '!text-red-700'}`}
+                className={`label_prefix bg-white px-1 absolute top-0 left-1 -translate-y-1/2 text-xs z-[3] ${!!(formik.touched.type && formik.errors.type) && '!text-red-700'}`}
               >
                 Type
               </span>
               <div
-                className={`relative flex items-center justify-evenly w-full p-[3px] ${group_code && isDelete && 'bg-[#f5f5f5]'} ${!!(formik.touched.type && formik.errors.type) && '!border-red-500'}`}
+                className={`relative flex items-center justify-evenly w-full  h-7 ${group_code && isDelete && 'bg-[#f5f5f5]'} ${!!(formik.touched.type && formik.errors.type) && '!border-red-500'}`}
               >
                 <label
                   className={`flex items-center justify-center text-xs cursor-pointer text-center font-medium ${group_code && isDelete ? 'disabled' : ''}`}

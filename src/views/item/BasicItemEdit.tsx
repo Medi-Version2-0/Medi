@@ -3,8 +3,6 @@ import { ItemFormValues, ItemFormInfoType } from './create-item';
 import CustomSelect from '../../components/custom_select/CustomSelect';
 import FormikInputField from '../../components/common/FormikInputField';
 import { ItemGroupFormData, Option, CompanyFormData, SalesPurchaseFormData   } from '../../interface/global';
-import { sendAPIRequest } from '../../helper/api';
-import { useParams } from 'react-router-dom';
 import { useControls } from '../../ControlRoomContext';
 import { FormikProps } from 'formik';
 import onKeyDown from '../../utilities/formKeyDown';
@@ -70,9 +68,10 @@ const Container: React.FC<ContainerProps> = ({ title, fields, formik, setFocused
           purchaseId: selectedCompany.purchaseId,
           salePurchase: selectedCompany.purSaleAc,
           discPercent: selectedCompany.discPercent,
-          isDiscountPercent: selectedCompany.isDiscountPercent
+          isDiscountPercent: selectedCompany.isDiscountPercent,
         });
       }
+      formik.setFieldValue('shortName', selectedCompany.shortName);
     }
     formik.setFieldValue(field.name, option ? option.value : null);
   }
@@ -177,7 +176,6 @@ const Container: React.FC<ContainerProps> = ({ title, fields, formik, setFocused
 
 const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
   const { controlRoomSettings } = useControls();
-  const { organizationId } = useParams();
   const [options, setOptions] = useState<{
     companiesOptions: Option[];
     salesOptions: Option[];
