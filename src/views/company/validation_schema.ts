@@ -21,6 +21,8 @@ export const getCompanyFormSchema = Yup.object({
 
   address3: Yup.string().max(50, 'Address 3 must be 50 characters or less'),
 
+  stationId: Yup.string(),
+
   openingBal: Yup.number()
     .nullable()
     .test(

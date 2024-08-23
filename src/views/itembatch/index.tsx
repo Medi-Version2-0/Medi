@@ -55,17 +55,21 @@ export const Batch = ({
   });
   const dispatch = useDispatch<AppDispatch>()
   const {item: itemsData} = useSelector((state: any) => state.global);
+  const itemData = itemsData.find((item: any) => item.id === id);
+  const settingPopupState = (isModal: boolean, message: string) => {
+    setPopupState({
+      ...popupState,
+      [isModal ? 'isModalOpen' : 'isAlertOpen']: true,
+      message: message,
+    });
+  };
+
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const getItem =  () => {
-    const itemData = itemsData.find((item: any) => item.id === id);
-    setItems(itemData);
-    return itemData;
-  };
 
   const getBatch = (async () => {
     setInputRow(pinnedRow);
-    const itemData =  getItem();
+    setItems(itemData);
     let newRow = { ...pinnedRow, itemId: 0 };
     if (controlRoomSettings.batchWiseManufacturingCode) {
       newRow = { ...newRow, mfgCode: itemData?.shortName || '' };
@@ -103,11 +107,7 @@ export const Batch = ({
           numberedStringLowerCase(tableBatch?.batchNo) === numberedStringLowerCase(inputRow.batchNo)
       );
       if (existingBatch) {
-        setPopupState({
-          ...popupState,
-          isAlertOpen: true,
-          message: 'Batch with this id already exists!',
-        });
+        settingPopupState(false, 'Batch with this id already exists!');
         return;
       }
       const formattedInputRow = {
@@ -115,6 +115,7 @@ export const Batch = ({
         currentStock: inputRow.opBalance,
         batchNo: inputRow.batchNo.toUpperCase(),
         locked: inputRow.locked.toUpperCase(),
+        mfgCode: itemData?.shortName,
       };
       await sendAPIRequest(`/${organizationId}/item/${id}/batch`, {
         method: 'POST',
@@ -124,13 +125,9 @@ export const Batch = ({
       dispatch(getAndSetItem(organizationId))
     } catch (err: any) {
       if (err.message) {
-        setPopupState({
-          ...popupState,
-          isAlertOpen: true,
-          message: err.message,
-        });
+        settingPopupState(false, `${err.message}`);
       } else {
-        console.error('Error occured while adding batch:-', err);
+        settingPopupState(false, 'Error occured while adding batch');
       }
     }
   };
@@ -215,11 +212,7 @@ export const Batch = ({
                 colKey: field,
               });
               node.setDataValue(field, oldValue);
-              setPopupState({
-                ...popupState,
-                isAlertOpen: true,
-                message: err.message,
-              });
+              settingPopupState(false, `${err.message}`);
             }
           }
         } else {
@@ -238,21 +231,13 @@ export const Batch = ({
                 colKey: field,
               });
               node.setDataValue(field, oldValue);
-              setPopupState({
-                ...popupState,
-                isAlertOpen: true,
-                message: err.message,
-              });
+              settingPopupState(false, `${err.message}`);
             }
           }
         }
       } catch (err: any) {
         if (err.response?.data.message || err.message) {
-          setPopupState({
-            ...popupState,
-            isAlertOpen: true,
-            message:err.response?.data.message || err.message,
-          });
+          settingPopupState(false, `${err.response?.data.message || err.message}`);
         } else {
           console.error('Error:-', err);
         }
@@ -296,11 +281,7 @@ export const Batch = ({
           }
         } else {
           !editing.current &&
-            setPopupState({
-              ...popupState,
-              isAlertOpen: true,
-              message: validationStatus.error,
-            });
+            settingPopupState(false, `${validationStatus.error}`);
         }
 
       }

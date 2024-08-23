@@ -61,7 +61,7 @@ const Items = () => {
     message: '',
   });
   const { createAccess, updateAccess, deleteAccess } = usePermission('items')
-  const {item: itemData} = useSelector((state: any) => state.global);
+  const { company, sales: saleData, purchase: purchasesData, itemGroups: itemGroupsData, item : itemReduxData} = useSelector((state: any) => state.global);
 
   const itemSettingsInitialValues = {
     generateBarcodeBatchWise:
@@ -77,7 +77,6 @@ const Items = () => {
     salesPriceLimit: controlRoomSettings.salesPriceLimit || 0,
   };
 
-
   const togglePopup = (isOpen: boolean, key?: string) => {
     if (key) {
       setOpen({ ...open, [key]: isOpen });
@@ -87,32 +86,22 @@ const Items = () => {
   };
 
   const getItemData = async () => {
-    setTableData(itemData)
+    setTableData(itemReduxData);
   };
 
   const getCompany = async () => {
-    const companyData = await sendAPIRequest<{ data: CompanyFormData }>(
-      `/${organizationId}/company`,
-      {
-        method: 'GET',
-      }
-    );
-    setCompanyData(companyData);
+    setCompanyData(company);
   };
 
   const getGroups = async () => {
-    const itemGroup = await sendAPIRequest<{ data: ItemGroupFormData }>(
-      `/${organizationId}/itemGroup`,
-      { method: 'GET' }
-    );
-    setItemGroupData(itemGroup);
+    setItemGroupData(itemGroupsData);
   };
 
   const getSales = async () => {
-    setSalesData(await sendAPIRequest<any[]>(`/${organizationId}/sale`));
+    setSalesData(saleData);
   };
   const getPurchases = async () => {
-    setPurchaseData(await sendAPIRequest<any[]>(`/${organizationId}/purchase`));
+    setPurchaseData(purchasesData);
   };
 
   useEffect(() => {
@@ -121,7 +110,7 @@ const Items = () => {
     getGroups();
     getCompany();
     getItemData();
-  }, [itemData]);
+  }, [itemReduxData, company, saleData, purchasesData, itemGroupsData]);
 
   const companyCodeMap: { [key: number]: string } = {};
   const groupCodeMap: { [key: number]: string } = {};
@@ -281,6 +270,7 @@ const Items = () => {
       filter: true,
       editable: updateAccess,
       suppressMovable: true,
+      hide: !controlRoomSettings.batchWiseManufacturingCode,
     },
     {
       headerName: 'Company',
