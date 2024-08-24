@@ -4,27 +4,27 @@ import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { useSelector } from 'react-redux';
-import { DropDownPopup } from '../../components/common/dropDownPopup';
-import { itemHeaders, partyHeaders } from './partywiseHeader';
+import { partyHeaders } from './partywiseHeader';
 import { sendAPIRequest } from '../../helper/api';
 import Button from '../../components/common/button/Button';
 import { printData } from '../../components/common/ExportData';
+import { SelectList } from '../../components/common/selectList';
 
 const PriceList = () => {
   const { organizationId } = useParams<{ organizationId: string }>();
-  const { party: partyData, company: companyData, sales: salesData, purchase: purchaseData, item: itemData } = useSelector((state: any) => state.global);
+  const { party: partyData, item: itemData } = useSelector((state: any) => state.global);
   const [selectedPartyStation, setSelectedPartyStation] = useState<string>('');
-  const [openDataPopup, setOpenDataPopup] = useState<boolean>(false);
-  const [headerData, setHeaderData] = useState<{ isParty: boolean; isItem: boolean; }>({ isParty: false, isItem: false });
-  const [currentSavedData, setCurrentSavedData] = useState<{ party: any; item: any; }>({ party: {}, item: {} });
+  const [currentSavedData, setCurrentSavedData] = useState<{[key: string] : string}>({});
   const [tableData, setTableData] = useState<any[]>([]);
-  const [options, setOptions] = useState<{value: string|number , label: string , [key:string]:any}[]>([]);
   const checkItemData = useRef(false);
 
+  const [popupList, setPopupList] = useState<{ isOpen: boolean, data: any }>({
+    isOpen: false,
+    data: {}
+  })
+
   const getItemData = async (partyId?: any) => {
-    const getItemData = await sendAPIRequest<any[]>(`/${organizationId}/partyWisePriceList/${partyId}`, {
-      method: 'GET',
-    });
+    const getItemData = await sendAPIRequest<any[]>(`/${organizationId}/partyWisePriceList/${partyId}`, {method: 'GET'});
     const hasMatchingId = getItemData.some(item => item.partyId === partyId);
     if (hasMatchingId && (itemData.length === getItemData.length)) {
       checkItemData.current = true;
@@ -72,21 +72,15 @@ const PriceList = () => {
       method: 'PUT',
       body: { [field]: newValue },
     });
-    getItemData(currentSavedData.party?.party_id);
+    getItemData(currentSavedData?.party_id);
 
   };
-
-  useEffect(() => {
-    partyData.forEach((party: any) => {
-      party.station = party.Station?.station_name;
-    });
-  }, [partyData]);
 
   const handleAdd = async (itemData: any) => {
     const finalData: any = [];
     itemData.map((data: any) => {
       const value = {
-        partyId: currentSavedData.party.party_id,
+        partyId: currentSavedData?.party_id,
         itemId: data.id,
         salePrice: data.salePrice
       }
@@ -97,26 +91,22 @@ const PriceList = () => {
       method: 'POST',
       body: finalData,
     });
-    getItemData(currentSavedData.party.party_id);
+    getItemData(currentSavedData?.party_id);
   }
-
 
   useEffect(() => {
     const fetchData = async () => {
-      if (Object.keys(currentSavedData.party).length !== 0) {
-        await getItemData(currentSavedData.party.party_id);
+      if (Object.keys(currentSavedData)?.length !== 0) {
+        await getItemData(currentSavedData?.party_id);
         if (!checkItemData.current) {
           handleItemData(itemData);
         }
-        setSelectedPartyStation(
-          currentSavedData.party.Station?.station_name || ''
-        );
+        setSelectedPartyStation(currentSavedData?.station_name || '');
       }
     };
   
     fetchData();
-  }, [currentSavedData.party?.party_id,itemData]);
-  
+  }, [currentSavedData.party_id, itemData]);
 
 
   const handleItemData = async (itemData: any) => {
@@ -127,27 +117,20 @@ const PriceList = () => {
       const unlockedBatches = batches.filter((batch: any) => batch.locked !== "Y");
       if (unlockedBatches.length > 0) {
         const batch = unlockedBatches[unlockedBatches.length - 1];
-        const party = currentSavedData.party?.salesPriceList;
+        const party = currentSavedData?.salesPriceList;
         item.salePrice = (party === '1' || !party) ? batch[`salePrice`] ?? 0 : batch[`salePrice${party}`] ?? 0;
         return true;
       }
       return false;
     });
-    if (filteredItemData.length > 0) {
-      setTableData(filteredItemData);
-    }
+    if (filteredItemData.length > 0) setTableData(filteredItemData);
     await handleAdd(filteredItemData);
   };
 
   const handleDelete = async (id: any) => {
-      await sendAPIRequest(`/${organizationId}/partyWisePriceList/${id}`, { method: 'DELETE' });
-      setOptions([]);
-      setSelectedPartyStation('');
-      setCurrentSavedData(prevState => ({
-        ...prevState,
-        party: {}
-      }));
-      setOpenDataPopup(false);
+    await sendAPIRequest(`/${organizationId}/partyWisePriceList/${id}`, { method: 'DELETE' });
+    setSelectedPartyStation('');
+    setCurrentSavedData({});
   };
 
   return (
@@ -165,11 +148,19 @@ const PriceList = () => {
                   id='partySelect'
                   placeholder='Select Party...'
                   onFocus={() => {
-                    setHeaderData({ isParty: true, isItem: false });
-                    setOptions(partyData);
-                    setOpenDataPopup(true);
+                    if (partyData.length) {
+                      setPopupList({
+                        isOpen: true,
+                        data: {
+                          heading: 'Select Party',
+                          headers: [...partyHeaders],
+                          tableData: partyData,
+                          handleSelect: (rowData: any) => setCurrentSavedData(rowData)
+                        }
+                      })
+                    }
                   }}
-                  value={currentSavedData.party.partyName || ''}
+                  value={currentSavedData?.partyName || ''}
                   className='p-2 border border-gray-300 rounded min-w-52'
                 />
               </div>
@@ -191,7 +182,7 @@ const PriceList = () => {
               type='highlight'
               padding='px-6 py-4'
               handleOnClick={() => {
-                handleDelete(currentSavedData.party.party_id)
+                handleDelete(currentSavedData?.party_id)
                 setTableData([]);
               }}
             >
@@ -210,7 +201,7 @@ const PriceList = () => {
           </div>
         </div>
       </div>
-      {headerData && (
+      {currentSavedData.party_id && (
         <div
           id='priceListTable'
           className='ag-theme-quartz w-full my-4'
@@ -230,27 +221,14 @@ const PriceList = () => {
           />
         </div>
       )}
-      {openDataPopup && (
-        <DropDownPopup
-          heading={
-            headerData.isParty
-              ? 'Select Party'
-              : headerData.isItem
-                ? 'Select Item'
-                : ''
-          }
-          setOpenDataPopup={setOpenDataPopup}
-          headers={
-            headerData.isParty
-              ? partyHeaders
-              : headerData.isItem
-                ? itemHeaders
-                : []
-          }
-          tableData={options}
-          setCurrentSavedData={setCurrentSavedData}
-          dataKeys={{ 'Select Party': 'party', 'Select Item': 'item' }}
-        />  
+      {popupList.isOpen && (
+        <SelectList
+          heading={popupList.data.heading}
+          closeList={() => setPopupList({ isOpen: false, data: {} })}
+          headers={popupList.data.headers}
+          tableData={popupList.data.tableData}
+          handleSelect={(rowData) => { popupList.data.handleSelect(rowData) }}
+        />
       )}
     </>
   );

@@ -32,6 +32,7 @@ interface CustomSelectProps extends Omit<SelectProps<Option>, 'onChange'> {
   isPopupOpen?: boolean;
   nextField?: string;
   prevField?: string;
+  onFocus? :()=> void
 }
 
 const CustomSelect: React.FC<CustomSelectProps> = ({
@@ -61,6 +62,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   noOptionsMsg = 'No Options',
   nextField,
   prevField,
+  onFocus,
   ...props
 }) => {
   const customComponents = disableArrow
@@ -70,7 +72,11 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   const [inputValue, setInputValue] = useState('');
   const [active, setActive] = useState(false);
   const [isEmpty, setIsEmpty] = useState(false);
-  const handleFocus = () => setActive(!active);
+  const handleFocus = () => {setActive(!active)
+    if(onFocus){
+      onFocus()
+    }
+  };
   const handleBlur = () => {
     setActive(false);
     if (onBlur) onBlur();
