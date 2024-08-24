@@ -12,7 +12,7 @@ export const Popup: React.FC<PopupProps> = ({
 }) => {
   return (
     <div className={`flex justify-center items-center fixed w-full h-full overflow-auto bg-[#00000066] z-[3] left-0 top-0 ${className}`} id={id}>
-      <div className={`${isSuggestionPopup ? 'min-w-md max-w-[48%] h-fit' : ''} relative max-w-xs max-h-[42rem] bg-white border px-0 py-4 rounded-[0.4rem] border-solid border-[#888] ${childClass}`}>
+      <div className={`${isSuggestionPopup ? 'min-w-md max-w-[48%] h-fit' : ''} relative min-w-[28%] bg-white border px-0 py-4 rounded-[0.4rem] border-solid border-[#888] ${childClass}`}>
         {onClose && (
           <button
             type="button"

@@ -89,9 +89,9 @@ export const CreateGroup = ({
                 }
               />
             </div>
-            <div className='radio_fields relative w-full rounded-sm border border-solid border-[#9ca3af] p-[3px]'>
+            <div className='radio_fields relative w-full h-9 rounded-sm border border-solid border-[#9ca3af] p-[3px]'>
               <span
-                className={`label_prefix bg-white px-1 absolute top-0 left-1 -translate-y-1/2 text-xs ${!!(formik.touched.type && formik.errors.type) && '!text-red-700'}`}
+                className={`label_prefix bg-white px-1 absolute top-0 left-1 -translate-y-1/2 text-sm ${!!(formik.touched.type && formik.errors.type) && '!text-red-700'}`}
               >
                 Type
               </span>
@@ -99,14 +99,14 @@ export const CreateGroup = ({
                 className={`relative flex items-center justify-evenly w-full p-[3px] ${group_code && isDelete && 'bg-[#f5f5f5]'} ${!!(formik.touched.type && formik.errors.type) && '!border-red-500'}`}
               >
                 <label
-                  className={`flex items-center justify-center text-xs cursor-pointer text-center font-medium ${group_code && isDelete ? 'disabled' : ''}`}
+                  className={`flex items-center justify-center text-sm cursor-pointer text-center font-medium ${group_code && isDelete ? 'disabled' : ''}`}
                 >
                   <Field
                     type='radio'
                     name='type'
                     value='P&L'
                     id='p_and_l'
-                    className='text-xs mr-1'
+                    className='text-lg mr-3'
                     required={true}
                     checked={formik.values.type === 'P&L'}
                     disabled={group_code && isDelete}
@@ -123,7 +123,7 @@ export const CreateGroup = ({
                   <span>P & L</span>
                 </label>
                 <label
-                  className={`flex items-center justify-center text-xs cursor-pointer text-center font-medium ${group_code && isDelete ? 'disabled' : ''}`}
+                  className={`flex items-center justify-center text-sm cursor-pointer text-center font-medium ${group_code && isDelete ? 'disabled' : ''}`}
                 >
                   <Field
                     type='radio'

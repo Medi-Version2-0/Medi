@@ -14,7 +14,7 @@ interface CustomSelectProps extends Omit<SelectProps<Option>, 'onChange'> {
   containerClass?: string;
   selectClass?:string;
   options: Option[];
-  value: Option | null;
+  value?: Option | null;
   onChange: (option: Option | null, id: string) => void;
   placeholder?: string;
   isSearchable?: boolean;
@@ -107,7 +107,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
 
   return (
     <div
-      className={`${isPopupOpen ? `flex flex-col w-full h-fit relative text-xs${isRequired ? ' starlabel' : ''} ${containerClass}` : `flex flex-row gap-2 justify-center items-center w-full h-fit ${isRequired ? ' starlabel' : ''} ${containerClass}`}`}
+      className={`${isPopupOpen ? `flex flex-col w-full h-full relative text-sm ${isRequired ? ' starlabel' : ''} ${containerClass}` : `flex flex-row gap-2 justify-center items-center w-full h-fit ${isRequired ? ' starlabel' : ''} ${containerClass}`}`}
     >
       {label && (
         <label
@@ -118,7 +118,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
         </label>
       )}
       <div
-        className={` ${isPopupOpen ? `w-full relative border border-solid border-[#9ca3af] h-10 rounded-md ${className}  ${isTouched && error && !active && '!border-red-500'} ${active && '!border-2 !border-yellow-500 outline-none'}` : `w-full relative border border-solid border-[#9ca3af] h-fit rounded-md ${className}  ${isTouched && error && !active && '!border-red-500'} ${active && '!border-2 !border-yellow-500 outline-none'}`} `}
+        className={` ${isPopupOpen ? `w-full relative border border-solid border-[#9ca3af] !h-[36px] rounded-md ${className}  ${isTouched && error && !active && '!border-red-500'} ${active && '!border-2 !border-yellow-500 outline-none'}` : `w-full relative border border-solid border-[#9ca3af] h-fit rounded-md ${className}  ${isTouched && error && !active && '!border-red-500'} ${active && '!border-2 !border-yellow-500 outline-none'}`} `}
       >
         <Select
           ref={selectRef}

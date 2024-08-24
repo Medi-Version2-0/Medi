@@ -132,11 +132,11 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
 
   return (
     <div
-      className={`${isPopupOpen ? `flex flex-col relative w-full h-7 text-xs ${isRequired && 'starlabel'} ${className}` : `flex flex-row gap-2 items-center relative w-full h-6 text-xs ${isRequired && 'starlabel'} ${className}`}`}
+      className={`${isPopupOpen ? `flex flex-col relative w-full h-9 text-xs ${isRequired && 'starlabel'} ${className}` : `flex flex-row gap-2 items-center relative w-full h-6 text-xs ${isRequired && 'starlabel'} ${className}`}`}
     >
       <label
         htmlFor={id}
-        className={`${isPopupOpen ? `${labelClassName} absolute top-0 left-1 -translate-y-1/2 bg-white px-1 ${!!(formik.touched[id] && formik.errors[id]) && '!text-red-700'}` : `${labelClassName} `} `}
+        className={`${isPopupOpen ? `${labelClassName} absolute top-0 left-1 -translate-y-1/2 bg-white text-sm px-1 ${!!(formik.touched[id] && formik.errors[id]) && '!text-red-700'}` : `${labelClassName} `} `}
       >
         {label}
       </label>
@@ -147,7 +147,7 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
         id={id}
         name={name}
         maxLength={maxLength}
-        className={`w-full border border-solid border-[#9ca3af] text-[10px] text-gray-800 h-full rounded-sm p-1 appearance-none disabled:text-[#4c4c4c] disabled:bg-[#f5f5f5] focus:rounded-none focus:!outline-yellow-500 focus:bg-[#EAFBFCFF] ${!!(formik.touched[id] && formik.errors[id]) && '!border-red-500'} ${inputClassName}`}
+        className={`w-full border border-solid border-[#9ca3af] text-[15px] text-gray-800 h-full rounded-sm p-1 appearance-none disabled:text-[#4c4c4c] disabled:bg-[#f5f5f5] focus:rounded-none focus:!outline-yellow-500 focus:bg-[#EAFBFCFF] ${!!(formik.touched[id] && formik.errors[id]) && '!border-red-500'} ${inputClassName}`}
         onBlur={formik.handleBlur}
         onChange={onChange || handleChange}
         onKeyDown={handleKeyDown}
