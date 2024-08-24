@@ -10,92 +10,38 @@ import { Option } from '../../interface/global';
 import CustomSelect from '../../components/custom_select/CustomSelect';
 import titleCase from '../../utilities/titleCase';
 import { sendAPIRequest } from '../../helper/api';
-import { useQueryClient } from '@tanstack/react-query';
 import './discount.css';
-import * as Yup from 'yup';
 import { useSelector } from 'react-redux'
+import { discountValidationSchema } from './validation_schema';
+import { useGetSetData } from '../../hooks/useGetSetData';
+import { getAndSetPartywiseDiscount } from '../../store/action/globalAction';
+import { useControls } from '../../ControlRoomContext';
 
 export const CreateDiscount = ({
   setView,
   data,
   discountTypeOptions,
-  discounts,
 }: any) => {
   const { organizationId } = useParams();
   const [companyOptions, setCompanyOptions] = useState<Option[]>([]);
   const [partyOptions, setPartyOptions] = useState<Option[]>([]);
   const [focused, setFocused] = useState('');
-  const queryClient = useQueryClient();
-  const { company: companiesData } = useSelector((state: any) => state.global)
+  const { controlRoomSettings } = useControls();
+  const { company: companiesData, party: parties } = useSelector((state: any) => state.global)
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
     message: '',
   });
-
-  const validationSchema = Yup.object({
-    partyId: Yup.number().required('Party name is required'),
-    companyId: Yup.number().nullable(),
-    discountType: Yup.string().required('Discount type is required'),
-    discount: Yup.number().required('Discount is required'),
-  });
-
+  const getAndSetPartywiseDiscountHandler = useGetSetData(getAndSetPartywiseDiscount);
+  const settingPopupState = (isModal: boolean, message: string) => {
+    setPopupState({
+      ...popupState,
+      [isModal ? 'isModalOpen' : 'isAlertOpen']: true,
+      message: message,
+    });
+  };
   useEffect(() => {
-    fetchAllData();
-    setFocused('partyId');
-  }, [companiesData]);
-
-  const formik: any = useFormik({
-    initialValues: {
-      companyId: data?.companyId || '',
-      discountType: data?.discountType || '',
-      partyId: data?.partyId || '',
-      discount: data?.discount || 0,
-    },
-    validationSchema: validationSchema,
-    onSubmit: async (values) => {
-
-      const existingDiscount = discounts.some(
-        (discount: any) =>
-          discount.companyId === values.companyId &&
-          discount.partyId === values.partyId &&
-          discount.discountType === values.discountType
-      );
-
-      const allData = { ...values, discount: Number(values.discount) };
-
-      if (data.discount_id) {
-        if (allData.discountType === 'allCompanies') {
-          allData.companyId = null;
-        }
-        await sendAPIRequest(
-          `/${organizationId}/partyWiseDiscount/${data.discount_id}`,
-          {
-            method: 'PUT',
-            body: allData,
-          }
-        );
-      } else {
-        if (existingDiscount) {
-          setPopupState({
-            ...popupState,
-            isAlertOpen: true,
-            message: 'Partywise discount with these values already exists!',
-          });
-          return;
-        }
-        await sendAPIRequest(`/${organizationId}/partyWiseDiscount`, {
-          method: 'POST',
-          body: allData,
-        });
-      }
-      queryClient.invalidateQueries({ queryKey: ['get-discounts'] });
-    },
-  });
-
-  const fetchAllData = async () => {
-    const companies = await sendAPIRequest<any[]>(`/${organizationId}/company`);
-    const parties = await sendAPIRequest<any[]>(`/${organizationId}/ledger`);
     setCompanyOptions(
       companiesData.map((company: any) => ({
         value: company.company_id,
@@ -105,12 +51,52 @@ export const CreateDiscount = ({
 
     setPartyOptions(
       parties.map((party: any) => ({
-        value: party.party_id,
-        label: titleCase(party.partyName),
+      value: party.party_id,
+      label: titleCase(party.partyName),
       }))
     );
-  };
+    setFocused('partyId');
+  }, [companiesData, parties]);
 
+  const formik: any = useFormik({
+    initialValues: {
+      companyId: data?.companyId || '',
+      discountType: data?.discountType || '',
+      partyId: data?.partyId || '',
+      discount: data?.discount || 0,
+    },
+    validationSchema: discountValidationSchema,
+    onSubmit: async (values) => {
+      try{
+        const allData = { ...values, discount: Number(values.discount) };
+
+        if (data.discount_id) {
+          if (allData.discountType === 'allCompanies') {
+            allData.companyId = null;
+          }
+          await sendAPIRequest(
+            `/${organizationId}/partyWiseDiscount/${data.discount_id}`,
+            {
+              method: 'PUT',
+              body: allData,
+            }
+          );
+        } else {
+          await sendAPIRequest(`/${organizationId}/partyWiseDiscount`, {
+            method: 'POST',
+            body: allData,
+          });
+        }
+        settingPopupState(false, `Partywise discount ${!!data.discount_id ? 'updated' : 'created'} successfully`)
+        getAndSetPartywiseDiscountHandler();
+      }catch(error: any){
+        if (error.response.status === 409){
+          settingPopupState(false, `${error.response.data} please check in tabledata`)
+        }
+      }
+    },
+  });
+  
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
     setView({ type: '', data: {} });
@@ -122,22 +108,31 @@ export const CreateDiscount = ({
 
   const handleFieldChange = (option: Option | null, id: string) => {
     formik.setFieldValue(id, option?.value);
-    if (id === 'discountType') {
-      setFocused('companyId');
-      if (option?.value === 'allCompanies') {
-        formik.setFieldValue('companyId', null);
-      }
-    }
   };
 
   const handleDiscountTypeChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const value = event.target.value;
-    formik.setFieldValue('discountType', value);
-    if (value === 'allCompanies') {
-      formik.setFieldValue('companyId', null);
+    if (value === 'dpcoact' && controlRoomSettings.dpcoAct){
+      formik.setValues({
+        ...formik.values,
+        discountType: value,
+        discount: controlRoomSettings.dpcoDiscount
+      });
+      setFocused('companyId')
+      return
     }
+    if (value === 'allCompanies'){
+      formik.setValues({
+        ...formik.values,
+        discountType: value,
+        companyId: null
+      });
+      setFocused('discount')
+      return
+    }
+    formik.setFieldValue('discountType', value);
     setFocused('companyId');
   };
 
@@ -221,7 +216,7 @@ export const CreateDiscount = ({
                     <label className='text-gray-600 '>
                       Discount Type <span className='text-[#FF1008]'>*</span>
                     </label>
-                    <div>
+                    <div className='ms-7 flex flex-col gap-3'>
                       {discountTypeOptions.map((option: any) => (
                         <label key={option.value} className='flex items-center'>
                           <input
@@ -371,13 +366,6 @@ export const CreateDiscount = ({
                 e.preventDefault();
                 document.getElementById('discount')?.focus();
               }
-            }}
-            handleOnClick={() => {
-              setPopupState({
-                ...popupState,
-                isAlertOpen: true,
-                message: `Partywise discount ${!!data.discount_id ? 'updated' : 'created'} successfully`,
-              });
             }}
           >
             {!!data.discount_id ? 'Update' : 'Submit'}
