@@ -12,10 +12,12 @@ import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
 import { useParams } from 'react-router-dom';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
-import { setStation } from '../../store/action/globalAction';
+import { getAndSetStations } from '../../store/action/globalAction';
 import usePermission from '../../hooks/useRole';
+import useHandleKeydown from '../../hooks/useHandleKeydown';
+import { useGetSetData } from '../../hooks/useGetSetData';
 
 export const Headquarters = () => {
   const initialValue = {
@@ -35,13 +37,20 @@ export const Headquarters = () => {
   const editing = useRef(false);
   const isDelete = useRef(false);
   const gridRef = useRef<any>(null);
-  const dispatch = useDispatch()
+  const getAndSetHeadQuarterHandler = useGetSetData(getAndSetStations);
 
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
     message: '',
   });
+  const settingPopupState = (isModal: boolean, message: string) => {
+    setPopupState({
+      ...popupState,
+      [isModal ? 'isModalOpen' : 'isAlertOpen']: true,
+      message: message,
+    });
+  };
 
   const handleDelete = (oldData: StationFormData) => {
     isDelete.current = true;
@@ -57,53 +66,31 @@ export const Headquarters = () => {
     togglePopup(true);
     setSelectedRow(null);
   };
-
-  const filterStations = async (headQuarter?: any) => {
-    const filtered = allStations.filter(
-      (station: any) =>
-        !headQuarter.some((hq: any) => hq.station_id === station.station_id)
-    );
-    return filtered;
-  }
-
-  const getHeadquarters = useCallback(async () => {
-    const headQuarter = await sendAPIRequest<StationFormData[]>(
-      `/${organizationId}/station/headQuarter`
-    );
+  useEffect(() => {
+    const headQuarter = allStations.filter((s: any) => s.station_headQuarter !== null)
     const pinnedRow = {
       station_id: '',
       station_name: '',
       station_headQuarter: '',
     };
     setTableData([...(createAccess ? [pinnedRow] : []), ...headQuarter]);
-
-    const filteredStations = await filterStations(headQuarter);
-
+    const filteredStations = allStations.filter((station: any) =>
+      !headQuarter.some((hq: any) => hq.station_id === station.station_id)
+    );
     setFilteredStations(filteredStations);
-    return headQuarter;
-  }, []);
+  }, [allStations])
 
-  useEffect(() => {
-    getHeadquarters();
-  }, [getHeadquarters]);
-
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      handleKeyDownCommon(
-        event,
-        handleDelete,
-        handleUpdate,
-        togglePopup,
-        selectedRow,
-        undefined
-      );
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [selectedRow]);
+  const handleKeyDown = (event: KeyboardEvent) => {
+    handleKeyDownCommon(
+      event,
+      handleDelete,
+      handleUpdate,
+      togglePopup,
+      selectedRow,
+      undefined
+    );
+  };
+  useHandleKeydown(handleKeyDown, [selectedRow])
 
   const togglePopup = (isOpen: boolean) => {
     if (!isOpen) {
@@ -135,41 +122,35 @@ export const Headquarters = () => {
       station_headQuarter:
         respData.station_headQuarter || formData.station_headQuarter,
     };
-
-    if (formData !== initialValue) {
-      let id = 0;
-      const mode = allStations.some((station: any) => {
-        if (
-          station.station_name ===
-          (formData.station_name || payload.station_name) &&
-          station.station_headQuarter === null
-        ) {
-          return true;
-        } else if (
-          station.station_name === formData.station_name &&
-          station.station_headQuarter !== null
-        ) {
-          id = +station.station_id;
-          return false;
-        }
-      });
-      if (mode === false) {
-        await sendAPIRequest(`/${organizationId}/station/headQuarter/${id}`, {
-          method: 'PUT',
-          body: formData,
-        });
-      } else {
-        await sendAPIRequest(`/${organizationId}/station/headQuarter`, {
-          method: 'POST',
-          body: payload,
-        });
+    let id = 0;
+    const mode = allStations.some((station: any) => {
+      if (
+        station.station_name ===
+        (formData.station_name || payload.station_name) &&
+        station.station_headQuarter === null
+      ) {
+        return true;
+      } else if (
+        station.station_name === formData.station_name &&
+        station.station_headQuarter !== null
+      ) {
+        id = +station.station_id;
+        return false;
       }
-
-      const stations = await sendAPIRequest<any[]>(`/${organizationId}/station`);
-      dispatch(setStation(stations))
-      togglePopup(false);
-      getHeadquarters();
+    });
+    if (mode === false) {
+      await sendAPIRequest(`/${organizationId}/station/headQuarter/${id}`, {
+        method: 'PUT',
+        body: formData,
+      });
+    } else {
+      await sendAPIRequest(`/${organizationId}/station/headQuarter`, {
+        method: 'POST',
+        body: payload,
+      });
     }
+    getAndSetHeadQuarterHandler();
+    togglePopup(false);
   };
 
   const handleFormSubmit = (values: StationFormData) => {
@@ -187,11 +168,7 @@ export const Headquarters = () => {
       }
     });
     if (values !== initialValue) {
-      setPopupState({
-        ...popupState,
-        isModalOpen: true,
-        message: `Are you sure you want to ${mode === false ? 'update' : 'create'} this Headquarter?`,
-      });
+      settingPopupState(true, `Are you sure you want to ${mode === false ? 'update' : 'create'} this Headquarter?`)
       setFormData(values);
     }
   };
@@ -205,12 +182,7 @@ export const Headquarters = () => {
         method: 'DELETE',
       }
     );
-    const updatedStation = [...allStations]
-    const stationIndex = allStations.findIndex((x: any) => x.station_id === station_id);
-    updatedStation[stationIndex] = { ...updatedStation[stationIndex], station_headQuarter: null }
-    dispatch(setStation(updatedStation))
-    filterStations(updatedStation);
-    getHeadquarters();
+    getAndSetHeadQuarterHandler();
   };
 
   const stationHeadquarterMap: { [key: number]: string } = {};
@@ -246,11 +218,7 @@ export const Headquarters = () => {
         try {
           handleConfirmPopup(data);
         } catch (error: any) {
-          setPopupState({
-            ...popupState,
-            isAlertOpen: true,
-            message: error.message,
-          });
+          settingPopupState(false, error.message)
           return;
         }
       }
@@ -262,7 +230,7 @@ export const Headquarters = () => {
           body: { [field]: +newValue },
         }
       );
-      getHeadquarters();
+      getAndSetHeadQuarterHandler();
     }
   };
 
@@ -274,57 +242,14 @@ export const Headquarters = () => {
     editing.current = true;
   };
 
-  const colDefs: ColDef<StationFormData>[] = [
-    {
-      headerName: 'Station Name',
-      field: 'station_name',
-      flex: 1,
-      filter: true,
-      editable: (params) => (createAccess && params.node.rowIndex === 0),
-      cellEditor: 'agSelectCellEditor',
-      cellEditorParams: {
-        values: stationValues.length > 0 ? Object.keys(stationOptions).map((key) => Number(key)) : ['No station left'],
-        valueListMaxHeight: 120,
-        valueListMaxWidth: 308,
-        valueListGap: 8,
-      },
-      valueFormatter: (params): any => {
-        return stationOptions[Number(params.value)] || params.value;
-      },
-      headerClass: 'custom-header',
-      suppressMovable: true,
-      cellRenderer: (params: any) => {
-        return (
-          <PlaceholderCellRenderer
-            value={params.valueFormatted}
-            rowIndex={params.node.rowIndex}
-            column={params.colDef}
-            startEditingCell={(editParams: any) => {
-              gridRef.current?.api?.startEditingCell(editParams);
-            }}
-            placeholderText={params.colDef.headerName}
-          />
-        );
-      },
-    },
-    {
-      headerName: 'Headquarter',
-      field: 'station_headQuarter',
-      flex: 1,
-      filter: true,
-      editable: (params) => (params.node.rowIndex === 0 && createAccess) ? createAccess : updateAccess,
-      cellEditor: 'agSelectCellEditor',
-      cellEditorParams: {
-        values: Object.keys(stationHeadquarterMap).map((key) => Number(key)),
-        valueListMaxHeight: 120,
-        valueListMaxWidth: 308,
-        valueListGap: 8,
-      },
-      valueFormatter: (params) =>
-        stationHeadquarterMap[Number(params.value)] || params.value,
-      headerClass: 'custom-header custom_header_class',
-      suppressMovable: true,
-      cellRenderer: (params: any) => (
+  const defaultCol = {
+    flex: 1,
+    filter: true,
+    floatingFilter: true,
+    suppressMovable: true,
+    headerClass: 'custom-header custom_header_class',
+    cellRenderer: (params: any) => {
+      return (
         <PlaceholderCellRenderer
           value={params.valueFormatted}
           rowIndex={params.node.rowIndex}
@@ -334,14 +259,47 @@ export const Headquarters = () => {
           }}
           placeholderText={params.colDef.headerName}
         />
-      ),
+      );
+    },
+  }
+  const colDefs: ColDef<StationFormData>[] = [
+    {
+      headerName: 'Station Name',
+      field: 'station_name',
+      editable: (params) => (createAccess && params.node.rowIndex === 0),
+      cellEditor: 'agSelectCellEditor',
+      cellEditorParams: {
+        values: stationValues.length > 0 ? stationValues : ['No station left'],
+        valueListMaxHeight: 120,
+        valueListMaxWidth: 308,
+        valueListGap: 8,
+      },
+      valueFormatter: (params): any => {
+        return stationOptions[Number(params.value)] || params.value;
+      },
+      valueGetter: (params): any => params.data?.station_name,
+      headerClass: 'custom-header',
+    },
+    {
+      headerName: 'Headquarter',
+      field: 'station_headQuarter',
+      editable: (params) => (params.node.rowIndex === 0 && createAccess) ? createAccess : updateAccess,
+      cellEditor: 'agSelectCellEditor',
+      cellEditorParams: (params: any) => {
+        return {
+          values: Object.keys(stationHeadquarterMap).map((key) => Number(key)),
+          valueListMaxHeight: 120,
+          valueListMaxWidth: 308,
+          valueListGap: 8,
+        }
+      },
+      valueFormatter: (params) =>
+        stationHeadquarterMap[Number(params.value)] || params.value,
     },
     {
       headerName: 'Actions',
-      headerClass: 'custom-header-class custom-header',
       sortable: false,
-      suppressMovable: true,
-      flex: 1,
+      filter: false,
       cellStyle: {
         display: 'flex',
         justifyContent: 'center',
@@ -379,9 +337,7 @@ export const Headquarters = () => {
           <AgGridReact
             rowData={tableData}
             columnDefs={colDefs}
-            defaultColDef={{
-              floatingFilter: true,
-            }}
+            defaultColDef={defaultCol}
             onCellClicked={onCellClicked}
             onCellEditingStarted={cellEditingStarted}
             onCellEditingStopped={handleCellEditingStopped}
@@ -408,6 +364,7 @@ export const Headquarters = () => {
             isDelete={isDelete.current}
             deleteAcc={deleteAcc}
             className='absolute'
+            stations={allStations}
           />
         )}
       </div>

@@ -48,6 +48,11 @@ export interface CreateStationProps {
   isDelete: any;
   deleteAcc: (station_id: string) => void;
   className?: string;
+  states?: any[];
+}
+
+export interface CreateHeadQuarterProps extends CreateStationProps {
+  stations: any[];
 }
 export interface CreateBillProps {
   togglePopup: Function;
@@ -378,7 +383,6 @@ export interface dropDownPopupProps {
   setCurrentSavedData?: any;
   dataKeys?: any;
 }
-export type Mapping = { [key: number]: string };
 
 export interface selectListProps {
   heading: string;
@@ -389,3 +393,4 @@ export interface selectListProps {
   handleSelect: (rowData : any)=> void;
   dataKeys?: any;
 }
+export type Mapping = { [key: number | string]: string };

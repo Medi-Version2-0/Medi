@@ -5,7 +5,7 @@ import { FaEdit } from 'react-icons/fa';
 import { MdDeleteForever } from 'react-icons/md';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
-import { LedgerFormData, View } from '../../interface/global';
+import { View } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { useParams } from 'react-router-dom';
 import { ColDef, ValueFormatterParams } from 'ag-grid-community';
@@ -19,12 +19,11 @@ import { CreateLedger } from './CreateLedger';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { useSelector } from 'react-redux'
 import usePermission from '../../hooks/useRole';
-import { useDispatch } from 'react-redux'
-import { getAndSetParty, setParty } from '../../store/action/globalAction';
+import { getAndSetParty } from '../../store/action/globalAction';
 import { getLedgerFormValidationSchema } from './validation_schema';
 import { validateField, decimalFormatter, createMap, extractKeys, lookupValue } from '../../helper/helper';
-import { AppDispatch } from '../../store/types/globalTypes';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
+import { useGetSetData } from '../../hooks/useGetSetData';
 
 export const Ledger = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
@@ -40,7 +39,7 @@ export const Ledger = () => {
     isAlertOpen: false,
     message: '',
   });
-  const dispatch = useDispatch<AppDispatch>()
+  const getAndSetLedgerHandler = useGetSetData(getAndSetParty);
 
   const { controlRoomSettings } = useControls();
   const { createAccess, updateAccess, deleteAccess } = usePermission('ledger')
@@ -97,7 +96,7 @@ export const Ledger = () => {
     setPopupState({ ...popupState, isModalOpen: false });
     try {
       await sendAPIRequest(`/${organizationId}/ledger/${partyId.current}`, { method: 'DELETE' });
-      dispatch(setParty(tableData.filter((x: LedgerFormData) => x.party_id !== partyId.current)));
+      getAndSetLedgerHandler();
       
     } catch {
       setPopupState({
@@ -144,7 +143,7 @@ export const Ledger = () => {
       method: 'PUT',
       body: { [field]: newValue },
     });
-    dispatch(getAndSetParty(organizationId));
+    getAndSetLedgerHandler();
   };
 
   const onCellClicked = (params: { data: any }) =>{

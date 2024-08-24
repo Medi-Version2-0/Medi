@@ -13,12 +13,12 @@ import { sendAPIRequest } from '../../helper/api';
 import { useParams } from 'react-router-dom';
 import { groupValidationSchema } from './validation_schema';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
-import { useDispatch, useSelector } from 'react-redux'
-import { getAndSetGroups, getAndSetSubGroups, setGroups } from '../../store/action/globalAction';
+import { useSelector } from 'react-redux'
+import { getAndSetGroups } from '../../store/action/globalAction';
 import usePermission from '../../hooks/useRole';
 import { lookupValue } from '../../helper/helper';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
-import { AppDispatch } from '../../store/types/globalTypes';
+import { useGetSetData } from '../../hooks/useGetSetData';
 
 export const Groups = () => {
   const initialValue = {
@@ -33,6 +33,7 @@ export const Groups = () => {
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<GroupFormData>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
+  const getAndSetGroupsHandler = useGetSetData(getAndSetGroups);
   const { groups: groupsData, subGroups: subGroupsData } = useSelector((state: any) => state.global);
   const [tableData, setTableData] = useState([...(createAccess ? [initialValue] :[]), ...groupsData]);
   const editing = useRef(false);
@@ -47,7 +48,6 @@ export const Groups = () => {
   };
   const [subgroups, setSubgroups] = useState<GroupFormData[]>(subGroupsData);
   const gridRef = useRef<any>(null);
-  const dispatch = useDispatch<AppDispatch>() 
 
   const settingPopupState = (isModal: boolean, message: string) => {
     setPopupState({
@@ -91,7 +91,7 @@ export const Groups = () => {
               body: formData,
             }
           );
-          dispatch(getAndSetGroups(organizationId));
+          getAndSetGroupsHandler();
         } else {
           const response: any = await sendAPIRequest(`/${organizationId}/group`, {
             method: 'POST',
@@ -100,7 +100,7 @@ export const Groups = () => {
           if (respData.group_name && !response.error) {
             settingPopupState(false, 'Group saved successfully');
           }
-          dispatch(getAndSetGroups(organizationId));
+          getAndSetGroupsHandler();
         }
         togglePopup(false);
         setFormData(pinnedRow)
@@ -125,7 +125,7 @@ export const Groups = () => {
     await sendAPIRequest(`/${organizationId}/group/${group_code}`, {
       method: 'DELETE',
     });
-    dispatch(getAndSetGroups(organizationId));
+    getAndSetGroupsHandler();
   };
 
   const handleDelete = (rowData: GroupFormData) => {
@@ -213,7 +213,7 @@ export const Groups = () => {
           method: 'PUT',
           body: { [field]: newValue },
         });
-        dispatch(getAndSetGroups(organizationId));
+        getAndSetGroupsHandler();
       } catch (error: any) {
         settingPopupState(false, `${error.message}`);
         node.setDataValue(field, oldValue);

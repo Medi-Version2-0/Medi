@@ -1,15 +1,18 @@
 import { Dispatch } from 'redux';
 import { getUserPermissions } from '../../api/permissionsApi';
 import { ResourceI } from '../../views/organization/types';
-import { SET_STATION, SET_GROUPS, SET_ORGANIZATION, SET_PERMISSIONS, GlobalActionTypes, SET_SALES, SET_PURCHASE, SET_COMPANY, SET_ITEMGROUP, SET_CONTROLROOMSETTINGS, SET_PARTY, SET_ITEM, SET_BILLBOOK, SET_SUB_GROUPS } from '../types/globalTypes';
+import { SET_STATION, SET_GROUPS, SET_ORGANIZATION, SET_PERMISSIONS, GlobalActionTypes, SET_SALES, SET_PURCHASE, SET_COMPANY, SET_ITEMGROUP, SET_CONTROLROOMSETTINGS, SET_PARTY, SET_ITEM, SET_BILLBOOK, SET_SUB_GROUPS, SET_STORE } from '../types/globalTypes';
 import { sendAPIRequest } from '../../helper/api';
-import { ItemGroupFormData, GroupFormData, SalesPurchaseFormData,  CompanyFormData, BillBookForm, BillBookFormData, LedgerFormData, ItemFormData } from '../../interface/global';
+import { ItemGroupFormData, GroupFormData, SalesPurchaseFormData,  CompanyFormData, BillBookForm, BillBookFormData, LedgerFormData, ItemFormData, StoreFormData } from '../../interface/global';
 
+export const getAndSetStations = (organizationId: string | undefined) => async (dispatch: Dispatch<GlobalActionTypes>) => {
+  const stations = await sendAPIRequest<any[]>(`/${organizationId}/station`);
 
-export const setStation = (station: any): GlobalActionTypes => ({
-  type: SET_STATION,
-  payload: station,
-});
+  dispatch({
+    type: SET_STATION,
+    payload: stations || [],
+  });
+} 
 
 export const setGroups = (groups: any): GlobalActionTypes => ({
   type: SET_GROUPS,
@@ -158,5 +161,13 @@ export const getAndSetBillBook = (organizationId: string|undefined) => async (di
   dispatch({
     type: SET_BILLBOOK,
   payload: billBookSeries || [],
+  });
+}
+
+export const getAndSetStore = (organizationId: string|undefined) => async (dispatch: Dispatch<GlobalActionTypes>) => {
+  const store = await sendAPIRequest<StoreFormData[]>(`/${organizationId}/store`)
+  dispatch({
+    type: SET_STORE,
+    payload: store ||[],
   });
 }

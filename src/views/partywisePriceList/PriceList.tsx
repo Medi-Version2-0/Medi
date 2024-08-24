@@ -34,6 +34,15 @@ const PriceList = () => {
     }
   }
 
+
+  const defaultCols={
+      filter: true,
+      flex: 1,
+      editable: false,
+      suppressMovable: true,
+      headerClass: 'custom-header',
+  }
+
   const colDefs = useMemo(
     () => [
       {

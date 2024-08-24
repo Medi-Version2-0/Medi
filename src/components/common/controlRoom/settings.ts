@@ -55,7 +55,7 @@ export const itemSettingFields: SettingField[] = [
   },
 
   {
-    label: 'Batch-wise MFG',
+    label: 'Show MFG Company Name With Item Name',
     id: 'batchWiseManufacturingCode',
     name: 'batchWiseManufacturingCode',
   },

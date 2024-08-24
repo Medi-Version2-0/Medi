@@ -12,8 +12,9 @@ import CustomSelect from '../../components/custom_select/CustomSelect';
 import onKeyDown from '../../utilities/formKeyDown';
 import titleCase from '../../utilities/titleCase';
 import { sendAPIRequest } from '../../helper/api';
-import { useQueryClient } from '@tanstack/react-query';
 import { useSelector } from 'react-redux'
+import { getAndSetCompany } from '../../store/action/globalAction';
+import { useGetSetData } from '../../hooks/useGetSetData';
 
 export const CreateCompany = ({ setView , data }: any) => {
   const { organizationId } = useParams();
@@ -21,13 +22,13 @@ export const CreateCompany = ({ setView , data }: any) => {
   const [salesOptions, setSalesOptions] = useState<Option[]>([]);
   const [purchaseOptions, setPurchaseOptions] = useState<Option[]>([]);
   const [focused, setFocused] = useState('');
-  const queryClient = useQueryClient();
   const { stations, sales: salesList, purchase: purchaseList } = useSelector((state: any) => state.global)
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
     message: '',
   });
+  const getAndSetCompanyHandler = useGetSetData(getAndSetCompany);
 
   const formik: any = useFormik({
     initialValues: {
@@ -75,7 +76,7 @@ export const CreateCompany = ({ setView , data }: any) => {
           body: allData,
         });
       }
-      queryClient.invalidateQueries({ queryKey: ['get-companies'] });
+      getAndSetCompanyHandler();
     },
   });
 

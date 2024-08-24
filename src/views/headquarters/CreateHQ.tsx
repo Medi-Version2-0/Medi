@@ -1,46 +1,26 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { Formik, Form, Field, FormikProps } from 'formik';
 import {
-  CreateStationProps,
+  CreateHeadQuarterProps,
   Option,
   StationFormData,
 } from '../../interface/global';
 import { Popup } from '../../components/popup/Popup';
 import CustomSelect from '../../components/custom_select/CustomSelect';
 import Button from '../../components/common/button/Button';
-import * as Yup from 'yup';
 import titleCase from '../../utilities/titleCase';
-import { useSelector } from 'react-redux'
+import { headQuarterValidationSchema } from './validation_schema';
 
-const useStations = () => {
-  const [stations, setStations] = useState<StationFormData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const { stations: stationsData } = useSelector((state: any) => state.global)
-
-
-  const fetchStations = useCallback(async () => {
-    try {
-      const transformedStations = stationsData.map((station:any) => ({
-        ...station,
-        state_code: station.State?.state_name,
-      }));
-      setStations(transformedStations);
-    } catch (err) {
-      setError('Failed to fetch stations');
-    } finally {
-      setLoading(false);
-    }
-  }, [stationsData]);
-
-  useEffect(() => {
-    fetchStations();
-  }, [fetchStations , stationsData]);
-
-  return { stations, loading, error, fetchStations };
-};
-
-const useOptions = (stations: StationFormData[]) => {
+export const CreateHQ = ({
+  togglePopup,
+  data,
+  handelFormSubmit,
+  isDelete,
+  deleteAcc,
+  className,
+  stations,
+}: CreateHeadQuarterProps) => {
+  const { station_id } = data;
   const hqOptions = useMemo(
     () =>
       stations.map((station) => ({
@@ -60,35 +40,6 @@ const useOptions = (stations: StationFormData[]) => {
         })),
     [stations]
   );
-
-  return { hqOptions, stationOptions };
-};
-
-const validationSchema = Yup.object({
-  station_name: Yup.string()
-    .required('Station name is required')
-    .matches(/[a-zA-Z]/, 'Only Numbers not allowed')
-    .matches(
-      /^[a-zA-Z0-9\s_.-]*$/,
-      'Station name can contain alphanumeric characters, "-", "_", and spaces only'
-    )
-    .max(100, 'Station name cannot exceed 100 characters'),
-  station_headQuarter: Yup.string().required(
-    'Station HeadQuarter is required.'
-  ),
-});
-
-export const CreateHQ = ({
-  togglePopup,
-  data,
-  handelFormSubmit,
-  isDelete,
-  deleteAcc,
-  className,
-}: CreateStationProps) => {
-  const { station_id } = data;
-  const { stations, loading, error } = useStations();
-  const { hqOptions, stationOptions } = useOptions(stations);
   const formikRef = useRef<FormikProps<StationFormData>>(null);
   const [focused, setFocused] = useState('station_name');
 
@@ -126,14 +77,6 @@ export const CreateHQ = ({
     }
   }, [isDelete]);
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>{error}</div>;
-  }
-
   return (
     <Popup
       togglePopup={togglePopup}
@@ -146,7 +89,7 @@ export const CreateHQ = ({
           station_name: data?.station_name || '',
           station_headQuarter: data?.station_headQuarter || '',
         }}
-        validationSchema={validationSchema}
+        validationSchema={headQuarterValidationSchema}
         onSubmit={handleSubmit}
       >
         {(formik) => (
@@ -171,7 +114,7 @@ export const CreateHQ = ({
                     isSearchable={true}
                     disableArrow={true}
                     hidePlaceholder={false}
-                    className='!h-6 rounded-sm text-xs'
+                    className='!h-8 rounded-sm text-xs'
                     isFocused={focused === 'station_name'}
                     error={formik.errors.station_name}
                     isDisabled={
@@ -230,7 +173,7 @@ export const CreateHQ = ({
                     isSearchable={true}
                     disableArrow={true}
                     hidePlaceholder={false}
-                    className='!h-6 rounded-sm text-xs'
+                    className='!h-8 rounded-sm text-xs'
                     isFocused={focused === 'station_headQuarter'}
                     error={formik.errors.station_headQuarter}
                     isDisabled={isDelete && station_id}
@@ -311,7 +254,7 @@ export const CreateHQ = ({
                   autoFocus={true}
                   handleOnKeyDown={(e) => {
                     if (e.key === 'Tab' || (!formik.isValid && e.key === 'Enter')) {
-                      setFocused('station_headQuarter');
+                      setFocused(`${fetchType(isDelete, station_id) === 'Update' ? 'station_headQuarter':'station_name'}`);
                       e.preventDefault();
                     }
                     if (

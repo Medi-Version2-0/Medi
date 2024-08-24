@@ -27,10 +27,9 @@ import SearchItem from './searchItem';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { itemFormValidations } from './validation_schema';
 import usePermission from '../../hooks/useRole';
-import { useDispatch } from 'react-redux'
 import { getAndSetItem } from '../../store/action/globalAction';
-import { AppDispatch } from '../../store/types/globalTypes';
 import { useSelector } from 'react-redux';
+import { useGetSetData } from '../../hooks/useGetSetData';
 
 const initialPopupState = {
   setting: false,
@@ -40,6 +39,7 @@ const initialPopupState = {
 const Items = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
   const { organizationId } = useParams();
+  const getAndSetItemHandler = useGetSetData(getAndSetItem);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<ItemFormData | any>(null);
   const [open, setOpen] = useState(initialPopupState);
@@ -61,8 +61,7 @@ const Items = () => {
     message: '',
   });
   const { createAccess, updateAccess, deleteAccess } = usePermission('items')
-  const dispatch = useDispatch<AppDispatch>()
-  const {item: itemData} = useSelector((state: any) => state.global);
+  const { company, sales: saleData, purchase: purchasesData, itemGroups: itemGroupsData, item : itemReduxData} = useSelector((state: any) => state.global);
 
   const itemSettingsInitialValues = {
     generateBarcodeBatchWise:
@@ -78,7 +77,6 @@ const Items = () => {
     salesPriceLimit: controlRoomSettings.salesPriceLimit || 0,
   };
 
-
   const togglePopup = (isOpen: boolean, key?: string) => {
     if (key) {
       setOpen({ ...open, [key]: isOpen });
@@ -88,32 +86,22 @@ const Items = () => {
   };
 
   const getItemData = async () => {
-    setTableData(itemData)
+    setTableData(itemReduxData);
   };
 
   const getCompany = async () => {
-    const companyData = await sendAPIRequest<{ data: CompanyFormData }>(
-      `/${organizationId}/company`,
-      {
-        method: 'GET',
-      }
-    );
-    setCompanyData(companyData);
+    setCompanyData(company);
   };
 
   const getGroups = async () => {
-    const itemGroup = await sendAPIRequest<{ data: ItemGroupFormData }>(
-      `/${organizationId}/itemGroup`,
-      { method: 'GET' }
-    );
-    setItemGroupData(itemGroup);
+    setItemGroupData(itemGroupsData);
   };
 
   const getSales = async () => {
-    setSalesData(await sendAPIRequest<any[]>(`/${organizationId}/sale`));
+    setSalesData(saleData);
   };
   const getPurchases = async () => {
-    setPurchaseData(await sendAPIRequest<any[]>(`/${organizationId}/purchase`));
+    setPurchaseData(purchasesData);
   };
 
   useEffect(() => {
@@ -122,7 +110,7 @@ const Items = () => {
     getGroups();
     getCompany();
     getItemData();
-  }, [itemData]);
+  }, [itemReduxData, company, saleData, purchasesData, itemGroupsData]);
 
   const companyCodeMap: { [key: number]: string } = {};
   const groupCodeMap: { [key: number]: string } = {};
@@ -184,7 +172,7 @@ const Items = () => {
       await sendAPIRequest(`/${organizationId}/item/${id.current}`, {
       method: 'DELETE',
     });
-    dispatch(getAndSetItem(organizationId))
+    getAndSetItemHandler();
   }
   catch{
     setPopupState({ ...popupState, isAlertOpen: true, message:'This item is associated' });
@@ -228,7 +216,7 @@ const Items = () => {
       method: 'PUT',
       body: { [field]: newValue },
     });
-    dispatch(getAndSetItem(organizationId))
+    getAndSetItemHandler();
   };
 
   const onCellClicked = (params: { data: any }) => {
@@ -282,6 +270,7 @@ const Items = () => {
       filter: true,
       editable: updateAccess,
       suppressMovable: true,
+      hide: !controlRoomSettings.batchWiseManufacturingCode,
     },
     {
       headerName: 'Company',

@@ -9,7 +9,6 @@ import { StationFormData } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import { IoSettingsOutline } from 'react-icons/io5';
 import { ControlRoomSettings } from '../../components/common/controlRoom/ControlRoomSettings';
@@ -17,10 +16,13 @@ import { stationSettingFields } from '../../components/common/controlRoom/settin
 import { useControls } from '../../ControlRoomContext';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { stationValidationSchema } from './validation_schema';
-import { setStation } from '../../store/action/globalAction';
-import { useDispatch } from 'react-redux'
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
 import usePermission from '../../hooks/useRole';
+import { useSelector } from 'react-redux';
+import useHandleKeydown from '../../hooks/useHandleKeydown';
+import { extractKeys, lookupValue } from '../../helper/helper';
+import { getAndSetStations } from '../../store/action/globalAction';
+import { useGetSetData } from '../../hooks/useGetSetData';
 
 export const Stations = () => {
   const initialValue = {
@@ -36,12 +38,12 @@ export const Stations = () => {
   const [formData, setFormData] = useState<StationFormData | any>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<StationFormData | any>(null);
-  const queryClient = useQueryClient();
   const [stateData, setStateData] = useState<any[]>([]);
   const editing = useRef(false);
-  const dispatch = useDispatch()
+  const getAndSetStationHandler = useGetSetData(getAndSetStations);
   let currTable: any[] = [];
   const gridRef = useRef<any>(null);
+  const { stations } = useSelector((state: any) => state.global);
   const { createAccess, updateAccess, deleteAccess } = usePermission('station_setup')
 
   const { controlRoomSettings } = useControls();
@@ -58,35 +60,23 @@ export const Stations = () => {
     message: '',
   });
 
-  const { data } = useQuery<StationFormData[]>({
-    queryKey: ['get-stations'],
-    queryFn: () =>
-      sendAPIRequest<StationFormData[]>(`/${organizationId}/station`),
-  });
-
-  useEffect(() => {
-    getStations()
-    getStates();
-  }, [data]);
-
-  useEffect(() => {
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [selectedRow]);
-
-  const getStates = async () => {
-    const states = await sendAPIRequest<any[]>('/state');
-    setStateData(states);
+  const settingPopupState = (isModal: boolean, message: string) => {
+    setPopupState({
+      ...popupState,
+      [isModal ? 'isModalOpen' : 'isAlertOpen']: true,
+      message: message,
+    });
   };
 
-  const getStations = async () => {
-    const stations = await sendAPIRequest<any[]>(`/${organizationId}/station`);
-    dispatch(setStation(stations))
-    setTableData([...(createAccess ? [initialValue] :[]) , ...stations])
+  useEffect(() => {
+    sendAPIRequest<any[]>('/state').then((response) => {
+      setStateData(response);
+    })
+  }, []);
 
-    };
+  useEffect(() => {
+    setTableData([...(createAccess ? [initialValue] : []), ...stations])
+  }, [stations])
 
   const togglePopup = (isOpen: boolean) => {
     if (!isOpen) {
@@ -100,7 +90,7 @@ export const Stations = () => {
   };
 
   const handleAlertCloseModal = () => {
-    setPopupState({ ...popupState, isAlertOpen: false,isModalOpen: false });
+    setPopupState({ ...popupState, isAlertOpen: false, isModalOpen: false });
   };
 
   const handleClosePopup = () => {
@@ -120,12 +110,13 @@ export const Stations = () => {
       station_name: respData.station_name ? respData.station_name : formData.station_name,
       state_code: respData.state_code ? respData.state_code : formData.state_code,
       station_pinCode: respData.station_pinCode ? respData.station_pinCode : formData.station_pinCode,
-      igst_sale: respData.igst_sale ? respData.igst_sale : formData.station_pinCode,
+      igst_sale: respData.igst_sale ? respData.igst_sale : formData.igst_sale,
     };
 
     if (payload !== initialValue) {
       formData.state_code = +formData.state_code;
       if (formData.station_id) {
+        delete formData.station_headQuarter;
         await sendAPIRequest(
           `/${organizationId}/station/${formData.station_id}`,
           {
@@ -139,9 +130,8 @@ export const Stations = () => {
           body: payload,
         });
       }
-      getStations()
       togglePopup(false);
-      queryClient.invalidateQueries({ queryKey: ['get-stations'] });
+      getAndSetStationHandler();
     }
   };
 
@@ -155,25 +145,17 @@ export const Stations = () => {
         );
       return (
         station.station_name.toLowerCase() ===
-          values.station_name.toLowerCase() &&
+        values.station_name.toLowerCase() &&
         station.station_id !== values.station_id
       );
     });
     if (existingStation) {
-      setPopupState({
-        ...popupState,
-        isAlertOpen: true,
-        message: 'Station with this name already exists!',
-      });
+      settingPopupState(false, 'Station with this name already exists!')
       return;
     }
 
     if (values !== initialValue) {
-      setPopupState({
-        ...popupState,
-        isModalOpen: true,
-        message: `Are you sure you want to ${mode} this Station?`,
-      });
+      settingPopupState(true, `Are you sure you want to ${mode} this Station?`)
       setFormData(values);
     }
   };
@@ -181,14 +163,13 @@ export const Stations = () => {
   const deleteAcc = async (station_id: string) => {
     isDelete.current = false;
     togglePopup(false);
-    try{
+    try {
       await sendAPIRequest(`/${organizationId}/station/${station_id}`, {
         method: 'DELETE',
       });
-      dispatch(setStation(tableData.filter((x:any)=> x.station_id !== station_id)))
-      queryClient.invalidateQueries({ queryKey: ['get-stations'] });
-    }catch{
-      setPopupState({ ...popupState, isAlertOpen: true, message:'This Station is associated' });
+      getAndSetStationHandler();
+    } catch {
+      settingPopupState(false, 'This Station is associated')
     }
   };
 
@@ -217,36 +198,8 @@ export const Stations = () => {
   stateData?.forEach((state: any) => {
     stateCodeMap[state.state_code] = state.state_name;
   });
-
-  const extractKey = (mappings: {
-    [x: number]: string;
-    Yes?: string;
-    No?: string;
-  }) => {
-    return Object.keys(mappings);
-  };
-  const extractKeys = (mappings: {
-    [x: number]: string;
-    Yes?: string;
-    No?: string;
-  }) => {
-    return Object.keys(mappings).map((key) => Number(key));
-  };
-
-  const types = extractKey(typeMapping);
+  const types = Object.keys(typeMapping);
   const states = extractKeys(stateCodeMap);
-
-  const lookupValue = (
-    mappings: {
-      [x: string]: any;
-      [x: number]: string;
-      Yes?: string;
-      No?: string;
-    },
-    key: string | number
-  ) => {
-    return mappings[key];
-  };
 
   const handleCellEditingStopped = async (e: any) => {
     currTable = [];
@@ -257,76 +210,59 @@ export const Stations = () => {
     const field = column.colId;
 
     if (node.rowIndex === 0 && createAccess) {
-      if (data.state_code && data.station_name && data.station_pinCode) {
-        try {
-          await stationValidationSchema.validateAt(field, { [field]: newValue });
+      try {
+        await stationValidationSchema.validateAt(field, { [field]: newValue });
+        if (data.state_code && data.station_name && data.station_pinCode) {
           handleConfirmPopup(data)
-    
+
           if (field === 'station_name') {
             newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
             currTable = tableData.filter(
               (data: any) => data.station_id !== e.data.station_id
             );
-    
+
             const existingStation = currTable.find(
               (station: StationFormData) =>
                 station.station_name.toLowerCase() === newValue.toLowerCase()
             );
-    
+
             if (existingStation) {
-              setPopupState({
-                ...popupState,
-                isAlertOpen: true,
-                message: 'Station with this name already exists!',
-              });
+              settingPopupState(false, 'Station with this name already exists!')
               node.setDataValue(field, oldValue);
               return;
             }
           }
-        } catch (error: any) {
-          setPopupState({
-            ...popupState,
-            isAlertOpen: true,
-            message: error.message,
-          });
-          node.setDataValue(field, oldValue);
-          return;
+
+
+          if (field === 'igst_sale' && newValue) {
+            newValue = newValue.toLowerCase();
+          }
+
+          node.setDataValue(field, newValue);
         }
-     
-        if (field === 'igst_sale' && newValue) {
-          newValue = newValue.toLowerCase();
-        }
-    
-        node.setDataValue(field, newValue);
+      } catch (error: any) {
+        settingPopupState(false, error.message)
+        node.setDataValue(field, oldValue);
+        return;
       }
-    }else{
+    } else {
       try {
         if (!data.state_code || !data.station_name || !data.station_pinCode) {
-          setPopupState({
-            ...popupState,
-            isAlertOpen: true,
-            message: 'State code, station name, and pin code cannot be left null.',
-          });
-          node.setDataValue(field, oldValue);
+          data[field] = oldValue;
+          settingPopupState(false, 'Station name, Station state or Pin code cannot be left null.');
           return;
         }
-      
-          const isValid = await stationValidationSchema.validateAt(field, { [field]: newValue });
-          if (isValid) {
+        const isValid = await stationValidationSchema.validateAt(field, { [field]: newValue });
+        if (isValid) {
           await sendAPIRequest(`/${organizationId}/station/${data.station_id}`, {
             method: 'PUT',
             body: { [field]: newValue },
           });
         }
-        queryClient.invalidateQueries({ queryKey: ['get-stations'] });    
+        getAndSetStationHandler();
       } catch (error: any) {
-        console.log("eroroorororor",error,field, oldValue)
-        setPopupState({
-          ...popupState,
-          isAlertOpen: true,
-          message: error.message,
-        });
-        node.setDataValue(field, oldValue);
+        data[field] = oldValue;
+        settingPopupState(false, error.message)
         return;
       }
     }
@@ -336,7 +272,7 @@ export const Stations = () => {
     setSelectedRow(selectedRow !== null ? null : params.data);
   };
 
-  const cellEditingStarted = () => {
+  const cellEditingStarted = (params:any) => {
     editing.current = true;
   };
 
@@ -351,119 +287,88 @@ export const Stations = () => {
     );
   };
 
+  useHandleKeydown(handleKeyDown, [selectedRow])
+
+  const defaultCol = {
+    editable: updateAccess,
+    flex: 1,
+    filter: true,
+    floatingFilter: true,
+    headerClass: 'custom-header',
+    suppressMovable: true,
+    cellRenderer: (params: any) => (
+      <PlaceholderCellRenderer
+        value={params.value}
+        rowIndex={params.node.rowIndex}
+        column={params.colDef}
+        startEditingCell={(editParams: any) => {
+          gridRef.current?.api?.startEditingCell(editParams);
+        }}
+        placeholderText={params.colDef.headerName}
+      />
+    ),
+  }
   const colDefs: any[] = [
     {
       headerName: 'Station Name',
       field: 'station_name',
-      flex: 1,
-      filter: true,
-      headerClass: 'custom-header',
-      suppressMovable: true,
-      cellRenderer: (params: any) => (
-        <PlaceholderCellRenderer
-          value={params.value}
-          rowIndex={params.node.rowIndex}
-          column={params.colDef}
-          startEditingCell={(editParams : any) => {
-            gridRef.current?.api?.startEditingCell(editParams);
-          }}
-          placeholderText={params.colDef.headerName}
-        />
-      ),
     },
     ...(controlRoomSettings.igstSaleFacility
       ? [
-          {
-            headerName: 'IGST Sale',
-            field: 'igst_sale',
-            flex: 1,
-            filter: true,
-            cellEditor: 'agSelectCellEditor',
-            cellEditorParams: {
-              values: types,
-            },
-            valueFormatter: (params: { value: string | number }) =>
-              lookupValue(typeMapping, params.value),
-            headerClass: 'custom-header custom_header_class',
-            suppressMovable: true,
-            cellRenderer: (params: any) => (
-              <PlaceholderCellRenderer
-                value={params.value}
-                rowIndex={params.node.rowIndex}
-                column={params.colDef}
-                startEditingCell={(editParams : any) => {
-                  gridRef.current?.api?.startEditingCell(editParams);
-                }}
-                placeholderText={params.colDef.headerName}
-              />
-            ),
+        {
+          headerName: 'IGST Sale',
+          field: 'igst_sale',
+          cellEditor: 'agSelectCellEditor',
+          cellEditorParams: {
+            values: types,
           },
-        ]
+          valueFormatter: (params: { value: string | number }) =>
+            lookupValue(typeMapping, params.value),
+          headerClass: 'custom-header custom_header_class',
+        },
+      ]
       : []),
     {
       headerName: 'Station State',
       field: 'state_code',
-      flex: 1,
-      filter: true,
       cellEditor: 'agSelectCellEditor',
-      cellEditorParams: {
-        values: states,
-        valueListMaxHeight: 120,
-        valueListMaxWidth: 230,
-        valueListGap: 8,
+      cellEditorParams: (params:any)=>{
+        return {
+          values: states,
+          valueListMaxHeight: 120,
+          valueListMaxWidth: 230,
+          valueListGap: 8,
+          value: params.data.state_code,
+        }
       },
-      valueFormatter: (params: { value: string | number }) =>
-        lookupValue(stateCodeMap, params.value),
+      valueFormatter: (params: { value: string | number }) =>{
+        return lookupValue(stateCodeMap, params.value)
+      },
       valueGetter: (params: { data: any }) => {
-      return lookupValue(stateCodeMap, params.data.state_code);
+        return lookupValue(stateCodeMap, params.data.state_code);
       },
       filterValueGetter: (params: { data: any }) => {
-      return lookupValue(stateCodeMap, params.data.state_code);
+        console.log(lookupValue(stateCodeMap, params.data.state_code))
+        return lookupValue(stateCodeMap, params.data.state_code);
       },
       headerClass: 'custom-header custom_header_class',
-      suppressMovable: true,
-      cellRenderer: (params: any) => (
-        <PlaceholderCellRenderer
-          value={params.value}
-          rowIndex={params.node.rowIndex}
-          column={params.colDef}
-          startEditingCell={(editParams : any) => {
-            gridRef.current?.api?.startEditingCell(editParams);
-          }}
-          placeholderText={params.colDef.headerName}
-        />
-      ),
     },
     {
       headerName: 'Pin Code',
       field: 'station_pinCode',
-      flex: 1,
-      filter: true,
       headerClass: 'custom-header custom_header_class',
-      suppressMovable: true,
       cellEditorParams: {
         values: [],
         maxLength: 6,
       },
-      cellRenderer: (params: any) => (
-        <PlaceholderCellRenderer
-          value={params.value}
-          rowIndex={params.node.rowIndex}
-          column={params.colDef}
-          startEditingCell={(editParams : any) => {
-            gridRef.current?.api?.startEditingCell(editParams);
-          }}
-          placeholderText={params.colDef.headerName}
-        />
-      ),
     },
     {
       headerName: 'Actions',
       headerClass: 'custom-header-class custom-header',
       sortable: false,
-      suppressMovable: true,
-      editable : false,
-      flex: 1,
+      editable: false,
+      floatingFilter: false,
+      filter: false,
       cellStyle: {
         display: 'flex',
         justifyContent: 'center',
@@ -476,7 +381,7 @@ export const Stations = () => {
             onClick={() => handleUpdate(params.data)}
           />}
 
-         {deleteAccess && <MdDeleteForever
+          {deleteAccess && <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
             onClick={() => {
               handleDelete(params.data);
@@ -501,7 +406,10 @@ export const Stations = () => {
             >
               <IoSettingsOutline />
             </Button>
-           {createAccess && <Button type='highlight' handleOnClick={() => togglePopup(true)}>
+            {createAccess && <Button type='highlight' handleOnClick={() => {
+              setFormData(initialValue);
+              togglePopup(true)
+            }}>
               Add Station
             </Button>}
           </div>
@@ -512,10 +420,7 @@ export const Stations = () => {
               // rowData={[initialValue, ...tableData]}
               rowData={tableData}
               columnDefs={colDefs}
-              defaultColDef={{
-                floatingFilter: true,
-                editable : updateAccess
-              }}
+              defaultColDef={defaultCol}
               onCellClicked={onCellClicked}
               onCellEditingStarted={cellEditingStarted}
               onCellEditingStopped={handleCellEditingStopped}
@@ -543,6 +448,7 @@ export const Stations = () => {
             isDelete={isDelete.current}
             deleteAcc={deleteAcc}
             className='absolute'
+            states={stateData}
           />
         )}
         {settingToggleOpen && (

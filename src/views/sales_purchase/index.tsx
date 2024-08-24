@@ -6,16 +6,18 @@ import {
   SalesPurchaseFormData,
   SalesPurchaseTableProps,
 } from '../../interface/global';
-import { ValueFormatterParams } from 'ag-grid-community';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import Button from '../../components/common/button/Button';
 import { CreateSalePurchase } from './CreateSalePurchase';
 import { sendAPIRequest } from '../../helper/api';
 import { useParams } from 'react-router-dom';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
-import { useDispatch } from 'react-redux'
-import { setSales, setPurchase } from '../../store/action/globalAction';
+import { useSelector } from 'react-redux'
+import { getAndSetSales, getAndSetPurchase } from '../../store/action/globalAction';
 import usePermission from '../../hooks/useRole';
+import useHandleKeydown from '../../hooks/useHandleKeydown';
+import { decimalFormatter } from '../../helper/helper';
+import { useGetSetData } from '../../hooks/useGetSetData';
 
 const initialValue: SalesPurchaseFormData = {
   sptype: '',
@@ -25,33 +27,16 @@ const initialValue: SalesPurchaseFormData = {
   shortName2: '',
 };
 
-const useSalesData = (type: string, organizationId?: string) => {
-  const [tableData, setTableData] = useState<SalesPurchaseFormData[]>([]);
-  const dispatch = useDispatch()
-
-  const getSalesData = async () => {
-    const endpoint =
-      type === 'Sales'
-        ? `/${organizationId}/sale`
-        : `/${organizationId}/purchase`;
-    const data = await sendAPIRequest<SalesPurchaseFormData[]>(endpoint);
-    type === 'Sales' ? dispatch(setSales(data)) : dispatch(setPurchase(data));
-    setTableData(data);
-  };
-
-  useEffect(() => {
-    getSalesData();
-  }, [type]);
-
-  return { tableData, getSalesData };
-};
-
 export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
   const { organizationId } = useParams();
+  const getAndSetSalesHandler = useGetSetData(getAndSetSales);
+  const getAndSetPurchaseHandler = useGetSetData(getAndSetPurchase);
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<SalesPurchaseFormData>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const { createAccess, updateAccess, deleteAccess } = usePermission(type === 'Sales' ?'sales_account' : 'purchase_account')
+  const { purchase: purchaseData, sales: salesData } = useSelector((state: any) => state.global);
+  const [tableData, setTableData] = useState<SalesPurchaseFormData[]>([]);
 
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
@@ -60,16 +45,6 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
   });
   const editing = useRef(false);
   const isDelete = useRef(false);
-  const dispatch = useDispatch()
-
-  const { tableData, getSalesData } = useSalesData(type, organizationId);
-
-  useEffect(() => {
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [selectedRow]);
 
   const togglePopup = (isOpen: boolean) => {
     if (!isOpen) {
@@ -78,6 +53,20 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
     }
     setOpen(isOpen);
   };
+
+  const settingPopupState = (isModal: boolean, message: string) => {
+    setPopupState({
+      ...popupState,
+      [isModal ? 'isModalOpen' : 'isAlertOpen']: true,
+      message: message,
+    });
+  };
+
+  useEffect(() => {
+    const data = type === 'Sales' ? salesData : purchaseData
+    setTableData(data)
+  }, [ salesData, purchaseData])
+  
 
   const handleKeyDown = (event: KeyboardEvent) => {
     handleKeyDownCommon(
@@ -89,13 +78,7 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
       undefined
     );
   };
-
-  const decimalFormatter = (
-    params: ValueFormatterParams
-  ): string | undefined => {
-    if (!params.value) return;
-    return parseFloat(params.value).toFixed(2);
-  };
+  useHandleKeydown(handleKeyDown, [selectedRow, popupState])
 
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
@@ -122,8 +105,8 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
       const method = formData.sp_id ? 'PUT' : 'POST';
 
       await sendAPIRequest(endpoint, { method, body: formData });
+      type === 'Sales' ?  getAndSetSalesHandler() : getAndSetPurchaseHandler();
       togglePopup(false);
-      getSalesData();
     }
   };
 
@@ -138,11 +121,7 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
       );
     });
     if (existingSalePurchase) {
-      setPopupState({
-        ...popupState,
-        isAlertOpen: true,
-        message: `${type} account with this name already exists!`,
-      });
+      settingPopupState(false, `${type} account with this name already exists!`);
       return;
     }
     if (values.sptype) {
@@ -153,11 +132,7 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
       values.salesPurchaseType = type;
     }
     if (values !== initialValue) {
-      setPopupState({
-        ...popupState,
-        isModalOpen: true,
-        message: `Are you sure you want to ${mode} this ${type} Account?`,
-      });
+      settingPopupState(true, `Are you sure you want to ${mode} this ${type} Account?`);
       setFormData(values);
     }
   };
@@ -180,9 +155,7 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
     const endpoint = `${endPoint}/${sp_id}`;
     togglePopup(false);
     await sendAPIRequest(endpoint, { method: 'DELETE' });
-    const filteredData = tableData?.filter((x: SalesPurchaseFormData) => x.sp_id !== sp_id);
-    type === 'Sales' ? dispatch(setSales(filteredData)) : dispatch(setPurchase(filteredData));
-    getSalesData();
+    type === 'Sales' ? await getAndSetSalesHandler() : await getAndSetPurchaseHandler();
   };
 
   const handleDelete = (oldData: SalesPurchaseFormData) => {
@@ -223,11 +196,7 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
     };
 
     if (validationErrors[field]) {
-      setPopupState({
-        ...popupState,
-        isAlertOpen: true,
-        message: validationErrors[field],
-      });
+      settingPopupState(false, `${validationErrors[field]}`);
       node.setDataValue(field, oldValue);
       return;
     }
@@ -245,63 +214,49 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
       method: 'PUT',
       body: { ...data, [field]: newValue },
     });
-    getSalesData();
+    type === 'Sales' ? getAndSetSalesHandler() : getAndSetPurchaseHandler();
   };
+
+    const defaultCols={
+      flex: 1,
+      filter: true,
+      suppressMovable: true,
+      headerClass: 'custom-header',
+      floatingFilter: true,
+      editable : updateAccess
+    }
 
   const colDefs: any[] = [
     {
       headerName: 'Name',
       field: 'sptype',
-      flex: 1,
-      filter: true,
-      suppressMovable: true,
-      headerClass: 'custom-header',
     },
     {
       headerName: 'IGST %',
       field: 'igst',
-      flex: 1,
-      filter: true,
       valueFormatter: decimalFormatter,
-      headerClass: 'custom-header',
-      suppressMovable: true,
     },
     {
       headerName: 'CGST %',
       field: 'cgst',
-      flex: 1,
-      filter: true,
       editable : false,
       valueFormatter: decimalFormatter,
       headerClass: 'custom-header custom_header_class',
-      suppressMovable: true,
     },
     {
       headerName: 'SGST %',
       field: 'sgst',
-      flex: 1,
-      filter: true,
       editable : false,
       valueFormatter: decimalFormatter,
-      headerClass: 'custom-header',
-      suppressMovable: true,
     },
     {
       headerName: 'Cess %',
       field: 'surCharge',
-      flex: 1,
-      filter: true,
       valueFormatter: decimalFormatter,
-      headerClass: 'custom-header',
-      suppressMovable: true,
     },
     {
       headerName: 'Short Name',
       field: 'shortName',
-      flex: 1,
-      filter: true,
-      headerClass: 'custom-header',
-      suppressMovable: true,
     },
     {
       headerName: 'Actions',
@@ -350,10 +305,7 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
           <AgGridReact
             rowData={tableData}
             columnDefs={colDefs}
-            defaultColDef={{
-              floatingFilter: true,
-              editable : updateAccess
-            }}
+            defaultColDef={defaultCols}
             onCellClicked={onCellClicked}
             onCellEditingStarted={cellEditingStarted}
             onCellEditingStopped={handleCellEditingStopped}
