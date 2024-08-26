@@ -36,3 +36,11 @@ export const batchHeader = [
   { label: 'Locked', key: 'locked' },
   { label: 'Scheme', key: 'opFree' },
 ];
+
+export const itemFooter = [
+  { label: 'Discount Per', key: 'discountPer' },
+  { label: 'DPCOACT', key: 'dpcoact' },
+  { label: 'Schedule Drug', key: 'scheduleDrug' },
+  { label: 'Sales', key: 'sales' },
+  { label: 'Purchase', key: 'purchase' },
+];

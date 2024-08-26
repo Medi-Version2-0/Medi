@@ -15,6 +15,7 @@ export const SelectList = ({
   className,
   closeList,
   headers,
+  footers,
   tableData,
   handleSelect,
 }: DropDownPopupProps) => {
@@ -36,13 +37,13 @@ export const SelectList = ({
   const filteredData = useMemo(() => {
     if (selectedCategory) {
       return tableData.filter((row) => {
-        const cellValue = row[selectedCategory];
+        const cellValue = row[selectedCategory]?.toLocaleString();
         return cellValue?.toLowerCase()?.includes(formik.values.searchBar.toLowerCase());
       });
     } else {
       return tableData.filter((row) => {
         return headers.some((header) => {
-          const cellValue = row[header.key];
+          const cellValue = row[header.key]?.toLocaleString();
           return cellValue?.toLowerCase()?.includes(formik.values.searchBar.toLowerCase());
         });
       });
@@ -109,15 +110,17 @@ export const SelectList = ({
     setFocusedRowIndex(0);
   };
 
+
+  console.log(tableData , 'tabledata')
   return (
     <Popup
       heading={heading}
-      childClass='!max-h-fit w-full min-w-[50vw]'
+      childClass='!h-[80vh] w-full min-w-[50vw] !max-h-full'
       className={className}
       isSuggestionPopup={true}
       id='dropDownPopup'
     >
-      <div className='flex mx-4 mt-4'>
+       <div className='flex mx-4 mt-4'>
         <form onSubmit={formik.handleSubmit} className='flex w-full gap-5'>
           <div className="w-1/3 h-fit">
             <FormikInputField
@@ -145,7 +148,8 @@ export const SelectList = ({
           </select>
         </form>
       </div>
-      <div className='mx-4 h-fit max-h-[40rem] overflow-auto border-[1px] border-gray-400 border-solid my-4'>
+      <div className='flex flex-col h-[60vh] justify-between'>
+      <div className='mx-4 h-fit max-h-[50vh] overflow-auto border-[1px] border-gray-400 border-solid my-4'>
         <table className='table-auto w-full border-collapse'>
           <thead className='sticky top-0 overflow-auto'>
             <tr>
@@ -176,6 +180,18 @@ export const SelectList = ({
             ))}
           </tbody>
         </table>
+      </div>
+      {footers?.length && <div className='max-h-[20vh] mx-4'>
+        <div className='grid grid-cols-3 h-full w-full border-solid border-2'>
+          {footers.map((footer: any, index: number) => (
+            <div key={index} className='flex gap-4'>
+              <span>{footer.label}:</span>
+              <span>{focusedRowData && focusedRowData[footer.key]}</span>
+            </div>
+          ))}
+        </div>
+        
+        </div>}
       </div>
     </Popup>
   );

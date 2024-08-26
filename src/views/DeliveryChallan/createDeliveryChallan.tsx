@@ -123,7 +123,6 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
   const [dataFromTable, setDataFromTable] = useState<any[]>([]);
   const [challanTableData, setChallanTableData] = useState<any[]>([]);
   const [isNetRateSymbol, setIsNetRateSymbol] = useState<string>('');
-  const [partyData, setPartyData] = useState<any[]>([]);
   const [focused, setFocused] = useState('');
   const queryClient = useQueryClient();
   const {party: allParty} = useSelector((state:any)=> state.global)
@@ -214,9 +213,6 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
   const fetchAllData = async () => {
     const stations = await sendAPIRequest<any[]>(`/${organizationId}/station`);
     const partyList = await sendAPIRequest<any[]>(`/${organizationId}/ledger`);
-
-    setPartyData(partyList);
-
     setStationOptions(
       stations.map((station: any) => ({
         value: station.station_id,

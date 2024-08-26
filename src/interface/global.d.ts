@@ -389,6 +389,7 @@ export interface selectListProps {
   closeList: ()=> void;
   className?: string;
   headers: any[];
+  footers? :any[]
   tableData: any[];
   handleSelect: (rowData : any)=> void;
   dataKeys?: any;

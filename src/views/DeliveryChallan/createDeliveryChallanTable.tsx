@@ -3,10 +3,10 @@ import { useParams } from 'react-router-dom';
 import { sendAPIRequest } from '../../helper/api';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { SchemeSection } from './createDeliveryChallan';
-import { DropDownPopup } from '../../components/common/dropDownPopup';
-import { schemeTypeOptions, itemHeader, batchHeader } from '../../constants/saleChallan';
+import { schemeTypeOptions, itemHeader, batchHeader, itemFooter } from '../../constants/saleChallan';
 import { ChallanTable } from '../../components/common/challanTable';
 import { useSelector } from 'react-redux';
+import { SelectList } from '../../components/common/selectList';
 interface RowData {
   id: number;
   columns: {
@@ -50,14 +50,16 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
   const [schemeValue, setSchemeValue] = useState<any>({ scheme1: null, scheme2: null });
   const [open, setOpen] = useState<boolean>(false);
   const [openDataPopup, setOpenDataPopup] = useState<boolean>(false);
-  const [tableData, setTableData] = useState<any[]>([]);
-  const [headerData, setHeaderData] = useState<any>({ isItem: false, isBatch: false });
+  const focusColIndex = useRef(0);
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
     message: '',
   });
-  const focusColIndex = useRef(0);
+  const [popupList, setPopupList] = useState<{isOpen:boolean, data:any}>({
+    isOpen :false,
+    data : {}
+  })
 
   useEffect(() => {
     updateGridData();
@@ -175,26 +177,52 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     focusColIndex.current = colIndex;
     setFocusedRowIndex(rowIndex);
     if (colIndex === 0) {
-      setTableData(itemValue);
-      setHeaderData({ ...headerData, isItem: true, isBatch: false });
+      setPopupList({
+        isOpen: true,
+        data: {
+          heading: 'Select Item',
+          // headers: [{ label: 'Sr No.', value: '', auto: true }, ...partyHeaders],
+          headers: [...itemHeader],
+          footers : [...itemFooter],
+          tableData: itemValue,
+          handleSelect: (rowData: any) => { setCurrentSavedData({...currentSavedData , item : rowData})
+        }
+    }})
     }
     if (colIndex === 1 ) {
       if (challanTableData && challanTableData.length > 0 && rowIndex < challanTableData.length) {
         const item = challanTableData[rowIndex];
         const selectedItem = itemValue.find((data: any) => data.id === item.itemId);
         if (selectedItem) {
-          setTableData(selectedItem.ItemBatches.filter((x:any)=> x.locked.toLowerCase() !== 'y'));
-          setBatches(selectedItem.ItemBatches);
+          const unlockedBatches = selectedItem.ItemBatches.filter((x:any)=> x.locked.toLowerCase() !== 'y');
+          setBatches(unlockedBatches);
+          setPopupList({
+            isOpen: true,
+            data: {
+              heading: 'Select Batch',
+              // headers: [{ label: 'Sr No.', value: '', auto: true }, ...partyHeaders],
+              headers: [...batchHeader],
+              tableData: unlockedBatches,
+              handleSelect: (rowData: any) => { setCurrentSavedData({...currentSavedData , batch : rowData})
+            }
+        }})
         }
-        setHeaderData({ ...headerData, isItem: false, isBatch: true });
       }
       else {
         const selectedItem = itemValue.find((item: any) => item.name === currentSavedData.item.name);
         const unlockedBatch = selectedItem.ItemBatches.filter((x:any)=> x.locked.toLowerCase() !== 'y')
         if (selectedItem && unlockedBatch.length) {
-          setTableData(unlockedBatch);
           setBatches(unlockedBatch);
-          setHeaderData({ ...headerData, isItem: false, isBatch: true });
+          setPopupList({
+            isOpen: true,
+            data: {
+              heading: 'Select Batch',
+              // headers: [{ label: 'Sr No.', value: '', auto: true }, ...partyHeaders],
+              headers: [...batchHeader],
+              tableData: unlockedBatch,
+              handleSelect: (rowData: any) => { setCurrentSavedData({...currentSavedData , batch : rowData})
+            }
+        }})
         }
         else {
           setPopupState({
@@ -206,8 +234,8 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
          return document.getElementById(`cell-${rowIndex}-${focusColIndex.current + 1}`)?.focus();
         }
       }
+      // return setOpenDataPopup(true);
     }
-    return setOpenDataPopup(true);
   }
 
   const fetchItems = async () => {
@@ -218,7 +246,6 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
       item.purchase = purchase.find((purchase: any) => purchase.sp_id === item.purAccId)?.sptype;
     })
     setItemValue(items);
-    setTableData(items);
   };
 
   const handleAlertCloseModal = () => {
@@ -415,16 +442,14 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
           setSchemeValue={setSchemeValue}
         />
       )}
-      {openDataPopup && (headerData.isItem || headerData.isBatch) && (
-        <DropDownPopup
-          heading={headerData.isItem ? 'Items' : headerData.isBatch ? 'Batches' : ''}
-          setOpenDataPopup={setOpenDataPopup}
-          headers={headerData.isItem ? itemHeader : headerData.isBatch ? batchHeader : []}
-          tableData={tableData}
-          setCurrentSavedData={setCurrentSavedData}
-          dataKeys={{ 'Items': 'item',  'Batches': 'batch' }}
-        />
-      )}
+      {popupList.isOpen &&  <SelectList
+          heading={popupList.data.heading}
+          closeList={()=> setPopupList({isOpen:false , data : {}})}
+          headers={popupList.data.headers}
+          footers = {popupList.data.footers}
+          tableData={popupList.data.tableData}
+          handleSelect={(rowData)=> {popupList.data.handleSelect(rowData)}}
+        />}
     </div>
   );
 
