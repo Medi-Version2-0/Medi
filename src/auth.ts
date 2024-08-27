@@ -11,7 +11,7 @@ export const getAccessToken = () => {
   return token;
 };
 
-const saveToken = (token: string) => {
+export const saveToken = (token: string) => {
   localStorage.setItem(mediAccessToken, token);
 };
 

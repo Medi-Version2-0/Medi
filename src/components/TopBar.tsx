@@ -7,6 +7,7 @@ import Button from '../components/common/button/Button';
 import { generalSettingFields } from './common/controlRoom/settings';
 import { ControlRoomSettings } from './common/controlRoom/ControlRoomSettings';
 import { useSelector } from 'react-redux';
+import { getAccessToken, saveToken } from '../auth';
 
 export const TopBar = () => {
   const [isPopupVisible, setPopupVisible] = useState(false);
@@ -18,7 +19,7 @@ export const TopBar = () => {
   const popupRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { controlRoomSettings } = useControls();
-
+  const apiUrl = process.env.REACT_APP_API_URL;
   const generalSettingsInitialValues = {
     gstRefundBenefit: controlRoomSettings.gstRefundBenefit || false,
     showItemSpecialRate: controlRoomSettings.showItemSpecialRate || false,
@@ -32,6 +33,8 @@ export const TopBar = () => {
     defaultDownloadPath: controlRoomSettings.defaultDownloadPath || false,
     itemWiseDiscount: controlRoomSettings.itemWiseDiscount || false,
   };
+  const { setUser } = useUser();
+
 
   useEffect(() => {
     setCompanies(
@@ -66,10 +69,20 @@ export const TopBar = () => {
     }
   };
 
-  const handleCompanySwitch = (companyId: number) => {
+  const handleCompanySwitch = async(companyId: number) => {
+    const response:any = await fetch(apiUrl + `/auth/switch-company`, {
+      method: 'post',
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: 'Bearer ' + getAccessToken() ,
+      },
+      body: JSON.stringify({ organizationId : companyId }),
+    })
+    const readableData = await response.json();
+    saveToken(readableData.access_token)
+    setUser(readableData.data);
     window.location.href = `/#/${companyId}`;
     window.location.reload();
-    setDropdownVisible(false);
   };
 
   useEffect(() => {

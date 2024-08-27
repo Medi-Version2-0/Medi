@@ -36,6 +36,7 @@ interface UserContextType {
   ) => void;
   login: (email: string, password: string) => Promise<User>;
   logout: () => void;
+  setUser: Dispatch<SetStateAction<any>>;
   selectedCompany: number | undefined;
   setSelectedOrganization: Dispatch<SetStateAction<number | undefined>>;
 }
@@ -129,6 +130,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
         register,
         login,
         logout,
+        setUser,
         selectedCompany,
         setSelectedOrganization,
       }}
