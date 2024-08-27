@@ -137,7 +137,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
         newGridData[focusedRowIndex].columns['batchNo']
       );
     }
-
+    
     if(focusColIndex.current === 0){
       handleFocus(focusedRowIndex,1)
        }
@@ -210,7 +210,16 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
       }
       else {
         const selectedItem = itemValue.find((item: any) => item.name === currentSavedData.item.name);
-        const unlockedBatch = selectedItem.ItemBatches.filter((x:any)=> x.locked.toLowerCase() !== 'y')
+        if (!selectedItem){
+          setPopupState({
+            ...popupState,
+            isAlertOpen: true,
+            message:
+              'Select item name first',
+          });
+          return document.getElementById(`cell-${rowIndex}-${focusColIndex.current + 1}`)?.focus();
+        }
+        const unlockedBatch = selectedItem?.ItemBatches.filter((x:any)=> x.locked.toLowerCase() !== 'y')
         if (selectedItem && unlockedBatch.length) {
           setBatches(unlockedBatch);
           setPopupList({
@@ -417,6 +426,60 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     }
   }
 
+
+  const itemFooters = [
+    {
+      label: 'Item Info',
+      data: [
+        { label: 'Item name', key: "name" },
+        { label: 'Company', key: 'company' },
+        { label: 'DPCOAct', key: 'dpcoact' },
+        { label: 'HSN/SAC', key: 'hsnCode' },
+      ]
+    },
+    {
+      label: 'Tax Info',
+      data: [
+        { label: 'Sales', key: "sales" },
+        { label: 'Purchase', key: 'purchase' },
+      ]
+    },
+    {
+      label: 'Other Info',
+      data: [
+        { label: 'Discount Percent', key: "discountPer" },
+        { label: 'Schedule Drug', key: 'scheduleDrug' },
+        { label: 'Prescription', key: 'prescriptionType' },
+      ]
+    }
+  ]
+
+  const batchFooters = [
+    {
+      label: 'Purchase Info',
+      data: [
+        { label: 'Purchase Price', key: 'purPrice' },
+        { label: 'MRP', key: 'mrp' },
+      ]
+    },
+    {
+      label: 'Selling Info',
+      data: [
+        { label: 'Sale Price 1', key: "salePrice" },
+        { label: 'Sale Price 2', key: "salePrice2" },
+        { label: 'Sale Price 3', key: "salePrice3" },
+        { label: 'Sale Price 4', key: "salePrice4" },
+        { label: 'Sale Price 5', key: "salePrice5" },
+      ]
+    },
+    {
+      label: 'Other Info',
+      data: [
+        { label: 'Batch', key: 'batchNo' },
+        { label: 'Stocks', key: "currentStock" },
+      ]
+    },
+  ]
   return (
     <div className="">
       <ChallanTable
@@ -446,7 +509,8 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
           heading={popupList.data.heading}
           closeList={()=> setPopupList({isOpen:false , data : {}})}
           headers={popupList.data.headers}
-          footers = {popupList.data.footers}
+          footers={popupList.data.heading.includes("Batch")? batchFooters : itemFooters}
+        // footers={[{ label: popupList.data.footers.label, data: [{ key: popupList.data.footers.label }] }]}
           tableData={popupList.data.tableData}
           handleSelect={(rowData)=> {popupList.data.handleSelect(rowData)}}
         />}

@@ -16,6 +16,7 @@ export const SelectList = ({
   closeList,
   headers,
   footers,
+  footerClass,
   tableData,
   handleSelect,
 }: DropDownPopupProps) => {
@@ -50,23 +51,30 @@ export const SelectList = ({
     }
   }, [formik.values.searchBar, selectedCategory, tableData, headers]);
 
+  function makeRecordVisibility(recordIndex:number){
+    tableRefs.current[recordIndex]?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest',
+    });
+  }
+
   useEffect(() => {
     document.getElementById('searchBar')?.focus();
-    tableRefs.current[focusedRowIndex]?.focus();
     setFocusedRowData(filteredData[focusedRowIndex]);
-  }, [focusedRowIndex, filteredData]);
+  }, [focusedRowIndex,filteredData]);
+
+  useEffect(()=>{
+    setFocusedRowIndex(0);    
+  },[filteredData]);
 
   useEffect(() => {
     document.body.classList.add('!overflow-hidden');
     const handleClickOutside = (event: Event) => {
       const target = event.target as HTMLElement;
       if (target.id === 'searchBar' || target.tagName === 'SELECT') return;
-      event.preventDefault();
-      tableRefs.current[0]?.click();
       const parentElement = target.parentElement;
-      if (parentElement?.getAttribute('tabindex') === '-1') {
-        const rowIndex = +parentElement.children[0].innerHTML - 1;
-        setFocusedRowIndex(() => rowIndex);
+      if (parentElement?.getAttribute('tabindex') !== '-1') {
+        event.preventDefault();
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -87,12 +95,19 @@ export const SelectList = ({
   const handleKeyDown = (event: KeyboardEvent) => {
     if (event.key === 'ArrowDown') {
       event.preventDefault();
-      setFocusedRowIndex((prevIndex) => prevIndex === filteredData.length - 1 ? 0 : prevIndex + 1);
+      setFocusedRowIndex((prevIndex) => prevIndex >= filteredData.length - 1 ? 0 : prevIndex + 1);
+      const rowIdx = focusedRowIndex < filteredData.length-1 ? focusedRowIndex + 1 : focusedRowIndex;
+      console.log(rowIdx)
+      makeRecordVisibility(rowIdx);
     } else if (event.key === 'ArrowUp') {
       event.preventDefault();
-      setFocusedRowIndex((prevIndex) => prevIndex === 0 ? filteredData.length - 1 : prevIndex - 1);
+      setFocusedRowIndex((prevIndex) => prevIndex <= 0 ? filteredData.length - 1 : prevIndex - 1);
+      const rowIdx = focusedRowIndex <= -2 ? filteredData.length-1 : focusedRowIndex-2;
+      console.log(rowIdx)
+      makeRecordVisibility(rowIdx);
     } else if (event.key === 'Enter') {
       event.preventDefault();
+      if (!filteredData.length) return;
       handleSelect(focusedRowData);
       closeList();
     } else if (event.key === 'Escape') {
@@ -111,7 +126,8 @@ export const SelectList = ({
   };
 
 
-  console.log(tableData , 'tabledata')
+  // console.log(tableData , 'tabledata')
+  // console.log('focusedRowData --> ', focusedRowData)
   return (
     <Popup
       heading={heading}
@@ -148,40 +164,77 @@ export const SelectList = ({
           </select>
         </form>
       </div>
-      <div className='flex flex-col h-[60vh] justify-between'>
-      <div className='mx-4 h-fit max-h-[50vh] overflow-auto border-[1px] border-gray-400 border-solid my-4'>
-        <table className='table-auto w-full border-collapse'>
-          <thead className='sticky top-0 overflow-auto'>
-            <tr>
-              {headers.map((header: any, index: number) => (
-                <th
-                  key={index}
-                  className='w-fit border-[1px] border-solid bg-[#009196FF] border-gray-400 text-center text-white p-2'
-                >
-                  {header.label}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {filteredData.map((row: any, rowIndex: number) => (
-              <tr
-                key={rowIndex}
-                ref={(el) => (tableRefs.current[rowIndex] = el)}
-                tabIndex={-1}
-                className={focusedRowIndex === rowIndex ? 'bg-[#EAFBFCFF] border-[2px] focus:outline-0 !rounded-lg border-solid border-black': ''}
-              >
-                {headers.map((header: any, colIndex: number) => (
-                  <td key={colIndex} className='border border-gray-400 p-2'>
-                    {header.auto ? rowIndex + 1 : row[header.key]}
-                  </td>
+      <div className='flex flex-col h-[67vh] justify-between'>
+        <div className='mx-4 h-2/5 overflow-auto border-[1px] border-gray-400 border-solid my-4'>
+          <table className='table-auto w-full border-collapse' id='selectListData'>
+            <thead className='sticky top-0 overflow-auto'>
+              <tr>
+                {headers.map((header: any, index: number) => (
+                  <th
+                    key={index}
+                    className='w-fit border-[1px] border-solid bg-[#009196FF] border-gray-400 text-center text-white p-2'
+                  >
+                    {header.label}
+                  </th>
                 ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {footers?.length && <div className='max-h-[20vh] mx-4'>
+            </thead>
+            <tbody>
+              {filteredData.map((row: any, rowIndex: number) => (
+                <tr
+                  key={rowIndex}
+                  ref={(el) => (tableRefs.current[rowIndex] = el)}
+                  tabIndex={-1}
+                  id={`row-${rowIndex}`}
+                  onClick = {()=>{setFocusedRowIndex(rowIndex)}}
+                  className={focusedRowIndex === rowIndex ? 'bg-[#EAFBFCFF] border-[2px] focus:outline-0 !rounded-lg border-solid border-black': ''}
+                >
+                  {headers.map((header: any, colIndex: number) => (
+                    <td key={colIndex} className='border border-gray-400 p-2'>
+                      {header.auto ? rowIndex + 1 : row[header.key]}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {
+          footers?.length && (
+              <div className={`h-1/5 left-0 mx-4 ${footerClass}`}>
+                  <div className={`flex gap-1 h-full w-full text-[12px]`}>
+                      {footers.map((f: any,index:number) => {
+                        return (
+                          <fieldset key={index} className="border flex-1 rounded-sm h-full border-gray-300 px-1 py-1">
+                            <legend className="font-semibold text-gray-700 px-2">
+                              {f.label}
+                            </legend>
+                            <ul className='px-2'>
+                              {f.data.map((d: any, index: number) => {
+                                if (focusedRowData && focusedRowData[d.key] !== null) {
+                                  return <li key={index}>
+                                    <div className="flex">
+                                      <div className="w-5/12 pr-0 relative after:content-[':'] after:absolute after:-right-1 after:text-black">
+                                        {d.label}
+                                      </div>
+                                      <div className="w-7/12 text-right flex justify-end">
+                                        <span className=" whitespace-nowrap">&nbsp;{focusedRowData && focusedRowData[d.key]}</span>
+                                      </div>
+                                    </div>
+                                  </li>
+                                }
+                              })}
+                            </ul>
+                          </fieldset>
+                        )
+                      })}
+                  </div>
+                </div>
+          )
+        }
+      
+        {/* {footers?.length && <div className={`h-1/5 left-0 mx-4 ${footerClass}`}>
         <div className='grid grid-cols-3 h-full w-full border-solid border-2'>
           {footers.map((footer: any, index: number) => (
             <div key={index} className='flex gap-4'>
@@ -191,7 +244,7 @@ export const SelectList = ({
           ))}
         </div>
         
-        </div>}
+        </div>} */}
       </div>
     </Popup>
   );
