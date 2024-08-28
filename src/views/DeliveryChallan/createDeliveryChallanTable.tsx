@@ -39,7 +39,6 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     ),
   }));
 
-
   const { organizationId } = useParams();
   const [gridData, setGridData] = useState<RowData[]>(initialRows);
   const [itemValue, setItemValue] = useState<any[]>([]);
@@ -60,6 +59,8 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     isOpen :false,
     data : {}
   })
+  const cgst = useRef<number | null>(null);
+  const sgst = useRef<number | null>(null);
 
   useEffect(() => {
     updateGridData();
@@ -78,7 +79,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
         (rowData: any, rowIndex: number) => {
           const obj = {
             id: rowIndex + 1,
-            columns: headers.reduce((acc, header) => {
+            columns: headers.reduce((acc: any, header: any) => {
               let data = rowData[header.key];
 
               if (header.key === 'itemId') {
@@ -181,7 +182,6 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
         isOpen: true,
         data: {
           heading: 'Select Item',
-          // headers: [{ label: 'Sr No.', value: '', auto: true }, ...partyHeaders],
           headers: [...itemHeader],
           footers : [...itemFooter],
           tableData: itemValue,
@@ -200,7 +200,6 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
             isOpen: true,
             data: {
               heading: 'Select Batch',
-              // headers: [{ label: 'Sr No.', value: '', auto: true }, ...partyHeaders],
               headers: [...batchHeader],
               tableData: unlockedBatches,
               handleSelect: (rowData: any) => { setCurrentSavedData({...currentSavedData , batch : rowData})
@@ -226,7 +225,6 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
             isOpen: true,
             data: {
               heading: 'Select Batch',
-              // headers: [{ label: 'Sr No.', value: '', auto: true }, ...partyHeaders],
               headers: [...batchHeader],
               tableData: unlockedBatch,
               handleSelect: (rowData: any) => { setCurrentSavedData({...currentSavedData , batch : rowData})
@@ -243,7 +241,6 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
          return document.getElementById(`cell-${rowIndex}-${focusColIndex.current + 1}`)?.focus();
         }
       }
-      // return setOpenDataPopup(true);
     }
   }
 
@@ -253,6 +250,12 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
       item.company = company.find((comp: any) => comp.company_id === item.compId)?.companyName;
       item.sales = sales.find((sale: any) => sale.sp_id === item.saleAccId)?.sptype;
       item.purchase = purchase.find((purchase: any) => purchase.sp_id === item.purAccId)?.sptype;
+      item.ItemBatches = item.ItemBatches.map((batch: any) => {
+        return {
+          ...batch,
+          updatedOpFree: parseFloat(((batch.opFree / batch.opBalance) * 100).toFixed(2))          
+        }
+      })
     })
     setItemValue(items);
   };
@@ -317,9 +320,22 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     newGridData[rowIndex].columns.amt = total;
     total = parseFloat(total.toFixed(2));
 
+    newGridData.map(async (data: any) => {
+      const item = itemValue?.find((item: any) => item.name === data.columns.itemId.label); 
+      const spData = await getSalesPurchaseData();
+      const salesPurchaseSelected = spData.find((data: any) => data.sp_id === item?.saleAccId);
+      const isStateInOut = company.find((comp: any) => comp.company_id === item?.compId)?.stateInOut;
+
+      if(isStateInOut === 'Within State'){
+      data.columns.cgst = Number(salesPurchaseSelected.cgst);
+      data.columns.sgst = Number(salesPurchaseSelected.sgst);
+      }
+    })
+
     const totalDiscount = newGridData.reduce((acc, data) => acc + (data.columns.amt * data.columns.disPer) / 100, 0);
     const totalGST = newGridData.reduce((acc, data) => acc + ((data.columns.amt - (data.columns.amt * data.columns.disPer) / 100) * data.columns.gstAmount) / 100, 0);
-
+    const totalCGST = newGridData.reduce((acc, data) => acc + ((data.columns.amt - (data.columns.amt * data.columns.disPer) / 100) * data.columns.cgst) / 100, 0);
+    const totalSGST = newGridData.reduce((acc, data) => acc + ((data.columns.amt - (data.columns.amt * data.columns.disPer) / 100) * data.columns.sgst) / 100, 0);
     const totalAmt = newGridData.reduce((acc, data) => acc + (data.columns.amt - (data.columns.amt * data.columns.disPer) / 100) + ((data.columns.amt - (data.columns.amt * data.columns.disPer) / 100) * data.columns.gstAmount) / 100, 0);
     const totalQty = newGridData.reduce((acc, data) => acc + Number(data.columns.qty) + (data.columns.scheme !== '' && data.columns.schemeType.label === 'Pieces' ? Number(data.columns.scheme) : 0), 0);
     setGridData(newGridData);
@@ -329,6 +345,8 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
       totalQty: totalQty,
       totalDiscount: totalDiscount,
       totalGST: totalGST,
+      totalCGST: totalCGST,
+      totalSGST: totalSGST,
       isDefault: false
     });
   };

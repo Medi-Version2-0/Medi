@@ -26,13 +26,14 @@ export interface DeliveryChallanFormValues {
   runningBalance: number;
   runningBalanceType: string;
   challanNumber: string;
-  // netRateSymbol: string;
   personName: string;
   date: string;
   qtyTotal: string;
   total: string;
   totalDiscount: string;
   totalGST: string;
+  totalSGST: string;
+  totalCGST: string;
 }
 
 export type DeliveryChallanFormInfoType = FormikProps<DeliveryChallanFormValues>;
@@ -131,7 +132,9 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
     totalQty: 0.0,
     totalDiscount: 0.0,
     totalGST: 0.0,
-    isDefault: true
+    totalCGST: 0.0,
+    totalSGST: 0.0,
+    isDefault :true
   });
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
@@ -152,13 +155,14 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
       runningBalance: data?.runningBalance || 0.0,
       runningBalanceType: data?.runningBalanceType || '',
       challanNumber: data?.challanNumber || '',
-      // netRateSymbol: data?.netRateSymbol || '',
       personName: data?.personName || '',
       date: data?.date || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric'}), // dd//mm//yyyy
       qtyTotal: data?.qtyTotal || '',
       total: data?.total || '',
       totalDiscount: data?.totalDiscount || '',
       totalGST: data?.totalGST || '',
+      totalCGST: data?.totalCGST || '',
+      totalSGST: data?.totalSGST || '',
     },
     validationSchema: saleChallanFormValidations,
     onSubmit: async (values: any) => {
@@ -183,6 +187,8 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
         values.total = (+totalValue.totalAmt)?.toFixed(2);
         values.qtyTotal = (+totalValue.totalQty)?.toFixed(2);
         values.totalDiscount = (+totalValue.totalDiscount)?.toFixed(2);
+        values.totalCGST = (+totalValue.totalCGST)?.toFixed(2);
+        values.totalSGST = (+totalValue.totalSGST)?.toFixed(2);
         values.totalGST = (+totalValue.totalGST)?.toFixed(2);
         const finalData = { ...values, challans: dataFromTable };
 
@@ -284,7 +290,6 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
         isOpen: true,
         data: {
           heading: 'Select Party',
-          // headers: [{ label: 'Sr No.', value: '', auto: true }, ...partyHeaders],
           headers: [...partyHeaders],
           tableData: tableData,
           handleSelect: (rowData: any) => { handleFieldChange({ label: rowData.partyName, value: rowData.party_id }, 'partyId') ,  document.getElementById('personName')?.focus();
@@ -551,31 +556,54 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
         </div>
         <div className='border-[1px] border-solid border-gray-400 my-4 p-4 mx-8'>
           <div className='flex gap-12 justify-between'>
-            <span className='flex gap-2 text-base text-gray-900'>
-              Total Discount :{' '}
-              <span className='min-w-[50px] text-gray-700'>
-                {totalValue.totalDiscount >= 0 && !totalValue.isDefault ? parseFloat(Number(totalValue.totalDiscount)?.toFixed(2)) : (data?.totalDiscount || 0)}
+            <div className="border-[1px] border-solid w-[25%] border-gray-400 relative">
+              <span className='absolute top-[-8px] left-2  px-2 w-fit bg-[#fff] text-xs'>Discount Info</span>
+              <span className='flex gap-2 text-base text-gray-900 p-2'>
+                Total Discount :{' '}
+                <span className='min-w-[50px] text-gray-700'>
+                  {totalValue.totalDiscount >=0 && !totalValue.isDefault ? parseFloat(Number(totalValue.totalDiscount)?.toFixed(2)) : (data?.totalDiscount || 0)}
+                </span>
               </span>
-            </span>
-            <span className='flex gap-2 text-base text-gray-900'>
-              Total GST :{' '}
-              <span className='min-w-[50px] text-gray-700'>
-                {totalValue.totalGST >= 0 && !totalValue.isDefault ? parseFloat(Number(totalValue.totalGST)?.toFixed(2)) : (data?.totalGST || 0)}
+            </div>            
+            <div className="border-[1px] border-solid w-[25%] border-gray-400 relative">
+              <span className='absolute top-[-8px] left-2  px-2 w-fit bg-[#fff] text-xs'>Tax Info</span>
+              <span className='flex gap-2 text-base text-gray-900 mt-3 mx-2'>
+                SGST :{' '}
+                <span className='min-w-[50px] text-gray-700'>
+                  {totalValue.totalSGST >=0 && !totalValue.isDefault ? parseFloat(Number(totalValue.totalSGST)?.toFixed(2)) : (data?.totalSGST || 0)}
+                </span>
               </span>
-            </span>
-
-            <span className='flex gap-2 text-base text-gray-900'>
-              Total Quantity :{' '}
-              <span className='min-w-[50px] text-gray-700'>
-                {totalValue.totalQty >= 0 && !totalValue.isDefault ? parseFloat(Number(totalValue.totalQty)?.toFixed(2)) : (data?.qtyTotal || 0)}
+              <span className='flex gap-2 text-base text-gray-900 m-2'>
+                CGST :{' '}
+                <span className='min-w-[50px] text-gray-700'>
+                  {totalValue.totalCGST >=0 && !totalValue.isDefault ? parseFloat(Number(totalValue.totalCGST)?.toFixed(2)) : (data?.totalCGST || 0)}
+                </span>
               </span>
-            </span>
-            <span className='flex gap-2 text-base text-gray-900'>
-              Total :{' '}
-              <span className='min-w-[50px] text-gray-700'>
-                {totalValue.totalAmt >= 0 && !totalValue.isDefault ? parseFloat(Number(totalValue.totalAmt)?.toFixed(2)) : (data?.total || 0)}
+              <span className='flex gap-2 text-base text-gray-900 m-2'>
+                Total GST :{' '}
+                <span className='min-w-[50px] text-gray-700'>
+                  {totalValue.totalGST >=0 && !totalValue.isDefault ? parseFloat(Number(totalValue.totalGST)?.toFixed(2)) : (data?.totalGST || 0)}
+                </span>
               </span>
-            </span>
+            </div>    
+            <div className="border-[1px] border-solid w-[25%] border-gray-400 relative">
+              <span className='absolute top-[-8px] left-2  px-2 w-fit bg-[#fff] text-xs'>Quantity Info</span>
+              <span className='flex gap-2 text-base text-gray-900 m-2'>
+                Total Quantity :{' '}
+                <span className='min-w-[50px] text-gray-700'>
+                  {totalValue.totalQty >=0 && !totalValue.isDefault ?  parseFloat(Number(totalValue.totalQty)?.toFixed(2)) : (data?.qtyTotal || 0)}
+                </span>
+              </span>
+            </div>  
+            <div className="border-[1px] border-solid w-[25%] border-gray-400 relative">
+              <span className='absolute top-[-8px] left-2  px-2 w-fit bg-[#fff] text-xs'>Total Info</span>
+              <span className='flex gap-2 text-base text-gray-900 m-2'>
+                Total :{' '}
+                <span className='min-w-[50px] text-gray-700'>
+                  {totalValue.totalAmt >=0 && !totalValue.isDefault ? parseFloat(Number(totalValue.totalAmt)?.toFixed(2)) : (data?.total || 0)}
+                </span>
+              </span>
+            </div>          
           </div>
         </div>
         <div className='w-full px-8 py-2'>
