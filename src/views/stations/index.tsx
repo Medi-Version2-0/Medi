@@ -41,7 +41,6 @@ export const Stations = () => {
   const [stateData, setStateData] = useState<any[]>([]);
   const editing = useRef(false);
   const getAndSetStationHandler = useGetSetData(getAndSetStations);
-  let currTable: any[] = [];
   const gridRef = useRef<any>(null);
   const { stations } = useSelector((state: any) => state.global);
   const { createAccess, updateAccess, deleteAccess } = usePermission('station_setup')
@@ -202,38 +201,25 @@ export const Stations = () => {
   const states = extractKeys(stateCodeMap);
 
   const handleCellEditingStopped = async (e: any) => {
-    currTable = [];
     editing.current = false;
     const { data, column, oldValue, valueChanged, node } = e;
     let { newValue } = e;
     if (!valueChanged) return;
     const field = column.colId;
-
+    if(field === 'station_name'){
+      newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
+      const existingStation = tableData.find((station: StationFormData) => station.station_name.toLowerCase() === newValue.toLowerCase() && station.station_id !== data.station_id);
+      if (existingStation) {
+        settingPopupState(false, 'Sub Group with this name already exists!');
+        node.setDataValue(field, oldValue);
+        return;
+      }
+    }
     if (node.rowIndex === 0 && createAccess) {
       try {
         await stationValidationSchema.validateAt(field, { [field]: newValue });
         if (data.state_code && data.station_name && data.station_pinCode) {
           handleConfirmPopup(data)
-
-          if (field === 'station_name') {
-            newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
-            currTable = tableData.filter(
-              (data: any) => data.station_id !== e.data.station_id
-            );
-
-            const existingStation = currTable.find(
-              (station: StationFormData) =>
-                station.station_name.toLowerCase() === newValue.toLowerCase()
-            );
-
-            if (existingStation) {
-              settingPopupState(false, 'Station with this name already exists!')
-              node.setDataValue(field, oldValue);
-              return;
-            }
-          }
-
-
           if (field === 'igst_sale' && newValue) {
             newValue = newValue.toLowerCase();
           }
@@ -348,7 +334,6 @@ export const Stations = () => {
         return lookupValue(stateCodeMap, params.data.state_code);
       },
       filterValueGetter: (params: { data: any }) => {
-        console.log(lookupValue(stateCodeMap, params.data.state_code))
         return lookupValue(stateCodeMap, params.data.state_code);
       },
       headerClass: 'custom-header custom_header_class',
