@@ -170,7 +170,10 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
                         {headers.map((header, colIndex) => {
                             const columnValue = header.props.label ? row.columns[header.key]?.label || '' : row.columns[header.key] || '';    // check condition
                             // const columnValue = row.columns[header  .key] || '';
-                            console.log(row.columns[header.key],"inside the jszxx",row,"columnValue--->",columnValue,"header--->",header)
+                            // console.log(row.columns[header.key])
+                            console.log("Row --> ", row)
+                            // console.log("columnValue--->",columnValue)
+                            // console.log("header--->",header)
                             switch (header.type) {
                                 case 'customSelect':
                                     return (

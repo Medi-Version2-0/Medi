@@ -43,7 +43,7 @@ const CreateVouchers = ({ setView, data }: any) => {
   ];
 
   const headers = [
-    { name: 'Party', key: 'partyName', width: '15%', type: 'input', props: { inputType: 'text', label: true, handleFocus: (rowIndex: number, colIndex: number) => handleFocus(rowIndex, colIndex) } },
+    { name: 'Party', key: 'partyId', width: '15%', type: 'input', props: { inputType: 'text', label: true, handleFocus: (rowIndex: number, colIndex: number) => handleFocus(rowIndex, colIndex) } },
     { name: 'Narration', key: 'narration', width: '15%', type: 'input', props: { inputType: 'text', handleChange: (args: any) => { handleInputChange(args); } } },
     { name: 'Amount (₹)', key: 'amount', width: '15%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); } } },
     { name: 'Dr/Cr', key: 'debitOrCredit', width: '5%', type: 'input', props: { inputType: 'text', handleChange: (args: any) => { handleInputChange(args); }, readOnly: false } },
@@ -51,9 +51,11 @@ const CreateVouchers = ({ setView, data }: any) => {
     { name: 'Discount Narration', key: 'disNarration', width: '15%', type: 'input', props: { inputType: 'text', handleChange: (args: any) => { handleInputChange(args); } } },
   ];
 
-  const partyHeader = [
-    { label: 'Party Name', key: 'partyName' },
+  const partyHeaders = [
+    { label: 'Name', key: 'partyName' },
     { label: 'Station', key: 'station_name' },
+    { label: 'Closing Balance', key: 'currentOpeningBal' },
+    { label: 'Closing Balance Type', key: 'currentOpeningBalType' },
   ];
 
   const initializeGridData = async () => {
@@ -105,7 +107,7 @@ const CreateVouchers = ({ setView, data }: any) => {
         voucherDate: selectedDate,
       })),
     };
-
+    console.log('Data to backend',dataToSend)
     // const dataToSend = {
     //   rows: gridData.map((row) => {
     //     const matchingParty = partiesData.find((party: any) => party.partyName === row.columns.partyName);
@@ -194,17 +196,20 @@ const CreateVouchers = ({ setView, data }: any) => {
 
   const handleFocus = (rowIndex: number, colIndex: number) => {
     focusColIndex.current = colIndex;
+    // console.log(partyValue)
+    console.log('Saved Data --> ', currentSavedData)
     setFocusedRowIndex(rowIndex);
     if (colIndex === 0) {
       setPopupList({
         isOpen: true,
         data: {
           heading: 'Select Party',
-          headers: [...partyHeader],
+          headers: [...partyHeaders],
           tableData: partyValue,
           handleSelect: (rowData: any) => {
+            console.log('rowData --> ',rowData)
             setCurrentSavedData(rowData)
-            handleInputChange({rowIndex,header:'partyName',value: rowData.partyName});
+            handleInputChange({ rowIndex, header: 'partyId', value: rowData.party_id });
           }
         } 
       });
@@ -213,6 +218,7 @@ const CreateVouchers = ({ setView, data }: any) => {
 
   const handleInputChange = async ({ rowIndex, header, value }: any) => {
     const newGridData = [...gridData];
+    console.log(newGridData)
     console.log("gridData---1-->",gridData)
     const { readOnly: drCrReadOnly } = await getDrCrColumnProps();
     if (header === 'debitOrCredit' && drCrReadOnly) {

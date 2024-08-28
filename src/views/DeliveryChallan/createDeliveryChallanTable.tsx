@@ -175,6 +175,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
 
   const handleFocus = (rowIndex: number, colIndex: number) => {
     focusColIndex.current = colIndex;
+    console.log('saved Data --> ',currentSavedData)
     setFocusedRowIndex(rowIndex);
     if (colIndex === 0) {
       setPopupList({

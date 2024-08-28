@@ -123,7 +123,7 @@ const Vouchers = () => {
                     </div>
 
                     {/* Add Voucher Button */}
-                    {createAccess && (
+                    {true && (
                         <div className='flex items-center'>
                             <Button
                                 type='highlight'
