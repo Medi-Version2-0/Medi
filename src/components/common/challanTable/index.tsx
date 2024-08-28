@@ -11,6 +11,11 @@ interface RowData {
     };
 }
 
+interface NewRowTrigger {
+    columnIndex: number;
+    rowIndex: number;
+  }
+
 interface HeaderConfig {
     name: string;
     key: string;
@@ -34,8 +39,9 @@ interface ChallanTableProps {
     handleSave: () => void;
     withAddRow?: ()=> void;
     rowDeleteCallback? : (rowIndex:number , data : any)=> void;
+    newRowTrigger?: NewRowTrigger;
 }
-export const ChallanTable = ({ headers, gridData, setGridData, handleSave , withAddRow , rowDeleteCallback }: ChallanTableProps) => {
+export const ChallanTable = ({ headers, gridData, setGridData, handleSave , withAddRow , rowDeleteCallback, newRowTrigger }: ChallanTableProps) => {
     const [focused, setFocused] = useState('');
     const [popupState, setPopupState] = useState({
         isModalOpen: false,
@@ -66,6 +72,32 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
             }
         }
     };
+
+    // const handleKeyDown = async (
+    //     e: React.KeyboardEvent<HTMLInputElement>,
+    //     rowIndex: number,
+    //     colIndex: number,
+    //   ) => {
+    //     if (e.key === 'Enter') {
+    //       e.preventDefault();
+          
+    //       const isTriggerColumn = newRowTrigger?.columnIndex === colIndex;
+    //       const isTriggerRow = newRowTrigger?.rowIndex === rowIndex;
+      
+    //       // Check if the column and row match the trigger
+    //       const shouldAddRow = isTriggerColumn && isTriggerRow;
+      
+    //       if (shouldAddRow) {
+    //         addRows(1);
+    //         setTimeout(() => focusNextCell(rowIndex + 1, 0), 0);
+    //       } else if (colIndex === headers.length - 1) {
+    //         focusNextCell(rowIndex + 1, 0);
+    //       } else {
+    //         focusNextCell(rowIndex, colIndex + 1);
+    //       }
+    //     }
+    //   };
+      
 
     const focusNextCell = async (rowIndex: number, colIndex: number) => {
         const nextInput = document.getElementById(`cell-${rowIndex}-${colIndex}`);
@@ -133,10 +165,12 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
                 ))}
             </div>
             <div className="flex flex-col h-[22rem] w-[100vw]">
-                {gridData.map((row: any, rowIndex: number) => (
+                {gridData && gridData.map((row: any, rowIndex: number) => (
                     <div key={row.id} className="flex relative">
                         {headers.map((header, colIndex) => {
-                            const columnValue = header.props.label ? row.columns[header.key]?.label || '' : row.columns[header.key] || '';
+                            const columnValue = header.props.label ? row.columns[header.key]?.label || '' : row.columns[header.key] || '';    // check condition
+                            // const columnValue = row.columns[header  .key] || '';
+                            console.log(row.columns[header.key],"inside the jszxx",row,"columnValue--->",columnValue,"header--->",header)
                             switch (header.type) {
                                 case 'customSelect':
                                     return (
