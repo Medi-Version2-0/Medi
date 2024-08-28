@@ -14,6 +14,7 @@ export interface GlobalState {
   item: any;
   billBookSeries: any;
   store: any;
+  partywiseDiscount:any;
 }
 
 export const SET_STATION = 'SET_STATION';
@@ -30,6 +31,7 @@ export const SET_PARTY = 'SET_PARTY'
 export const SET_ITEM = 'SET_ITEM'
 export const SET_BILLBOOK = 'SET_BILLBOOK';
 export const SET_STORE = 'SET_STORE';
+export const SET_PARTYWISE_DISCOUNT = 'SET_PARTYWISE_DISCOUNT';
 
 interface SetStationAction {
   type: typeof SET_STATION;
@@ -98,5 +100,10 @@ interface setStore {
   payload: any;
 }
 
-export type GlobalActionTypes = SetStationAction | SetGroupsAction | SetSubGroupsAction | SetOrganizationAction | SetPermissionsAction | SetSalesAction | SetPurchaseAction | SetCompanyAction | SetItemGroupAction | SetControlRoomSettings | SetParty | SetItem | setBillBookAction | setStore;
+interface setPartywiseDiscount {
+  type: typeof SET_PARTYWISE_DISCOUNT;
+  payload: any;
+}
+
+export type GlobalActionTypes = SetStationAction | SetGroupsAction | SetSubGroupsAction | SetOrganizationAction | SetPermissionsAction | SetSalesAction | SetPurchaseAction | SetCompanyAction | SetItemGroupAction | SetControlRoomSettings | SetParty | SetItem | setBillBookAction | setStore | setPartywiseDiscount;
 export type AppDispatch = ThunkDispatch<GlobalState, void, GlobalActionTypes>;
