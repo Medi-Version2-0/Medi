@@ -126,6 +126,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
   const [focused, setFocused] = useState('');
   const queryClient = useQueryClient();
   const {party: allParty} = useSelector((state:any)=> state.global)
+  const { stations } = useSelector((state: any) => state.global);
   const [totalValue, setTotalValue] = useState({
     totalAmt: 0.0,
     totalQty: 0.0,
@@ -211,30 +212,18 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
   });
 
   const fetchAllData = async () => {
-    const stations = await sendAPIRequest<any[]>(`/${organizationId}/station`);
-    const partyList = await sendAPIRequest<any[]>(`/${organizationId}/ledger`);
     setStationOptions(
       stations.map((station: any) => ({
         value: station.station_id,
         label: titleCase(station.station_name),
       }))
     );
-    if (formik.values.oneStation === 'One Station') {
-      const requiredParty = partyList.filter((party) => party.station_id === formik.values.stationId);
-      setPartyOptions(
-        requiredParty.map((party: any) => ({
+    setPartyOptions(
+        allParty.map((party: any) => ({
           value: party.party_id,
           label: titleCase(party.partyName),
         }))
       );
-    } else if (formik.values.oneStation === 'All Stations') {
-      setPartyOptions(
-        partyList.map((party: any) => ({
-          value: party.party_id,
-          label: titleCase(party.partyName),
-        }))
-      );
-    }
   };
 
   const handleAlertCloseModal = () => {
@@ -265,7 +254,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
 
   useEffect(() => {
     fetchAllData();
-  }, [formik.values.stationId, formik.values.oneStation]);
+  }, [formik.values.stationId, formik.values.oneStation,allParty]);
 
 
 
@@ -303,6 +292,81 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
     });
   }
   }
+
+  const partyFooterData:any[] = [
+    {
+      label: 'Address',
+      data: [
+        {
+          label: 'Party Name',
+          key: 'partyName'
+        },
+        {
+          label: 'Address 1',
+          key: 'address1'
+        },
+        {
+          label: 'Address 2',
+          key: 'address2'
+        },
+        {
+          label: 'Address 3',
+          key: 'address3'
+        },
+      ]
+    },
+    {
+      label: 'License Info',
+      data: [
+        {
+          label: 'Party Name',
+          key: 'partyName'
+        },
+      ]
+    },
+    {
+      label: 'OtherInfo',
+      data: [
+        {
+          label: 'Party Name',
+          key: 'partyName'
+        },
+        {
+          label: 'Country',
+          key: 'country'
+        },
+        {
+          label: 'PinCode',
+          key: 'pinCode'
+        },
+        {
+          label: 'Station Name',
+          key: 'station_name'
+        },
+      ]
+    },
+    {
+      label: 'Current Status',
+      data: [
+        {
+          label: 'Opening',
+          key: 'openingBalType'
+        },
+        {
+          label: 'Credit',
+          key: 'openingBalType'
+        },
+        {
+          label: 'Debit',
+          key: 'openingBalType'
+        },
+        {
+          label: 'Balance',
+          key: 'openingBalType'
+        },
+      ]
+    },
+  ];
 
   return (
     <div className='w-full'>
@@ -606,6 +670,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
           closeList={()=> setPopupList({isOpen:false , data : {}})}
           headers={popupList.data.headers}
           tableData={popupList.data.tableData}
+          footers={partyFooterData}
           handleSelect={(rowData)=> {popupList.data.handleSelect(rowData)}}
         />}
     </div>

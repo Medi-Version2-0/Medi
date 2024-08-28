@@ -34,7 +34,6 @@ export const SubGroups = () => {
   const [tableData, setTableData] = useState<SubGroupFormData | any>(null);
   const editing = useRef(false);
   const permissions = usePermission('sub_groups')
-  let currTable: any[] = [];
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
@@ -166,28 +165,25 @@ export const SubGroups = () => {
     node?: any;
     newValue?: any;
   }) => {
-    currTable = [];
     editing.current = false;
     const { data, column, oldValue, valueChanged, node } = e;
     let { newValue } = e;
     if (!valueChanged) return;
     const field = column.colId;
+    if (field === 'group_name'){
+      newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
+      const existingGroup = tableData.find((group: SubGroupFormData) => group.group_name.toLowerCase() === newValue.toLowerCase() && group.group_code !== data.group_code);
+      if (existingGroup) {
+        settingPopupState(false, 'Sub Group with this name already exists!');
+        node.setDataValue(field, oldValue);
+        return;
+      }
+    }
     if (node.rowIndex === 0 && permissions.createAccess) {
       if (data.group_name && data.parent_code) {
         try { 
           await subgroupValidationSchema.validate(data);
             handleConfirmPopup(data)
-
-            const existingGroup = currTable.find(
-              (group: SubGroupFormData) =>
-                group.group_name.toLowerCase() === newValue.toLowerCase()
-            );
-
-            if (existingGroup) {
-              settingPopupState(false, 'Sub Group with this name already exists!');
-              node.setDataValue(field, oldValue);
-              return;
-            }
           if (field === 'igst_sale' && newValue) {
             newValue = newValue.toLowerCase();
           }
