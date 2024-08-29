@@ -28,7 +28,7 @@ export const sendAPIRequest = async <T>(
       headers: { ...(init?.headers || {}), ...headers },
     });
 
-    return response.data?.data;
+    return response?.data?.data || response?.data || response;
 
   } catch (error) {
     const axiosError = error as AxiosError;
