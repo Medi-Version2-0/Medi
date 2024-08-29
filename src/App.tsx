@@ -58,8 +58,7 @@ export const App = () => {
 };
 
 const AppRoot = () => {
-  const { organizationId } = useParams();
-  const { user, setSelectedOrganization } = useUser();
+  const { user, setSelectedOrganization, selectedCompany: organizationId } = useUser();
   useEffect(() => {
     if (organizationId) {
       setSelectedOrganization(+organizationId);

@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
 import { sendAPIRequest } from '../../helper/api';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { SchemeSection } from './createDeliveryChallan';
@@ -39,8 +38,6 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     ),
   }));
 
-
-  const { organizationId } = useParams();
   const [gridData, setGridData] = useState<RowData[]>(initialRows);
   const [itemValue, setItemValue] = useState<any[]>([]);
   const [batches, setBatches] = useState<any[]>([]);
@@ -230,8 +227,8 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
   };
 
   const getSalesPurchaseData = async () => {
-    const sale = await sendAPIRequest<any[]>(`/${organizationId}/sale`);
-    const purchase = await sendAPIRequest<any[]>(`/${organizationId}/purchase`);
+    const sale = await sendAPIRequest<any[]>(`/sale`);
+    const purchase = await sendAPIRequest<any[]>(`/purchase`);
     return [...sale, ...purchase];
   };
 
@@ -243,7 +240,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
 
   const updateTaxAndGst = async (rowIndex: number, value: any) => {
     const newGridData = [...gridData];
-    const company = await sendAPIRequest<any[]>(`/${organizationId}/company`);
+    const company = await sendAPIRequest<any[]>(`/company`);
     let selectedItem = '';
     if (value !== undefined || !!value) {
       selectedItem = value.label;

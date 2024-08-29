@@ -6,7 +6,6 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { DeliveryChallanFormData, View } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
-import { useParams } from 'react-router-dom';
 import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -16,7 +15,6 @@ import usePermission from '../../hooks/useRole';
 
 const DeliveryChallan = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
-  const { organizationId } = useParams();
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<DeliveryChallanFormData | any>(
     null
@@ -36,7 +34,7 @@ const DeliveryChallan = () => {
     queryKey: ['get-deliveryChallan'],
     queryFn: () =>
       sendAPIRequest<{ data: DeliveryChallanFormData }>(
-        `/${organizationId}/deliveryChallan`
+        `/deliveryChallan`
       ),
   });
 
@@ -65,7 +63,7 @@ const DeliveryChallan = () => {
 
   const handleConfirmPopup = async () => {
     setPopupState({ ...popupState, isModalOpen: false });
-    await sendAPIRequest(`/${organizationId}/deliveryChallan/${id.current}`, {
+    await sendAPIRequest(`/deliveryChallan/${id.current}`, {
       method: 'DELETE',
     });
     queryClient.invalidateQueries({ queryKey: ['get-deliveryChallan'] });
@@ -159,7 +157,7 @@ const DeliveryChallan = () => {
               handleOnClick={async () => {
                 try{
                   const challanNumber = await sendAPIRequest<string>(
-                    `/${organizationId}/deliveryChallan/challanNumber`
+                    `/deliveryChallan/challanNumber`
                   );
                   setView({
                     type: 'add',

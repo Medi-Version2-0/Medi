@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
 import { useFormik } from 'formik';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import Button from '../../components/common/button/Button';
@@ -21,7 +20,6 @@ export const CreateDiscount = ({
   discountTypeOptions,
   discounts,
 }: any) => {
-  const { organizationId } = useParams();
   const [companyOptions, setCompanyOptions] = useState<Option[]>([]);
   const [partyOptions, setPartyOptions] = useState<Option[]>([]);
   const [focused, setFocused] = useState('');
@@ -69,7 +67,7 @@ export const CreateDiscount = ({
           allData.companyId = null;
         }
         await sendAPIRequest(
-          `/${organizationId}/partyWiseDiscount/${data.discount_id}`,
+          `/partyWiseDiscount/${data.discount_id}`,
           {
             method: 'PUT',
             body: allData,
@@ -84,7 +82,7 @@ export const CreateDiscount = ({
           });
           return;
         }
-        await sendAPIRequest(`/${organizationId}/partyWiseDiscount`, {
+        await sendAPIRequest(`/partyWiseDiscount`, {
           method: 'POST',
           body: allData,
         });
@@ -94,8 +92,8 @@ export const CreateDiscount = ({
   });
 
   const fetchAllData = async () => {
-    const companies = await sendAPIRequest<any[]>(`/${organizationId}/company`);
-    const parties = await sendAPIRequest<any[]>(`/${organizationId}/ledger`);
+    const companies = await sendAPIRequest<any[]>(`/company`);
+    const parties = await sendAPIRequest<any[]>(`/ledger`);
     setCompanyOptions(
       companiesData.map((company: any) => ({
         value: company.company_id,

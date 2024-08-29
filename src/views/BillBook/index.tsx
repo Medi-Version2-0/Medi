@@ -8,7 +8,6 @@ import { BillBookForm } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
-import { useParams } from 'react-router-dom';
 import { CreateBillBook } from './CreateBillBook';
 import { IoSettingsOutline } from 'react-icons/io5';
 import { ControlRoomSettings } from '../../components/common/controlRoom/ControlRoomSettings';
@@ -56,7 +55,6 @@ const seriesOptions: SeriesOption[] = [
 ];
 
 export const BillBook = () => {
-  const { organizationId } = useParams();
   const getAndSetBillBookHandler = useGetSetData(getAndSetBillBook);
   const { billBookSeries: billBookSeriesData } = useSelector((state: any) => state.global);
   const [open, setOpen] = useState<boolean>(false);
@@ -142,12 +140,12 @@ export const BillBook = () => {
 
     if (formData !== initialValue) {
       if (formData.id) {
-        await sendAPIRequest(`/${organizationId}/billBook/${formData.id}`, {
+        await sendAPIRequest(`/billBook/${formData.id}`, {
           method: 'PUT',
           body: formData,
         });
       } else {
-        await sendAPIRequest(`/${organizationId}/billBook`, {
+        await sendAPIRequest(`/billBook`, {
           method: 'POST',
           body: formData,
         });
@@ -183,7 +181,7 @@ export const BillBook = () => {
     isDelete.current = false;
     togglePopup(false);
     try {
-      await sendAPIRequest(`/${organizationId}/billBook/${id}`, {
+      await sendAPIRequest(`/billBook/${id}`, {
         method: 'DELETE',
       });
       getAndSetBillBookHandler();
@@ -253,7 +251,7 @@ export const BillBook = () => {
       return;
     }
     node.setDataValue(field, newValue);
-    await sendAPIRequest(`/${organizationId}/billBook/${data.id}`, {
+    await sendAPIRequest(`/billBook/${data.id}`, {
       method: 'PUT',
       body: { [field]: newValue },
     });

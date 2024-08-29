@@ -5,8 +5,8 @@ import { SET_STATION, SET_GROUPS, SET_ORGANIZATION, SET_PERMISSIONS, GlobalActio
 import { sendAPIRequest } from '../../helper/api';
 import { ItemGroupFormData, GroupFormData, SalesPurchaseFormData,  CompanyFormData, BillBookForm, BillBookFormData, LedgerFormData, ItemFormData, StoreFormData } from '../../interface/global';
 
-export const getAndSetStations = (organizationId: string | undefined) => async (dispatch: Dispatch<GlobalActionTypes>) => {
-  const stations = await sendAPIRequest<any[]>(`/${organizationId}/station`);
+export const getAndSetStations = () => async (dispatch: Dispatch<GlobalActionTypes>) => {
+  const stations = await sendAPIRequest<any[]>(`/station`);
 
   dispatch({
     type: SET_STATION,
@@ -33,8 +33,8 @@ export const setPermissions = (permissions: any): GlobalActionTypes => ({
   payload: permissions,
 });
 
-export const getAndSetPermssions = (organizationId: string|undefined) => async (dispatch: Dispatch<GlobalActionTypes>) => {
-  const userRole: any = await getUserPermissions(Number(organizationId), Number(1));
+export const getAndSetPermssions = () => async (dispatch: Dispatch<GlobalActionTypes>) => {
+  const userRole: any = await getUserPermissions(Number(1));
   const permissions: any = {};
   userRole.role.Resources.forEach((resource: ResourceI) => {
     if (resource.RolePermission) {
@@ -78,63 +78,63 @@ export const setBillBook = (billBookSeries: any): GlobalActionTypes => ({
   payload: billBookSeries,
 });
 
-export const getAndSetItemGroups = (organizationId: string|undefined) => async (dispatch: Dispatch<GlobalActionTypes>) => {
-  const itemGroups = await sendAPIRequest<ItemGroupFormData[]>(`/${organizationId}/itemGroup`)
+export const getAndSetItemGroups = () => async (dispatch: Dispatch<GlobalActionTypes>) => {
+  const itemGroups = await sendAPIRequest<ItemGroupFormData[]>(`/itemGroup`)
   dispatch({
     type: SET_ITEMGROUP,
     payload: itemGroups ||[],
   });
 }
 
-export const getAndSetCompany = (organizationId: string|undefined) => async (dispatch: Dispatch<GlobalActionTypes>) => {
-  const company = await sendAPIRequest<CompanyFormData[]>(`/${organizationId}/company`)
+export const getAndSetCompany = () => async (dispatch: Dispatch<GlobalActionTypes>) => {
+  const company = await sendAPIRequest<CompanyFormData[]>(`/company`)
   dispatch({
     type: SET_COMPANY,
     payload: company ||[],
   });
 }
 
-export const getAndSetPurchase = (organizationId: string|undefined) => async (dispatch: Dispatch<GlobalActionTypes>) => {
-  const purchase = await sendAPIRequest<SalesPurchaseFormData[]>(`/${organizationId}/purchase`)
+export const getAndSetPurchase = () => async (dispatch: Dispatch<GlobalActionTypes>) => {
+  const purchase = await sendAPIRequest<SalesPurchaseFormData[]>(`/purchase`)
   dispatch({
     type: SET_PURCHASE,
     payload: purchase ||[],
   });
 }
 
-export const getAndSetSales = (organizationId: string|undefined) => async (dispatch: Dispatch<GlobalActionTypes>) => {
-  const sales = await sendAPIRequest<SalesPurchaseFormData[]>(`/${organizationId}/sale`)
+export const getAndSetSales = () => async (dispatch: Dispatch<GlobalActionTypes>) => {
+  const sales = await sendAPIRequest<SalesPurchaseFormData[]>(`/sale`)
   dispatch({
     type: SET_SALES,
     payload: sales ||[],
   });
 }
 
-export const getAndSetGroups = (organizationId: string|undefined) => async (dispatch: Dispatch<GlobalActionTypes>) => {
-  const groups = await sendAPIRequest<GroupFormData[]>(`/${organizationId}/group`)
+export const getAndSetGroups = () => async (dispatch: Dispatch<GlobalActionTypes>) => {
+  const groups = await sendAPIRequest<GroupFormData[]>(`/group`)
   dispatch({
     type: SET_GROUPS,
     payload: groups || [],
   });
 }
-export const getAndSetSubGroups = (organizationId: string|undefined) => async (dispatch: Dispatch<GlobalActionTypes>) => {
-  const subGroups = await sendAPIRequest<GroupFormData[]>(`/${organizationId}/group/sub`)
+export const getAndSetSubGroups = () => async (dispatch: Dispatch<GlobalActionTypes>) => {
+  const subGroups = await sendAPIRequest<GroupFormData[]>(`/group/sub`)
   dispatch({
     type: SET_SUB_GROUPS,
     payload: subGroups || [],
   });
 }
 
-export const getAndSetParty = (organizationId: string|undefined) => async (dispatch: Dispatch<GlobalActionTypes>) => {
-  const party = await sendAPIRequest<LedgerFormData[]>(`/${organizationId}/ledger`)
+export const getAndSetParty = () => async (dispatch: Dispatch<GlobalActionTypes>) => {
+  const party = await sendAPIRequest<LedgerFormData[]>(`/ledger`)
   dispatch({
     type: SET_PARTY,
     payload:  party|| [],
   });
 }
 
-export const getAndSetItem = (organizationId: string|undefined) => async (dispatch: Dispatch<GlobalActionTypes>) => {
-  const item = await sendAPIRequest< ItemFormData >(`/${organizationId}/item`)
+export const getAndSetItem = () => async (dispatch: Dispatch<GlobalActionTypes>) => {
+  const item = await sendAPIRequest< ItemFormData >(`/item`)
   dispatch({
     type: SET_ITEM,
     payload: item || [],
@@ -156,16 +156,16 @@ export const setItem = (item: any): GlobalActionTypes => ({
   payload: item,
 });
 
-export const getAndSetBillBook = (organizationId: string|undefined) => async (dispatch: Dispatch<GlobalActionTypes>) => {
-  const billBookSeries = await sendAPIRequest<BillBookFormData[]>(`/${organizationId}/billBook`)
+export const getAndSetBillBook = () => async (dispatch: Dispatch<GlobalActionTypes>) => {
+  const billBookSeries = await sendAPIRequest<BillBookFormData[]>(`/billBook`)
   dispatch({
     type: SET_BILLBOOK,
   payload: billBookSeries || [],
   });
 }
 
-export const getAndSetStore = (organizationId: string|undefined) => async (dispatch: Dispatch<GlobalActionTypes>) => {
-  const store = await sendAPIRequest<StoreFormData[]>(`/${organizationId}/store`)
+export const getAndSetStore = () => async (dispatch: Dispatch<GlobalActionTypes>) => {
+  const store = await sendAPIRequest<StoreFormData[]>(`/store`)
   dispatch({
     type: SET_STORE,
     payload: store ||[],

@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
 import { useFormik } from 'formik';
 import { GeneralInfo } from '../../components/ledger form/GeneralInfo';
 import { BalanceDetails } from '../../components/ledger form/BalanceDetails';
@@ -29,7 +28,6 @@ const initialState = {
 };
 
 export const CreateLedger = ({ setView, data }: any) => {
-  const { organizationId } = useParams();
   const getAndSetLedgerHandler = useGetSetData(getAndSetParty);
   const {stations} = useSelector((state:any)=> state.global)
   const {groups : groupDataList} = useSelector((state:any)=> state.global)
@@ -125,8 +123,8 @@ export const CreateLedger = ({ setView, data }: any) => {
       delete allData.stationName;
 
       const apiPath = data?.party_id
-        ? `/${organizationId}/ledger/${data?.party_id}`
-        : `/${organizationId}/ledger`;
+        ? `/ledger/${data?.party_id}`
+        : `/ledger`;
 
       const method = data?.party_id ? 'PUT' : 'POST';
 

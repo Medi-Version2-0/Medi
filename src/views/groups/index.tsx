@@ -10,7 +10,6 @@ import { ColDef, ColGroupDef, ValueFormatterParams } from 'ag-grid-community';
 import { CreateGroup } from './CreateGroup';
 import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
-import { useParams } from 'react-router-dom';
 import { groupValidationSchema } from './validation_schema';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
 import { useSelector } from 'react-redux'
@@ -29,7 +28,6 @@ export const Groups = () => {
     isPredefinedGroup: true,
   };
   const { createAccess, updateAccess, deleteAccess } = usePermission('ledger')
-  const { organizationId } = useParams();
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<GroupFormData>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
@@ -86,14 +84,14 @@ export const Groups = () => {
     if (payload !== initialValue) {
       try {
         if (formData.group_code) {
-          await sendAPIRequest(`/${organizationId}/group/${formData.group_code}`,{
+          await sendAPIRequest(`/group/${formData.group_code}`,{
               method: 'PUT',
               body: formData,
             }
           );
           getAndSetGroupsHandler();
         } else {
-          const response: any = await sendAPIRequest(`/${organizationId}/group`, {
+          const response: any = await sendAPIRequest(`/group`, {
             method: 'POST',
             body: payload,
           });
@@ -122,7 +120,7 @@ export const Groups = () => {
   const deleteAcc = async (group_code: string) => {
     isDelete.current = false;
     togglePopup(false);
-    await sendAPIRequest(`/${organizationId}/group/${group_code}`, {
+    await sendAPIRequest(`/group/${group_code}`, {
       method: 'DELETE',
     });
     getAndSetGroupsHandler();
@@ -209,7 +207,7 @@ export const Groups = () => {
     } else {
       try {
         node.setDataValue(field, e.newValue);
-        await sendAPIRequest(`/${organizationId}/group/${data.group_code}`, {
+        await sendAPIRequest(`/group/${data.group_code}`, {
           method: 'PUT',
           body: { [field]: newValue },
         });

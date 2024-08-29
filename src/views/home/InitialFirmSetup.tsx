@@ -9,6 +9,7 @@ import GeneralSection from '../../components/organization/GeneralSection';
 import LicencseSection from '../../components/organization/LicenceSection';
 import { useUser } from '../../UserContext';
 import { useNavigate } from 'react-router-dom';
+import { getAccessToken, saveToken } from '../../auth';
 
 const Step1 = ({ formik }: any) => (
     <div>
@@ -33,8 +34,9 @@ const Step3 = ({ formik }: any) => (
 
 const InitialFirmSetup = () => {
     const [step, setStep] = useState(1);
-    const { user } = useUser();
+    const { user, setUser } = useUser();
     const navigate = useNavigate();
+    const apiUrl = process.env.REACT_APP_API_URL;
     const { successToast } = useToastManager();
 
     const formik = useFormik({
@@ -63,6 +65,17 @@ const InitialFirmSetup = () => {
                 if (user?.id) {
                     const organization: any = await createOrganization(values, user.id);
                     successToast('Firm setup has been completed.Happy Accounting!');
+                    const response: any = await fetch(apiUrl + `/auth/switch-company`, {
+                        method: 'post',
+                        headers: {
+                            'Content-type': 'application/json',
+                            Authorization: 'Bearer ' + getAccessToken(),
+                        },
+                        body: JSON.stringify({ organizationId: organization.id }),
+                    })
+                    const readableData = await response.json();
+                    saveToken(readableData.access_token)
+                    setUser(readableData.data);
                     navigate(`/${organization.id}`);
                 } else {
                     navigate('/not-authorized');

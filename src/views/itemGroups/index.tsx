@@ -10,7 +10,6 @@ import { ColDef, ColGroupDef, ValueFormatterParams } from 'ag-grid-community';
 import { CreateItemGroup } from './createItemGroup';
 import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
-import { useParams } from 'react-router-dom';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { itemGroupValidationSchema } from './validation_schema';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
@@ -27,7 +26,6 @@ export const ItemGroups = () => {
     group_name: '',
     type: '',
   };
-  const { organizationId } = useParams();
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<ItemGroupFormData>({
     group_name: '',
@@ -82,14 +80,14 @@ export const ItemGroups = () => {
     if (payload !== initialData) {
       if (formData.group_code) {
         await sendAPIRequest(
-          `/${organizationId}/itemGroup/${formData.group_code}`,
+          `/itemGroup/${formData.group_code}`,
           {
             method: 'PUT',
             body: formData,
           }
         );
       } else {
-        const response: any = await sendAPIRequest(`/${organizationId}/itemGroup`, {
+        const response: any = await sendAPIRequest(`/itemGroup`, {
           method: 'POST',
           body: payload,
         });
@@ -121,7 +119,7 @@ export const ItemGroups = () => {
     togglePopup(false);
     isDelete.current = false;
 
-    await sendAPIRequest(`/${organizationId}/itemGroup/${group_code}`, {
+    await sendAPIRequest(`/itemGroup/${group_code}`, {
       method: 'DELETE',
     });
     getAndSetItemGroupHandler();
@@ -202,7 +200,7 @@ export const ItemGroups = () => {
       try {
         await itemGroupValidationSchema.validateAt(field, { [field]: newValue, });
         await sendAPIRequest(
-          `/${organizationId}/itemGroup/${data.group_code}`,
+          `/itemGroup/${data.group_code}`,
           {
             method: 'PUT',
             body: { [field]: newValue },

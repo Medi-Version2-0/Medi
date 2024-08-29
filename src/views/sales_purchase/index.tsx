@@ -10,7 +10,6 @@ import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import Button from '../../components/common/button/Button';
 import { CreateSalePurchase } from './CreateSalePurchase';
 import { sendAPIRequest } from '../../helper/api';
-import { useParams } from 'react-router-dom';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { useSelector } from 'react-redux'
 import { getAndSetSales, getAndSetPurchase } from '../../store/action/globalAction';
@@ -28,7 +27,6 @@ const initialValue: SalesPurchaseFormData = {
 };
 
 export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
-  const { organizationId } = useParams();
   const getAndSetSalesHandler = useGetSetData(getAndSetSales);
   const getAndSetPurchaseHandler = useGetSetData(getAndSetPurchase);
   const [open, setOpen] = useState<boolean>(false);
@@ -97,8 +95,8 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
     if (formData !== initialValue) {
       const endPoint =
         type === 'Sales'
-          ? `/${organizationId}/sale`
-          : `/${organizationId}/purchase`;
+          ? `/sale`
+          : `/purchase`;
       const endpoint = formData.sp_id
         ? `${endPoint}/${formData.sp_id}`
         : `${endPoint}`;
@@ -150,8 +148,8 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
     togglePopup(false);
     const endPoint =
       type === 'Sales'
-        ? `/${organizationId}/sale`
-        : `/${organizationId}/purchase`;
+        ? `/sale`
+        : `/purchase`;
     const endpoint = `${endPoint}/${sp_id}`;
     togglePopup(false);
     await sendAPIRequest(endpoint, { method: 'DELETE' });
@@ -207,8 +205,8 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
     }
     const endPoint =
       type === 'Sales'
-        ? `/${organizationId}/sale`
-        : `/${organizationId}/purchase`;
+        ? `/sale`
+        : `/purchase`;
     const endpoint = `${endPoint}/${data.sp_id}`;
     await sendAPIRequest(endpoint, {
       method: 'PUT',

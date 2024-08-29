@@ -24,8 +24,10 @@ export const RedirectToCompany = () => {
         name: org.name
       })));
 
-    } catch (error) {
-      console.error("Failed to fetch organizations:", error);
+    } catch (error:any) {
+      if (error.response.status === 404){
+        console.log('User does not have any organization')
+      }
       setOrganizations([]);
     }
   }

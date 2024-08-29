@@ -10,7 +10,6 @@ import {
   View,
 } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
-import { useParams } from 'react-router-dom';
 import { ValueFormatterParams } from 'ag-grid-community';
 import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
@@ -21,7 +20,6 @@ import usePermission from '../../hooks/useRole';
 
 export const PartyWiseDiscount = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
-  const { organizationId } = useParams();
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<CompanyFormData | any>(null);
   const [partyData, setPartyData] = useState<any[]>([]);
@@ -47,12 +45,12 @@ export const PartyWiseDiscount = () => {
   const { data } = useQuery<PartyWiseDiscountFormData[]>({
     queryKey: ['get-discounts'],
     queryFn: () =>
-      sendAPIRequest<any[]>(`/${organizationId}/partyWiseDiscount`),
+      sendAPIRequest<any[]>(`/partyWiseDiscount`),
   });
 
   const fetchData = async () => {
-    const parties = await sendAPIRequest<any[]>(`/${organizationId}/ledger`);
-    const companies = await sendAPIRequest<any[]>(`/${organizationId}/company`);
+    const parties = await sendAPIRequest<any[]>(`/ledger`);
+    const companies = await sendAPIRequest<any[]>(`/company`);
     setPartyData(parties);
     setCompanyData(companies);
   };
@@ -120,7 +118,7 @@ export const PartyWiseDiscount = () => {
   const handleConfirmPopup = async () => {
     setPopupState({ ...popupState, isModalOpen: false });
     await sendAPIRequest(
-      `/${organizationId}/partyWiseDiscount/${discountId.current}`,
+      `/partyWiseDiscount/${discountId.current}`,
       {
         method: 'DELETE',
       }
@@ -246,7 +244,7 @@ export const PartyWiseDiscount = () => {
     }
 
     await sendAPIRequest(
-      `/${organizationId}/partyWiseDiscount/${data.discount_id}`,
+      `/partyWiseDiscount/${data.discount_id}`,
       {
         method: 'PUT',
         body: { [field]: newValue },
