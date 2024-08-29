@@ -396,3 +396,17 @@ export interface selectListProps {
   dataKeys?: any;
 }
 export type Mapping = { [key: number | string]: string };
+export interface Voucher {
+    voucherDate: Date;
+    voucherNumber: number;
+    partyId: number;
+    amount: number;
+    discount: number;
+    voucherType: string;
+    narration: string;
+    discNarration: string;
+    debitOrCredit: DebitCreditEnum;
+    organizationId: number;
+    createdBy: number;
+    updatedBy: number;
+}

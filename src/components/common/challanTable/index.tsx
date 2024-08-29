@@ -55,7 +55,8 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
     ) => {
         if (e.key === 'Enter') {
             e.preventDefault();
-            const isThirdLastColumn = colIndex === headers.length - 3;
+            // const isThirdLastColumn = colIndex === headers.length - 3;       // Update this function
+            const isThirdLastColumn = colIndex === headers.length -1;
             const isLastRow = rowIndex === gridData.length - 1;
 
             if (isThirdLastColumn && isLastRow) {
@@ -73,30 +74,6 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
         }
     };
 
-    // const handleKeyDown = async (
-    //     e: React.KeyboardEvent<HTMLInputElement>,
-    //     rowIndex: number,
-    //     colIndex: number,
-    //   ) => {
-    //     if (e.key === 'Enter') {
-    //       e.preventDefault();
-          
-    //       const isTriggerColumn = newRowTrigger?.columnIndex === colIndex;
-    //       const isTriggerRow = newRowTrigger?.rowIndex === rowIndex;
-      
-    //       // Check if the column and row match the trigger
-    //       const shouldAddRow = isTriggerColumn && isTriggerRow;
-      
-    //       if (shouldAddRow) {
-    //         addRows(1);
-    //         setTimeout(() => focusNextCell(rowIndex + 1, 0), 0);
-    //       } else if (colIndex === headers.length - 1) {
-    //         focusNextCell(rowIndex + 1, 0);
-    //       } else {
-    //         focusNextCell(rowIndex, colIndex + 1);
-    //       }
-    //     }
-    //   };
       
 
     const focusNextCell = async (rowIndex: number, colIndex: number) => {
@@ -168,12 +145,9 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
                 {gridData && gridData.map((row: any, rowIndex: number) => (
                     <div key={row.id} className="flex relative">
                         {headers.map((header, colIndex) => {
-                            const columnValue = header.props.label ? row.columns[header.key]?.label || '' : row.columns[header.key] || '';    // check condition
-                            // const columnValue = row.columns[header  .key] || '';
-                            // console.log(row.columns[header.key])
-                            console.log("Row --> ", row)
-                            // console.log("columnValue--->",columnValue)
-                            // console.log("header--->",header)
+                            // const columnValue = header.props.label ? row.columns[header.key]?.label || '' : row.columns[header.key] || '';    // check condition
+                            const columnValue = row.columns[header.key] || '';
+                            // console.log(row.columns[header.key],"inside the jszxx",row,"columnValue--->",columnValue,"header--->",header)
                             switch (header.type) {
                                 case 'customSelect':
                                     return (
