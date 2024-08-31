@@ -36,3 +36,66 @@ export const batchHeader = [
   { label: 'Locked', key: 'locked' },
   { label: 'Scheme', key: 'opFree' },
 ];
+
+export const itemFooter = [
+  { label: 'Discount Per', key: 'discountPer' },
+  { label: 'DPCOACT', key: 'dpcoact' },
+  { label: 'Schedule Drug', key: 'scheduleDrug' },
+  { label: 'Sales', key: 'sales' },
+  { label: 'Purchase', key: 'purchase' },
+  { label: 'Scheme', key: 'updatedOpFree' },
+];
+
+export const itemFooters = [
+  {
+    label: 'Item Info',
+    data: [
+      { label: 'Item name', key: "name" },
+      { label: 'Company', key: 'company' },
+      { label: 'DPCOAct', key: 'dpcoact' },
+      { label: 'HSN/SAC', key: 'hsnCode' },
+    ]
+  },
+  {
+    label: 'Tax Info',
+    data: [
+      { label: 'Sales', key: "sales" },
+      { label: 'Purchase', key: 'purchase' },
+    ]
+  },
+  {
+    label: 'Other Info',
+    data: [
+      { label: 'Discount Percent', key: "discountPer" },
+      { label: 'Schedule Drug', key: 'scheduleDrug' },
+      { label: 'Prescription', key: 'prescriptionType' },
+    ]
+  }
+]
+
+export const batchFooters = [
+  {
+    label: 'Purchase Info',
+    data: [
+      { label: 'Purchase Price', key: 'purPrice' },
+      { label: 'MRP', key: 'mrp' },
+    ]
+  },
+  {
+    label: 'Selling Info',
+    data: [
+      { label: 'Sale Price 1', key: "salePrice" },
+      { label: 'Sale Price 2', key: "salePrice2" },
+      { label: 'Sale Price 3', key: "salePrice3" },
+      { label: 'Sale Price 4', key: "salePrice4" },
+      { label: 'Sale Price 5', key: "salePrice5" },
+    ]
+  },
+  {
+    label: 'Other Info',
+    data: [
+      { label: 'Batch', key: 'batchNo' },
+      { label: 'Stocks', key: "currentStock" },
+    ]
+  },
+]
