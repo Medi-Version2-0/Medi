@@ -22,7 +22,7 @@ const CreateVouchers = ({ setView, data }: any) => {
   const [selectedDate, setSelectedDate] = useState<string | null>(data?.rowData?.voucherDate || null);
   const [gridData, setGridData] = useState<RowData[]>(data?.gridData || []);
   const [voucherNumber, setVoucherNumber] = useState<number | null>(data?.rowData?.voucherNumber || null);
-  const [popupState, setPopupState] = useState<{ isAlertOpen: boolean; isModalOpen: boolean; message: string }>({ isAlertOpen: false,isModalOpen: false, message: '' });
+  const [popupState, setPopupState] = useState<{ isAlertOpen: boolean; isModalOpen: boolean; message: string }>({ isAlertOpen: false, isModalOpen: false, message: '' });
   const [focusedRowIndex, setFocusedRowIndex] = useState<number | null>(null);
   const focusColIndex = useRef(0);
   const [popupList, setPopupList] = useState<{ isOpen: boolean, data: any }>({
@@ -31,8 +31,8 @@ const CreateVouchers = ({ setView, data }: any) => {
   });
   const { party: partiesData } = useSelector((state: any) => state.global);
   const [partyValue, setPartyValue] = useState<any[]>([]);
-  const [currentSavedData, setCurrentSavedData] = useState<{[key: string] : string}>({});
-  // const [voucherNumber, setVoucherNumber] = useState<number | null>(null);
+  const [currentSavedData, setCurrentSavedData] = useState<{ party: any; }>({ party: {} });
+  const [totalValue, setTotalValue] = useState({ totalAmount: 0, totalDiscount: 0 });
 
   const voucherTypes: Option[] = [
     { value: 'CR', label: 'Cash Receipt' },
@@ -68,93 +68,53 @@ const CreateVouchers = ({ setView, data }: any) => {
     const voucherType = voucherTypes.find(type => type.value === value);
     return voucherType ? voucherType.label : '';
   };
-  
+
   const formatVoucherDate = (date: string) => {
     const parsedDate = new Date(date);
     return parsedDate.toISOString().split('T')[0];
   };
 
-//   const initializeGridDataFromData = () => {
-//     if (data?.voucherGridData) {
-      
-//       const updatedGridData = data.voucherGridData.map((row: any) => {
-//         const updatedColumns = headers.reduce((acc, header) => {
-//           let data = row[header.key];
+  const initializeGridDataFromData = () => {
 
-//           // Handle 'partyName' and 'debitOrCredit' specially
-//           if (header.key === 'partyName') {
-//             const matchingParty = partiesData.find((party: any) => party.party_id === row.partyId);
-//             data = matchingParty?.partyName || '';
-//           }
+    if (data?.voucherGridData) {
+      const initialRows = data.voucherGridData.map((row: any, rowIndex: number) => {
 
-//           if (header.key === 'debitOrCredit' && data === 'Cr') {
-//             data = 'Cr';
-//           } else if (header.key === 'debitOrCredit' && data === 'Dr') {
-//             data = 'Dr';
-//           }
+        const updatedColumns = headers.reduce((acc, header) => {
+          let value = row[header.key];
 
-//           return {
-//             ...acc,
-//             [header.key]: data,
-//           };
-//         }, {});
-//         return {
-//           // id: row.id || Math.random(),
-//           columns: updatedColumns,
-//         };
-//       });
+          if (header.key === 'partyName') {
+            value = {
+              label: row.partyName || '',
+              value: row.partyId || '',
+            };
+          }
 
-//       setGridData(updatedGridData);
-//     }
-//   };
+          if (header.key === 'debitOrCredit' && data.rowData.voucherType !== 'JOUR') {
+            value = data.rowData.debitOrCredit || value;
+          }
 
 
-const initializeGridDataFromData = () => {
-
-  if (data?.voucherGridData) {
-
-    const initialRows = data.voucherGridData.map((row: any, rowIndex: number) => {
-      // Construct each row's data based on the headers
-      const updatedColumns = headers.reduce((acc, header) => {
-        let value = row[header.key];
-
-        // Special handling for 'partyName' based on partyId
-        if (header.key === 'partyName') {
-          const matchingParty = partiesData.find(
-            (party: any) => party.party_id === row.partyId
-          );
-          value = matchingParty?.partyName || '';
+          return {
+            ...acc,
+            [header.key]: value,
+            rowId: row.id,
+          };
+        }, {});
+        return {
+          id: rowIndex + 1,
+          columns: updatedColumns
         }
 
-        // Special handling for 'debitOrCredit' field
-        // if (header.key === 'debitOrCredit') {
-        //   if (value === 'Cr') {
-        //     value = 'Cr';
-        //   } else if (value === 'Dr') {
-        //     value = 'Dr';
-        //   }
-        // }
+      });
 
-        return {
-          ...acc,
-          [header.key]: value,
-          rowId: row.id,
-        };
-      }, {});
-
-      return {
-        columns: updatedColumns,
-      };
-    });
-    // Set the grid data with the updated structure
-    setGridData(initialRows);
-  }
-};
+      setGridData(initialRows);
+    }
+  };
 
 
 
-  const initializeGridData = async () => {
-    const { value: drCrValue } = await getDrCrColumnProps();
+  const initializeGridData = () => {
+    const { value: drCrValue } = getDrCrColumnProps();
     setGridData(Array.from({ length: 1 }, (_, rowIndex) => ({
       id: rowIndex + 1,
       columns: headers.reduce(
@@ -164,43 +124,43 @@ const initializeGridDataFromData = () => {
     })));
   };
 
-  const getVoucherData = async (voucherDate: string,  voucherType: string) => {
+
+  const getVoucherData = async (voucherDate: string, voucherType: string) => {
     const url = `/voucher/?voucherDate=${voucherDate}&voucherType=${voucherType}`;
 
     try {
-        const response: any = await sendAPIRequest(url, {
-            method: 'GET',
-        });
-        setVoucherNumber(response.voucherNumber);
-        setGridData(response);
-        return response;
+      const response: any = await sendAPIRequest(url, {
+        method: 'GET',
+      });
+      setVoucherNumber(response?.voucherNumber);
+      return response;
     } catch (error) {
-        console.error('Error fetching voucher data:', error);
-        throw error;
+      console.error('Error fetching voucher data:', error);
+      throw error;
     }
-}
+  }
 
 
   const getDrCrColumnProps = () => {
     if (voucherType?.value) {
-        switch (voucherType?.value) {
-          case 'CR':
-          case 'BD':
-              return { value: 'Cr', readOnly: true };
-          case 'CP':
-          case 'BW':
-              return { value: 'Dr', readOnly: true };
-          default:
-              return { value: '', readOnly: false };
+      switch (voucherType?.value) {
+        case 'CR':
+        case 'BD':
+          return { value: 'Cr', readOnly: true };
+        case 'CP':
+        case 'BW':
+          return { value: 'Dr', readOnly: true };
+        default:
+          return { value: gridData[Number(focusedRowIndex)]?.columns.debitOrCredit, readOnly: false };
       }
     }
     return { value: '', readOnly: false };
-};
+  };
 
-  const handleVoucherTypeChange = async (option: Option | null) => {
+  const handleVoucherTypeChange = (option: Option | null) => {
     setVoucherType(option);
     setSelectedDate(new Date().toISOString().split('T')[0]);
-    await initializeGridData();
+    initializeGridData();
   };
 
   const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -211,8 +171,7 @@ const initializeGridDataFromData = () => {
     const dataToSend = gridData.map((row) => ({
       ...row.columns,
     }));
-   
-    // setGridData(dataToSend);
+
     setPopupState({
       ...popupState,
       isAlertOpen: true,
@@ -221,35 +180,29 @@ const initializeGridDataFromData = () => {
   };
 
   const handleSubmit = async () => {
-    // const dataToSend = {
-    //   rows: gridData.map((row) => ({
-    //     id: row.id,
-    //     ...row.columns,
-    //     amount: Number(row.columns.amount),
-    //     discount: Number(row.columns.discount),
-    //     voucherType: voucherType?.value,
-    //     voucherDate: selectedDate,
-    //   })),
-    // };
 
-    const dataToSend = {
+    const dataToSend: any = {
       rows: gridData.map((row) => {
-        const matchingParty = partiesData.find((party: any) => party.partyName === row.columns.partyName && party.stationId === row.columns.stationId);
-  
+        const { label, value } = row.columns.partyName || {};
+
         return {
           ...row.columns,
           amount: Number(row.columns.amount),
           discount: Number(row.columns.discount),
           voucherType: voucherType?.value,
           voucherDate: selectedDate,
-          partyId: matchingParty ? matchingParty.party_id : null,
+          partyName: label,
+          ...(voucherNumber && { voucherNumber: voucherNumber, }),
+          partyId: value
         };
       }),
     };
 
     try {
-      if (currentSavedData.voucherNumber || data.voucherNumber) {
-        const response: any = await sendAPIRequest(`/voucher/${currentSavedData.voucherNumber}`, {
+
+      if (data.rowData?.voucherNumber) {
+        dataToSend.voucherNumber = data.rowData.voucherNumber;
+        const response: any = await sendAPIRequest(`/voucher/${data.rowData.voucherNumber}`, {
           method: 'PUT',
           body: dataToSend,
         });
@@ -257,11 +210,11 @@ const initializeGridDataFromData = () => {
         const firstRow: any = dataToSend.rows[0];
         if (firstRow.voucherDate !== null) await getVoucherData(firstRow.voucherDate, firstRow.voucherType);
 
-        setVoucherNumber(response.voucherNumber);
+        setVoucherNumber(response?.voucherNumber);
         setPopupState({
           isModalOpen: false,
           isAlertOpen: true,
-          message: `Voucher ${data.id ? 'updated' : 'created'} successfully`,
+          message: `Voucher ${data.rowData.voucherNumber ? 'updated' : 'created'} successfully`,
         });
 
       } else {
@@ -269,8 +222,8 @@ const initializeGridDataFromData = () => {
           method: 'POST',
           body: dataToSend,
         })
-        setVoucherNumber(response.voucherNumber);
-        if(response.voucherNumber){
+        setVoucherNumber(response?.voucherNumber);
+        if (response?.voucherNumber) {
           setPopupState({
             ...popupState,
             isAlertOpen: true,
@@ -278,7 +231,7 @@ const initializeGridDataFromData = () => {
           });
         }
       }
-      
+
     } catch (error) {
       console.error('Error saving voucher:', error);
     }
@@ -288,34 +241,22 @@ const initializeGridDataFromData = () => {
     setPartyValue(partiesData);
   };
 
-  // const setDebitOrCredit = async () => {
-  //   const { value } = await getDrCrColumnProps();
-  //   const newGridData = [...gridData];
-  
-  //   const lastRowIndex = newGridData.length - 1;
-  
-  //   if (lastRowIndex >= 0) {
-  //     newGridData[lastRowIndex].columns['debitOrCredit'] = value;
-  //     setGridData(newGridData);
-  //   }
-  // };
-
   const setDebitOrCredit = async () => {
-    const { value } = await getDrCrColumnProps();
-    const newGridData = gridData.map(row => ({
+    const { value } = getDrCrColumnProps();
+    const updatedData = [...gridData]
+    const newGridData = updatedData.map(row => ({
       ...row,
       columns: {
         ...row.columns,
         debitOrCredit: value,
       },
     }));
-  
     setGridData(newGridData);
   };
 
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
-    setView({type : '' , data : {}});
+    setView({ type: '', data: {} });
   };
 
   const handleClosePopup = () => {
@@ -326,45 +267,40 @@ const initializeGridDataFromData = () => {
     fetchParty();
   }, []);
 
-  useEffect(() => {
-    initializeGridData();
-  }, [voucherType]);
-
-  useEffect(()=>{
-    setDebitOrCredit();
-  },[gridData.length]);
-  
 
   useEffect(() => {
-    if (gridData?.length > 0) {
-      const updatedRows: RowData[] = gridData.map((rowData: any) => {
-        const updatedColumns = headers.reduce((acc, header) => {
-          let data = rowData.columns[header.key];
-  
-          if (header.key === 'partyName') {
-            const matchingParty = partiesData.find((party:any) => party.partyName === rowData.columns[header.key]);
-            data = {
-              label: matchingParty?.partyName,
-              value: matchingParty?.party_id,
-            };
-          }
-  
-          return {
-            ...acc,
-            [header.key]: data,
-          };
-        }, {});
-  
-        return {
-          ...rowData,
-          columns: updatedColumns,
-        };
-      });
-  
-      setGridData(updatedRows);
+    if (voucherType?.value !== 'JOUR' && !data.rowData?.voucherNumber) setDebitOrCredit();
+  }, [gridData.length, voucherType?.value]);
+
+
+  useEffect(() => {
+    updateGridData();
+  }, [currentSavedData.party])
+
+  const updateGridData = () => {
+    if (focusedRowIndex === null) return;
+    const newGridData = [...gridData];
+    if (Object.keys(currentSavedData.party).length) {
+      newGridData[focusedRowIndex].columns['partyName'] = {
+        label: currentSavedData.party.partyName,
+        value: currentSavedData.party.party_id,
+      };
+
+      const { value } = getDrCrColumnProps();
+      newGridData[focusedRowIndex].columns['debitOrCredit'] = value;
+      setGridData(newGridData);
     }
-  }, [ partyValue]);
-  
+
+    if (focusColIndex.current === 0) {
+      handleFocus(focusedRowIndex, 1)
+    }
+
+    if (focusColIndex.current === 1) {
+      document.getElementById(`cell-${focusedRowIndex}-${focusColIndex.current + 1}`)?.focus();
+    }
+
+  };
+
 
   const handleFocus = (rowIndex: number, colIndex: number) => {
     focusColIndex.current = colIndex;
@@ -377,24 +313,40 @@ const initializeGridDataFromData = () => {
           headers: [...partyHeaders],
           tableData: partyValue,
           handleSelect: (rowData: any) => {
-            setCurrentSavedData(rowData)
-            handleInputChange({ rowIndex, header: 'partyName', value: rowData.partyName });
+            setCurrentSavedData({ ...currentSavedData, party: rowData })
           }
-        } 
+        }
       });
     }
   };
 
   const handleInputChange = async ({ rowIndex, header, value }: any) => {
     const newGridData = [...gridData];
-    const { readOnly: drCrReadOnly } = await getDrCrColumnProps();
+    const { readOnly: drCrReadOnly } = getDrCrColumnProps();
+
     if (header === 'debitOrCredit' && drCrReadOnly) {
       return;
     }
+
     newGridData[rowIndex].columns[header] = value;
+
+    const totalAmount = newGridData.reduce((acc, data) => acc + (Number(data.columns.amount) || 0), 0);
+    const totalDiscount = newGridData.reduce((acc, data) => acc + (Number(data.columns.discount) || 0), 0);
+
+    const totalAmountAfterDiscount = totalAmount - totalDiscount;
+
     setGridData(newGridData);
+
+    setTotalValue({
+      ...totalValue,
+      totalAmount: totalAmountAfterDiscount,
+      totalDiscount: totalDiscount,
+    });
   };
+
+
   const isInputsDisabled = Boolean(data?.rowData?.voucherType && data?.rowData?.voucherDate);
+
   return (
     <div className="p-4">
       {voucherType && (
@@ -417,7 +369,7 @@ const initializeGridDataFromData = () => {
         </Button>
       </div>
 
-      <div className='flex justify-between'>
+      <div className="flex justify-between">
         <div className={`flex ${voucherType ? 'w-[500px]' : 'w-[200px]'} items-center gap-3`}>
           <CustomSelect
             isPopupOpen={false}
@@ -433,6 +385,7 @@ const initializeGridDataFromData = () => {
             hidePlaceholder={false}
             containerClass="gap-[3.28rem] !w-60% !justify-between"
             className="!rounded-none !h-8 text-wrap: nowrap"
+            isDisabled={isInputsDisabled}
           />
 
           {voucherType && (
@@ -445,6 +398,7 @@ const initializeGridDataFromData = () => {
                 value={selectedDate || ''}
                 onChange={handleDateChange}
                 className="border border-gray-300 rounded p-1"
+                disabled={isInputsDisabled}
               />
             </div>
           )}
@@ -465,20 +419,19 @@ const initializeGridDataFromData = () => {
             gridData={gridData}
             setGridData={setGridData}
             handleSave={handleSave}
-            withAddRow={() => setCurrentSavedData({})}
             newRowTrigger={{ columnIndex: 6, rowIndex: gridData.length - 1 }}
           />
         </div>
       )}
-  
+
       {voucherType && selectedDate && (
         <div className="mt-4 text-center">
           <Button type="highlight" id="save_voucher_button" handleOnClick={handleSubmit}>
-            {data.voucherNumber ? 'Update' : 'Submit'}
+            {data.rowData?.voucherNumber ? 'Update' : 'Submit'}
           </Button>
         </div>
       )}
-  
+
       {popupList.isOpen && (
         <SelectList
           heading={popupList.data.heading}
@@ -488,9 +441,6 @@ const initializeGridDataFromData = () => {
           handleSelect={(rowData) => { popupList.data.handleSelect(rowData) }}
         />
       )}
-      {/* {popupState.isAlertOpen && <Confirm_Alert_Popup onClose={function (): void {
-        throw new Error('Function not implemented.');
-      } } onConfirm={() => setPopupState({...popupState,isAlertOpen:false,message:''})} message={popupState.message}></Confirm_Alert_Popup>} */}
 
       {(popupState.isModalOpen || popupState.isAlertOpen) && (
         <Confirm_Alert_Popup
@@ -500,9 +450,21 @@ const initializeGridDataFromData = () => {
           isAlert={popupState.isAlertOpen}
         />
       )}
+
+      {voucherType && (
+        <div className="flex justify-between mt-4">
+          <div className="text-sm font-medium text-gray-700">
+            Total Debit: ₹{totalValue.totalDiscount.toFixed(2)}
+          </div>
+          <div className="text-sm font-medium text-gray-700">
+            Total Credit: ₹{totalValue.totalAmount.toFixed(2)}
+          </div>
+        </div>
+      )}
     </div>
   );
-  
+
+
 };
 
 export default CreateVouchers;

@@ -28,102 +28,91 @@ const Vouchers = () => {
         isModalOpen: false,
         isAlertOpen: false,
         message: '',
-      });
+    });
 
     const settingPopupState = (isModal: boolean, message: string) => {
         setPopupState({
-          ...popupState,
-          [isModal ? 'isModalOpen' : 'isAlertOpen']: true,
-          message: message,
+            ...popupState,
+            [isModal ? 'isModalOpen' : 'isAlertOpen']: true,
+            message: message,
         });
-      };
-
-    // const getVoucherData = async() =>{
-    //     const url = `/voucher/?voucherDate=${filterDate}&voucherType=${selectedVoucherType}`;
-    //     const response = await sendAPIRequest(url, {
-    //         method: 'GET',
-    //       });
-    //     setTableData(response);
-    //     return response
-    // } 
-
+    };
 
     const getVoucherData = async () => {
         const url = `/voucher/?voucherDate=${filterDate}&voucherType=${selectedVoucherType}`;
-        
+
         try {
-          const response = await sendAPIRequest(url, {
-            method: 'GET',
-          });
-      
-          if (!Array.isArray(response)) {
-            return;
-          }
-      
-          const uniqueVoucherArray: any = [];
-          const seenVoucherNumbers = new Set();
-      
-          response.forEach((item) => {
-            if (item.voucherType === selectedVoucherType) {
-              if (!seenVoucherNumbers.has(item.voucherNumber)) {
-                seenVoucherNumbers.add(item.voucherNumber);
-                uniqueVoucherArray.push(item);
-              }
+            const response = await sendAPIRequest(url, {
+                method: 'GET',
+            });
+
+            if (!Array.isArray(response)) {
+                return;
             }
-          });
-      
-          setTableData(uniqueVoucherArray);
-          setOriginalTableData(response);
-          return uniqueVoucherArray;
-      
+
+            const uniqueVoucherArray: any = [];
+            const seenVoucherNumbers = new Set();
+
+            response.forEach((item) => {
+                if (item.voucherType === selectedVoucherType) {
+                    if (!seenVoucherNumbers.has(item.voucherNumber)) {
+                        seenVoucherNumbers.add(item.voucherNumber);
+                        uniqueVoucherArray.push(item);
+                    }
+                }
+            });
+
+            setTableData(uniqueVoucherArray);
+            setOriginalTableData(response);
+            return uniqueVoucherArray;
+
         } catch (error) {
-          console.error("Error fetching voucher data:", error);
+            console.error("Error fetching voucher data:", error);
         }
-      };
+    };
 
     const handleEditClick = (rowData: any) => {
-        // Filter original data based on voucherNumber
         const voucherGridData: any = originalTableData.filter(
             (item) => item.voucherNumber === rowData.voucherNumber
         );
         setView({
-        type: 'add',
-        data: {
-            rowData, // Object containing the data of the clicked cell
-            voucherGridData, // Array containing the filtered data
-        },
-    });
+            type: 'add',
+            data: {
+                rowData,
+                voucherGridData,
+            },
+        });
     };
 
     const handleAlertCloseModal = () => {
         setPopupState({ ...popupState, isAlertOpen: false });
-      };
-    
+    };
+
     const handleClosePopup = () => {
-    setPopupState({ ...popupState, isModalOpen: false });
+        setPopupState({ ...popupState, isModalOpen: false });
     };
 
     const handleConfirmPopup = async () => {
         setPopupState({ ...popupState, isModalOpen: false });
         const url = `/voucher/${voucherNumber.current}?voucherDate=${voucherDate.current}&voucherType=${voucherType.current}`;
         await sendAPIRequest(url, {
-          method: 'DELETE',
+            method: 'DELETE',
         });
         await getVoucherData();
-      };
-    
-      const handleDelete = (oldData: any) => {
+    };
+
+    const handleDelete = (oldData: any) => {
         settingPopupState(true, 'Are you sure you want to delete the selected record ?');
         voucherNumber.current = oldData.voucherNumber;
         voucherDate.current = oldData.voucherDate;
         voucherType.current = oldData.voucherType;
-      };
+    };
 
-      useEffect(() => {
+    useEffect(() => {
         getVoucherData();
-      }, [filterDate, view, selectedVoucherType]);
+    }, [filterDate, view, selectedVoucherType]);
 
-    function getTodayDate(date:Date):string{
+    function getTodayDate(date: Date): string {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
@@ -132,19 +121,19 @@ const Vouchers = () => {
     }
 
     function dateFormatter(params: { value: string }): string {
-        return new Date(params.value).toLocaleDateString();        
+        return new Date(params.value).toLocaleDateString();
     }
 
 
     const colDefs: any[] = [
-        { 
+        {
             headerName: 'Date',
             field: 'voucherDate',
             valueFormatter: dateFormatter,
         },
         { headerName: 'Voucher Number', field: 'voucherNumber' },
         { headerName: 'Amount (₹)', field: 'amount' },
-        { headerName: 'Party', field: 'partyId' },
+        { headerName: 'Party', field: 'partyName' },
         { headerName: 'Discount', field: 'discount' },
         { headerName: 'Voucher Type', field: 'voucherType' },
         { headerName: 'Dr/Cr', field: 'debitOrCredit' },
@@ -161,13 +150,12 @@ const Vouchers = () => {
             cellRenderer: (params: { data: any }) => (
                 <div className='table_edit_buttons'>
                     {/* put access updateAccess  */}
-                    {true && (  
+                    {true && (
                         <FaEdit
                             id='editButton'
                             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
                             onClick={() => {
-                                onCellClicked(params,true)
-                                // return setView({ type: 'add', data: params.data });
+                                onCellClicked(params, true)
                             }}
                         />
                     )}
@@ -193,7 +181,6 @@ const Vouchers = () => {
         headerClass: 'custom-header',
     };
 
-    // Placeholder options for the custom select dropdown
     const voucherTypes = [
         { label: 'Cash Receipt', value: 'CR' },
         { label: 'Cash Payment', value: 'CP' },
@@ -205,14 +192,14 @@ const Vouchers = () => {
     const handleVoucherTypeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedVoucherType(event.target.value);
     };
-    
+
     const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setFilterDate(event.target.value);
     };
-    const onCellClicked = (params: any,isEditButton:boolean = false) => {
-        if (params?.column?.colId === 'voucherDate' || isEditButton){
+    const onCellClicked = (params: any, isEditButton: boolean = false) => {
+        if (params?.column?.colId === 'voucherDate' || isEditButton) {
             if (params.data) {
-                handleEditClick(params.data); // Use the handleEditClick function only if data exists
+                handleEditClick(params.data);
             } else {
                 console.error("No data available for this cell click event.");
             }
@@ -222,55 +209,52 @@ const Vouchers = () => {
     const voucher = () => {
         return (
             <>
-            <div className='flex flex-col gap-2'>
-                <div className='flex justify-between'>
-                    {/* Voucher Heading */}
-                    <h1 className='text-2xl font-bold px-8 py-2'>
-                        {selectedVoucherType ? `${voucherTypes.find((type) => type.value === selectedVoucherType)?.label} ` : ''}
-                        Vouchers
-                    </h1>
-                    {/* Add Voucher Button */}
-                    {true && (
-                        <div className='flex items-center'>
-                            <Button
-                                type='highlight'
-                                handleOnClick={() => {
-                                    setView({ type: 'add', data: {} });
-                                }}
-                            >
-                                Create Voucher
-                            </Button>
-                        </div>
-                    )}
+                <div className='flex flex-col gap-2'>
+                    <div className='flex justify-between'>
+                        <h1 className='text-2xl font-bold px-8 py-2'>
+                            {selectedVoucherType ? `${voucherTypes.find((type) => type.value === selectedVoucherType)?.label} ` : ''}
+                            Vouchers
+                        </h1>
+                        {true && (
+                            <div className='flex items-center'>
+                                <Button
+                                    type='highlight'
+                                    handleOnClick={() => {
+                                        setView({ type: 'add', data: {} });
+                                    }}
+                                >
+                                    Create Voucher
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+                    <div className='flex ps-8 gap-4'>
+                        <select
+                            value={selectedVoucherType}
+                            onChange={handleVoucherTypeChange}
+                            className='p-2 border border-gray-300 rounded'
+                        >
+                            <option value=''>Select Voucher Type</option>
+                            {voucherTypes.map((type) => (
+                                <option key={type.value} value={type.value}>
+                                    {type.label}
+                                </option>
+                            ))}
+                        </select>
+                        <input
+                            type='date'
+                            value={filterDate}
+                            onChange={handleDateChange}
+                            className='p-2 border border-gray-300 rounded'
+                        />
+                    </div>
                 </div>
-                <div className='flex ps-8 gap-4'>
-                    {/* Voucher Type Dropdown */}
-                    <select
-                        value={selectedVoucherType}
-                        onChange={handleVoucherTypeChange}
-                        className='p-2 border border-gray-300 rounded'
-                    >
-                        <option value=''>Select Voucher Type</option>
-                        {voucherTypes.map((type) => (
-                            <option key={type.value} value={type.value}>
-                                {type.label}
-                            </option>
-                        ))}
-                    </select>
-                    <input
-                        type='date'
-                        value={filterDate}
-                        onChange={handleDateChange}
-                        className='p-2 border border-gray-300 rounded'
-                    />
-                </div>
-            </div>
 
                 {/* Show AgGrid only if date is selected */}
                 {true && (
                     <div id='account_table' className='ag-theme-quartz'>
                         <AgGridReact
-                            rowData={tableData} // You can filter data based on the selected date and voucher type
+                            rowData={tableData}
                             columnDefs={colDefs}
                             defaultColDef={defaultColDef}
                             onCellClicked={onCellClicked}
@@ -278,16 +262,16 @@ const Vouchers = () => {
                     </div>
                 )}
                 {(popupState.isModalOpen || popupState.isAlertOpen) && (
-                <Confirm_Alert_Popup
-                    onClose={handleClosePopup}
-                    onConfirm={
-                    popupState.isAlertOpen
-                        ? handleAlertCloseModal
-                        : handleConfirmPopup
-                    }
-                    message={popupState.message}
-                    isAlert={popupState.isAlertOpen}
-                />
+                    <Confirm_Alert_Popup
+                        onClose={handleClosePopup}
+                        onConfirm={
+                            popupState.isAlertOpen
+                                ? handleAlertCloseModal
+                                : handleConfirmPopup
+                        }
+                        message={popupState.message}
+                        isAlert={popupState.isAlertOpen}
+                    />
                 )}
             </>
         );

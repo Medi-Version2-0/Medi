@@ -128,6 +128,8 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
      
     }
 
+    console.log(gridData , headers)
+
     return (
         <div className="flex flex-col h-[30em] overflow-scroll w-full border-[1px] border-solid border-gray-400">
             <div className="flex sticky border-solid border-[1px] border-blue-800 top-0 w-[100vw]">
@@ -145,8 +147,8 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
                 {gridData && gridData.map((row: any, rowIndex: number) => (
                     <div key={row.id} className="flex relative">
                         {headers.map((header, colIndex) => {
-                            // const columnValue = header.props.label ? row.columns[header.key]?.label || '' : row.columns[header.key] || '';    // check condition
-                            const columnValue = row.columns[header.key] || '';
+                            const columnValue = header.props.label ? row.columns[header.key]?.label || '' : row.columns[header.key] || '';    // check condition
+                            // const columnValue = row.columns[header.key] || '';
                             // console.log(row.columns[header.key],"inside the jszxx",row,"columnValue--->",columnValue,"header--->",header)
                             switch (header.type) {
                                 case 'customSelect':
