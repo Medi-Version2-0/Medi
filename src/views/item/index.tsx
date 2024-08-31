@@ -11,7 +11,6 @@ import {
   View,
 } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
-import { useParams } from 'react-router-dom';
 import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
 import { ICellRendererParams } from 'ag-grid-community';
@@ -38,7 +37,6 @@ const initialPopupState = {
 
 const Items = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
-  const { organizationId } = useParams();
   const getAndSetItemHandler = useGetSetData(getAndSetItem);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<ItemFormData | any>(null);
@@ -169,7 +167,7 @@ const Items = () => {
   const handleConfirmPopup = async () => {
     setPopupState({ ...popupState, isModalOpen: false });
     try{
-      await sendAPIRequest(`/${organizationId}/item/${id.current}`, {
+      await sendAPIRequest(`/item/${id.current}`, {
       method: 'DELETE',
     });
     getAndSetItemHandler();
@@ -212,7 +210,7 @@ const Items = () => {
 
     node.setDataValue(field, newValue);
 
-    await sendAPIRequest(`/${organizationId}/item/${data.id}`, {
+    await sendAPIRequest(`/item/${data.id}`, {
       method: 'PUT',
       body: { [field]: newValue },
     });

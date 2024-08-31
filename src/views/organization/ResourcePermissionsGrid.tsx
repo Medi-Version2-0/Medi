@@ -1,5 +1,4 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
 import { useFormik } from 'formik';
 import { AgGridReact } from 'ag-grid-react';
 import { ColDef } from 'ag-grid-community';
@@ -20,7 +19,6 @@ import { AppDispatch } from '../../store/types/globalTypes';
 import { getAndSetPermssions } from '../../store/action/globalAction';
 
 const ResourcePermissionsGrid: React.FC<ResourcePermissionsGridProps> = ({ user, onCancel }) => {
-    const { organizationId } = useParams();
     const gridRef = useRef<any>(null);
     const { successToast, errorToast } = useToastManager();
     const dispatch = useDispatch<AppDispatch>()
@@ -52,10 +50,10 @@ const ResourcePermissionsGrid: React.FC<ResourcePermissionsGridProps> = ({ user,
         onSubmit: async (values) => {
             try {
                 if (user && user.id) {
-                    await updateOrganizationUser(Number(organizationId), user.id, values);
+                    await updateOrganizationUser(user.id, values);
                     handleSave(user.id);
                 } else {
-                    const newUser: any = await insertOrganizationUser(Number(organizationId), values);
+                    const newUser: any = await insertOrganizationUser(values);
                     handleSave(newUser.userId);
                 }
                 successToast(`User has been successfully ${user?.id ? 'updated' : 'created'}`);
@@ -70,7 +68,7 @@ const ResourcePermissionsGrid: React.FC<ResourcePermissionsGridProps> = ({ user,
     });
 
     const getRoles = async (userId?: number) => {
-        const roles: any = await getUserPermissions(Number(organizationId), userId);
+        const roles: any = await getUserPermissions(userId);
         setRowData(roles.role.Resources);
         setRole(roles.role);
         return roles;
@@ -144,8 +142,8 @@ const ResourcePermissionsGrid: React.FC<ResourcePermissionsGridProps> = ({ user,
                 id: role.id,
                 Resources: permissionsData
             }
-            await updateUserPermissions(Number(organizationId), userId, data);
-            dispatch(getAndSetPermssions(organizationId))
+            await updateUserPermissions(userId, data);
+            dispatch(getAndSetPermssions())
         } catch (error) {
             console.error("Error saving permissions:-", error);
         }

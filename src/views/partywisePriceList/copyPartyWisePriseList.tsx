@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { sendAPIRequest } from '../../helper/api';
-import { useParams } from 'react-router-dom';
 import { AgGridReact } from 'ag-grid-react';
 import Button from '../../components/common/button/Button';
 import { partyHeaders } from './partywiseHeader';
@@ -11,7 +10,6 @@ const CopyPratywisePriceList: React.FC = () => {
   const [copyFrom, setCopyFrom] = useState<{ [key: string]: string }>({});
   const [copyTo, setCopyTo] = useState<any>(null);
   const { party: partyData } = useSelector((state: any) => state.global);
-  const { organizationId } = useParams<{ organizationId: string }>();
   const [tableData, setTableData] = useState<any[]>([]);
   const [popupList, setPopupList] = useState<{ isOpen: boolean, data: any }>({
     isOpen: false,
@@ -20,7 +18,7 @@ const CopyPratywisePriceList: React.FC = () => {
 
   const getItemData = async (partyId?: any) => {
     const itemData = await sendAPIRequest<any[]>(
-      `/${organizationId}/partyWisePriceList/${partyId}`,
+      `/partyWisePriceList/${partyId}`,
       {
         method: 'GET',
       }
@@ -35,7 +33,7 @@ const CopyPratywisePriceList: React.FC = () => {
     };
 
     await sendAPIRequest(
-      `/${organizationId}/partyWisePriceList/copyPartyWisePriceList`,
+      `/partyWisePriceList/copyPartyWisePriceList`,
       {
         method: 'POST',
         body: JSON.stringify(finalData),

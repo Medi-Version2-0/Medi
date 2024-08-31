@@ -10,7 +10,6 @@ import { ColDef, ColGroupDef } from 'ag-grid-community';
 import { CreateSubGroup } from './CreateSubGroup';
 import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
-import { useParams } from 'react-router-dom';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { subgroupValidationSchema } from './validation_schema';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
@@ -27,7 +26,6 @@ export const SubGroups = () => {
     group_name: '',
     parent_code: '',
   };
-  const { organizationId } = useParams();
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<SubGroupFormData>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
@@ -79,14 +77,14 @@ export const SubGroups = () => {
     if (payload !== initialValue) {
       if (formData.group_code) {
         await sendAPIRequest(
-          `/${organizationId}/group/sub/${formData.group_code}`,
+          `/group/sub/${formData.group_code}`,
           {
             method: 'PUT',
             body: formData,
           }
         );
       } else {
-        await sendAPIRequest(`/${organizationId}/group/sub`, {
+        await sendAPIRequest(`/group/sub`, {
           method: 'POST',
           body: payload,
         });
@@ -111,7 +109,7 @@ export const SubGroups = () => {
   const deleteAcc = async (group_code: string) => {
     isDelete.current = false;
     togglePopup(false);
-    await sendAPIRequest(`/${organizationId}/group/sub/${group_code}`, {
+    await sendAPIRequest(`/group/sub/${group_code}`, {
       method: 'DELETE',
     });
     getAndSetSubGroupsHandler();
@@ -200,7 +198,7 @@ export const SubGroups = () => {
   }else{
     node.setDataValue(field, newValue);
     try{
-      await sendAPIRequest(`/${organizationId}/group/sub/${data.group_code}`, {
+      await sendAPIRequest(`/group/sub/${data.group_code}`, {
         method: 'PUT',
         body: { [field]: newValue },
       });

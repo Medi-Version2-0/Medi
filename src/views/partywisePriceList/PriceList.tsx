@@ -1,5 +1,4 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
-import { useParams } from 'react-router-dom';
 import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
@@ -11,7 +10,6 @@ import { printData } from '../../components/common/ExportData';
 import { SelectList } from '../../components/common/selectList';
 
 const PriceList = () => {
-  const { organizationId } = useParams<{ organizationId: string }>();
   const { party: partyData, item: itemData } = useSelector((state: any) => state.global);
   const [selectedPartyStation, setSelectedPartyStation] = useState<string>('');
   const [currentSavedData, setCurrentSavedData] = useState<{[key: string] : string}>({});
@@ -24,7 +22,7 @@ const PriceList = () => {
   })
 
   const getItemData = async (partyId?: any) => {
-    const getItemData = await sendAPIRequest<any[]>(`/${organizationId}/partyWisePriceList/${partyId}`, {method: 'GET'});
+    const getItemData = await sendAPIRequest<any[]>(`/partyWisePriceList/${partyId}`, {method: 'GET'});
     const hasMatchingId = getItemData.some(item => item.partyId === partyId);
     if (hasMatchingId && (itemData.length === getItemData.length)) {
       checkItemData.current = true;
@@ -68,7 +66,7 @@ const PriceList = () => {
       node.setDataValue(field, oldValue);
       return;
     }
-    await sendAPIRequest(`/${organizationId}/partyWisePriceList/${data.combinedId}`, {
+    await sendAPIRequest(`/partyWisePriceList/${data.combinedId}`, {
       method: 'PUT',
       body: { [field]: newValue },
     });
@@ -87,7 +85,7 @@ const PriceList = () => {
  
       finalData.push(value);
     })
-    await sendAPIRequest(`/${organizationId}/partyWisePriceList`, {
+    await sendAPIRequest(`/partyWisePriceList`, {
       method: 'POST',
       body: finalData,
     });
@@ -128,7 +126,7 @@ const PriceList = () => {
   };
 
   const handleDelete = async (id: any) => {
-    await sendAPIRequest(`/${organizationId}/partyWisePriceList/${id}`, { method: 'DELETE' });
+    await sendAPIRequest(`/partyWisePriceList/${id}`, { method: 'DELETE' });
     setSelectedPartyStation('');
     setCurrentSavedData({});
   };

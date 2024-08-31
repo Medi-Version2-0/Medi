@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
 import { useFormik } from 'formik';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import Button from '../../components/common/button/Button';
@@ -22,7 +21,6 @@ export const CreateDiscount = ({
   data,
   discountTypeOptions,
 }: any) => {
-  const { organizationId } = useParams();
   const [companyOptions, setCompanyOptions] = useState<Option[]>([]);
   const [partyOptions, setPartyOptions] = useState<Option[]>([]);
   const [focused, setFocused] = useState('');
@@ -70,9 +68,25 @@ export const CreateDiscount = ({
       try{
         const allData = { ...values, discount: Number(values.discount) };
 
-        if (data.discount_id) {
-          if (allData.discountType === 'allCompanies') {
-            allData.companyId = null;
+      const existingDiscount = discounts.some(
+        (discount: any) =>
+          discount.companyId === values.companyId &&
+          discount.partyId === values.partyId &&
+          discount.discountType === values.discountType
+      );
+
+      const allData = { ...values, discount: Number(values.discount) };
+
+      if (data.discount_id) {
+        if (allData.discountType === 'allCompanies') {
+          allData.companyId = null;
+        }
+        await sendAPIRequest(
+          `/partyWiseDiscount/${data.discount_id}`,
+          {
+            method: 'PUT',
+            body: allData,
+
           }
           await sendAPIRequest(
             `/${organizationId}/partyWiseDiscount/${data.discount_id}`,
@@ -87,6 +101,7 @@ export const CreateDiscount = ({
             body: allData,
           });
         }
+
         settingPopupState(false, `Partywise discount ${!!data.discount_id ? 'updated' : 'created'} successfully`)
         getAndSetPartywiseDiscountHandler();
       }catch(error: any){
@@ -96,7 +111,8 @@ export const CreateDiscount = ({
       }
     },
   });
-  
+
+
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
     setView({ type: '', data: {} });
