@@ -611,7 +611,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
             type='fill'
             padding='px-4 py-2'
             id='submit_all'
-            disable={!formik.isValid}
+            disable={!formik.isValid || !dataFromTable?.length}
             handleOnClick={() => formik.handleSubmit}
             handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
               if (e.key === 'ArrowUp') e.preventDefault();
