@@ -66,14 +66,6 @@ export const CreateDiscount = ({
     validationSchema: discountValidationSchema,
     onSubmit: async (values) => {
       try{
-        const allData = { ...values, discount: Number(values.discount) };
-
-      const existingDiscount = discounts.some(
-        (discount: any) =>
-          discount.companyId === values.companyId &&
-          discount.partyId === values.partyId &&
-          discount.discountType === values.discountType
-      );
 
       const allData = { ...values, discount: Number(values.discount) };
 
@@ -88,15 +80,9 @@ export const CreateDiscount = ({
             body: allData,
 
           }
-          await sendAPIRequest(
-            `/${organizationId}/partyWiseDiscount/${data.discount_id}`,
-            {
-              method: 'PUT',
-              body: allData,
-            }
-          );
+          )
         } else {
-          await sendAPIRequest(`/${organizationId}/partyWiseDiscount`, {
+          await sendAPIRequest(`/partyWiseDiscount`, {
             method: 'POST',
             body: allData,
           });

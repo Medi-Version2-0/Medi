@@ -149,7 +149,7 @@ export const PartyWiseDiscount = () => {
         discount: data.discount
       }
       await sendAPIRequest(
-        `/${organizationId}/partyWiseDiscount/${data.discount_id}`,
+        `/partyWiseDiscount/${data.discount_id}`,
         {
           method: 'PUT',
           body: payload,

@@ -218,7 +218,6 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
     const stations = await sendAPIRequest<any[]>(`/station`);
     const partyList = await sendAPIRequest<any[]>(`/ledger`);
 
-    setPartyData(partyList);
     setStationOptions(
       stations.map((station: any) => ({
         value: station.station_id,

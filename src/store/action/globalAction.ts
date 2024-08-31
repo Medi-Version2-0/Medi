@@ -172,8 +172,8 @@ export const getAndSetStore = () => async (dispatch: Dispatch<GlobalActionTypes>
   });
 }
 
-export const getAndSetPartywiseDiscount = (organizationId: string|undefined) => async (dispatch: Dispatch<GlobalActionTypes>) => {
-  const partywiseDiscount = await sendAPIRequest<StoreFormData[]>(`/${organizationId}/partyWiseDiscount`)
+export const getAndSetPartywiseDiscount = () => async (dispatch: Dispatch<GlobalActionTypes>) => {
+  const partywiseDiscount = await sendAPIRequest<StoreFormData[]>(`/partyWiseDiscount`)
   dispatch({
     type: SET_PARTYWISE_DISCOUNT,
     payload: partywiseDiscount ||[],
