@@ -1,7 +1,7 @@
 import { Dispatch } from 'redux';
 import { getUserPermissions } from '../../api/permissionsApi';
 import { ResourceI } from '../../views/organization/types';
-import { SET_STATION, SET_GROUPS, SET_ORGANIZATION, SET_PERMISSIONS, GlobalActionTypes, SET_SALES, SET_PURCHASE, SET_COMPANY, SET_ITEMGROUP, SET_CONTROLROOMSETTINGS, SET_PARTY, SET_ITEM, SET_BILLBOOK, SET_SUB_GROUPS, SET_STORE } from '../types/globalTypes';
+import { SET_STATION, SET_GROUPS, SET_ORGANIZATION, SET_PERMISSIONS, GlobalActionTypes, SET_SALES, SET_PURCHASE, SET_COMPANY, SET_ITEMGROUP, SET_CONTROLROOMSETTINGS, SET_PARTY, SET_ITEM, SET_BILLBOOK, SET_SUB_GROUPS, SET_STORE, SET_PARTYWISE_DISCOUNT } from '../types/globalTypes';
 import { sendAPIRequest } from '../../helper/api';
 import { ItemGroupFormData, GroupFormData, SalesPurchaseFormData,  CompanyFormData, BillBookForm, BillBookFormData, LedgerFormData, ItemFormData, StoreFormData } from '../../interface/global';
 
@@ -169,5 +169,13 @@ export const getAndSetStore = () => async (dispatch: Dispatch<GlobalActionTypes>
   dispatch({
     type: SET_STORE,
     payload: store ||[],
+  });
+}
+
+export const getAndSetPartywiseDiscount = (organizationId: string|undefined) => async (dispatch: Dispatch<GlobalActionTypes>) => {
+  const partywiseDiscount = await sendAPIRequest<StoreFormData[]>(`/${organizationId}/partyWiseDiscount`)
+  dispatch({
+    type: SET_PARTYWISE_DISCOUNT,
+    payload: partywiseDiscount ||[],
   });
 }
