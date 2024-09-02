@@ -248,18 +248,6 @@ export const SelectList = ({
                 </div>
           )
         }
-      
-        {/* {footers?.length && <div className={`h-1/5 left-0 mx-4 ${footerClass}`}>
-        <div className='grid grid-cols-3 h-full w-full border-solid border-2'>
-          {footers.map((footer: any, index: number) => (
-            <div key={index} className='flex gap-4'>
-              <span>{footer.label}:</span>
-              <span>{focusedRowData && focusedRowData[footer.key]}</span>
-            </div>
-          ))}
-        </div>
-        
-        </div>} */}
       </div>
     </Popup>
   );

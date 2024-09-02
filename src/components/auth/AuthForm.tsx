@@ -25,6 +25,9 @@ export const AuthForm = ({ isLogin }: { isLogin: boolean }) => {
       const { email, password } = values;
       if (isLogin) {
         const user: any = await login(email, password);
+        if(!user){
+          throw new Error('Invalid credentials');
+        }
         if (user.UserOrganizations.length) {
           return navigate(`/${user.UserOrganizations[0].Organization.id}`)
         }

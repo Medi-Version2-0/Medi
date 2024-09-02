@@ -36,6 +36,7 @@ const CreateVouchers = ({ setView, data }: any) => {
   const [allParties, setAllParties] = useState<any[]>([]);
   const [hasAccountGroup, setHasAccountGroup] = useState(false);
 
+  const bankName = useRef(null);
 
   const voucherTypes: Option[] | any = [
     { value: 'CR', label: 'Cash Receipt', isDisabled: false },
@@ -307,6 +308,20 @@ const CreateVouchers = ({ setView, data }: any) => {
 
   useEffect(() => {
     if (voucherType?.value !== 'JOUR' && !data.rowData?.voucherNumber) setDebitOrCredit();
+    if (voucherType?.value === 'BD' || voucherType?.value === 'BW'){
+      const data = partyValue.filter(p=> p.accountCode === -106);
+      setPopupList({
+        isOpen: true,
+        data: {
+          heading: 'Select Party',
+          headers: [...partyHeaders],
+          tableData: data,
+          handleSelect: (rowData: any) => {
+            bankName.current = rowData.partyName
+          }
+        }
+      });
+    }
   }, [gridData.length, voucherType?.value]);
 
 
@@ -333,7 +348,7 @@ const CreateVouchers = ({ setView, data }: any) => {
     }
 
     if (focusColIndex.current === 1) {
-      document.getElementById(`cell-${focusedRowIndex}-${focusColIndex.current + 1}`)?.focus();
+      document.getElementById(`cell-${focusedRowIndex}-1`)?.focus();
     }
 
   };
@@ -379,6 +394,80 @@ const CreateVouchers = ({ setView, data }: any) => {
     });
   };
 
+  const partyFooterData: any[] = [
+    {
+      label: 'Address',
+      data: [
+        {
+          label: 'Party Name',
+          key: 'partyName'
+        },
+        {
+          label: 'Address 1',
+          key: 'address1'
+        },
+        {
+          label: 'Address 2',
+          key: 'address2'
+        },
+        {
+          label: 'Address 3',
+          key: 'address3'
+        },
+      ]
+    },
+    {
+      label: 'License Info',
+      data: [
+        {
+          label: 'Party Name',
+          key: 'partyName'
+        },
+      ]
+    },
+    {
+      label: 'OtherInfo',
+      data: [
+        {
+          label: 'Party Name',
+          key: 'partyName'
+        },
+        {
+          label: 'Country',
+          key: 'country'
+        },
+        {
+          label: 'PinCode',
+          key: 'pinCode'
+        },
+        {
+          label: 'Station Name',
+          key: 'station_name'
+        },
+      ]
+    },
+    {
+      label: 'Current Status',
+      data: [
+        {
+          label: 'Opening',
+          key: 'openingBalType'
+        },
+        {
+          label: 'Credit',
+          key: 'openingBalType'
+        },
+        {
+          label: 'Debit',
+          key: 'openingBalType'
+        },
+        {
+          label: 'Balance',
+          key: 'openingBalType'
+        },
+      ]
+    },
+  ];
 
   const isInputsDisabled = Boolean(data?.rowData?.voucherType && data?.rowData?.voucherDate);
 
@@ -446,6 +535,10 @@ const CreateVouchers = ({ setView, data }: any) => {
         )}
       </div>
 
+      {(voucherType?.value === 'BD' || voucherType?.value === 'BW' && bankName.current) && (
+        <span className="text-sm font-medium mt-1 text-gray-700">Bank: {bankName.current}</span>
+      )}
+      
       
         <div className="mt-4">
           <ChallanTable
@@ -471,6 +564,7 @@ const CreateVouchers = ({ setView, data }: any) => {
           heading={popupList.data.heading}
           closeList={() => setPopupList({ isOpen: false, data: {} })}
           headers={popupList.data.headers}
+          footers={partyFooterData}
           tableData={popupList.data.tableData}
           handleSelect={(rowData) => { popupList.data.handleSelect(rowData) }}
         />

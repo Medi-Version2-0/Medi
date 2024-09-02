@@ -89,12 +89,17 @@ const InitialFirmSetup = () => {
 
     const handleKeyDown = (event: KeyboardEvent) => {
         if (event.key === 'ArrowRight') {
-            handleNext();
+            const target = event.target as HTMLElement;
+            if(target.tagName !== 'INPUT'){
+                handleNext();
+            }
         }
         if (event.key === 'ArrowLeft') {
-            handleBack();
+            const target = event.target as HTMLElement;
+            if (target.tagName !== 'INPUT'){
+                handleBack();
+            }
         }
-    
       };
 
     useEffect(() => {
