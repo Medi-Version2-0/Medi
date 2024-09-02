@@ -135,7 +135,6 @@ const Vouchers = () => {
         { headerName: 'Amount (₹)', field: 'amount' },
         { headerName: 'Party', field: 'partyName' },
         { headerName: 'Discount', field: 'discount' },
-        { headerName: 'Voucher Type', field: 'voucherType' },
         { headerName: 'Dr/Cr', field: 'debitOrCredit' },
         {
             headerName: 'Actions',

@@ -7,9 +7,9 @@ import { ChallanTable } from '../../components/common/challanTable';
 import { useSelector } from 'react-redux';
 import { sendAPIRequest } from '../../helper/api';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
+import { useParams } from 'react-router-dom';
 
 interface RowData {
-  // id: number;
   columns: {
     [key: string]: string | number | any;
   };
@@ -17,7 +17,7 @@ interface RowData {
 
 
 const CreateVouchers = ({ setView, data }: any) => {
-  const [focused, setFocused] = useState('');
+  const { organizationId } = useParams();   // It has to be removed
   const [voucherType, setVoucherType] = useState<Option | null>(data?.rowData?.voucherType || null);
   const [selectedDate, setSelectedDate] = useState<string | null>(data?.rowData?.voucherDate || null);
   const [gridData, setGridData] = useState<RowData[]>(data?.gridData || []);
@@ -33,22 +33,36 @@ const CreateVouchers = ({ setView, data }: any) => {
   const [partyValue, setPartyValue] = useState<any[]>([]);
   const [currentSavedData, setCurrentSavedData] = useState<{ party: any; }>({ party: {} });
   const [totalValue, setTotalValue] = useState({ totalAmount: 0, totalDiscount: 0 });
+  const [allParties, setAllParties] = useState<any[]>([]);
+  const [hasAccountGroup, setHasAccountGroup] = useState(false);
 
-  const voucherTypes: Option[] = [
-    { value: 'CR', label: 'Cash Receipt' },
-    { value: 'CP', label: 'Cash Payment' },
-    { value: 'JOUR', label: 'Journal' },
-    { value: 'BD', label: 'Bank Deopsit' },
-    { value: 'BW', label: 'Bank Withdraw' },
+
+  const voucherTypes: Option[] | any = [
+    { value: 'CR', label: 'Cash Receipt', isDisabled: false },
+    { value: 'CP', label: 'Cash Payment', isDisabled: false },
+    { value: 'JOUR', label: 'Journal', isDisabled: !hasAccountGroup },
+    { value: 'BD', label: 'Bank Deposit', isDisabled: !hasAccountGroup },
+    { value: 'BW', label: 'Bank Withdraw', isDisabled: !hasAccountGroup }
   ];
 
   const headers = [
     { name: 'Party', key: 'partyName', width: '16%', type: 'input', props: { inputType: 'text', label: true, handleFocus: (rowIndex: number, colIndex: number) => handleFocus(rowIndex, colIndex) } },
     { name: 'Narration', key: 'narration', width: '17%', type: 'input', props: { inputType: 'text', handleChange: (args: any) => { handleInputChange(args); } } },
-    { name: 'Amount (₹)', key: 'amount', width: '17%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); } } },
-    { name: 'Dr/Cr', key: 'debitOrCredit', width: '16%', type: 'input', props: { inputType: 'text', handleChange: (args: any) => { handleInputChange(args); }, readOnly: false } },
-    { name: 'Discount', key: 'discount', width: '17%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); } } },
+    { name: 'Amount (₹)', key: 'amount', width: '10%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); } } },
+    { name: 'Dr/Cr', key: 'debitOrCredit', width: '5%', type: 'input', props: { inputType: 'text', handleChange: (args: any) => { handleInputChange(args); }, readOnly: false } },
+    { name: 'Discount (₹)', key: 'discount', width: '8%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); } } },
+    { name: 'Party Balance', key: 'partyBalance', width: '8%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); } } },
     { name: 'Discount Narration', key: 'disNarration', width: '17%', type: 'input', props: { inputType: 'text', handleChange: (args: any) => { handleInputChange(args); } } },
+    { name: 'Check No.', key: 'checkNumber', width: '5%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); } } },
+    { name: 'Check Date', key: 'checkDate', width: '10%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); } } },
+    { name: 'Instrument Type', key: 'instrumentType', width: '12%', type: 'input', props: { inputType: 'text', handleChange: (args: any) => { handleInputChange(args); } } },
+    { name: 'Invocie No.', key: 'invoiceNumber', width: '10%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); } } },
+    { name: 'Invocie Date', key: 'invoiceDate', width: '10%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); } } },
+    { name: 'HSN Code', key: 'hsnCode', width: '10%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); } } },
+    { name: 'GST Rate', key: 'gstRate', width: '5%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); } } },
+    { name: 'SGST', key: 'sgstValue', width: '5%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); } } },
+    { name: 'CGST', key: 'cgstValue', width: '5%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); } } },
+    { name: 'IGST', key: 'igstValue', width: '5F%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); } } },
   ];
 
   const partyHeaders = [
@@ -64,8 +78,12 @@ const CreateVouchers = ({ setView, data }: any) => {
     initializeGridDataFromData();
   }, [data]);
 
+  useEffect(()=>{
+    getPartyData();
+  },[])
+
   const getVoucherTypeLabel = (value: string) => {
-    const voucherType = voucherTypes.find(type => type.value === value);
+    const voucherType = voucherTypes.find((type: any) => type.value === value);
     return voucherType ? voucherType.label : '';
   };
 
@@ -140,6 +158,24 @@ const CreateVouchers = ({ setView, data }: any) => {
     }
   }
 
+  const getPartyData = async()=>{
+    try {
+      const response: any = await sendAPIRequest(`/${organizationId}/ledger/`,{
+        method: 'GET'
+      })
+      setAllParties(response)
+      const hasAccountGroup = response.some((party: any) => party.accountCode === -106);
+      setHasAccountGroup(hasAccountGroup);
+
+    } catch (error: any) {
+      setPopupState({
+        ...popupState,
+        isAlertOpen: true,
+        message: `${error.message}`,
+      });
+    }
+  }
+
 
   const getDrCrColumnProps = () => {
     if (voucherType?.value) {
@@ -167,16 +203,12 @@ const CreateVouchers = ({ setView, data }: any) => {
     setSelectedDate(event.target.value);
   };
 
+  // Confirm button function 
   const handleSave = () => {
     const dataToSend = gridData.map((row) => ({
       ...row.columns,
     }));
 
-    setPopupState({
-      ...popupState,
-      isAlertOpen: true,
-      message: 'Table Data saved successfully.',
-    });
   };
 
   const handleSubmit = async () => {
@@ -232,8 +264,13 @@ const CreateVouchers = ({ setView, data }: any) => {
         }
       }
 
-    } catch (error) {
+    } catch (error:any) {
       console.error('Error saving voucher:', error);
+      setPopupState({
+        ...popupState,
+        isAlertOpen: true,
+        message: `${error.message}`,
+      });
     }
   };
 
@@ -333,14 +370,12 @@ const CreateVouchers = ({ setView, data }: any) => {
     const totalAmount = newGridData.reduce((acc, data) => acc + (Number(data.columns.amount) || 0), 0);
     const totalDiscount = newGridData.reduce((acc, data) => acc + (Number(data.columns.discount) || 0), 0);
 
-    const totalAmountAfterDiscount = totalAmount - totalDiscount;
-
     setGridData(newGridData);
 
     setTotalValue({
       ...totalValue,
-      totalAmount: totalAmountAfterDiscount,
-      totalDiscount: totalDiscount,
+      totalAmount: totalAmount,
+      totalDiscount: totalAmount,
     });
   };
 
@@ -379,7 +414,6 @@ const CreateVouchers = ({ setView, data }: any) => {
             onChange={handleVoucherTypeChange}
             options={voucherTypes}
             isSearchable={true}
-            isFocused={focused === 'voucherType'}
             placeholder="Select Voucher Type"
             disableArrow={false}
             hidePlaceholder={false}
@@ -412,7 +446,7 @@ const CreateVouchers = ({ setView, data }: any) => {
         )}
       </div>
 
-      {voucherType && selectedDate && (
+      
         <div className="mt-4">
           <ChallanTable
             headers={headers}
@@ -422,7 +456,7 @@ const CreateVouchers = ({ setView, data }: any) => {
             newRowTrigger={{ columnIndex: 6, rowIndex: gridData.length - 1 }}
           />
         </div>
-      )}
+      
 
       {voucherType && selectedDate && (
         <div className="mt-4 text-center">
