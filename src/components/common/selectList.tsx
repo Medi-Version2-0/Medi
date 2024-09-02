@@ -3,11 +3,13 @@ import { Popup } from '../popup/Popup';
 import { selectListProps } from '../../interface/global';
 import { useFormik } from 'formik';
 import FormikInputField from './FormikInputField';
+import Button from './button/Button';
 
 interface DropDownPopupProps extends selectListProps {
   dataKeys?: {
     [key: string]: string;
   };
+  selectMultiple?: boolean;
 }
 
 export const SelectList = ({
@@ -19,11 +21,13 @@ export const SelectList = ({
   footerClass,
   tableData,
   handleSelect,
+  selectMultiple=false,
 }: DropDownPopupProps) => {
   const [focusedRowIndex, setFocusedRowIndex] = useState<number>(0);
   const [focusedRowData, setFocusedRowData] = useState<any>(tableData[0]);
   const tableRefs = useRef<(HTMLTableRowElement | null)[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const selectedMultipleRowData = useRef<any[]>([]);
 
   const formik = useFormik({
     initialValues: {
@@ -71,7 +75,7 @@ export const SelectList = ({
     document.body.classList.add('!overflow-hidden');
     const handleClickOutside = (event: Event) => {
       const target = event.target as HTMLElement;
-      if (target.id === 'searchBar' || target.tagName === 'SELECT') return;
+      if (target.id === 'searchBar' || target.tagName === 'SELECT' || target.tagName === 'BUTTON') return;
       const parentElement = target.parentElement;
       if (parentElement?.getAttribute('tabindex') !== '-1') {
         event.preventDefault();
@@ -107,14 +111,27 @@ export const SelectList = ({
       makeRecordVisibility(rowIdx);
     } else if (event.key === 'Enter') {
       event.preventDefault();
-      if (!filteredData.length) return;
-      handleSelect(focusedRowData);
-      closeList();
+      if(!selectMultiple){
+        if (!filteredData.length) return;
+        handleSelect(focusedRowData);
+        closeList();
+      }else{
+        const focusedElement = document.activeElement;
+        if (focusedElement?.tagName !== 'BUTTON'){
+          document.getElementById(`multipleSelectCheckbox${focusedRowIndex}`)?.click();
+        }else{
+          handleSelect(selectedMultipleRowData.current);
+          closeList();
+        }
+      }
     } else if (event.key === 'Escape') {
       event.preventDefault();
       closeList();
     } else if (event.key.length === 1 || event.key === 'Backspace' || event.key === 'Delete') {
       document.getElementById('searchBar')?.focus();
+    } else if (event.key === 'Tab') {
+      event.preventDefault();
+      document.getElementById('confirmSelectData')?.focus();
     }
   };
 
@@ -125,9 +142,18 @@ export const SelectList = ({
     setFocusedRowIndex(0);
   };
 
+  function handleCheckBoxChange(e:any,rowIndex: number){
+    const isChecked = e.target.checked;
+    if(isChecked){
+      const data = filteredData[rowIndex];
+      data.rowIndex = rowIndex;
+      selectedMultipleRowData.current.push(data);
+    } else {
+      const data = selectedMultipleRowData.current.filter(d => d.rowIndex !== rowIndex);
+      selectedMultipleRowData.current = data;
+    } 
+  }
 
-  // console.log(tableData , 'tabledata')
-  // console.log('focusedRowData --> ', focusedRowData)
   return (
     <Popup
       heading={heading}
@@ -164,11 +190,14 @@ export const SelectList = ({
           </select>
         </form>
       </div>
-      <div className='flex flex-col h-[67vh] justify-between'>
-        <div className='mx-4 h-2/5 overflow-auto border-[1px] border-gray-400 border-solid my-4'>
-          <table className='table-auto w-full border-collapse' id='selectListData'>
+      <div className='flex flex-col gap-3 h-[67vh] justify-between'>
+        <div className={`mx-4 h-[77%] overflow-auto border-[1px] border-gray-400 border-solid mt-4 ${!selectMultiple ? '!h-4/5' : ''}`} id='selectListData'>
+          <table className='table-auto w-full border-collapse'>
             <thead className='sticky top-0 overflow-auto'>
               <tr>
+                {selectMultiple && (
+                  <th className='w-fit border-[1px] border-solid bg-[#009196FF] border-gray-400 text-center text-white p-2'></th>
+                )}
                 {headers.map((header: any, index: number) => (
                   <th
                     key={index}
@@ -189,6 +218,11 @@ export const SelectList = ({
                   onClick = {()=>{setFocusedRowIndex(rowIndex)}}
                   className={focusedRowIndex === rowIndex ? 'bg-[#EAFBFCFF] border-[2px] focus:outline-0 !rounded-lg border-solid border-black': ''}
                 >
+                  {selectMultiple && (
+                    <td className='border border-gray-400 px-1'>
+                      <input type="checkbox" id={`multipleSelectCheckbox${rowIndex}`} onChange={(e) => { handleCheckBoxChange(e,rowIndex)}} className="form-checkbox h-5 w-full text-blue-600 rounded-md focus:ring-2 focus:ring-blue-500" />
+                    </td>
+                  )}
                   {headers.map((header: any, colIndex: number) => (
                     <td key={colIndex} className='border border-gray-400 p-2'>
                       {header.auto ? rowIndex + 1 : row[header.key]}
@@ -200,9 +234,20 @@ export const SelectList = ({
           </table>
         </div>
 
+        {selectMultiple && (
+          <div className='h-[5%] flex justify-end px-4'>
+            <Button type='fill' id='confirmSelectData' handleOnClick={()=>{
+              handleSelect(selectedMultipleRowData.current);
+              closeList();
+            }}>
+              Confirm
+            </Button>
+          </div>
+        )}
+
         {
           footers?.length && (
-              <div className={`h-1/5 left-0 mx-4 ${footerClass}`}>
+              <div className={`h-[18%] left-0 mx-4 ${footerClass} ${!selectMultiple ? '!h-1/5' : ''}`}>
                   <div className={`flex gap-1 h-full w-full text-[12px]`}>
                       {footers.map((f: any,index:number) => {
                         return (
