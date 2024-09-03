@@ -545,8 +545,7 @@ const CreateVouchers = ({ setView, data }: any) => {
             headers={headers}
             gridData={gridData}
             setGridData={setGridData}
-            handleSave={handleSave}
-            newRowTrigger={{ columnIndex: 6, rowIndex: gridData.length - 1 }}
+            newRowTrigger={6}
           />
         </div>
       

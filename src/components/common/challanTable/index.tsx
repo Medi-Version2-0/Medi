@@ -11,11 +11,6 @@ interface RowData {
     };
 }
 
-interface NewRowTrigger {
-    columnIndex: number;
-    rowIndex: number;
-  }
-
 interface HeaderConfig {
     name: string;
     key: string;
@@ -36,10 +31,10 @@ interface ChallanTableProps {
     headers: HeaderConfig[];
     gridData: any;
     setGridData: (data: any[]) => void;
-    handleSave: () => void;
+    handleSave?: () => void;
     withAddRow?: ()=> void;
     rowDeleteCallback? : (rowIndex:number , data : any)=> void;
-    newRowTrigger?: NewRowTrigger;
+    newRowTrigger: number;
 }
 export const ChallanTable = ({ headers, gridData, setGridData, handleSave , withAddRow , rowDeleteCallback, newRowTrigger }: ChallanTableProps) => {
     const [focused, setFocused] = useState('');
@@ -56,13 +51,13 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
         if (e.key === 'Enter') {
             e.preventDefault();
             // const isThirdLastColumn = colIndex === headers.length - 3;       // Update this function
-            const isThirdLastColumn = colIndex === headers.length -1;
+            const shouldAddRow = colIndex === newRowTrigger;
             const isLastRow = rowIndex === gridData.length - 1;
 
-            if (isThirdLastColumn && isLastRow) {
+            if (shouldAddRow && isLastRow) {
                 addRows(1);
                 setTimeout(() => focusNextCell(rowIndex + 1, 0), 0);
-            } else if (isThirdLastColumn) {
+            } else if (shouldAddRow) {
                 focusNextCell(rowIndex + 1, 0);
             } else {
                 if (colIndex === 6) {
@@ -128,9 +123,9 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
      
     }
 
-    return (
-        <div className="flex flex-col h-[30em] overflow-scroll w-full border-[1px] border-solid border-gray-400">
-            <div className="flex sticky border-solid border-[1px] border-blue-800 top-0 w-[100vw]">
+    return (<div className='flex flex-col gap-2'>
+            <div className="flex flex-col h-[30em] overflow-scroll w-full border-[1px] border-solid border-gray-400">
+            <div className="flex sticky border-solid border-[1px] border-blue-800 top-0 w-[100vw] z-[1]">
                 {headers.map((header, index) => (
                     <div
                         key={index}
@@ -240,7 +235,8 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
                 />
             )}
 
-            <div className="flex justify-end sticky left-0 mt-[2em]">
+        </div>
+       {handleSave && <div className="flex justify-end">
                 <button
                     type="button"
                     className="px-4 py-2 bg-[#009196FF] hover:bg-[#009196e3] font-medium text-white rounded-md border-none focus:border-yellow-500 focus-visible:border-yellow-500"
@@ -248,7 +244,7 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
                 >
                     Confirm
                 </button>
-            </div>
+            </div>}
         </div>
     );
 };

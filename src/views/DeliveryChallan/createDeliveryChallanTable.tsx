@@ -490,6 +490,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
         handleSave={handleSave}
         withAddRow = {()=> setCurrentSavedData({ item: {}, batch: {} })}
         rowDeleteCallback={handleDeleteRow}
+        newRowTrigger={headers.length-3}
       />
 
       {popupState.isAlertOpen && (
