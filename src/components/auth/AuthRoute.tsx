@@ -16,7 +16,5 @@ export const AuthRoute = () => {
     return null;
   }
 
-  <Navigate to={`/${user?.UserOrganizations[1]?.organizationId}`} />;
-
   return <Outlet />;
 };

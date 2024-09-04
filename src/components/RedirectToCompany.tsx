@@ -40,7 +40,6 @@ export const RedirectToCompany = () => {
       } else if (organizations.length === 1) {
         const organizationId = organizations[0].id;
         setSelectedOrganization(organizationId);
-        navigate(`/${organizationId}`);
       } else {
         setIsModalOpen(true);
       }
@@ -52,7 +51,6 @@ export const RedirectToCompany = () => {
   const handleOrganizationSelect = (organizationId: number) => {
     setSelectedOrganization(organizationId);
     setIsModalOpen(false);
-    navigate(`/${organizationId}`);
   };
 
   const handleSetupClick = () => {

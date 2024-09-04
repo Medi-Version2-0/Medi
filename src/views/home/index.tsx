@@ -5,10 +5,10 @@ import { useUser } from '../../UserContext';
 import useFetchInitialData from '../../hooks/useFetchInitialData';
 
 const Layout = () => {
-  const { selectedCompany: organizationId, logout } = useUser();
+  const { user, logout } = useUser();
   const {fetchInitialData} = useFetchInitialData()
   useEffect(() => {
-    if (organizationId) {
+    if (user?.organizationId) {
       fetchInitialData()
     } else {
       logout();

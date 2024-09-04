@@ -59,16 +59,6 @@ export const App = () => {
 
 const AppRoot = () => {
   const { user, setSelectedOrganization, selectedCompany: organizationId } = useUser();
-  useEffect(() => {
-    if (organizationId) {
-      setSelectedOrganization(+organizationId);
-    } else if (user) {
-      const defaultOrganizationId = user.UserOrganizations[0]?.organizationId;
-      if (defaultOrganizationId) {
-        setSelectedOrganization(defaultOrganizationId);
-      }
-    }
-  }, [organizationId, user, setSelectedOrganization]);
 
   return (
     <Routes>

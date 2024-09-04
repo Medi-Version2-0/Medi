@@ -26,7 +26,7 @@ export const AuthForm = ({ isLogin }: { isLogin: boolean }) => {
       if (isLogin) {
         const user: any = await login(email, password);
         if (user.UserOrganizations.length) {
-          return navigate(`/${user.UserOrganizations[0].Organization.id}`)
+          return navigate(`/`)
         }
         if (!user.city) {
           navigate('/user/setup');

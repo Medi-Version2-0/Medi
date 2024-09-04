@@ -76,7 +76,7 @@ const InitialFirmSetup = () => {
                     const readableData = await response.json();
                     saveToken(readableData.access_token)
                     setUser(readableData.data);
-                    navigate(`/${organization.id}`);
+                    navigate(`/`);
                 } else {
                     navigate('/not-authorized');
                 }
@@ -118,7 +118,6 @@ const InitialFirmSetup = () => {
       }, [step])
 
 
-    
 
     return (
         <div className='fixed inset-0 flex flex-col items-center justify-center bg-gray-800 bg-opacity-50'>
@@ -148,7 +147,7 @@ const InitialFirmSetup = () => {
                                     Next
                                 </Button>
                             ) : (
-                                <Button id='submit_all' disable={!formik.isValid} type='fill' btnType='button' handleOnClick={handleSubmit}  >
+                                <Button id='submit_all' disable={!formik.isValid || formik.isSubmitting } type='fill' btnType='button' handleOnClick={handleSubmit}  >
                                     Submit
                                 </Button>
                             )}
