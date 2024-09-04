@@ -18,7 +18,7 @@ import { Sales_Table } from '../../views/sales_purchase';
 import { BillBook } from '../../views/BillBook';
 import { PartyWiseDiscount } from '../../views/discount';
 import DeliveryChallan from '../../views/DeliveryChallan';
-import Vouchers from '../../views/vouchers/index'
+import { Vouchers } from '../../views/vouchers/index'
 import { Organization } from '../../views/organization';
 import usePermission from '../../hooks/useRole';
 type SubElementKey = 'master' | 'setup';

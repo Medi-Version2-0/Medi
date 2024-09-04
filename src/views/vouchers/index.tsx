@@ -5,7 +5,7 @@ import type { Voucher } from '../../interface/global';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 import Button from '../../components/common/button/Button';
-import CreateVouchers from './createVoucher';
+import {CreateVouchers} from './createVoucher';
 import usePermission from '../../hooks/useRole';
 import { FaEdit } from 'react-icons/fa';
 import { MdDeleteForever } from 'react-icons/md';
@@ -288,4 +288,4 @@ const Vouchers = () => {
     return <div className='w-full'>{renderView()}</div>;
 };
 
-export default Vouchers;
+export  { Vouchers };

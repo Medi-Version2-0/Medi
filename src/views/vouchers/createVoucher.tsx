@@ -34,6 +34,7 @@ const CreateVouchers = ({ setView, data }: any) => {
   const [totalValue, setTotalValue] = useState({ totalDebit: 0, totalCredit: 0 });
   const [allParties, setAllParties] = useState<any[]>([]);
   const [hasAccountGroup, setHasAccountGroup] = useState(false);
+  const [gstNature, setGstNature] = useState<Option | null>(data?.rowData?.gstNatuer || null);
 
   const bankName = useRef(null);
 
@@ -59,7 +60,7 @@ const CreateVouchers = ({ setView, data }: any) => {
     { name: 'Discount (₹)', key: 'discount', width: '14%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); } } },
   ];
   const commonHeaders2 = [
-    { name: 'Party Balance', key: 'partyBalance', width: '20%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); } } },
+    { name: 'Party Balance', key: 'partyBalance', width: '20%', type: 'input', props: { inputType: 'text', handleChange: (args: any) => { handleInputChange(args); } } },
     { name: 'Discount Narration', key: 'disNarration', width: '17%', type: 'input', props: { inputType: 'text', handleChange: (args: any) => { handleInputChange(args); } } }
   ];
   const gstNatureConditionHeaders = [
@@ -80,20 +81,35 @@ const CreateVouchers = ({ setView, data }: any) => {
     { label: 'Closing Balance Type', key: 'currentOpeningBalType' },
   ];
 
+  const gstNatureTypes =[
+    { value: '1', label: 'GST Not Applicable' },
+    { value: '2', label: 'Registered Expense' },
+    { value: '3', label: 'Unregisterd/ RCM Expense' },
+  ]
+
   useEffect(() => {
     setVoucherType(data?.rowData?.voucherType ? { value: data.rowData?.voucherType, label: getVoucherTypeLabel(data?.rowData?.voucherType) } : null);
     setSelectedDate(data?.rowData?.voucherDate ? formatVoucherDate(data.rowData?.voucherDate) : null);
+    setGstNature(data?.rowData?.gstNature ? { value: data.rowData?.gstNature, label: getNatureTypeValue(data?.rowData?.gstNature) } : null);
     initializeGridDataFromData();
+    totalDebitAndCredit();
   }, [data]);
 
   useEffect(()=>{
+    console.log("inside useEffect----2---bankName->",bankName)
     getPartyData();
   },[])
-
+  
   const getVoucherTypeLabel = (value: string) => {
     const voucherType = voucherTypes.find((type: any) => type.value === value);
     return voucherType ? voucherType.label : '';
   };
+
+  const getNatureTypeValue = (value: string) =>{
+    console.log("getNatureTypeValue------>")
+    const gstNatureType = gstNatureTypes.find((type: any) => type.value === value);
+    return gstNatureType ? gstNatureType.label : '';
+  }
 
   const formatVoucherDate = (date: string) => {
     const parsedDate = new Date(date);
@@ -150,6 +166,16 @@ const CreateVouchers = ({ setView, data }: any) => {
     })));
   };
 
+  const getPartyBalance = async(rowIndex: any, partyId: number)=>{
+      const response: any = await sendAPIRequest(`/voucher/totalBalance?partyId=${partyId}`,{
+        method: 'GET',
+      })
+      const newGridData = [...gridData];
+
+      newGridData[rowIndex].columns.partyBalance = response;
+      setGridData(newGridData)
+  }
+
 
   const getVoucherData = async (voucherDate: string, voucherType: string) => {
     const url = `/voucher/?voucherDate=${voucherDate}&voucherType=${voucherType}`;
@@ -167,6 +193,7 @@ const CreateVouchers = ({ setView, data }: any) => {
   }
 
   const getPartyData = async()=>{
+    console.log("inside getPartyData--4-->")
     try {
       const response: any = await sendAPIRequest(`/${organizationId}/ledger/`,{
         method: 'GET'
@@ -207,12 +234,19 @@ const CreateVouchers = ({ setView, data }: any) => {
     initializeGridData();
   };
 
+  const handleGstNatureChange = (option: Option | null) => {
+    console.log("inside handleGstNatureChange----->")
+    // setGstNature(data?.rowData?.gstNature ? { value: data.rowData?.gstNature, label: getNatureTypeValue(data?.rowData?.gstNature) } : null);
+    setGstNature(option)
+    console.log("gstNature--------->",gstNature)
+  }
+
   const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedDate(event.target.value);
   };
 
   const handleSubmit = async () => {
-
+console.log("gstNature---->",gstNature)
     const dataToSend: any = {
       rows: gridData.map((row) => {
         const { label, value } = row.columns.partyName || {};
@@ -225,9 +259,13 @@ const CreateVouchers = ({ setView, data }: any) => {
           voucherDate: selectedDate,
           partyName: label,
           ...(voucherNumber && { voucherNumber: voucherNumber, }),
-          partyId: value
+          partyId: value,
+          ...( (voucherType?.value === 'CP' || voucherType?.value === 'BW') && { gstNature: gstNature?.value }),
+          ...( (gstNature && {gstNature: gstNature.value}))
         };
-      }),
+      },
+    // ...( bankName && { bankPartyId: bankName.current })
+    ),
     };
 
     try {
@@ -250,6 +288,8 @@ const CreateVouchers = ({ setView, data }: any) => {
         });
 
       } else {
+      console.log("dataToSend--->",dataToSend)
+
         const response: any = await sendAPIRequest(`/voucher/`, {
           method: 'POST',
           body: dataToSend,
@@ -273,6 +313,11 @@ const CreateVouchers = ({ setView, data }: any) => {
       });
     }
   };
+
+  // const fetchParty = async () => {
+  //   console.log("allParties----------->",allParties)
+  //   setPartyValue(partiesData);
+  // };
 
   const setDebitOrCredit = async () => {
     let { value } = getDrCrColumnProps();
@@ -310,7 +355,8 @@ const CreateVouchers = ({ setView, data }: any) => {
       return;
     }
 
-    if (gridData[rowIndex].columns.amount && (voucherType?.value === 'JOUR' || voucherType?.value === 'CD' || voucherType?.value === 'BW') && (header === 'gstRate' || header === 'amount' || header === 'partyName')) {
+    if (gridData[rowIndex].columns.amount && (voucherType?.value === 'JOUR' || voucherType?.value === 'CP' || voucherType?.value === 'BW') && (gstNature?.value === 2 || gstNature?.value === 3 ) && (header === 'gstRate' || header === 'amount' || header === 'partyName')) {
+      console.log("HEADER_________",gstNature)
       let gstRate;
       let amount;
       if (header === 'gstRate') {
@@ -411,6 +457,10 @@ const CreateVouchers = ({ setView, data }: any) => {
         value: currentSavedData.party.party_id,
         stateInout: currentSavedData.party.stateInout
       };
+
+      getPartyBalance(focusedRowIndex,currentSavedData.party.party_id);
+      console.log("1-------------",focusedRowIndex, currentSavedData)
+      
 
       const { value } = getDrCrColumnProps();
       newGridData[focusedRowIndex].columns['debitOrCredit'] = value;
@@ -524,6 +574,45 @@ const CreateVouchers = ({ setView, data }: any) => {
     },
   ];
 
+
+  // const handleInputChange = async ({ rowIndex, header, value }: any) => {
+  //   const newGridData = [...gridData];
+  //   const { readOnly: drCrReadOnly } = getDrCrColumnProps();
+
+  //   if (header === 'debitOrCredit' && drCrReadOnly) {
+  //     return;
+  //   }
+
+  //   newGridData[rowIndex].columns[header] = value;
+  //   totalDebitAndCredit();
+  // };
+
+  const totalDebitAndCredit = async() => {
+    const newGridData = [...gridData];
+    let totalDebit = 0;
+    let totalCredit = 0;
+
+    newGridData.forEach((data) => {
+    const amount = Number(data.columns.amount) || 0;
+    const debitOrCredit = data.columns.debitOrCredit;
+
+    if (debitOrCredit === 'Dr') {
+      totalDebit += amount;
+    } else if (debitOrCredit === 'Cr') {
+      totalCredit += amount;
+    }
+  });
+
+    setGridData(newGridData);
+
+    setTotalValue({
+      ...totalValue,
+      totalDebit: totalDebit,
+      totalCredit: totalCredit,
+    });
+  }
+
+
   const isInputsDisabled = Boolean(data?.rowData?.voucherType && data?.rowData?.voucherDate);
 
   return (
@@ -586,8 +675,30 @@ const CreateVouchers = ({ setView, data }: any) => {
           <div className="flex flex-col justify-end max-w-[14rem]">
             <span className="text-sm font-medium text-gray-700">Voucher Number: {voucherNumber}</span>
             <span className="text-sm font-medium text-gray-700">Balance: </span>
+            
           </div>
         )}
+        {(voucherType?.value !== 'CR' && voucherType?.value !== 'BD'&& voucherType?.value !== undefined) && (
+          <div className="flex items-center gap-2 w-[30%]">
+            <span className="text-sm font-medium text-gray-700 whitespace-nowrap">GST Nature: </span>
+            <CustomSelect
+              isPopupOpen={false}
+              label={``}
+              value={gstNature}
+              id="gstNature"
+              onChange={handleGstNatureChange}
+              options={gstNatureTypes}
+              isSearchable={true}
+              placeholder="Select GST Nature"
+              disableArrow={false}
+              hidePlaceholder={false}
+              containerClass="!w-[80%] !justify-between"
+              className="!rounded-none !h-8 whitespace-nowrap"
+              isDisabled={isInputsDisabled}
+            />
+          </div>
+        )}
+
       </div>
 
       {(voucherType?.value === 'BD' || voucherType?.value === 'BW' && bankName.current) && (
@@ -607,7 +718,11 @@ const CreateVouchers = ({ setView, data }: any) => {
 
       {voucherType && selectedDate && (
         <div className="mt-4 text-center">
-          <Button type="highlight" id="save_voucher_button" handleOnClick={handleSubmit}>
+          <Button type="highlight"
+                  id="save_voucher_button"
+                  handleOnClick={handleSubmit}
+                  disable={voucherType.value === 'JOUR' && totalValue.totalCredit !== totalValue.totalDebit}
+          >
             {data.rowData?.voucherNumber ? 'Update' : 'Submit'}
           </Button>
         </div>
@@ -649,4 +764,4 @@ const CreateVouchers = ({ setView, data }: any) => {
 
 };
 
-export default CreateVouchers;
+export { CreateVouchers };
