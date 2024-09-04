@@ -36,7 +36,11 @@ const CreateVouchers = ({ setView, data }: any) => {
   const [hasAccountGroup, setHasAccountGroup] = useState(false);
   const [gstNature, setGstNature] = useState<Option | null>(data?.rowData?.gstNatuer || null);
 
-  const bankName = useRef(null);
+  // const bankName = useRef(data?.bankPartyId || null);
+  const bankName = useRef<{partyName:string,partyId:number}>({
+    partyName:'',
+    partyId:0
+  });
 
   const voucherTypes: Option[] | any = [
     { value: 'CR', label: 'Cash Receipt', isDisabled: false },
@@ -96,7 +100,6 @@ const CreateVouchers = ({ setView, data }: any) => {
   }, [data]);
 
   useEffect(()=>{
-    console.log("inside useEffect----2---bankName->",bankName)
     getPartyData();
   },[])
   
@@ -117,12 +120,14 @@ const CreateVouchers = ({ setView, data }: any) => {
   };
 
   const initializeGridDataFromData = () => {
-
+console.log("inside --------initializeGridDataFromData--->",data)
     if (data?.voucherGridData) {
-      const initialRows = data.voucherGridData.map((row: any, rowIndex: number) => {
 
+      const initialRows = data.voucherGridData.map((row: any, rowIndex: number) => {
+        console.log("headers--------->",headers)
         const updatedColumns = headers.reduce((acc, header) => {
           let value = row[header.key];
+          console.log("VALUEEEEEEEE",value)
 
           if (header.key === 'partyName') {
             value = {
@@ -142,13 +147,15 @@ const CreateVouchers = ({ setView, data }: any) => {
             rowId: row.id,
           };
         }, {});
+console.log("updatedColumns-------->",updatedColumns)
+
         return {
           id: rowIndex + 1,
           columns: updatedColumns
         }
 
       });
-
+console.log("initialRows--------->",initialRows)
       setGridData(initialRows);
     }
   };
@@ -193,7 +200,6 @@ const CreateVouchers = ({ setView, data }: any) => {
   }
 
   const getPartyData = async()=>{
-    console.log("inside getPartyData--4-->")
     try {
       const response: any = await sendAPIRequest(`/${organizationId}/ledger/`,{
         method: 'GET'
@@ -235,10 +241,8 @@ const CreateVouchers = ({ setView, data }: any) => {
   };
 
   const handleGstNatureChange = (option: Option | null) => {
-    console.log("inside handleGstNatureChange----->")
     // setGstNature(data?.rowData?.gstNature ? { value: data.rowData?.gstNature, label: getNatureTypeValue(data?.rowData?.gstNature) } : null);
     setGstNature(option)
-    console.log("gstNature--------->",gstNature)
   }
 
   const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -246,7 +250,6 @@ const CreateVouchers = ({ setView, data }: any) => {
   };
 
   const handleSubmit = async () => {
-console.log("gstNature---->",gstNature)
     const dataToSend: any = {
       rows: gridData.map((row) => {
         const { label, value } = row.columns.partyName || {};
@@ -263,10 +266,11 @@ console.log("gstNature---->",gstNature)
           ...( (voucherType?.value === 'CP' || voucherType?.value === 'BW') && { gstNature: gstNature?.value }),
           ...( (gstNature && {gstNature: gstNature.value}))
         };
-      },
-    // ...( bankName && { bankPartyId: bankName.current })
-    ),
+      }),
     };
+    if (bankName.current.partyName){
+      dataToSend.bankPartyId = bankName.current.partyId
+    }
 
     try {
 
@@ -288,7 +292,6 @@ console.log("gstNature---->",gstNature)
         });
 
       } else {
-      console.log("dataToSend--->",dataToSend)
 
         const response: any = await sendAPIRequest(`/voucher/`, {
           method: 'POST',
@@ -355,8 +358,7 @@ console.log("gstNature---->",gstNature)
       return;
     }
 
-    if (gridData[rowIndex].columns.amount && (voucherType?.value === 'JOUR' || voucherType?.value === 'CP' || voucherType?.value === 'BW') && (gstNature?.value === 2 || gstNature?.value === 3 ) && (header === 'gstRate' || header === 'amount' || header === 'partyName')) {
-      console.log("HEADER_________",gstNature)
+    if (gridData[rowIndex].columns.amount && (voucherType?.value === 'JOUR' || voucherType?.value === 'CP' || voucherType?.value === 'BW') && (gstNature?.value == 2 || gstNature?.value == 3 ) && (header === 'gstRate' || header === 'amount' || header === 'partyName')) {
       let gstRate;
       let amount;
       if (header === 'gstRate') {
@@ -397,7 +399,9 @@ console.log("gstNature---->",gstNature)
   };
 
   useEffect(()=>{
+    console.log("voucherType?.value---------->",voucherType?.value)
     if (!voucherType?.value){
+      console.log("3-------------")
       setHeaders([...commonHeaders1, ...checkNoCheckDateHeaders, ...discountHeader, ...commonHeaders2, ...gstNatureConditionHeaders])
     }
     if (voucherType?.value === 'CR'){
@@ -427,7 +431,7 @@ console.log("gstNature---->",gstNature)
       newGridData[gridData.length-1].columns.debitOrCredit = '';
       setGridData(newGridData);
     }
-    if (voucherType?.value === 'BD' || voucherType?.value === 'BW'){
+    if (!data.rowData?.voucherNumber && (voucherType?.value === 'BD' || voucherType?.value === 'BW')){
       const data = allParties.filter(p=> p.accountCode === -106);
       setPopupList({
         isOpen: true,
@@ -436,7 +440,10 @@ console.log("gstNature---->",gstNature)
           headers: [...partyHeaders],
           tableData: data,
           handleSelect: (rowData: any) => {
-            bankName.current = rowData.partyName
+            bankName.current = {
+              partyName: rowData.partyName,
+              partyId: rowData.party_id
+            }
           }
         }
       });
@@ -459,13 +466,9 @@ console.log("gstNature---->",gstNature)
       };
 
       getPartyBalance(focusedRowIndex,currentSavedData.party.party_id);
-      console.log("1-------------",focusedRowIndex, currentSavedData)
-      
 
       const { value } = getDrCrColumnProps();
       newGridData[focusedRowIndex].columns['debitOrCredit'] = value;
-
-      console.log({ rowIndex: focusedRowIndex, header: 'partyName', value: newGridData[focusedRowIndex].columns.partyName })
 
       handleInputChange({ rowIndex:focusedRowIndex, header:'partyName',value: newGridData[focusedRowIndex].columns.partyName })
     }
@@ -674,8 +677,6 @@ console.log("gstNature---->",gstNature)
         {voucherNumber && (
           <div className="flex flex-col justify-end max-w-[14rem]">
             <span className="text-sm font-medium text-gray-700">Voucher Number: {voucherNumber}</span>
-            <span className="text-sm font-medium text-gray-700">Balance: </span>
-            
           </div>
         )}
         {(voucherType?.value !== 'CR' && voucherType?.value !== 'BD'&& voucherType?.value !== undefined) && (
@@ -701,8 +702,8 @@ console.log("gstNature---->",gstNature)
 
       </div>
 
-      {(voucherType?.value === 'BD' || voucherType?.value === 'BW' && bankName.current) && (
-        <span className="text-sm font-medium mt-1 text-gray-700">Bank: {bankName.current}</span>
+      {(voucherType?.value === 'BD' || voucherType?.value === 'BW' && bankName.current.partyName) && (
+        <span className="text-sm font-medium mt-1 text-gray-700">Bank: {bankName.current.partyName}</span>
       )}
       
       
