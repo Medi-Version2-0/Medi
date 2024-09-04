@@ -35,8 +35,9 @@ interface ChallanTableProps {
     withAddRow?: ()=> void;
     rowDeleteCallback? : (rowIndex:number , data : any)=> void;
     newRowTrigger: number;
+    skipIndexes?:number[];
 }
-export const ChallanTable = ({ headers, gridData, setGridData, handleSave , withAddRow , rowDeleteCallback, newRowTrigger }: ChallanTableProps) => {
+export const ChallanTable = ({ headers, gridData, setGridData, handleSave , withAddRow , rowDeleteCallback, newRowTrigger, skipIndexes }: ChallanTableProps) => {
     const [focused, setFocused] = useState('');
     const [popupState, setPopupState] = useState({
         isModalOpen: false,
@@ -72,6 +73,10 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
       
 
     const focusNextCell = async (rowIndex: number, colIndex: number) => {
+        if (skipIndexes?.includes(colIndex)){
+            focusNextCell(rowIndex, colIndex + 1);
+            return;
+        }
         const nextInput = document.getElementById(`cell-${rowIndex}-${colIndex}`);
         if (colIndex === 4) {
             setFocused(`cell-${rowIndex}-${colIndex}`);

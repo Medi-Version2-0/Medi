@@ -51,10 +51,15 @@ const CreateVouchers = ({ setView, data }: any) => {
   ];
 
   const commonHeaders1 = [
-    { name: 'Party', key: 'partyName', width: '16%', type: 'input', props: { inputType: 'text', label: true, handleFocus: (rowIndex: number, colIndex: number) => {console.log('rc --> ',rowIndex,colIndex);handleFocus(rowIndex, colIndex) } } },
+    { name: 'Party', key: 'partyName', width: '16%', type: 'input', props: { inputType: 'text', label: true, handleFocus: (rowIndex: number, colIndex: number) => { handleFocus(rowIndex, colIndex) } } },
     { name: 'Narration', key: 'narration', width: '20%', type: 'input', props: { inputType: 'text', handleChange: (args: any) => { handleInputChange(args); } } },
     { name: 'Amount (₹)', key: 'amount', width: '15%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); } } },
-    { name: 'Dr/Cr', key: 'debitOrCredit', width: '15%', type: 'input', props: { inputType: 'text', handleChange: (args: any) => { handleInputChange(args); }, readOnly: false } },
+    { name: 'Dr/Cr', key: 'debitOrCredit', width: '15%', type: 'input', props: { inputType: 'text', handleChange: (args: any) => {  
+      if(args.header === 'debitOrCredit' && args.value){
+        args.value = args.value[0].toUpperCase() + args.value.slice(1);
+      }
+      handleInputChange(args); 
+    }, readOnly: false} },
   ];
   const checkNoCheckDateHeaders = [
     { name: 'Cheque No.', key: 'chequeNumber', width: '12%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); } } },
@@ -109,7 +114,6 @@ const CreateVouchers = ({ setView, data }: any) => {
   };
 
   const getNatureTypeValue = (value: string) =>{
-    console.log("getNatureTypeValue------>")
     const gstNatureType = gstNatureTypes.find((type: any) => type.value === value);
     return gstNatureType ? gstNatureType.label : '';
   }
@@ -120,14 +124,11 @@ const CreateVouchers = ({ setView, data }: any) => {
   };
 
   const initializeGridDataFromData = () => {
-console.log("inside --------initializeGridDataFromData--->",data)
     if (data?.voucherGridData) {
 
       const initialRows = data.voucherGridData.map((row: any, rowIndex: number) => {
-        console.log("headers--------->",headers)
         const updatedColumns = headers.reduce((acc, header) => {
           let value = row[header.key];
-          console.log("VALUEEEEEEEE",value)
 
           if (header.key === 'partyName') {
             value = {
@@ -147,7 +148,6 @@ console.log("inside --------initializeGridDataFromData--->",data)
             rowId: row.id,
           };
         }, {});
-console.log("updatedColumns-------->",updatedColumns)
 
         return {
           id: rowIndex + 1,
@@ -155,12 +155,9 @@ console.log("updatedColumns-------->",updatedColumns)
         }
 
       });
-console.log("initialRows--------->",initialRows)
       setGridData(initialRows);
     }
   };
-
-
 
   const initializeGridData = () => {
     const { value: drCrValue } = getDrCrColumnProps();
@@ -272,6 +269,7 @@ console.log("initialRows--------->",initialRows)
       dataToSend.bankPartyId = bankName.current.partyId
     }
 
+    console.log(dataToSend)
     try {
 
       if (data.rowData?.voucherNumber) {
@@ -357,6 +355,11 @@ console.log("initialRows--------->",initialRows)
     if (header === 'debitOrCredit' && drCrReadOnly) {
       return;
     }
+    if(header === 'debitOrCredit') {
+      const firstCharPossibleOutcomes = ['d','c','D','C',undefined];
+      const secondCharPossibleOutcomes = ['r','R',undefined];
+      if (value.length > 2 || !firstCharPossibleOutcomes.includes(value[0]) || !secondCharPossibleOutcomes.includes(value[1])) return
+    }
 
     if (gridData[rowIndex].columns.amount && (voucherType?.value === 'JOUR' || voucherType?.value === 'CP' || voucherType?.value === 'BW') && (gstNature?.value == 2 || gstNature?.value == 3 ) && (header === 'gstRate' || header === 'amount' || header === 'partyName')) {
       let gstRate;
@@ -379,15 +382,25 @@ console.log("initialRows--------->",initialRows)
         newGridData[rowIndex].columns.sgstValue = 0.00;
         newGridData[rowIndex].columns.cgstValue = 0.00;
       }else{
-        newGridData[rowIndex].columns.igstValue = 0;
+        newGridData[rowIndex].columns.igstValue = 0.00;
         newGridData[rowIndex].columns.sgstValue = ((gstRate / 200) * amount).toFixed(2);
         newGridData[rowIndex].columns.cgstValue = ((gstRate / 200) * amount).toFixed(2);
       }
     }
     newGridData[rowIndex].columns[header] = value;
 
-    const totalDebit = newGridData.reduce((acc, data) => acc + (Number(data.columns.amount) || 0), 0);
-    const totalCredit = newGridData.reduce((acc, data) => acc + (Number(data.columns.discount) || 0), 0);
+    let totalDebit = 0;
+    let totalCredit = 0;
+    newGridData.forEach((data) => {
+      const amount = Number(data.columns.amount) || 0;
+      const debitOrCredit = data.columns.debitOrCredit;
+
+      if (debitOrCredit?.toLowerCase() === 'dr') {
+        totalDebit += amount;
+      } else if (debitOrCredit?.toLowerCase() === 'cr') {
+        totalCredit += amount;
+      }
+    });
 
     setGridData(newGridData);
 
@@ -399,27 +412,34 @@ console.log("initialRows--------->",initialRows)
   };
 
   useEffect(()=>{
-    console.log("voucherType?.value---------->",voucherType?.value)
     if (!voucherType?.value){
-      console.log("3-------------")
       setHeaders([...commonHeaders1, ...checkNoCheckDateHeaders, ...discountHeader, ...commonHeaders2, ...gstNatureConditionHeaders])
     }
     if (voucherType?.value === 'CR'){
       setHeaders([...commonHeaders1, ...discountHeader, ...commonHeaders2]);
     }
-    if (voucherType?.value === 'CP' && true){
+    if (voucherType?.value === 'CP' && (gstNature?.value == 2 || gstNature?.value == 3)){
       setHeaders([...commonHeaders1, ...discountHeader, ...commonHeaders2, ...gstNatureConditionHeaders]);
     }
-    if (voucherType?.value === 'JOUR' && true){
+    if (voucherType?.value === 'CP' && (gstNature?.value == 1 || !gstNature?.value)) {
+      setHeaders([...commonHeaders1, ...discountHeader, ...commonHeaders2]);
+    }
+    if (voucherType?.value === 'JOUR' && (gstNature?.value == 2 || gstNature?.value == 3)){
       setHeaders([...commonHeaders1, ...commonHeaders2, ...gstNatureConditionHeaders]);
+    }
+    if (voucherType?.value === 'JOUR' && (gstNature?.value == 1 || !gstNature?.value)){
+      setHeaders([...commonHeaders1, ...commonHeaders2]);
     }
     if (voucherType?.value === 'BD'){
       setHeaders([...commonHeaders1, ...checkNoCheckDateHeaders, ...discountHeader, ...commonHeaders2]);
     }
-    if (voucherType?.value === 'BW' && true){
+    if (voucherType?.value === 'BW' && (gstNature?.value == 2 || gstNature?.value == 3)){
       setHeaders([...commonHeaders1, ...checkNoCheckDateHeaders, ...discountHeader, ...commonHeaders2, ...gstNatureConditionHeaders]);
     }
-  }, [voucherType?.value,gridData])
+    if (voucherType?.value === 'BW' && (gstNature?.value == 1 || !gstNature?.value)){
+      setHeaders([...commonHeaders1, ...checkNoCheckDateHeaders, ...discountHeader, ...commonHeaders2]);
+    }
+  }, [voucherType?.value, gridData, gstNature?.value])
 
 
   useEffect(() => {
@@ -606,15 +626,12 @@ console.log("initialRows--------->",initialRows)
     }
   });
 
-    setGridData(newGridData);
-
     setTotalValue({
       ...totalValue,
       totalDebit: totalDebit,
       totalCredit: totalCredit,
     });
   }
-
 
   const isInputsDisabled = Boolean(data?.rowData?.voucherType && data?.rowData?.voucherDate);
 
@@ -712,6 +729,7 @@ console.log("initialRows--------->",initialRows)
             headers={headers}
             gridData={gridData}
             setGridData={setGridData}
+            skipIndexes={voucherType?.value!=='JOUR' ? [3]:[]}
             newRowTrigger={headers.length-1}
           />
         </div>
@@ -722,7 +740,7 @@ console.log("initialRows--------->",initialRows)
           <Button type="highlight"
                   id="save_voucher_button"
                   handleOnClick={handleSubmit}
-                  disable={voucherType.value === 'JOUR' && totalValue.totalCredit !== totalValue.totalDebit}
+                  disable={(voucherType.value === 'JOUR' && totalValue.totalCredit !== totalValue.totalDebit) || (gstNature === null) }
           >
             {data.rowData?.voucherNumber ? 'Update' : 'Submit'}
           </Button>
