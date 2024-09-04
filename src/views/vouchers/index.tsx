@@ -17,7 +17,7 @@ const Vouchers = () => {
     const [selectedVoucherType, setSelectedVoucherType] = useState<string>(''); // State for selected voucher type
     const [filterDate, setFilterDate] = useState<string>(getTodayDate(new Date())); // State for selected date filter
     const { createAccess, updateAccess, deleteAccess } = usePermission('voucher');
-    const [tableData, setTableData] = useState<Voucher | any>(null);
+    const [tableData, setTableData] = useState<Voucher | any>([]);
     const voucherNumber = useRef<string>('');
     const voucherDate = useRef<string>('');
     const voucherType = useRef<string>('');

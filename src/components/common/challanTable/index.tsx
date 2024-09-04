@@ -123,20 +123,21 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
      
     }
 
-    return (<div className='flex flex-col gap-2'>
-            <div className="flex flex-col h-[30em] overflow-scroll w-full border-[1px] border-solid border-gray-400">
-            <div className="flex sticky border-solid border-[1px] border-blue-800 top-0 w-[100vw] z-[1]">
+    return (
+       <div className='flex flex-col gap-2'>
+            <div className="flex flex-col h-[30em] overflow-scroll border-[1px] border-solid border-gray-400">
+            <div className="flex sticky border-solid top-0 z-[1]">
                 {headers.map((header, index) => (
                     <div
                         key={index}
-                        className="flex-shrink-0 border-[1px] border-solid bg-[#009196FF] border-gray-400 text-center text-white p-2"
+                        className={`flex-shrink-0 border-[1px] border-solid bg-[#009196FF] border-gray-400 text-center text-white p-2 ${index === 0 ? 'sticky left-0' : ''}`}
                         style={{ width: header.width }}
                     >
                         {header.name}
                     </div>
                 ))}
             </div>
-            <div className="flex flex-col h-[22rem] w-[100vw]">
+            <div className="flex flex-col h-[22rem]">
                 {gridData && gridData.map((row: any, rowIndex: number) => (
                     <div key={row.id} className="flex relative">
                         {headers.map((header, colIndex) => {
@@ -201,7 +202,7 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
                                                 }
                                             }}
                                             onKeyDown={(e) => handleKeyDown(e, rowIndex, colIndex)}
-                                            className={`flex-shrink-0 border-[1px] p-2 ${header.props.inputType === 'number' && 'text-right'} text-xs border-solid border-gray-400`}
+                                            className={`flex-shrink-0 border-[1px] p-2 ${header.props.inputType === 'number' && 'text-right'} text-xs border-solid border-gray-400 ${colIndex === 0 ? 'sticky left-0' : ''}`}
                                             style={{ width: header.width }}
                                             disabled={header.props.disable}
                                             onBlur={() => {
