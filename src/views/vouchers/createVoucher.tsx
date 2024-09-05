@@ -39,6 +39,7 @@ const CreateVouchers = ({ setView, data }: any) => {
   const [allParties, setAllParties] = useState<any[]>([]);
   const [hasBankAccount, setHasBankAccount] = useState(false);
   const [gstNature, setGstNature] = useState<Option | null>(data?.rowData?.gstNatuer || null);
+  
 
   const bankName = useRef<{partyName:string,partyId:number}>({
     partyName:'',
@@ -74,7 +75,7 @@ const CreateVouchers = ({ setView, data }: any) => {
     { name: 'Discount (₹)', key: 'discount', width: '14%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
   ];
   const commonHeaders2 = [
-    { name: 'Party Balance', key: 'partyBalance', width: '20%', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    // { name: 'Party Balance', key: 'partyBalance', width: '20%', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
     { name: 'Discount Narration', key: 'disNarration', width: '17%', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } }
   ];
   const gstNatureConditionHeaders = [
@@ -159,8 +160,6 @@ const CreateVouchers = ({ setView, data }: any) => {
         }
 
       });
-      // const receivedValue = JSON.parse(JSON.stringify(initialRows));
-      // console.log(JSON.parse(JSON.stringify(initialRows)))
       setGridData(JSON.parse(JSON.stringify(initialRows)));
     }
   };
@@ -584,16 +583,18 @@ const CreateVouchers = ({ setView, data }: any) => {
     let totalDebit = 0;
     let totalCredit = 0;
 
-    newGridData.forEach((data) => {
-    const amount = Number(data.columns.amount) || 0;
-    const debitOrCredit = data.columns.debitOrCredit;
+    if(data?.voucherGridData){
+      data?.voucherGridData?.forEach((item: any) => {
+        const amount = Number(item.amount) || 0;
+        const debitOrCredit = item.debitOrCredit;
 
-    if (debitOrCredit === 'Dr') {
-      totalDebit += amount;
-    } else if (debitOrCredit === 'Cr') {
-      totalCredit += amount;
+      if (debitOrCredit === 'Dr') {
+        totalDebit += amount;
+      } else if (debitOrCredit === 'Cr') {
+        totalCredit += amount;
+      }
+    });
     }
-  });
 
     setTotalValue({
       ...totalValue,
@@ -601,10 +602,6 @@ const CreateVouchers = ({ setView, data }: any) => {
       totalCredit: totalCredit,
     });
   }
-  // useEffect(() => {
-  //   console.log('gridData --> ',gridData[gridData.length - 1]?.columns)
-  //   console.log('gridData --> ',gridData[gridData.length - 1]?.columns.debitOrCredit)
-  // },[gridData]);
   const isInputsDisabled = Boolean(data?.rowData?.voucherType && data?.rowData?.voucherDate);
 
   return (
