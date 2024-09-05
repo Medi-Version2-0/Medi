@@ -29,15 +29,13 @@ const CreateVouchers = ({ setView, data }: any) => {
     isOpen: false,
     data: {}
   });
-  // const [headers,setHeaders] = useState<any[]>([]);
   const headers = useRef<any[]>([]);
   const [currentSavedData, setCurrentSavedData] = useState<{ party: any; }>({ party: {} });
   const [totalValue, setTotalValue] = useState({ totalDebit: 0, totalCredit: 0 });
   const [allParties, setAllParties] = useState<any[]>([]);
-  const [hasAccountGroup, setHasAccountGroup] = useState(false);
+  const [hasBankAccount, setHasBankAccount] = useState(false);
   const [gstNature, setGstNature] = useState<Option | null>(data?.rowData?.gstNatuer || null);
 
-  // const bankName = useRef(data?.bankPartyId || null);
   const bankName = useRef<{partyName:string,partyId:number}>({
     partyName:'',
     partyId:0
@@ -46,9 +44,9 @@ const CreateVouchers = ({ setView, data }: any) => {
   const voucherTypes: Option[] | any = [
     { value: 'CR', label: 'Cash Receipt', isDisabled: false },
     { value: 'CP', label: 'Cash Payment', isDisabled: false },
-    { value: 'JOUR', label: 'Journal', isDisabled: !hasAccountGroup },
-    { value: 'BD', label: 'Bank Deposit', isDisabled: !hasAccountGroup },
-    { value: 'BW', label: 'Bank Withdraw', isDisabled: !hasAccountGroup }
+    { value: 'JOUR', label: 'Journal', isDisabled: !hasBankAccount },
+    { value: 'BD', label: 'Bank Deposit', isDisabled: !hasBankAccount },
+    { value: 'BW', label: 'Bank Withdraw', isDisabled: !hasBankAccount }
   ];
 
   const commonHeaders1 = [
@@ -97,9 +95,14 @@ const CreateVouchers = ({ setView, data }: any) => {
     { value: '3', label: 'Unregisterd/ RCM Expense' },
   ]
 
+  useEffect(()=>{
+    initializeGridDataFromData();
+  },[])
+
   useEffect(() => {
     setVoucherType(data?.rowData?.voucherType ? { value: data.rowData?.voucherType, label: getVoucherTypeLabel(data?.rowData?.voucherType) } : null);
     setSelectedDate(data?.rowData?.voucherDate ? formatVoucherDate(data.rowData?.voucherDate) : null);
+    console.log("data?.rowData-------->",data?.rowData)
     setGstNature(data?.rowData?.gstNature ? { value: data.rowData?.gstNature, label: getNatureTypeValue(data?.rowData?.gstNature) } : null);
     initializeGridDataFromData();
     totalDebitAndCredit();
@@ -178,7 +181,7 @@ const CreateVouchers = ({ setView, data }: any) => {
       const newGridData = [...gridData];
 
       newGridData[rowIndex].columns.partyBalance = response;
-      setGridData(newGridData)
+      setGridData(newGridData)  
   }
 
 
@@ -203,8 +206,9 @@ const CreateVouchers = ({ setView, data }: any) => {
         method: 'GET'
       })
       setAllParties(response)
-      const hasAccountGroup = response.some((party: any) => party.accountCode === -106);
-      setHasAccountGroup(hasAccountGroup);
+
+      const hasBankAccount = response.some((party: any) => party.accountCode === -106);
+      setHasBankAccount(hasBankAccount);
 
     } catch (error: any) {
       setPopupState({
@@ -239,7 +243,6 @@ const CreateVouchers = ({ setView, data }: any) => {
   };
 
   const handleGstNatureChange = (option: Option | null) => {
-    // setGstNature(data?.rowData?.gstNature ? { value: data.rowData?.gstNature, label: getNatureTypeValue(data?.rowData?.gstNature) } : null);
     setGstNature(option)
   }
 
@@ -262,13 +265,14 @@ const CreateVouchers = ({ setView, data }: any) => {
           ...(voucherNumber && { voucherNumber: voucherNumber, }),
           partyId: value,
           ...( (voucherType?.value === 'CP' || voucherType?.value === 'BW') && { gstNature: gstNature?.value }),
-          ...( (gstNature && {gstNature: gstNature.value}))
+          ...( (gstNature && {gstNature: gstNature.value})),
+          ...((bankName.current.partyName || data?.rowData?.bankPartyName ) && {
+            bankPartyId: bankName.current.partyId || data?.rowData?.bankPartyId,
+            bankPartyName: bankName.current.partyName || data?.rowData?.bankPartyName
+          })
         };
       }),
     };
-    if (bankName.current.partyName){
-      dataToSend.bankPartyId = bankName.current.partyId
-    }
     try {
 
       if (data.rowData?.voucherNumber) {
@@ -355,7 +359,7 @@ const CreateVouchers = ({ setView, data }: any) => {
       if (value.length > 2 || !firstCharPossibleOutcomes.includes(value[0]) || !secondCharPossibleOutcomes.includes(value[1])) return
     }
 
-    if (gridData[rowIndex].columns.amount && (voucherType?.value === 'JOUR' || voucherType?.value === 'CP' || voucherType?.value === 'BW') && (gstNature?.value == 2 || gstNature?.value == 3 ) && (header === 'gstRate' || header === 'amount' || header === 'partyName')) {
+    if (gridData[rowIndex]?.columns.amount && (voucherType?.value === 'JOUR' || voucherType?.value === 'CP' || voucherType?.value === 'BW') && (gstNature?.value == 2 || gstNature?.value == 3 ) && (header === 'gstRate' || header === 'amount' || header === 'partyName')) {
       let gstRate;
       let amount;
       if (header === 'gstRate') {
@@ -381,7 +385,8 @@ const CreateVouchers = ({ setView, data }: any) => {
         newGridData[rowIndex].columns.cgstValue = ((gstRate / 200) * amount).toFixed(2);
       }
     }
-    newGridData[rowIndex].columns[header] = value;
+    console.log("rowIndex-------->",rowIndex,"gridData--->",gridData,"newGridData-->",newGridData)
+    if(newGridData.length && value) newGridData[rowIndex].columns[header] = value;
 
     if(voucherType?.value === 'JOUR'){
       let totalDebit = 0;
@@ -719,8 +724,8 @@ const CreateVouchers = ({ setView, data }: any) => {
 
       </div>
 
-      {(voucherType?.value === 'BD' || voucherType?.value === 'BW' && bankName.current.partyName) && (
-        <span className="text-sm font-medium mt-1 text-gray-700">Bank: {bankName.current.partyName}</span>
+      {(voucherType?.value === 'BD' || voucherType?.value === 'BW') && (
+        <span className="text-sm font-medium mt-1 text-gray-700">Bank: {bankName?.current?.partyName || data?.rowData?.bankPartyName}</span>
       )}
       
       
