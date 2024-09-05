@@ -3,7 +3,6 @@ import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { useSelector } from 'react-redux';
-import { useParams } from 'react-router-dom';
 import Button from '../../components/common/button/Button';
 import { companyHeaders, userHeaders } from '../../constants/organisation';
 import ActionCell from '../../components/ag_grid/ActionCell';
@@ -12,10 +11,11 @@ import OrganizationForm from './OrganizationForm';
 import { Popup } from '../../components/popup/Popup';
 import { ColTypeDef } from 'ag-grid-community';
 import { getOrganizationUsers } from '../../api/organizationUserApi';
+import { useUser } from '../../UserContext';
 
 export const Organization = () => {
     const { organizations } = useSelector((state: any) => state.global);
-    const { organizationId } = useParams();
+    const { selectedCompany: organizationId } = useUser();
     const [dataType, setDataType] = useState<string>('companies');
     const [data, setData] = useState<any[]>([]);
     const [columnDefs, setColumnDefs] = useState<ColTypeDef | any>([]);
@@ -30,7 +30,7 @@ export const Organization = () => {
                 result = organizations;
                 headerConfig = companyHeaders;
             } else if (type === 'users') {
-                result = await getOrganizationUsers(Number(organizationId));
+                result = await getOrganizationUsers();
                 headerConfig = userHeaders;
             }
 

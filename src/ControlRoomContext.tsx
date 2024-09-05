@@ -126,7 +126,7 @@ export const ControlRoomProvider = ({ children }: { children: ReactNode }) => {
 
   const { data, isPending } = useQuery<any>({
     queryKey: ['get-controlSettings'],
-    queryFn: () => sendAPIRequest<any>(`/${selectedCompany}/controlRoom`),
+    queryFn: () => sendAPIRequest<any>(`/controlRoom`),
   });
 
   useEffect(() => {
@@ -139,7 +139,7 @@ export const ControlRoomProvider = ({ children }: { children: ReactNode }) => {
 
   const updateControls = async (values: object) => {
     try {
-      await sendAPIRequest(`/${selectedCompany}/controlRoom`, {
+      await sendAPIRequest(`/controlRoom`, {
         method: 'PUT',
         body: values,
       });

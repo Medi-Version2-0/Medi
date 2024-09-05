@@ -14,7 +14,7 @@ export const TopBar = () => {
   const [isDropdownVisible, setDropdownVisible] = useState(false);
   const [open, setOpen] = useState<boolean>(false);
   const [companies, setCompanies] = useState<any>([]);
-  const { logout, user } = useUser();
+  const { logout, user , selectedCompany } = useUser();
   const { organizations } = useSelector((state: any) => state.global);
   const popupRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -81,7 +81,6 @@ export const TopBar = () => {
     const readableData = await response.json();
     saveToken(readableData.access_token)
     setUser(readableData.data);
-    window.location.href = `/#/${companyId}`;
     window.location.reload();
   };
 
@@ -129,7 +128,7 @@ export const TopBar = () => {
                           <li key={company.id}>
                             <button
                               type='button'
-                              className='text-center w-full min-w-[10vw] min-h-[5vh] hover:bg-gray-200'
+                              className={`text-center w-full min-w-[10vw] min-h-[5vh] hover:bg-gray-300 ${company.id === selectedCompany && 'bg-gray-200'}`}
                               onClick={() => handleCompanySwitch(company.id)}
                             >
                               {company.name}

@@ -5,27 +5,25 @@ import { getOrganizations } from '../api/organizationApi';
 import { getAndSetItemGroups, getAndSetPermssions, setOrganization, getAndSetCompany, getAndSetPurchase, getAndSetSales, getAndSetGroups, getAndSetParty, getAndSetItem, getAndSetSubGroups, getAndSetStore, getAndSetStations, getAndSetBillBook, getAndSetPartywiseDiscount } from '../store/action/globalAction';
 import { useUser } from '../UserContext';
 
-const useFetchInitialData = (organizationId: string|undefined) => {
+const useFetchInitialData = () => {
   const dispatch = useDispatch<AppDispatch>()
   const { user } = useUser()
   const hanlder = async () => {
-    if(organizationId){
       const organizations = await getOrganizations(user?.id);
-      dispatch(getAndSetPermssions(organizationId))
+      dispatch(getAndSetPermssions())
       dispatch(setOrganization(organizations || []));
-      dispatch(getAndSetStations(organizationId));
-      dispatch(getAndSetItemGroups(organizationId))
-      dispatch(getAndSetCompany(organizationId))
-      dispatch(getAndSetPurchase(organizationId))
-      dispatch(getAndSetSales(organizationId))
-      dispatch(getAndSetGroups(organizationId))
-      dispatch(getAndSetParty(organizationId))
-      dispatch(getAndSetItem(organizationId))
-      dispatch(getAndSetSubGroups(organizationId))
-      dispatch(getAndSetBillBook(organizationId))
-      dispatch(getAndSetStore(organizationId))
-      dispatch(getAndSetPartywiseDiscount(organizationId))
-    }
+      dispatch(getAndSetStations());
+      dispatch(getAndSetItemGroups())
+      dispatch(getAndSetCompany())
+      dispatch(getAndSetPurchase())
+      dispatch(getAndSetSales())
+      dispatch(getAndSetGroups())
+      dispatch(getAndSetParty())
+      dispatch(getAndSetItem())
+      dispatch(getAndSetSubGroups())
+      dispatch(getAndSetBillBook())
+      dispatch(getAndSetStore())
+      dispatch(getAndSetPartywiseDiscount())
   }
   return {fetchInitialData : hanlder}
 };

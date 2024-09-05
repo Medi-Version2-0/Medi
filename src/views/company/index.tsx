@@ -6,7 +6,6 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { CompanyFormData, View, } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
-import { useParams } from 'react-router-dom';
 import { ValueFormatterParams } from 'ag-grid-community';
 import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
@@ -22,7 +21,6 @@ import { useGetSetData } from '../../hooks/useGetSetData';
 
 export const Company = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
-  const { organizationId } = useParams();
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<CompanyFormData | any>(null);
   const { stations: stationData, company: companiesData } = useSelector((state: any) => state.global)
@@ -66,7 +64,7 @@ export const Company = () => {
 
   const handleConfirmPopup = async () => {
     setPopupState({ ...popupState, isModalOpen: false });
-    await sendAPIRequest(`/${organizationId}/company/${companyId.current}`, {
+    await sendAPIRequest(`/company/${companyId.current}`, {
       method: 'DELETE',
     });
     getAndSetCompanyHandler();
@@ -113,7 +111,7 @@ export const Company = () => {
     }
 
     node.setDataValue(field, newValue);
-    await sendAPIRequest(`/${organizationId}/company/${data.company_id}`, {
+    await sendAPIRequest(`/company/${data.company_id}`, {
       method: 'PUT',
       body: { [field]: newValue },
     });

@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
 import { FormikProps, useFormik } from 'formik';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import Button from '../../components/common/button/Button';
@@ -17,7 +16,6 @@ import { getAndSetCompany } from '../../store/action/globalAction';
 import { useGetSetData } from '../../hooks/useGetSetData';
 
 export const CreateCompany = ({ setView , data }: any) => {
-  const { organizationId } = useParams();
   const [stationOptions, setStationOptions] = useState<Option[]>([]);
   const [salesOptions, setSalesOptions] = useState<Option[]>([]);
   const [purchaseOptions, setPurchaseOptions] = useState<Option[]>([]);
@@ -66,12 +64,12 @@ export const CreateCompany = ({ setView , data }: any) => {
     onSubmit: async (values) => {
       const allData = { ...values };
       if (data.company_id) {
-        await sendAPIRequest(`/${organizationId}/company/${data.company_id}`, {
+        await sendAPIRequest(`/company/${data.company_id}`, {
           method: 'PUT',
           body: allData,
         });
       } else {
-        await sendAPIRequest(`/${organizationId}/company`, {
+        await sendAPIRequest(`/company`, {
           method: 'POST',
           body: allData,
         });

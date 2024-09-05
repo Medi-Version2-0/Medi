@@ -8,7 +8,6 @@ import Button from '../../components/common/button/Button';
 import { ColDef } from 'ag-grid-community';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { sendAPIRequest } from '../../helper/api';
-import { useParams } from 'react-router-dom';
 import { useControls } from '../../ControlRoomContext';
 import { batchSchema, validatePrices } from './validation_schema';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
@@ -41,7 +40,6 @@ export const Batch = ({
     locked: 'N',
     ...(controlRoomSettings.batchWiseManufacturingCode ? { mfgCode: '', } : {}),
   };
-  const { organizationId } = useParams();
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [inputRow, setInputRow] = useState<BatchForm | any>(pinnedRow);
   const [tableData, setTableData] = useState<BatchForm | any>(null);
@@ -117,12 +115,12 @@ export const Batch = ({
         locked: inputRow.locked.toUpperCase(),
         mfgCode: itemData?.shortName,
       };
-      await sendAPIRequest(`/${organizationId}/item/${id}/batch`, {
+      await sendAPIRequest(`/item/${id}/batch`, {
         method: 'POST',
         body: formattedInputRow,
       });
       setInputRow(pinnedRow);
-      dispatch(getAndSetItem(organizationId))
+      dispatch(getAndSetItem())
     } catch (err: any) {
       if (err.message) {
         settingPopupState(false, `${err.message}`);
@@ -219,11 +217,11 @@ export const Batch = ({
           try {
             await batchSchema.validate({ ...data, [field]: finalValue });
             validatePrices({ ...data, [field]: finalValue });    
-            await sendAPIRequest(`/${organizationId}/item/${id}/batch/${batchId}`, {
+            await sendAPIRequest(`/item/${id}/batch/${batchId}`, {
               method: 'PUT',
               body: { ...data, [field]: finalValue },
             });
-            dispatch(getAndSetItem(organizationId))          
+            dispatch(getAndSetItem())          
           } catch (err: any) {
             if (err.message) {
               await gridRef.current?.api?.startEditingCell({

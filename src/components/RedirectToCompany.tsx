@@ -24,8 +24,10 @@ export const RedirectToCompany = () => {
         name: org.name
       })));
 
-    } catch (error) {
-      console.error("Failed to fetch organizations:", error);
+    } catch (error:any) {
+      if (error.response.status === 404){
+        console.log('User does not have any organization')
+      }
       setOrganizations([]);
     }
   }
@@ -38,7 +40,6 @@ export const RedirectToCompany = () => {
       } else if (organizations.length === 1) {
         const organizationId = organizations[0].id;
         setSelectedOrganization(organizationId);
-        navigate(`/${organizationId}`);
       } else {
         setIsModalOpen(true);
       }
@@ -50,7 +51,6 @@ export const RedirectToCompany = () => {
   const handleOrganizationSelect = (organizationId: number) => {
     setSelectedOrganization(organizationId);
     setIsModalOpen(false);
-    navigate(`/${organizationId}`);
   };
 
   const handleSetupClick = () => {

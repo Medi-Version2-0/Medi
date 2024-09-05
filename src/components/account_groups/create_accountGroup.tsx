@@ -5,7 +5,6 @@ import { CreateAccountGroupProps, FormDataProps } from '../../interface/global';
 import { Popup } from '../popup/Popup';
 import '../stations/stations.css';
 import { sendAPIRequest } from '../../helper/api';
-import { useParams } from 'react-router-dom';
 
 export const CreateGroup: React.FC<CreateAccountGroupProps> = ({
   togglePopup,
@@ -14,7 +13,6 @@ export const CreateGroup: React.FC<CreateAccountGroupProps> = ({
   isDelete,
   deleteAcc,
 }) => {
-  const { organizationId } = useParams();
   const { head_code } = data;
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -26,7 +24,7 @@ export const CreateGroup: React.FC<CreateAccountGroupProps> = ({
   );
   const [groupData, setGroupData] = useState([]);
   const getGroups = async () => {
-    setGroupData(await sendAPIRequest(`/${organizationId}/group/sub`));
+    setGroupData(await sendAPIRequest(`/group/sub`));
   };
 
   useEffect(() => {

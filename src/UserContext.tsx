@@ -17,6 +17,7 @@ export interface User {
   address?:string;  
   email: string;
   permissions: string[];
+  organizationId : number;
   UserOrganizations: {
     organizationId: number;
     Organization: {
@@ -61,6 +62,9 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
       localStorage.setItem(USER_LS_KEY, JSON.stringify(user));
     } else {
       localStorage.removeItem(USER_LS_KEY);
+    }
+    if(user?.organizationId){
+      setSelectedOrganization(user.organizationId)
     }
   }, [user]);
 
