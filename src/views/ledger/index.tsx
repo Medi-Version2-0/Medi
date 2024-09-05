@@ -7,7 +7,6 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { View } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
-import { useParams } from 'react-router-dom';
 import { ColDef, ValueFormatterParams } from 'ag-grid-community';
 import Button from '../../components/common/button/Button';
 import { IoSettingsOutline } from 'react-icons/io5';
@@ -29,7 +28,6 @@ export const Ledger = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const { stations: stationData, party: partyData } = useSelector((state: any) => state.global);
-  const { organizationId } = useParams();
   const [tableData, setTableData] = useState(partyData);
   const editing = useRef(false);
   const partyId = useRef('');
@@ -95,7 +93,7 @@ export const Ledger = () => {
   const handleConfirmPopup = async () => {
     setPopupState({ ...popupState, isModalOpen: false });
     try {
-      await sendAPIRequest(`/${organizationId}/ledger/${partyId.current}`, { method: 'DELETE' });
+      await sendAPIRequest(`/ledger/${partyId.current}`, { method: 'DELETE' });
       getAndSetLedgerHandler();
       
     } catch {
@@ -139,7 +137,7 @@ export const Ledger = () => {
     if (field === 'partyName')
       newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
     node.setDataValue(field, newValue);
-    await sendAPIRequest(`/${organizationId}/ledger/${data.party_id}`, {
+    await sendAPIRequest(`/ledger/${data.party_id}`, {
       method: 'PUT',
       body: { [field]: newValue },
     });

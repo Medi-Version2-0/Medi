@@ -10,7 +10,6 @@ import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { CreateHQ } from './CreateHQ';
 import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
-import { useParams } from 'react-router-dom';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { useSelector } from 'react-redux';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
@@ -25,7 +24,6 @@ export const Headquarters = () => {
     station_name: '',
     station_headQuarter: '',
   };
-  const { organizationId } = useParams();
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState<StationFormData>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
@@ -139,12 +137,12 @@ export const Headquarters = () => {
       }
     });
     if (mode === false) {
-      await sendAPIRequest(`/${organizationId}/station/headQuarter/${id}`, {
+      await sendAPIRequest(`/station/headQuarter/${id}`, {
         method: 'PUT',
         body: formData,
       });
     } else {
-      await sendAPIRequest(`/${organizationId}/station/headQuarter`, {
+      await sendAPIRequest(`/station/headQuarter`, {
         method: 'POST',
         body: payload,
       });
@@ -177,7 +175,7 @@ export const Headquarters = () => {
     isDelete.current = false;
     togglePopup(false);
     await sendAPIRequest(
-      `/${organizationId}/station/headQuarter/${station_id}`,
+      `/station/headQuarter/${station_id}`,
       {
         method: 'DELETE',
       }
@@ -224,7 +222,7 @@ export const Headquarters = () => {
       }
     } else {
       await sendAPIRequest(
-        `/${organizationId}/station/headQuarter/${data.station_id}`,
+        `/station/headQuarter/${data.station_id}`,
         {
           method: 'PUT',
           body: { [field]: +newValue },

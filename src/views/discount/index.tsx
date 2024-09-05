@@ -10,7 +10,7 @@ import {
   View,
 } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
-import { useParams } from 'react-router-dom';
+import { ValueFormatterParams } from 'ag-grid-community';
 import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
 import { CreateDiscount } from './CreateDiscount';
@@ -26,7 +26,6 @@ import { useControls } from '../../ControlRoomContext';
 
 export const PartyWiseDiscount = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
-  const { organizationId } = useParams();
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<CompanyFormData | any>(null);
   const [partyData, setPartyData] = useState<any[]>([]);
@@ -57,6 +56,7 @@ export const PartyWiseDiscount = () => {
     { value: 'companyWise', label: 'Companywise discount' },
     { value: 'dpcoact', label: 'DPCO act settings' },
   ];
+
 
   const partyMap: { [key: number]: string } = {};
   const companyMap: { [key: number]: string } = {};
@@ -98,7 +98,7 @@ export const PartyWiseDiscount = () => {
   const handleConfirmPopup = async () => {
     setPopupState({ ...popupState, isModalOpen: false });
     await sendAPIRequest(
-      `/${organizationId}/partyWiseDiscount/${discountId.current}`,
+      `/partyWiseDiscount/${discountId.current}`,
       {
         method: 'DELETE',
       }
@@ -149,7 +149,7 @@ export const PartyWiseDiscount = () => {
         discount: data.discount
       }
       await sendAPIRequest(
-        `/${organizationId}/partyWiseDiscount/${data.discount_id}`,
+        `/partyWiseDiscount/${data.discount_id}`,
         {
           method: 'PUT',
           body: payload,

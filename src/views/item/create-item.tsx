@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
 import { FormikProps, useFormik } from 'formik';
 import Button from '../../components/common/button/Button';
 import { itemFormValidations } from './validation_schema';
@@ -37,7 +36,6 @@ export interface ItemFormValues {
 export type ItemFormInfoType = FormikProps<ItemFormValues>;
 
 const CreateItem = ({ setView, data, setShowBatch }: any) => {
-  const { organizationId } = useParams();
   const [newItem, setNewItem] = useState();
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
@@ -84,12 +82,12 @@ const CreateItem = ({ setView, data, setShowBatch }: any) => {
           }
         });
         if (data.id) {
-          await sendAPIRequest(`/${organizationId}/item/${data.id}`, {
+          await sendAPIRequest(`/item/${data.id}`, {
             method: 'PUT',
             body: formData,
           });
         } else {
-          const resp: any = await sendAPIRequest(`/${organizationId}/item`, {
+          const resp: any = await sendAPIRequest(`/item`, {
             method: 'POST',
             body: formData,
           });

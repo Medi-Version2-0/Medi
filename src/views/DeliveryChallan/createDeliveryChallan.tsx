@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
 import { FormikProps, Formik, Form, useFormik } from 'formik';
 import Button from '../../components/common/button/Button';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
@@ -118,7 +117,6 @@ export const SchemeSection = ({ togglePopup, heading, className, setOpenDataPopu
 
 const CreateDeliveryChallan = ({ setView, data }: any) => {
 
-  const { organizationId } = useParams();
   const [stationOptions, setStationOptions] = useState<Option[]>([]);
   const [partyOptions, setPartyOptions] = useState<Option[]>([]);
   const [dataFromTable, setDataFromTable] = useState<any[]>([]);
@@ -194,9 +192,9 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
         const finalData = { ...values, challans: dataFromTable };
 
         if (data.id) {
-          await sendAPIRequest(`/${organizationId}/deliveryChallan/${data.id}`,{ method: 'PUT', body: finalData });
+          await sendAPIRequest(`/deliveryChallan/${data.id}`,{ method: 'PUT', body: finalData });
         } else {
-          await sendAPIRequest(`/${organizationId}/deliveryChallan`, { method: 'POST', body: finalData });
+          await sendAPIRequest(`/deliveryChallan`, { method: 'POST', body: finalData });
         }
         await queryClient.invalidateQueries({ queryKey: ['get-deliveryChallan'] });
 
@@ -218,6 +216,9 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
   });
 
   const fetchAllData = async () => {
+    const stations = await sendAPIRequest<any[]>(`/station`);
+    const partyList = await sendAPIRequest<any[]>(`/ledger`);
+
     setStationOptions(
       stations.map((station: any) => ({
         value: station.station_id,

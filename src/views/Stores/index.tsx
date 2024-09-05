@@ -9,7 +9,6 @@ import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import Button from '../../components/common/button/Button';
 import { CreateStore } from './CreateStore';
 import { sendAPIRequest } from '../../helper/api';
-import { useParams } from 'react-router-dom';
 import { storeValidationSchema } from './validation_schema';
 import usePermission from '../../hooks/useRole';
 import { useDispatch, useSelector } from 'react-redux'
@@ -28,7 +27,6 @@ const initialValue = {
 };
 
 export const Store = () => {
-  const { organizationId } = useParams();
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<StoreFormData | any>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
@@ -80,19 +78,19 @@ export const Store = () => {
     if (formData !== initialValue) {
       if (formData.store_code) {
         await sendAPIRequest(
-          `/${organizationId}/store/${formData.store_code}`,
+          `/store/${formData.store_code}`,
           {
             method: 'PUT',
             body: formData,
           }
         );
       } else {
-        await sendAPIRequest(`/${organizationId}/store`, {
+        await sendAPIRequest(`/store`, {
           method: 'POST',
           body: formData,
         });
       }
-      dispatch(getAndSetStore(organizationId))
+      dispatch(getAndSetStore())
       togglePopup(false);
     }
   };
@@ -137,10 +135,10 @@ export const Store = () => {
   const deleteAcc = async (store_code: string) => {
     isDelete.current = false;
     togglePopup(false);
-    await sendAPIRequest(`/${organizationId}/store/${store_code}`, {
+    await sendAPIRequest(`/store/${store_code}`, {
       method: 'DELETE',
     });
-    dispatch(getAndSetStore(organizationId))
+    dispatch(getAndSetStore())
   };
 
   const handleDelete = (oldData: StoreFormData) => {
@@ -196,11 +194,11 @@ export const Store = () => {
     }
 
     node.setDataValue(field, newValue);
-    await sendAPIRequest(`/${organizationId}/store/${data.store_code}`, {
+    await sendAPIRequest(`/store/${data.store_code}`, {
       method: 'PUT',
       body: { [field]: newValue },
     });
-    dispatch(getAndSetStore(organizationId))
+    dispatch(getAndSetStore())
   };
 
   const onCellClicked = (params: { data: any }) => {

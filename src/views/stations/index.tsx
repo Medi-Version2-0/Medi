@@ -9,7 +9,6 @@ import { StationFormData } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import Button from '../../components/common/button/Button';
 import { sendAPIRequest } from '../../helper/api';
-import { useParams } from 'react-router-dom';
 import { IoSettingsOutline } from 'react-icons/io5';
 import { ControlRoomSettings } from '../../components/common/controlRoom/ControlRoomSettings';
 import { stationSettingFields } from '../../components/common/controlRoom/settings';
@@ -32,7 +31,6 @@ export const Stations = () => {
     state_code: '',
     station_pinCode: '',
   };
-  const { organizationId } = useParams();
   const [open, setOpen] = useState<boolean>(false);
   const [settingToggleOpen, setSettingToggleOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<StationFormData | any>(initialValue);
@@ -117,14 +115,14 @@ export const Stations = () => {
       if (formData.station_id) {
         delete formData.station_headQuarter;
         await sendAPIRequest(
-          `/${organizationId}/station/${formData.station_id}`,
+          `/station/${formData.station_id}`,
           {
             method: 'PUT',
             body: formData,
           }
         );
       } else {
-        await sendAPIRequest(`/${organizationId}/station`, {
+        await sendAPIRequest(`/station`, {
           method: 'POST',
           body: payload,
         });
@@ -163,7 +161,7 @@ export const Stations = () => {
     isDelete.current = false;
     togglePopup(false);
     try {
-      await sendAPIRequest(`/${organizationId}/station/${station_id}`, {
+      await sendAPIRequest(`/station/${station_id}`, {
         method: 'DELETE',
       });
       getAndSetStationHandler();
@@ -240,7 +238,7 @@ export const Stations = () => {
         }
         const isValid = await stationValidationSchema.validateAt(field, { [field]: newValue });
         if (isValid) {
-          await sendAPIRequest(`/${organizationId}/station/${data.station_id}`, {
+          await sendAPIRequest(`/station/${data.station_id}`, {
             method: 'PUT',
             body: { [field]: newValue },
           });
