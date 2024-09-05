@@ -141,6 +141,11 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
                         {header.name}
                     </div>
                 ))}
+                <div
+                    className={`flex-shrink-0 border-[1px] border-solid bg-[#009196FF] border-gray-400 text-center text-white p-2 w-24`}
+                >
+                    Actions
+                </div>
             </div>
             <div className="flex flex-col h-[22rem]">
                 {gridData && gridData.map((row: any, rowIndex: number) => (
@@ -225,9 +230,11 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
                                     return null;
                             }
                         })}
-                        {rowIndex > 0 &&
-                            <BsTrash className='text-xl absolute right-[-30px] cursor-pointer' onClick={() => deleteRow(rowIndex, row)} />
-                        }
+                        <div className='border-[1px] border-solid border-gray-400 min-w-24 flex items-center'>
+                            {rowIndex > 0 &&
+                                <BsTrash className='text-xl cursor-pointer w-full' onClick={() => deleteRow(rowIndex, row)} />
+                            }
+                        </div>
                     </div>
                 ))}
             </div>

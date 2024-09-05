@@ -694,7 +694,11 @@ const CreateVouchers = ({ setView, data }: any) => {
         )}
         {(voucherType?.value !== 'CR' && voucherType?.value !== 'BD'&& voucherType?.value !== undefined) && (
           <div className="flex items-center gap-2 w-[30%]">
-            <span className="text-sm font-medium text-gray-700 whitespace-nowrap">GST Nature: </span>
+            <p>
+              <span className="text-sm font-medium text-gray-700 whitespace-nowrap">GST Nature</span>
+              <span className='text-red-600 font-medium text-sm'>*</span>
+              <span className="text-sm font-medium text-gray-700 whitespace-nowrap">: </span>
+            </p>
             <CustomSelect
               isPopupOpen={false}
               label={``}
