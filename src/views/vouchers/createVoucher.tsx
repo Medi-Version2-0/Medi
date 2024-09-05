@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useMemo } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useLayoutEffect } from 'react';
 import CustomSelect from '../../components/custom_select/CustomSelect';
 import { Option } from '../../interface/global';
 import Button from '../../components/common/button/Button';
@@ -29,7 +29,8 @@ const CreateVouchers = ({ setView, data }: any) => {
     isOpen: false,
     data: {}
   });
-  const [headers,setHeaders] = useState<any[]>([]);
+  // const [headers,setHeaders] = useState<any[]>([]);
+  const headers = useRef<any[]>([]);
   const [currentSavedData, setCurrentSavedData] = useState<{ party: any; }>({ party: {} });
   const [totalValue, setTotalValue] = useState({ totalDebit: 0, totalCredit: 0 });
   const [allParties, setAllParties] = useState<any[]>([]);
@@ -127,7 +128,7 @@ const CreateVouchers = ({ setView, data }: any) => {
     if (data?.voucherGridData) {
 
       const initialRows = data.voucherGridData.map((row: any, rowIndex: number) => {
-        const updatedColumns = headers.reduce((acc, header) => {
+        const updatedColumns = headers.current.reduce((acc, header) => {
           let value = row[header.key];
 
           if (header.key === 'partyName') {
@@ -163,7 +164,7 @@ const CreateVouchers = ({ setView, data }: any) => {
     const { value: drCrValue } = getDrCrColumnProps();
     setGridData(Array.from({ length: 1 }, (_, rowIndex) => ({
       id: rowIndex + 1,
-      columns: headers.reduce(
+      columns: headers.current.reduce(
         (acc, header) => ({ ...acc, [header.key]: header.key === 'debitOrCredit' ? drCrValue : '' }),
         {}
       ),
@@ -268,8 +269,6 @@ const CreateVouchers = ({ setView, data }: any) => {
     if (bankName.current.partyName){
       dataToSend.bankPartyId = bankName.current.partyId
     }
-
-    console.log(dataToSend)
     try {
 
       if (data.rowData?.voucherNumber) {
@@ -314,11 +313,6 @@ const CreateVouchers = ({ setView, data }: any) => {
       });
     }
   };
-
-  // const fetchParty = async () => {
-  //   console.log("allParties----------->",allParties)
-  //   setPartyValue(partiesData);
-  // };
 
   const setDebitOrCredit = async () => {
     let { value } = getDrCrColumnProps();
@@ -389,58 +383,60 @@ const CreateVouchers = ({ setView, data }: any) => {
     }
     newGridData[rowIndex].columns[header] = value;
 
-    let totalDebit = 0;
-    let totalCredit = 0;
-    newGridData.forEach((data) => {
-      const amount = Number(data.columns.amount) || 0;
-      const debitOrCredit = data.columns.debitOrCredit;
+    if(voucherType?.value === 'JOUR'){
+      let totalDebit = 0;
+      let totalCredit = 0;
+      newGridData.forEach((data) => {
+        const amount = Number(data.columns.amount) || 0;
+        const debitOrCredit = data.columns.debitOrCredit;
 
-      if (debitOrCredit?.toLowerCase() === 'dr') {
-        totalDebit += amount;
-      } else if (debitOrCredit?.toLowerCase() === 'cr') {
-        totalCredit += amount;
-      }
-    });
+        if (debitOrCredit?.toLowerCase() === 'dr') {
+          totalDebit += amount;
+        } else if (debitOrCredit?.toLowerCase() === 'cr') {
+          totalCredit += amount;
+        }
+      });
+      setTotalValue({
+        ...totalValue,
+        totalDebit: totalDebit,
+        totalCredit: totalCredit,
+      });
+    }
 
     setGridData(newGridData);
-
-    setTotalValue({
-      ...totalValue,
-      totalDebit: totalDebit,
-      totalCredit: totalCredit,
-    });
   };
 
-  useEffect(()=>{
-    if (!voucherType?.value){
-      setHeaders([...commonHeaders1, ...checkNoCheckDateHeaders, ...discountHeader, ...commonHeaders2, ...gstNatureConditionHeaders])
-    }
-    if (voucherType?.value === 'CR'){
-      setHeaders([...commonHeaders1, ...discountHeader, ...commonHeaders2]);
-    }
-    if (voucherType?.value === 'CP' && (gstNature?.value == 2 || gstNature?.value == 3)){
-      setHeaders([...commonHeaders1, ...discountHeader, ...commonHeaders2, ...gstNatureConditionHeaders]);
-    }
-    if (voucherType?.value === 'CP' && (gstNature?.value == 1 || !gstNature?.value)) {
-      setHeaders([...commonHeaders1, ...discountHeader, ...commonHeaders2]);
-    }
-    if (voucherType?.value === 'JOUR' && (gstNature?.value == 2 || gstNature?.value == 3)){
-      setHeaders([...commonHeaders1, ...commonHeaders2, ...gstNatureConditionHeaders]);
-    }
-    if (voucherType?.value === 'JOUR' && (gstNature?.value == 1 || !gstNature?.value)){
-      setHeaders([...commonHeaders1, ...commonHeaders2]);
-    }
-    if (voucherType?.value === 'BD'){
-      setHeaders([...commonHeaders1, ...checkNoCheckDateHeaders, ...discountHeader, ...commonHeaders2]);
-    }
-    if (voucherType?.value === 'BW' && (gstNature?.value == 2 || gstNature?.value == 3)){
-      setHeaders([...commonHeaders1, ...checkNoCheckDateHeaders, ...discountHeader, ...commonHeaders2, ...gstNatureConditionHeaders]);
-    }
-    if (voucherType?.value === 'BW' && (gstNature?.value == 1 || !gstNature?.value)){
-      setHeaders([...commonHeaders1, ...checkNoCheckDateHeaders, ...discountHeader, ...commonHeaders2]);
-    }
-  }, [voucherType?.value, gridData, gstNature?.value])
-
+  useEffect(() => {
+    initializeGridDataFromData();
+  },[headers])
+  
+  if (!voucherType?.value) {
+    headers.current = [...commonHeaders1, ...checkNoCheckDateHeaders, ...discountHeader, ...commonHeaders2, ...gstNatureConditionHeaders];
+  }
+  if (voucherType?.value === 'CR') {
+    headers.current = [...commonHeaders1, ...discountHeader, ...commonHeaders2];
+  }
+  if (voucherType?.value === 'CP' && (gstNature?.value == 2 || gstNature?.value == 3)) {
+    headers.current = [...commonHeaders1, ...discountHeader, ...commonHeaders2, ...gstNatureConditionHeaders];
+  }
+  if (voucherType?.value === 'CP' && (gstNature?.value == 1 || !gstNature?.value)) {
+    headers.current = [...commonHeaders1, ...discountHeader, ...commonHeaders2];
+  }
+  if (voucherType?.value === 'JOUR' && (gstNature?.value == 2 || gstNature?.value == 3)) {
+    headers.current = [...commonHeaders1, ...commonHeaders2, ...gstNatureConditionHeaders];
+  }
+  if (voucherType?.value === 'JOUR' && (gstNature?.value == 1 || !gstNature?.value)) {
+    headers.current = [...commonHeaders1, ...commonHeaders2];
+  }
+  if (voucherType?.value === 'BD') {
+    headers.current = [...commonHeaders1, ...checkNoCheckDateHeaders, ...discountHeader, ...commonHeaders2];
+  }
+  if (voucherType?.value === 'BW' && (gstNature?.value == 2 || gstNature?.value == 3)) {
+    headers.current = [...commonHeaders1, ...checkNoCheckDateHeaders, ...discountHeader, ...commonHeaders2, ...gstNatureConditionHeaders];
+  }
+  if (voucherType?.value === 'BW' && (gstNature?.value == 1 || !gstNature?.value)) {
+    headers.current = [...commonHeaders1, ...checkNoCheckDateHeaders, ...discountHeader, ...commonHeaders2];
+  }
 
   useEffect(() => {
     if (!data.rowData?.voucherNumber){
@@ -726,11 +722,11 @@ const CreateVouchers = ({ setView, data }: any) => {
       
         <div className="mt-4">
           <ChallanTable
-            headers={headers}
+            headers={headers.current}
             gridData={gridData}
             setGridData={setGridData}
             skipIndexes={voucherType?.value!=='JOUR' ? [3]:[]}
-            newRowTrigger={headers.length-1}
+            newRowTrigger={headers.current.length-1}
           />
         </div>
       
@@ -740,7 +736,7 @@ const CreateVouchers = ({ setView, data }: any) => {
           <Button type="highlight"
                   id="save_voucher_button"
                   handleOnClick={handleSubmit}
-                  disable={(voucherType.value === 'JOUR' && totalValue.totalCredit !== totalValue.totalDebit) || (gstNature === null) }
+                  disable={(voucherType.value === 'JOUR' && totalValue.totalCredit !== totalValue.totalDebit) && (gstNature === null) }
           >
             {data.rowData?.voucherNumber ? 'Update' : 'Submit'}
           </Button>
