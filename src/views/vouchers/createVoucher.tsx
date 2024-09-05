@@ -108,7 +108,6 @@ const CreateVouchers = ({ setView, data }: any) => {
   useEffect(() => {
     setVoucherType(data?.rowData?.voucherType ? { value: data.rowData?.voucherType, label: getVoucherTypeLabel(data?.rowData?.voucherType) } : null);
     setSelectedDate(data?.rowData?.voucherDate ? formatVoucherDate(data.rowData?.voucherDate) : null);
-    console.log("data?.rowData-------->",data?.rowData)
     setGstNature(data?.rowData?.gstNature ? { value: data.rowData?.gstNature, label: getNatureTypeValue(data?.rowData?.gstNature) } : null);
     initializeGridDataFromData();
     totalDebitAndCredit();
@@ -269,7 +268,7 @@ const CreateVouchers = ({ setView, data }: any) => {
           voucherType: voucherType?.value,
           voucherDate: selectedDate,
           partyName: label,
-          ...(voucherNumber && { voucherNumber: voucherNumber, }),
+          ...(voucherNumber && { voucherNumber: voucherNumber }),
           partyId: value,
           ...( (voucherType?.value === 'CP' || voucherType?.value === 'BW') && { gstNature: gstNature?.value }),
           ...( (gstNature && {gstNature: gstNature.value})),
@@ -518,7 +517,6 @@ const CreateVouchers = ({ setView, data }: any) => {
           tableData: [...allParties],
           handleSelect: (rowData: any) => {
 
-            // updateGridData({party: rowData });
             setCurrentSavedData({ ...currentSavedData, party: rowData })
           }
         }
@@ -602,6 +600,7 @@ const CreateVouchers = ({ setView, data }: any) => {
   ];
 
   const totalDebitAndCredit = async() => {
+    console.log("inside totalDebitAndCredit-------->")
     const newGridData = [...gridData];
     let totalDebit = 0;
     let totalCredit = 0;

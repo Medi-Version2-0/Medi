@@ -155,7 +155,7 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
                             switch (header.type) {
                                 case 'customSelect':
                                     return (
-                                        <div key={colIndex} style={{ width: header.width }}>
+                                        <div key={colIndex} style={{ minWidth: header.width }}>
                                             <CustomSelect
                                                 isPopupOpen={false}
                                                 isSearchable={true}
