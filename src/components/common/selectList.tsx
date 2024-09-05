@@ -227,7 +227,7 @@ export const SelectList = ({
                             </legend>
                             <ul className='px-2'>
                               {f.data.map((d: any, index: number) => {
-                                if (focusedRowData && focusedRowData[d.key]) {
+                                if (focusedRowData) {
                                   return <li key={index}>
                                     <div className="flex">
                                       <div className="w-5/12 pr-0 relative after:content-[':'] after:absolute after:-right-1 after:text-black">

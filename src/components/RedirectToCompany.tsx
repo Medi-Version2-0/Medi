@@ -57,13 +57,15 @@ export const RedirectToCompany = () => {
     navigate('/company/setup');
   };
 
+  function onClose(){
+      navigate('/login');
+      setIsSetupPrompt(false)
+  }
+
   return (
     <>
       {isSetupPrompt && (
-        <Modal isOpen={isSetupPrompt} onClose={() => {
-          navigate('/login');
-          setIsSetupPrompt(false)
-        }}>
+        <Modal isOpen={isSetupPrompt} onClose={onClose}>
           <h2 className='text-lg w-full text-center mb-8 font-bold'>Welcome to Medi!</h2>
           <p className='text-center w-full mb-4'>User Details saved successfully.</p>
           <p className='text-center w-full mb-4'>To get started, you'll need to complete the firm setup. We'll ask for details like your company name, address, and contact information.</p>

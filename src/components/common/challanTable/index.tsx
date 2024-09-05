@@ -1,4 +1,4 @@
-import React, {useState } from 'react';
+import React, {useEffect, useRef, useState } from 'react';
 import CustomSelect from '../../custom_select/CustomSelect';
 import { dateSchema } from '../../../views/DeliveryChallan/validation_schema';
 import Confirm_Alert_Popup from '../../popup/Confirm_Alert_Popup';
@@ -36,8 +36,9 @@ interface ChallanTableProps {
     rowDeleteCallback? : (rowIndex:number , data : any)=> void;
     newRowTrigger: number;
     skipIndexes?:number[];
+    stikyColumn?:number[];
 }
-export const ChallanTable = ({ headers, gridData, setGridData, handleSave , withAddRow , rowDeleteCallback, newRowTrigger, skipIndexes }: ChallanTableProps) => {
+export const ChallanTable = ({ headers, gridData, setGridData, handleSave, withAddRow, rowDeleteCallback, newRowTrigger, skipIndexes, stikyColumn }: ChallanTableProps) => {
     const [focused, setFocused] = useState('');
     const [popupState, setPopupState] = useState({
         isModalOpen: false,
@@ -131,11 +132,11 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
     return (
        <div className='flex flex-col gap-2'>
             <div className="flex flex-col h-[30em] overflow-scroll border-[1px] border-solid border-gray-400">
-            <div className="flex sticky border-solid top-0 z-[1]">
+                <div className={`flex sticky border-solid top-0 z-[1]`}>
                 {headers.map((header, index) => (
                     <div
                         key={index}
-                        className={`flex-shrink-0 border-[1px] border-solid bg-[#009196FF] border-gray-400 text-center text-white p-2`}
+                        className={`flex-shrink-0 border-[1px] border-solid bg-[#009196FF] border-gray-400 text-center text-white p-2 ${stikyColumn?.includes(index) ? 'sticky left-0' : ''}`}
                         style={{ width: header.width }}
                     >
                         {header.name}
@@ -155,7 +156,7 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
                             switch (header.type) {
                                 case 'customSelect':
                                     return (
-                                        <div key={colIndex} style={{ minWidth: header.width }}>
+                                        <div key={colIndex} style={{ minWidth: header.width }} className={`${stikyColumn?.includes(colIndex) ? 'sticky left-0' : ''}`}>
                                             <CustomSelect
                                                 isPopupOpen={false}
                                                 isSearchable={true}
@@ -212,7 +213,7 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
                                                 }
                                             }}
                                             onKeyDown={(e) => handleKeyDown(e, rowIndex, colIndex)}
-                                            className={`flex-shrink-0 border-[1px] p-2 ${header.props.inputType === 'number' && 'text-right'} text-xs border-solid border-gray-400`}
+                                            className={`flex-shrink-0 border-[1px] p-2 ${header.props.inputType === 'number' && 'text-right'} text-xs border-solid border-gray-400 ${stikyColumn?.includes(colIndex) ? 'sticky left-0' : ''}`}
                                             style={{ width: header.width }}
                                             disabled={header.props.disable}
                                             onBlur={() => {

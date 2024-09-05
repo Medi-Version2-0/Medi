@@ -101,15 +101,10 @@ const CreateVouchers = ({ setView, data }: any) => {
     { value: '3', label: 'Unregisterd/ RCM Expense' },
   ]
 
-  useEffect(()=>{
-    initializeGridDataFromData();
-  },[])
-
   useEffect(() => {
     setVoucherType(data?.rowData?.voucherType ? { value: data.rowData?.voucherType, label: getVoucherTypeLabel(data?.rowData?.voucherType) } : null);
     setSelectedDate(data?.rowData?.voucherDate ? formatVoucherDate(data.rowData?.voucherDate) : null);
     setGstNature(data?.rowData?.gstNature ? { value: data.rowData?.gstNature, label: getNatureTypeValue(data?.rowData?.gstNature) } : null);
-    initializeGridDataFromData();
     totalDebitAndCredit();
   }, [data]);
 
@@ -150,21 +145,23 @@ const CreateVouchers = ({ setView, data }: any) => {
             value = data.rowData.debitOrCredit || value;
           }
 
-
-          return {
+          const valueToReturn = {
             ...acc,
             [header.key]: value,
             rowId: row.id,
           };
+          return valueToReturn;
         }, {});
-
+        const receivedValue = JSON.parse(JSON.stringify(updatedColumns));
         return {
           id: rowIndex + 1,
-          columns: updatedColumns
+          columns: receivedValue
         }
 
       });
-      setGridData(initialRows);
+      // const receivedValue = JSON.parse(JSON.stringify(initialRows));
+      // console.log(JSON.parse(JSON.stringify(initialRows)))
+      setGridData(JSON.parse(JSON.stringify(initialRows)));
     }
   };
 
@@ -529,20 +526,16 @@ const CreateVouchers = ({ setView, data }: any) => {
       label: 'Address',
       data: [
         {
-          label: 'Party Name',
-          key: 'partyName'
-        },
-        {
           label: 'Address 1',
           key: 'address1'
         },
         {
-          label: 'Address 2',
-          key: 'address2'
+          label: 'GST IN',
+          key: 'gstIn'
         },
         {
-          label: 'Address 3',
-          key: 'address3'
+          label: 'PAN No',
+          key: 'panCard'
         },
       ]
     },
@@ -550,29 +543,16 @@ const CreateVouchers = ({ setView, data }: any) => {
       label: 'License Info',
       data: [
         {
-          label: 'Party Name',
-          key: 'partyName'
-        },
-      ]
-    },
-    {
-      label: 'OtherInfo',
-      data: [
-        {
-          label: 'Party Name',
-          key: 'partyName'
+          label: 'License No 1',
+          key: 'drugLicenceNo1'
         },
         {
-          label: 'Country',
-          key: 'country'
+          label: 'License No 2',
+          key: 'drugLicenceNo2'
         },
         {
-          label: 'PinCode',
-          key: 'pinCode'
-        },
-        {
-          label: 'Station Name',
-          key: 'station_name'
+          label: 'Expiry',
+          key: 'licenceExpiry'
         },
       ]
     },
@@ -581,7 +561,7 @@ const CreateVouchers = ({ setView, data }: any) => {
       data: [
         {
           label: 'Opening',
-          key: 'openingBalType'
+          key: 'openingBal'
         },
         {
           label: 'Credit',
@@ -600,7 +580,6 @@ const CreateVouchers = ({ setView, data }: any) => {
   ];
 
   const totalDebitAndCredit = async() => {
-    console.log("inside totalDebitAndCredit-------->")
     const newGridData = [...gridData];
     let totalDebit = 0;
     let totalCredit = 0;
@@ -622,7 +601,10 @@ const CreateVouchers = ({ setView, data }: any) => {
       totalCredit: totalCredit,
     });
   }
-
+  // useEffect(() => {
+  //   console.log('gridData --> ',gridData[gridData.length - 1]?.columns)
+  //   console.log('gridData --> ',gridData[gridData.length - 1]?.columns.debitOrCredit)
+  // },[gridData]);
   const isInputsDisabled = Boolean(data?.rowData?.voucherType && data?.rowData?.voucherDate);
 
   return (
@@ -725,6 +707,7 @@ const CreateVouchers = ({ setView, data }: any) => {
             setGridData={setGridData}
             skipIndexes={voucherType?.value!=='JOUR' ? [3]:[]}
             newRowTrigger={headers.current.length-1}
+            stikyColumn={[0]}
           />
         </div>
       
