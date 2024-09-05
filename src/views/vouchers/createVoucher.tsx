@@ -4,7 +4,6 @@ import { Option } from '../../interface/global';
 import Button from '../../components/common/button/Button';
 import { SelectList } from '../../components/common/selectList';
 import { ChallanTable } from '../../components/common/challanTable';
-import { useSelector } from 'react-redux';
 import { sendAPIRequest } from '../../helper/api';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { useParams } from 'react-router-dom';
@@ -15,6 +14,11 @@ interface RowData {
   };
 }
 
+interface handleChangeInHeaders{
+  header: string;
+  value: any;
+  rowIndex: number;
+}
 
 const CreateVouchers = ({ setView, data }: any) => {
   const { organizationId } = useParams();   // It has to be removed
@@ -51,9 +55,11 @@ const CreateVouchers = ({ setView, data }: any) => {
 
   const commonHeaders1 = [
     { name: 'Party', key: 'partyName', width: '16%', type: 'input', props: { inputType: 'text', label: true, handleFocus: (rowIndex: number, colIndex: number) => { handleFocus(rowIndex, colIndex) } } },
-    { name: 'Narration', key: 'narration', width: '20%', type: 'input', props: { inputType: 'text', handleChange: (args: any) => { handleInputChange(args); } } },
-    { name: 'Amount (₹)', key: 'amount', width: '15%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); } } },
-    { name: 'Dr/Cr', key: 'debitOrCredit', width: '15%', type: 'input', props: { inputType: 'text', handleChange: (args: any) => {  
+    { name: 'Narration', key: 'narration', width: '20%', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'Amount (₹)', key: 'amount', width: '15%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    {
+      name: 'Dr/Cr', key: 'debitOrCredit', width: '15%', type: 'input', props: {
+        inputType: 'text', handleChange: (args: handleChangeInHeaders) => {  
       if(args.header === 'debitOrCredit' && args.value){
         args.value = args.value[0].toUpperCase() + args.value.slice(1);
       }
@@ -61,25 +67,25 @@ const CreateVouchers = ({ setView, data }: any) => {
     }, readOnly: false} },
   ];
   const checkNoCheckDateHeaders = [
-    { name: 'Cheque No.', key: 'chequeNumber', width: '12%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); } } },
-    { name: 'Cheque Date', key: 'chequeDate', width: '15%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); } } },
+    { name: 'Cheque No.', key: 'chequeNumber', width: '12%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'Cheque Date', key: 'chequeDate', width: '15%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
   ];
   const discountHeader = [
-    { name: 'Discount (₹)', key: 'discount', width: '14%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); } } },
+    { name: 'Discount (₹)', key: 'discount', width: '14%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
   ];
   const commonHeaders2 = [
-    { name: 'Party Balance', key: 'partyBalance', width: '20%', type: 'input', props: { inputType: 'text', handleChange: (args: any) => { handleInputChange(args); } } },
-    { name: 'Discount Narration', key: 'disNarration', width: '17%', type: 'input', props: { inputType: 'text', handleChange: (args: any) => { handleInputChange(args); } } }
+    { name: 'Party Balance', key: 'partyBalance', width: '20%', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'Discount Narration', key: 'disNarration', width: '17%', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } }
   ];
   const gstNatureConditionHeaders = [
-    { name: 'Instrument Type', key: 'instrumentType', width: '18%', type: 'input', props: { inputType: 'text', handleChange: (args: any) => { handleInputChange(args); } } },
-    { name: 'Invocie No.', key: 'invoiceNumber', width: '10%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); } } },
-    { name: 'Invocie Date', key: 'invoiceDate', width: '15%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); } } },
-    { name: 'HSN Code', key: 'hsnCode', width: '12%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); } } },
-    { name: 'GST Rate', key: 'gstRate', width: '15%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); } } },
-    { name: 'SGST', key: 'sgstValue', width: '8%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); } } },
-    { name: 'CGST', key: 'cgstValue', width: '8%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); } } },
-    { name: 'IGST', key: 'igstValue', width: '8%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); } } },
+    { name: 'Instrument Type', key: 'instrumentType', width: '18%', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'Invocie No.', key: 'invoiceNumber', width: '10%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'Invocie Date', key: 'invoiceDate', width: '15%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'HSN Code', key: 'hsnCode', width: '12%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'GST Rate', key: 'gstRate', width: '15%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'SGST', key: 'sgstValue', width: '8%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'CGST', key: 'cgstValue', width: '8%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'IGST', key: 'igstValue', width: '8%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
   ];
 
   const partyHeaders = [
@@ -243,7 +249,8 @@ const CreateVouchers = ({ setView, data }: any) => {
   };
 
   const handleGstNatureChange = (option: Option | null) => {
-    setGstNature(option)
+    setGstNature(option);
+    initializeGridData();
   }
 
   const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -347,7 +354,7 @@ const CreateVouchers = ({ setView, data }: any) => {
     setPopupState({ ...popupState, isModalOpen: false });
   };
 
-  const handleInputChange = async ({ rowIndex, header, value }: any) => {
+  const handleInputChange = async ({ rowIndex, header, value }: handleChangeInHeaders) => {
     const newGridData = [...gridData];
     const { readOnly: drCrReadOnly } = getDrCrColumnProps();
     if (header === 'debitOrCredit' && drCrReadOnly) {
@@ -385,28 +392,24 @@ const CreateVouchers = ({ setView, data }: any) => {
         newGridData[rowIndex].columns.cgstValue = ((gstRate / 200) * amount).toFixed(2);
       }
     }
-    console.log("rowIndex-------->",rowIndex,"gridData--->",gridData,"newGridData-->",newGridData)
-    if(newGridData.length && value) newGridData[rowIndex].columns[header] = value;
+    newGridData[rowIndex].columns[header] = value;
 
-    if(voucherType?.value === 'JOUR'){
-      let totalDebit = 0;
-      let totalCredit = 0;
-      newGridData.forEach((data) => {
-        const amount = Number(data.columns.amount) || 0;
-        const debitOrCredit = data.columns.debitOrCredit;
-
-        if (debitOrCredit?.toLowerCase() === 'dr') {
-          totalDebit += amount;
-        } else if (debitOrCredit?.toLowerCase() === 'cr') {
-          totalCredit += amount;
-        }
-      });
-      setTotalValue({
-        ...totalValue,
-        totalDebit: totalDebit,
-        totalCredit: totalCredit,
-      });
-    }
+    let totalDebit = 0;
+    let totalCredit = 0;
+    newGridData.forEach((data) => {
+      const amount = Number(data.columns.amount) || 0;
+      const debitOrCredit = data.columns.debitOrCredit;
+      if (debitOrCredit?.toLowerCase() === 'dr') {
+        totalDebit += amount;
+      } else if (debitOrCredit?.toLowerCase() === 'cr') {
+        totalCredit += amount;
+      }
+    });
+    setTotalValue({
+      ...totalValue,
+      totalDebit: totalDebit,
+      totalCredit: totalCredit,
+    });
 
     setGridData(newGridData);
   };
@@ -598,19 +601,6 @@ const CreateVouchers = ({ setView, data }: any) => {
     },
   ];
 
-
-  // const handleInputChange = async ({ rowIndex, header, value }: any) => {
-  //   const newGridData = [...gridData];
-  //   const { readOnly: drCrReadOnly } = getDrCrColumnProps();
-
-  //   if (header === 'debitOrCredit' && drCrReadOnly) {
-  //     return;
-  //   }
-
-  //   newGridData[rowIndex].columns[header] = value;
-  //   totalDebitAndCredit();
-  // };
-
   const totalDebitAndCredit = async() => {
     const newGridData = [...gridData];
     let totalDebit = 0;
@@ -745,7 +735,7 @@ const CreateVouchers = ({ setView, data }: any) => {
           <Button type="highlight"
                   id="save_voucher_button"
                   handleOnClick={handleSubmit}
-                  disable={(voucherType.value === 'JOUR' && totalValue.totalCredit !== totalValue.totalDebit) && (gstNature === null) }
+            disable={(voucherType.value === 'JOUR' && totalValue.totalCredit !== totalValue.totalDebit) || ((voucherType.value === 'BW' || voucherType.value === 'JOUR' || voucherType.value === 'CP') && gstNature === null) }
           >
             {data.rowData?.voucherNumber ? 'Update' : 'Submit'}
           </Button>

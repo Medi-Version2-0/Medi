@@ -135,7 +135,7 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
                 {headers.map((header, index) => (
                     <div
                         key={index}
-                        className={`flex-shrink-0 border-[1px] border-solid bg-[#009196FF] border-gray-400 text-center text-white p-2 ${index === 0 ? 'sticky left-0' : ''}`}
+                        className={`flex-shrink-0 border-[1px] border-solid bg-[#009196FF] border-gray-400 text-center text-white p-2`}
                         style={{ width: header.width }}
                     >
                         {header.name}
@@ -212,7 +212,7 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
                                                 }
                                             }}
                                             onKeyDown={(e) => handleKeyDown(e, rowIndex, colIndex)}
-                                            className={`flex-shrink-0 border-[1px] p-2 ${header.props.inputType === 'number' && 'text-right'} text-xs border-solid border-gray-400 ${colIndex === 0 ? 'sticky left-0' : ''}`}
+                                            className={`flex-shrink-0 border-[1px] p-2 ${header.props.inputType === 'number' && 'text-right'} text-xs border-solid border-gray-400`}
                                             style={{ width: header.width }}
                                             disabled={header.props.disable}
                                             onBlur={() => {
