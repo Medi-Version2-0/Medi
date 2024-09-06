@@ -21,7 +21,6 @@ interface handleChangeInHeaders{
 }
 
 const CreateVouchers = ({ setView, data }: any) => {
-  const { organizationId } = useParams();   // It has to be removed
   const [voucherType, setVoucherType] = useState<Option | null>(data?.rowData?.voucherType || null);
   const [selectedDate, setSelectedDate] = useState<string | null>(data?.rowData?.voucherDate || null);
   const [gridData, setGridData] = useState<RowData[]>(data?.gridData || []);
@@ -203,7 +202,7 @@ const CreateVouchers = ({ setView, data }: any) => {
 
   const getPartyData = async()=>{
     try {
-      const response: any = await sendAPIRequest(`/${organizationId}/ledger/`,{
+      const response: any = await sendAPIRequest(`/ledger/`,{
         method: 'GET'
       })
       setAllParties(response)
@@ -579,7 +578,8 @@ const CreateVouchers = ({ setView, data }: any) => {
   ];
 
   const totalDebitAndCredit = async() => {
-    const newGridData = [...gridData];
+    const newGridData = [...gridData]
+    console.log("inside total----------->",newGridData)
     let totalDebit = 0;
     let totalCredit = 0;
 
@@ -595,6 +595,20 @@ const CreateVouchers = ({ setView, data }: any) => {
       }
     });
     }
+    // const dataToLoopThrough = newGridData.length > 0 ? newGridData : data?.voucherGridData || [];
+    // console.log("dataToLoopThrough-->",dataToLoopThrough)
+
+    // dataToLoopThrough.forEach((item: any) => {
+    //   const amount = Number(item.amount) || 0;
+    //   const debitOrCredit = item.debitOrCredit;
+
+    //   if (debitOrCredit === 'Dr') {
+    //     totalDebit += amount;
+    //   } else if (debitOrCredit === 'Cr') {
+    //     totalCredit += amount;
+    //   }
+    // })
+    console.log("totalDebit------->",totalDebit,"totalCredit----->",totalCredit)
 
     setTotalValue({
       ...totalValue,
