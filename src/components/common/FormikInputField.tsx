@@ -1,8 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Tooltip as ReactTooltip } from 'react-tooltip';
 import { FaExclamationCircle } from 'react-icons/fa';
 import titleCase from '../../utilities/titleCase';
 import defautlKeyDown from '../../utilities/formKeyDown';
+import { FaEyeSlash } from "react-icons/fa";
+import { FaEye } from "react-icons/fa";
 
 interface FormikInputFieldProps {
   label?: string;
@@ -53,7 +55,7 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
   showErrorTooltip = false,
   isRequired = false,
   children,
-  isTitleCase = true,
+  isTitleCase = false,
   isUpperCase = false,
   name,
   onChange,
@@ -72,6 +74,13 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
   autoFocus = false,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [visible,setVisibility] = useState(()=>{
+    if(type === 'password') {
+      return false;
+    }else{
+      return true;
+    }
+  })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -143,7 +152,7 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
       {children}
       <input
         ref={inputRef}
-        type={type}
+        type={visible ? 'text' : 'password'}
         id={id}
         name={name}
         maxLength={maxLength}
@@ -161,6 +170,19 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
         {...(type === 'file' && { accept: "image/*" })}
         autoFocus={autoFocus}
       />
+      {type === 'password' && (
+        <button className='focus:outline-none absolute right-4 text-lg top-1' type='button' onClick={()=>{
+          setVisibility(!visible);
+        }}>
+          {
+            !visible? (
+              <FaEyeSlash />
+            ) : (
+              <FaEye />
+            )
+          }
+        </button>
+      )}
       {showErrorTooltip && formik.touched[id] && formik.errors[id] && (
         <>
           <FaExclamationCircle

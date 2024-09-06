@@ -159,7 +159,19 @@ export const Company = () => {
       headerName: 'Station',
       field: 'stationId',
       cellEditor: 'agSelectCellEditor',
-      cellEditorParams: { values: companyStations },
+      cellEditorParams: (params: any) => {
+        if(companyStations.length === 0){
+          settingPopupState(false, 'No stations found. Please add stations first.');
+          return {
+            values: [],
+            value: null
+          }
+        }
+        return {
+          values: companyStations,
+          value: params.data.stationId
+        }
+      },
       valueFormatter: (params: { value: string | number }) => lookupStation(Number(params.value)),
       valueGetter: (params: { data: any }) => lookupStation(params.data.stationId)
     },

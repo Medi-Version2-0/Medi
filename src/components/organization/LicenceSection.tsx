@@ -61,13 +61,12 @@ const LicencseSection = ({ formik }: any) => {
                 nextField='CIN'
                 prevField='gstNumber'
                 isUpperCase={true}
-                isTitleCase={false}
                 showErrorTooltip={
                     !!(formik.touched.fssaiNumber && formik.errors.fssaiNumber)
                 }
             />
             <FormikInputField
-                label='Company Identification Number'
+                label='CIN'
                 id='CIN'
                 name='CIN'
                 className='!mb-0'

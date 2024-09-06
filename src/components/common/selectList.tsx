@@ -52,10 +52,23 @@ export const SelectList = ({
   }, [formik.values.searchBar, selectedCategory, tableData, headers]);
 
   function makeRecordVisibility(recordIndex:number){
+    const container = document.getElementById(`selectListData`)!;
     tableRefs.current[recordIndex]?.scrollIntoView({
       behavior: 'smooth',
       block: 'nearest',
     });
+    if (recordIndex === 0) {
+      container.scrollTo({
+        top:-42,
+        behavior:'smooth'
+      })
+    }
+    if(recordIndex === -2) {
+      container.scrollTo({
+        top: filteredData.length*41,
+        behavior: 'smooth'
+      })
+    }
   }
 
   useEffect(() => {
@@ -66,6 +79,15 @@ export const SelectList = ({
   useEffect(()=>{
     setFocusedRowIndex(0);    
   },[filteredData]);
+
+  useEffect(()=>{
+    if(focusedRowIndex===0){
+      makeRecordVisibility(0);
+    }
+    if(focusedRowIndex===filteredData.length) {
+      makeRecordVisibility(filteredData.length - 1);
+    }
+  },[focusedRowIndex])
 
   useEffect(() => {
     document.body.classList.add('!overflow-hidden');
@@ -96,15 +118,11 @@ export const SelectList = ({
     if (event.key === 'ArrowDown') {
       event.preventDefault();
       setFocusedRowIndex((prevIndex) => prevIndex >= filteredData.length - 1 ? 0 : prevIndex + 1);
-      const rowIdx = focusedRowIndex < filteredData.length-1 ? focusedRowIndex + 1 : focusedRowIndex;
-      console.log(rowIdx)
-      makeRecordVisibility(rowIdx);
+      makeRecordVisibility(focusedRowIndex + 1);
     } else if (event.key === 'ArrowUp') {
       event.preventDefault();
       setFocusedRowIndex((prevIndex) => prevIndex <= 0 ? filteredData.length - 1 : prevIndex - 1);
-      const rowIdx = focusedRowIndex <= -2 ? filteredData.length-1 : focusedRowIndex-2;
-      console.log(rowIdx)
-      makeRecordVisibility(rowIdx);
+      makeRecordVisibility(focusedRowIndex - 2);
     } else if (event.key === 'Enter') {
       event.preventDefault();
       if (!filteredData.length) return;
@@ -125,9 +143,6 @@ export const SelectList = ({
     setFocusedRowIndex(0);
   };
 
-
-  // console.log(tableData , 'tabledata')
-  // console.log('focusedRowData --> ', focusedRowData)
   return (
     <Popup
       heading={heading}
@@ -165,8 +180,8 @@ export const SelectList = ({
         </form>
       </div>
       <div className='flex flex-col h-[67vh] justify-between'>
-        <div className='mx-4 h-2/5 overflow-auto border-[1px] border-gray-400 border-solid my-4'>
-          <table className='table-auto w-full border-collapse' id='selectListData'>
+        <div className='mx-4 h-4/5 overflow-auto border-[1px] border-gray-400 border-solid my-4' id='selectListData'>
+          <table className='table-auto w-full border-collapse'>
             <thead className='sticky top-0 overflow-auto'>
               <tr>
                 {headers.map((header: any, index: number) => (
@@ -212,7 +227,7 @@ export const SelectList = ({
                             </legend>
                             <ul className='px-2'>
                               {f.data.map((d: any, index: number) => {
-                                if (focusedRowData && focusedRowData[d.key] !== null) {
+                                if (focusedRowData) {
                                   return <li key={index}>
                                     <div className="flex">
                                       <div className="w-5/12 pr-0 relative after:content-[':'] after:absolute after:-right-1 after:text-black">
@@ -233,18 +248,6 @@ export const SelectList = ({
                 </div>
           )
         }
-      
-        {/* {footers?.length && <div className={`h-1/5 left-0 mx-4 ${footerClass}`}>
-        <div className='grid grid-cols-3 h-full w-full border-solid border-2'>
-          {footers.map((footer: any, index: number) => (
-            <div key={index} className='flex gap-4'>
-              <span>{footer.label}:</span>
-              <span>{focusedRowData && focusedRowData[footer.key]}</span>
-            </div>
-          ))}
-        </div>
-        
-        </div>} */}
       </div>
     </Popup>
   );

@@ -9,6 +9,7 @@ import onKeyDown from '../../utilities/formKeyDown';
 import ImagePreview from '../../components/common/files/ImagePreview';
 const root = process.env.REACT_APP_API_URL;
 import { useSelector } from 'react-redux'
+import { SelectList } from '../../components/common/selectList';
 
 interface BasicItemEditProps {
   formik: ItemFormInfoType;
@@ -52,7 +53,12 @@ const Container: React.FC<ContainerProps> = ({ title, fields, formik, setFocused
       },
     });
   };
+  const { company:companiesData,  } = useSelector((state: any) => state.global)
   const [newImg, setNewImg] = useState(false);
+  const [popupList, setPopupList] = useState<{ isOpen: boolean, data: any }>({
+    isOpen: false,
+    data: {}
+  })
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       formik.setFieldValue(e.target.name, e.target.files[0]);
@@ -75,7 +81,30 @@ const Container: React.FC<ContainerProps> = ({ title, fields, formik, setFocused
     }
     formik.setFieldValue(field.name, option ? option.value : null);
   }
-
+  
+  function handleCompanyList(){
+    const tableData = companiesData.map((c:any,idx:number)=>{
+      return {
+        ...companiesData[idx],
+        station_name: c.Station.station_name,
+      }
+    })
+    setPopupList({
+      isOpen: true,
+      data: {
+        heading: 'Select Company',
+        headers: [
+          { label: 'Company', key: 'companyName' },
+          { label: 'Station', key: 'station_name' },
+        ],
+        tableData,
+        handleSelect: (rowData: any) => {
+          formik.setFieldValue('compId', rowData.company_id);
+          document.getElementById('service')?.focus();
+        }
+      }
+      });
+  }
   return (
     <div className='relative border w-full h-full pt-4 border-solid border-gray-400'>
       <div className='absolute top-[-14px] left-2  px-2 w-fit bg-[#f3f3f3]'>
@@ -84,14 +113,19 @@ const Container: React.FC<ContainerProps> = ({ title, fields, formik, setFocused
       <div
         className={`flex  ${title === 'Basic Info' ? 'flex-row' : 'flex-col'} gap-2 w-full px-4 py-2 text-xs leading-3 text-gray-600`}
       >
-        {fields.map((field) =>
-          field.type === 'select' && field.options ? (
+        {fields.map((field) =>{
+          return field.type === 'select' && field.options ? (
             <CustomSelect
               key={field.id}
               isPopupOpen={false}
               label={field.label}
               id={field.id}
               name={field.name}
+              onFocus={() => {
+                if (field.id === 'compId') {
+                  handleCompanyList();
+                }
+              }}
               nextField={field.nextField}
               prevField={field.prevField}
               options={field.options}
@@ -168,8 +202,15 @@ const Container: React.FC<ContainerProps> = ({ title, fields, formik, setFocused
               )}
             </React.Fragment>
           )
-        )}
+        })}
       </div>
+      {popupList.isOpen && <SelectList
+        heading={popupList.data.heading}
+        closeList={() => setPopupList({ isOpen: false, data: {} })}
+        headers={popupList.data.headers}
+        tableData={popupList.data.tableData}
+        handleSelect={(rowData) => { popupList.data.handleSelect(rowData) }}
+      />}
     </div>
   );
 };

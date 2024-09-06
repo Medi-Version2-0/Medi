@@ -170,7 +170,7 @@ export const CreateBillBook = ({
                     isSearchable={false}
                     disableArrow={false}
                     hidePlaceholder={false}
-                    className='!h-6 rounded-sm text-xs'
+                    className='!h-8 rounded-sm text-xs'
                     isTouched={formik.touched.company}
                     isFocused={focused === 'company'}
                     error={formik.errors.company}
@@ -223,7 +223,7 @@ export const CreateBillBook = ({
                     isSearchable={false}
                     disableArrow={false}
                     hidePlaceholder={false}
-                    className='!h-6 rounded-sm text-xs'
+                    className='!h-8 rounded-sm text-xs'
                     isTouched={formik.touched.billType}
                     isFocused={focused === 'billType'}
                     error={formik.errors.billType}

@@ -43,7 +43,7 @@ export const CreateCompany = ({ setView , data }: any) => {
       openingBalType: data?.openingBalType || 'Dr',
       salesId: data?.salesId || '',
       purchaseId: data?.purchaseId || '',
-      discPercent: data?.discPercent || null,
+      discPercent: data?.discPercent ,
       isDiscountPercent: data?.isDiscountPercent || '',
       //tax
       gstIn: data?.gstIn || '',

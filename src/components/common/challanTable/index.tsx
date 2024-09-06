@@ -1,4 +1,4 @@
-import React, {useState } from 'react';
+import React, {useEffect, useRef, useState } from 'react';
 import CustomSelect from '../../custom_select/CustomSelect';
 import { dateSchema } from '../../../views/DeliveryChallan/validation_schema';
 import Confirm_Alert_Popup from '../../popup/Confirm_Alert_Popup';
@@ -31,11 +31,14 @@ interface ChallanTableProps {
     headers: HeaderConfig[];
     gridData: any;
     setGridData: (data: any[]) => void;
-    handleSave: () => void;
+    handleSave?: () => void;
     withAddRow?: ()=> void;
     rowDeleteCallback? : (rowIndex:number , data : any)=> void;
+    newRowTrigger: number;
+    skipIndexes?:number[];
+    stikyColumn?:number[];
 }
-export const ChallanTable = ({ headers, gridData, setGridData, handleSave , withAddRow , rowDeleteCallback }: ChallanTableProps) => {
+export const ChallanTable = ({ headers, gridData, setGridData, handleSave, withAddRow, rowDeleteCallback, newRowTrigger, skipIndexes, stikyColumn }: ChallanTableProps) => {
     const [focused, setFocused] = useState('');
     const [popupState, setPopupState] = useState({
         isModalOpen: false,
@@ -49,13 +52,14 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
     ) => {
         if (e.key === 'Enter') {
             e.preventDefault();
-            const isThirdLastColumn = colIndex === headers.length - 3;
+            // const isThirdLastColumn = colIndex === headers.length - 3;       // Update this function
+            const shouldAddRow = colIndex === newRowTrigger;
             const isLastRow = rowIndex === gridData.length - 1;
 
-            if (isThirdLastColumn && isLastRow) {
+            if (shouldAddRow && isLastRow) {
                 addRows(1);
                 setTimeout(() => focusNextCell(rowIndex + 1, 0), 0);
-            } else if (isThirdLastColumn) {
+            } else if (shouldAddRow) {
                 focusNextCell(rowIndex + 1, 0);
             } else {
                 if (colIndex === 6) {
@@ -67,7 +71,13 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
         }
     };
 
+      
+
     const focusNextCell = async (rowIndex: number, colIndex: number) => {
+        if (skipIndexes?.includes(colIndex)){
+            focusNextCell(rowIndex, colIndex + 1);
+            return;
+        }
         const nextInput = document.getElementById(`cell-${rowIndex}-${colIndex}`);
         if (colIndex === 4) {
             setFocused(`cell-${rowIndex}-${colIndex}`);
@@ -120,27 +130,33 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
     }
 
     return (
-        <div className="flex flex-col h-[30em] overflow-scroll w-full border-[1px] border-solid border-gray-400">
-            <div className="flex sticky border-solid border-[1px] border-blue-800 top-0 w-[100vw]">
+       <div className='flex flex-col gap-2'>
+            <div className="flex flex-col h-[30em] overflow-scroll border-[1px] border-solid border-gray-400">
+                <div className={`flex sticky border-solid top-0 z-[1]`}>
                 {headers.map((header, index) => (
                     <div
                         key={index}
-                        className="flex-shrink-0 border-[1px] border-solid bg-[#009196FF] border-gray-400 text-center text-white p-2"
+                        className={`flex-shrink-0 border-[1px] border-solid bg-[#009196FF] border-gray-400 text-center text-white p-2 ${stikyColumn?.includes(index) ? 'sticky left-0' : ''}`}
                         style={{ width: header.width }}
                     >
                         {header.name}
                     </div>
                 ))}
+                <div
+                    className={`flex-shrink-0 border-[1px] border-solid bg-[#009196FF] border-gray-400 text-center text-white p-2 w-24`}
+                >
+                    Actions
+                </div>
             </div>
-            <div className="flex flex-col h-[22rem] w-[100vw]">
-                {gridData.map((row: any, rowIndex: number) => (
+            <div className="flex flex-col h-[22rem]">
+                {gridData && gridData.map((row: any, rowIndex: number) => (
                     <div key={row.id} className="flex relative">
                         {headers.map((header, colIndex) => {
                             const columnValue = header.props.label ? row.columns[header.key]?.label || '' : row.columns[header.key] || '';
                             switch (header.type) {
                                 case 'customSelect':
                                     return (
-                                        <div key={colIndex} style={{ width: header.width }}>
+                                        <div key={colIndex} style={{ minWidth: header.width }} className={`${stikyColumn?.includes(colIndex) ? 'sticky left-0' : ''}`}>
                                             <CustomSelect
                                                 isPopupOpen={false}
                                                 isSearchable={true}
@@ -197,7 +213,7 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
                                                 }
                                             }}
                                             onKeyDown={(e) => handleKeyDown(e, rowIndex, colIndex)}
-                                            className={`flex-shrink-0 border-[1px] p-2 ${header.props.inputType === 'number' && 'text-right'} text-xs border-solid border-gray-400`}
+                                            className={`flex-shrink-0 border-[1px] p-2 ${header.props.inputType === 'number' && 'text-right'} text-xs border-solid border-gray-400 ${stikyColumn?.includes(colIndex) ? 'sticky left-0' : ''}`}
                                             style={{ width: header.width }}
                                             disabled={header.props.disable}
                                             onBlur={() => {
@@ -215,9 +231,11 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
                                     return null;
                             }
                         })}
-                        {rowIndex > 0 &&
-                            <BsTrash className='text-xl absolute right-[-30px] cursor-pointer' onClick={() => deleteRow(rowIndex, row)} />
-                        }
+                        <div className='border-[1px] border-solid border-gray-400 min-w-24 flex items-center'>
+                            {rowIndex > 0 &&
+                                <BsTrash className='text-xl cursor-pointer w-full' onClick={() => deleteRow(rowIndex, row)} />
+                            }
+                        </div>
                     </div>
                 ))}
             </div>
@@ -231,7 +249,8 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
                 />
             )}
 
-            <div className="flex justify-end sticky left-0 mt-[2em]">
+        </div>
+       {handleSave && <div className="flex justify-end">
                 <button
                     type="button"
                     className="px-4 py-2 bg-[#009196FF] hover:bg-[#009196e3] font-medium text-white rounded-md border-none focus:border-yellow-500 focus-visible:border-yellow-500"
@@ -239,7 +258,7 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave , with
                 >
                     Confirm
                 </button>
-            </div>
+            </div>}
         </div>
     );
 };

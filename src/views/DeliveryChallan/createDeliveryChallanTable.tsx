@@ -205,6 +205,7 @@ const updateUnlockedBatch = (unlockedBatch:any[], gridData:any[]) => {
 
   const handleFocus = (rowIndex: number, colIndex: number) => {
     focusColIndex.current = colIndex;
+    console.log('saved Data --> ',currentSavedData)
     setFocusedRowIndex(rowIndex);
     if (colIndex === 0) {
       setPopupList({
@@ -538,6 +539,7 @@ const updateUnlockedBatch = (unlockedBatch:any[], gridData:any[]) => {
         handleSave={handleSave}
         withAddRow = {()=> setCurrentSavedData({ item: {}, batch: {} })}
         rowDeleteCallback={handleDeleteRow}
+        newRowTrigger={headers.length-3}
       />
 
       {popupState.isAlertOpen && (
