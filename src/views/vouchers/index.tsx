@@ -132,8 +132,8 @@ const Vouchers = () => {
             valueFormatter: dateFormatter,
         },
         { headerName: 'Voucher Number', field: 'voucherNumber' },
-        { headerName: 'Amount (₹)', field: 'amount' },
         { headerName: 'Party', field: 'partyName' },
+        { headerName: 'Amount (₹)', field: 'amount' },
         { headerName: 'Discount', field: 'discount' },
         { headerName: 'Dr/Cr', field: 'debitOrCredit' },
         {

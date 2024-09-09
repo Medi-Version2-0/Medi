@@ -20,6 +20,7 @@ interface HeaderConfig {
         inputType?: string;
         label?: boolean;
         disable?: boolean;
+        required?: boolean;
         options?: { label: string, value: string | number, [key: string]: any }[]
         handleFocus?: (rowIndex: number, colIndex: number) => void;
         handleBlur?: (args: { rowIndex: number, row: any, colIndex: number }) => void;
@@ -37,8 +38,9 @@ interface ChallanTableProps {
     newRowTrigger: number;
     skipIndexes?:number[];
     stikyColumn?:number[];
+    required?:any;
 }
-export const ChallanTable = ({ headers, gridData, setGridData, handleSave, withAddRow, rowDeleteCallback, newRowTrigger, skipIndexes, stikyColumn }: ChallanTableProps) => {
+export const ChallanTable = ({ headers, gridData, setGridData, handleSave, withAddRow, rowDeleteCallback, newRowTrigger, skipIndexes, stikyColumn, required }: ChallanTableProps) => {
     const [focused, setFocused] = useState('');
     const [popupState, setPopupState] = useState({
         isModalOpen: false,
@@ -50,11 +52,26 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave, withA
         rowIndex: number,
         colIndex: number
     ) => {
+        if (e.key === '-' || e.key === '+') {
+            e.preventDefault()
+            return
+        }
         if (e.key === 'Enter') {
             e.preventDefault();
-            // const isThirdLastColumn = colIndex === headers.length - 3;       // Update this function
             const shouldAddRow = colIndex === newRowTrigger;
             const isLastRow = rowIndex === gridData.length - 1;
+
+            const header = headers[colIndex];
+        const cellValue = gridData[rowIndex].columns[header.key];
+
+        if (header.props?.required && !cellValue) {
+            setPopupState({
+                ...popupState,
+                isAlertOpen: true,
+                message: `The ${header.name} field is required.`,
+            });
+            return;
+        }
 
             if (shouldAddRow && isLastRow) {
                 addRows(1);
@@ -232,8 +249,9 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave, withA
                             }
                         })}
                         <div className='border-[1px] border-solid border-gray-400 min-w-24 flex items-center'>
-                            {rowIndex > 0 &&
-                                <BsTrash className='text-xl cursor-pointer w-full' onClick={() => deleteRow(rowIndex, row)} />
+                            {
+                                <BsTrash className='text-xl cursor-pointer w-full' onClick={() => {deleteRow(rowIndex, row) 
+                                }} />
                             }
                         </div>
                     </div>
