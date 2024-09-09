@@ -18,7 +18,7 @@ interface ButtonProps {
   padding?: string;
   btnType?: "button" | "submit" | "reset";
   children: React.ReactNode;
-  disable?: boolean;
+  disable?: boolean | any;
   autoFocus?: boolean;
 }
 

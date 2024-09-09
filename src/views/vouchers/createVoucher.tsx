@@ -6,7 +6,7 @@ import { SelectList } from '../../components/common/selectList';
 import { ChallanTable } from '../../components/common/challanTable';
 import { sendAPIRequest } from '../../helper/api';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
-import { useParams } from 'react-router-dom';
+import {gridDataSchema} from './validation'
 
 interface RowData {
   columns: {
@@ -23,7 +23,7 @@ interface handleChangeInHeaders{
 const CreateVouchers = ({ setView, data }: any) => {
   const [voucherType, setVoucherType] = useState<Option | null>(data?.rowData?.voucherType || null);
   const [selectedDate, setSelectedDate] = useState<string | null>(data?.rowData?.voucherDate || null);
-  const [gridData, setGridData] = useState<RowData[]>(data?.gridData || []);
+  const [gridData, setGridData] = useState<RowData[] | any>(data?.gridData || []);
   const [voucherNumber, setVoucherNumber] = useState<number | null>(data?.rowData?.voucherNumber || null);
   const [popupState, setPopupState] = useState<{ isAlertOpen: boolean; isModalOpen: boolean; message: string }>({ isAlertOpen: false, isModalOpen: false, message: '' });
   const [focusedRowIndex, setFocusedRowIndex] = useState<number | null>(null);
@@ -38,6 +38,13 @@ const CreateVouchers = ({ setView, data }: any) => {
   const [allParties, setAllParties] = useState<any[]>([]);
   const [hasBankAccount, setHasBankAccount] = useState(false);
   const [gstNature, setGstNature] = useState<Option | null>(data?.rowData?.gstNatuer || null);
+  const settingPopupState = (isModal: boolean, message: string) => {
+    setPopupState({
+      ...popupState,
+      [isModal ? 'isModalOpen' : 'isAlertOpen']: true,
+      message: message,
+    });
+  };
   
 
   const bankName = useRef<{partyName:string,partyId:number}>({
@@ -54,9 +61,9 @@ const CreateVouchers = ({ setView, data }: any) => {
   ];
 
   const commonHeaders1 = [
-    { name: 'Party', key: 'partyName', width: '16%', type: 'input', props: { inputType: 'text', label: true, handleFocus: (rowIndex: number, colIndex: number) => { handleFocus(rowIndex, colIndex) } } },
+    { name: 'Party', key: 'partyName', width: '16%', type: 'input', props: { inputType: 'text', label: true, required: true, handleFocus: (rowIndex: number, colIndex: number) => { handleFocus(rowIndex, colIndex) } } },
     { name: 'Narration', key: 'narration', width: '20%', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
-    { name: 'Amount (₹)', key: 'amount', width: '15%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'Amount (₹)', key: 'amount', width: '15%', type: 'input', props: { inputType: 'number', required: true, handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); }, } },
     {
       name: 'Dr/Cr', key: 'debitOrCredit', width: '15%', type: 'input', props: {
         inputType: 'text', handleChange: (args: handleChangeInHeaders) => {  
@@ -75,24 +82,24 @@ const CreateVouchers = ({ setView, data }: any) => {
   ];
   const commonHeaders2 = [
     // { name: 'Party Balance', key: 'partyBalance', width: '20%', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
-    { name: 'Discount Narration', key: 'disNarration', width: '17%', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } }
+    { name: 'Discount Narration', key: 'disNarration', width: '27%', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } }
   ];
   const gstNatureConditionHeaders = [
     { name: 'Instrument Type', key: 'instrumentType', width: '18%', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
-    { name: 'Invocie No.', key: 'invoiceNumber', width: '10%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
-    { name: 'Invocie Date', key: 'invoiceDate', width: '15%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'Invoice No.', key: 'invoiceNumber', width: '10%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'Invoice Date', key: 'invoiceDate', width: '15%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
     { name: 'HSN Code', key: 'hsnCode', width: '12%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
     { name: 'GST Rate', key: 'gstRate', width: '15%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
-    { name: 'SGST', key: 'sgstValue', width: '8%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
-    { name: 'CGST', key: 'cgstValue', width: '8%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
-    { name: 'IGST', key: 'igstValue', width: '8%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'SGST', key: 'sgstValue', width: '8%', type: 'input', props: { inputType: 'number', readOnly : true, handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'CGST', key: 'cgstValue', width: '8%', type: 'input', props: { inputType: 'number', readOnly : true, handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'IGST', key: 'igstValue', width: '8%', type: 'input', props: { inputType: 'number', readOnly : true, handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
   ];
 
   const partyHeaders = [
     { label: 'Name', key: 'partyName' },
     { label: 'Station', key: 'station_name' },
-    { label: 'Closing Balance', key: 'currentOpeningBal' },
-    { label: 'Closing Balance Type', key: 'currentOpeningBalType' },
+    { label: 'Closing Balance', key: 'closingBalance' },
+    { label: 'Closing Balance Type', key: 'closingBalanceType' },
   ];
 
   const gstNatureTypes =[
@@ -239,12 +246,16 @@ const CreateVouchers = ({ setView, data }: any) => {
   const handleVoucherTypeChange = (option: Option | null) => {
     setVoucherType(option);
     setSelectedDate(new Date().toISOString().split('T')[0]);
-    initializeGridData();
+    if(option?.value != voucherType?.value){
+      initializeGridData();
+    }
   };
 
   const handleGstNatureChange = (option: Option | null) => {
     setGstNature(option);
-    initializeGridData();
+    if(option?.value != gstNature?.value){
+      initializeGridData();
+    }
   }
 
   const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -253,7 +264,7 @@ const CreateVouchers = ({ setView, data }: any) => {
 
   const handleSubmit = async () => {
     const dataToSend: any = {
-      rows: gridData.map((row) => {
+      rows: gridData.map((row : any) => {
         const { label, value } = row.columns.partyName || {};
 
         return {
@@ -274,8 +285,20 @@ const CreateVouchers = ({ setView, data }: any) => {
         };
       }),
     };
+    
     try {
-
+      await gridDataSchema.validate(dataToSend.rows, { abortEarly: false });
+      
+      if(voucherType?.value === 'JOUR' && totalValue.totalCredit !== totalValue.totalDebit){
+        settingPopupState(false, "Validation errors: TotalDebit and totalCredit were not Equal");
+        return
+      }
+      const voucherTypeValue: any = voucherType?.value ?? '';
+      if (['CP', 'JOUR', 'BW'].includes(voucherTypeValue) && !dataToSend.gstNature) {
+        settingPopupState(false, 'Validation errors: GstNature cannot be null for the selected voucher type.');
+        return;
+      }
+      
       if (data.rowData?.voucherNumber) {
         dataToSend.voucherNumber = data.rowData.voucherNumber;
         const response: any = await sendAPIRequest(`/voucher/${data.rowData.voucherNumber}`, {
@@ -287,14 +310,9 @@ const CreateVouchers = ({ setView, data }: any) => {
         if (firstRow.voucherDate !== null) await getVoucherData(firstRow.voucherDate, firstRow.voucherType);
 
         setVoucherNumber(response?.voucherNumber);
-        setPopupState({
-          isModalOpen: false,
-          isAlertOpen: true,
-          message: `Voucher ${data.rowData.voucherNumber ? 'updated' : 'created'} successfully`,
-        });
+        settingPopupState(false, `Voucher ${data.rowData.voucherNumber ? 'updated' : 'created'} successfully`);
 
       } else {
-
         const response: any = await sendAPIRequest(`/voucher/`, {
           method: 'POST',
           body: dataToSend,
@@ -311,11 +329,14 @@ const CreateVouchers = ({ setView, data }: any) => {
 
     } catch (error:any) {
       console.error('Error saving voucher:', error);
-      setPopupState({
-        ...popupState,
-        isAlertOpen: true,
-        message: `${error.message}`,
-      });
+      if (error.name === 'ValidationError') {
+        const errorMessages = error.inner.map((err: any) => `${err.path} is empty`);
+        console.log('Validation errors:', errorMessages);
+        settingPopupState(false, `Validation errors: ${errorMessages.join(', ')}`);
+      } else {
+        console.error('Error saving voucher:', error);
+        settingPopupState(false, `${error.message}`);
+      }
     }
   };
 
@@ -341,7 +362,14 @@ const CreateVouchers = ({ setView, data }: any) => {
 
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
-    setView({ type: '', data: {} });
+    // setView({ type: '', data: {} });
+    if (!popupState.message.includes("Validation errors")) {
+      setView({ type: '', data: {} });
+    }
+  };
+
+  const handleConfirmPopup = () => {
+    setPopupState({ ...popupState, isModalOpen: false });
   };
 
   const handleClosePopup = () => {
@@ -358,6 +386,36 @@ const CreateVouchers = ({ setView, data }: any) => {
       const firstCharPossibleOutcomes = ['d','c','D','C',undefined];
       const secondCharPossibleOutcomes = ['r','R',undefined];
       if (value.length > 2 || !firstCharPossibleOutcomes.includes(value[0]) || !secondCharPossibleOutcomes.includes(value[1])) return
+      if (value.length === 1) {
+        if (value.toLowerCase() === 'd') {
+          value = 'Dr';
+        } else if (value.toLowerCase() === 'c') {
+          value = 'Cr';
+        }
+      }
+    }
+    if (['sgstValue', 'cgstValue', 'igstValue'].includes(header)) {
+      return;
+    }
+
+    if (header === 'partyName' && !value) {
+      alert("Party Name cannot be empty");
+      return;
+    }
+
+    if (header === 'amount' || header === 'discount' || header === 'gstRate') {
+      // Remove leading zeros and validate the amount format
+      value = value.replace(/^0+(?=\d)/, '');
+  
+      // Allow only numbers and a single decimal point
+      const validAmount = /^[0-9]*\.?[0-9]{0,2}$/;
+      if (!validAmount.test(value)) {
+        settingPopupState(false, "Validation errors: Amount can only contain numbers and up to two decimal places.");
+        return; 
+      }
+  
+      // Ensure that the value is a valid number
+      value = parseFloat(value);
     }
 
     if (gridData[rowIndex]?.columns.amount && (voucherType?.value === 'JOUR' || voucherType?.value === 'CP' || voucherType?.value === 'BW') && (gstNature?.value == 2 || gstNature?.value == 3 ) && (header === 'gstRate' || header === 'amount' || header === 'partyName')) {
@@ -386,17 +444,32 @@ const CreateVouchers = ({ setView, data }: any) => {
         newGridData[rowIndex].columns.cgstValue = ((gstRate / 200) * amount).toFixed(2);
       }
     }
+
+    if (header === 'discount') {
+      const amount = parseFloat(newGridData[rowIndex].columns.amount);
+      const discount = parseFloat(value);
+      if (discount > amount) {
+        settingPopupState(false, "Validation errors: Discount cannot be greater than the amount");
+        return;
+      }
+    }
+
     newGridData[rowIndex].columns[header] = value;
 
     let totalDebit = 0;
     let totalCredit = 0;
     newGridData.forEach((data) => {
       const amount = Number(data.columns.amount) || 0;
+      const sgstValue = Number(data.columns.sgstValue) || 0;
+      const cgstValue = Number(data.columns.cgstValue) || 0;
+      const igstValue = Number(data.columns.igstValue) || 0;
       const debitOrCredit = data.columns.debitOrCredit;
       if (debitOrCredit?.toLowerCase() === 'dr') {
-        totalDebit += amount;
+        // totalDebit += amount;
+        totalDebit += amount + sgstValue + cgstValue + igstValue;
       } else if (debitOrCredit?.toLowerCase() === 'cr') {
-        totalCredit += amount;
+        // totalCredit += amount;
+        totalCredit += amount + sgstValue + cgstValue + igstValue;
       }
     });
     setTotalValue({
@@ -441,10 +514,13 @@ const CreateVouchers = ({ setView, data }: any) => {
   }
 
   useEffect(() => {
+    if(!gridData.length && !data.voucherGridData){
+      return initializeGridData();
+    }
     if (!data.rowData?.voucherNumber){
       setDebitOrCredit();
     }
-    if (voucherType?.value === 'JOUR'){
+    if (voucherType?.value === 'JOUR' && !data){
       const newGridData = [...gridData];
       newGridData[gridData.length-1].columns.debitOrCredit = '';
       setGridData(newGridData);
@@ -466,6 +542,7 @@ const CreateVouchers = ({ setView, data }: any) => {
         }
       });
     }
+  
   }, [gridData.length, voucherType?.value]);
 
 
@@ -563,52 +640,44 @@ const CreateVouchers = ({ setView, data }: any) => {
         },
         {
           label: 'Credit',
-          key: 'openingBalType'
+          key: 'credit'
         },
         {
           label: 'Debit',
-          key: 'openingBalType'
+          key: 'debit'
         },
         {
-          label: 'Balance',
-          key: 'openingBalType'
+          label: 'Closing Balance',
+          key: 'closingBalance',
         },
+        {
+          label: 'C.B.Type',
+          key: 'closingBalanceType',
+        }
       ]
     },
   ];
 
   const totalDebitAndCredit = async() => {
-    const newGridData = [...gridData]
-    console.log("inside total----------->",newGridData)
     let totalDebit = 0;
     let totalCredit = 0;
 
     if(data?.voucherGridData){
       data?.voucherGridData?.forEach((item: any) => {
         const amount = Number(item.amount) || 0;
+        const sgstValue = Number(item.sgstValue) || 0;
+        const cgstValue = Number(item.cgstValue) || 0;
+        const igstValue = Number(item.igstValue) || 0;
         const debitOrCredit = item.debitOrCredit;
 
       if (debitOrCredit === 'Dr') {
-        totalDebit += amount;
+        totalDebit += amount + cgstValue + sgstValue + igstValue;
       } else if (debitOrCredit === 'Cr') {
-        totalCredit += amount;
+        totalCredit += amount + cgstValue + sgstValue + igstValue;
       }
     });
-    }
-    // const dataToLoopThrough = newGridData.length > 0 ? newGridData : data?.voucherGridData || [];
-    // console.log("dataToLoopThrough-->",dataToLoopThrough)
-
-    // dataToLoopThrough.forEach((item: any) => {
-    //   const amount = Number(item.amount) || 0;
-    //   const debitOrCredit = item.debitOrCredit;
-
-    //   if (debitOrCredit === 'Dr') {
-    //     totalDebit += amount;
-    //   } else if (debitOrCredit === 'Cr') {
-    //     totalCredit += amount;
-    //   }
-    // })
-    console.log("totalDebit------->",totalDebit,"totalCredit----->",totalCredit)
+    
+    }    
 
     setTotalValue({
       ...totalValue,
@@ -616,7 +685,7 @@ const CreateVouchers = ({ setView, data }: any) => {
       totalCredit: totalCredit,
     });
   }
-  const isInputsDisabled = Boolean(data?.rowData?.voucherType && data?.rowData?.voucherDate);
+  const isInputsDisabled = Boolean(data?.rowData?.setTotalValuevoucherType && data?.rowData?.voucherDate);
 
   return (
     <div className="p-4">
@@ -674,7 +743,7 @@ const CreateVouchers = ({ setView, data }: any) => {
           )}
         </div>
 
-        {voucherNumber && (
+        {/* {voucherNumber && (
           <div className="flex flex-col justify-end max-w-[14rem]">
             <span className="text-sm font-medium text-gray-700">Voucher Number: {voucherNumber}</span>
           </div>
@@ -702,7 +771,41 @@ const CreateVouchers = ({ setView, data }: any) => {
               isDisabled={isInputsDisabled}
             />
           </div>
-        )}
+        )} */}
+
+        <div className="flex flex-col w-[30%] gap-2">
+          {(voucherType?.value !== 'CR' && voucherType?.value !== 'BD' && voucherType?.value !== undefined) && (
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                <span>GST Nature</span>
+                <span className="text-red-600 font-medium text-sm"> *</span>
+                <span>: </span>
+              </p>
+              <CustomSelect
+                isPopupOpen={false}
+                label={``}
+                value={gstNature}
+                id="gstNature"
+                onChange={handleGstNatureChange}
+                options={gstNatureTypes}
+                isSearchable={true}
+                placeholder="Select GST Nature"
+                disableArrow={false}
+                hidePlaceholder={false}
+                containerClass="!w-[80%] !justify-between"
+                className="!rounded-none !h-8 whitespace-nowrap"
+                isDisabled={isInputsDisabled}
+              />
+            </div>
+          )}
+
+          {voucherNumber && (
+            <div className="flex flex-colabsolute top-0 right-0 justify-end">
+              <span className="text-sm font-medium text-gray-700">Voucher Number: {voucherNumber}</span>
+            </div>
+          )}
+        </div>
+
 
       </div>
 
@@ -712,14 +815,15 @@ const CreateVouchers = ({ setView, data }: any) => {
       
       
         <div className="mt-4">
-          <ChallanTable
+          {<ChallanTable
             headers={headers.current}
             gridData={gridData}
             setGridData={setGridData}
             skipIndexes={voucherType?.value!=='JOUR' ? [3]:[]}
             newRowTrigger={headers.current.length-1}
             stikyColumn={[0]}
-          />
+            required={[1, 3]} 
+          />}
         </div>
       
 
@@ -728,7 +832,7 @@ const CreateVouchers = ({ setView, data }: any) => {
           <Button type="highlight"
                   id="save_voucher_button"
                   handleOnClick={handleSubmit}
-            disable={(voucherType.value === 'JOUR' && totalValue.totalCredit !== totalValue.totalDebit) || ((voucherType.value === 'BW' || voucherType.value === 'JOUR' || voucherType.value === 'CP') && gstNature === null) }
+            // disable={ ((voucherType.value === 'BW' || voucherType.value === 'JOUR' || voucherType.value === 'CP') && gstNature === null)  }
           >
             {data.rowData?.voucherNumber ? 'Update' : 'Submit'}
           </Button>
@@ -749,7 +853,9 @@ const CreateVouchers = ({ setView, data }: any) => {
       {(popupState.isModalOpen || popupState.isAlertOpen) && (
         <Confirm_Alert_Popup
           onClose={handleClosePopup}
-          onConfirm={handleAlertCloseModal}
+          onConfirm={popupState.isAlertOpen
+            ? handleAlertCloseModal
+            : handleConfirmPopup}
           message={popupState.message}
           isAlert={popupState.isAlertOpen}
         />
@@ -767,8 +873,6 @@ const CreateVouchers = ({ setView, data }: any) => {
       )}
     </div>
   );
-
-
 };
 
 export { CreateVouchers };

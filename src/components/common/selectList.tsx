@@ -187,6 +187,7 @@ export const SelectList = ({
                 {headers.map((header: any, index: number) => (
                   <th
                     key={index}
+                    style={{ width: index === 0 ? '45%' : index === 1 ? '25%' : index === 2 ? '15%' : '15%' }}
                     className='w-fit border-[1px] border-solid bg-[#009196FF] border-gray-400 text-center text-white p-2'
                   >
                     {header.label}
@@ -205,7 +206,9 @@ export const SelectList = ({
                   className={focusedRowIndex === rowIndex ? 'bg-[#EAFBFCFF] border-[2px] focus:outline-0 !rounded-lg border-solid border-black': ''}
                 >
                   {headers.map((header: any, colIndex: number) => (
-                    <td key={colIndex} className='border border-gray-400 p-2'>
+                    <td key={colIndex} 
+                      style={{ width: colIndex === 0 ? '45%' : colIndex === 1 ? '25%' : colIndex === 2 ? '15%' : '15%' }}
+                      className='border border-gray-400 p-2'>
                       {header.auto ? rowIndex + 1 : row[header.key]}
                     </td>
                   ))}
