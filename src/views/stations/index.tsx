@@ -41,7 +41,7 @@ export const Stations = () => {
   const getAndSetStationHandler = useGetSetData(getAndSetStations);
   const gridRef = useRef<any>(null);
   const { stations } = useSelector((state: any) => state.global);
-  const { createAccess, updateAccess, deleteAccess } = usePermission('station_setup')
+  const { createAccess, updateAccess, deleteAccess } = usePermission('station')
 
   const { controlRoomSettings } = useControls();
 

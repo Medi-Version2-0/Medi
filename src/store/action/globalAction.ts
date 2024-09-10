@@ -95,7 +95,7 @@ export const getAndSetCompany = () => async (dispatch: Dispatch<GlobalActionType
 }
 
 export const getAndSetPurchase = () => async (dispatch: Dispatch<GlobalActionTypes>) => {
-  const purchase = await sendAPIRequest<SalesPurchaseFormData[]>(`/purchase`)
+  const purchase = await sendAPIRequest<SalesPurchaseFormData[]>(`/purchaseAccount`)
   dispatch({
     type: SET_PURCHASE,
     payload: purchase ||[],
@@ -103,7 +103,7 @@ export const getAndSetPurchase = () => async (dispatch: Dispatch<GlobalActionTyp
 }
 
 export const getAndSetSales = () => async (dispatch: Dispatch<GlobalActionTypes>) => {
-  const sales = await sendAPIRequest<SalesPurchaseFormData[]>(`/sale`)
+  const sales = await sendAPIRequest<SalesPurchaseFormData[]>(`/saleAccount`)
   dispatch({
     type: SET_SALES,
     payload: sales ||[],
@@ -118,7 +118,7 @@ export const getAndSetGroups = () => async (dispatch: Dispatch<GlobalActionTypes
   });
 }
 export const getAndSetSubGroups = () => async (dispatch: Dispatch<GlobalActionTypes>) => {
-  const subGroups = await sendAPIRequest<GroupFormData[]>(`/group/sub`)
+  const subGroups = await sendAPIRequest<GroupFormData[]>(`/subGroup`)
   dispatch({
     type: SET_SUB_GROUPS,
     payload: subGroups || [],

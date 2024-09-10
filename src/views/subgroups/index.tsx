@@ -31,7 +31,7 @@ export const SubGroups = () => {
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<SubGroupFormData | any>(null);
   const editing = useRef(false);
-  const permissions = usePermission('sub_groups')
+  const permissions = usePermission('subgroup')
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
@@ -76,14 +76,14 @@ export const SubGroups = () => {
     if (payload !== initialValue) {
       if (formData.group_code) {
         await sendAPIRequest(
-          `/group/sub/${formData.group_code}`,
+          `/subGroup/${formData.group_code}`,
           {
             method: 'PUT',
             body: formData,
           }
         );
       } else {
-        await sendAPIRequest(`/group/sub`, {
+        await sendAPIRequest(`/subGroup`, {
           method: 'POST',
           body: payload,
         });
@@ -108,7 +108,7 @@ export const SubGroups = () => {
   const deleteAcc = async (group_code: string) => {
     isDelete.current = false;
     togglePopup(false);
-    await sendAPIRequest(`/group/sub/${group_code}`, {
+    await sendAPIRequest(`/subGroup/${group_code}`, {
       method: 'DELETE',
     });
     getAndSetSubGroupsHandler();
@@ -194,7 +194,7 @@ export const SubGroups = () => {
   }else{
     node.setDataValue(field, newValue);
     try{
-      await sendAPIRequest(`/group/sub/${data.group_code}`, {
+      await sendAPIRequest(`/subGroup/${data.group_code}`, {
         method: 'PUT',
         body: { [field]: newValue },
       });

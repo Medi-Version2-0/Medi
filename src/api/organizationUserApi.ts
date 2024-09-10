@@ -2,12 +2,12 @@ import { sendAPIRequest } from "../helper/api";
 import { UserFormI } from "../interface/global";
 
 export const getOrganizationUsers = async (): Promise<UserFormI[]> => {
-    const response = await sendAPIRequest<UserFormI[]>(`/organization/users`);
+    const response = await sendAPIRequest<UserFormI[]>(`/user/organization`);
     return response;
 };
 
 export const insertOrganizationUser = async (user: UserFormI): Promise<UserFormI[]> => {
-    const response = await sendAPIRequest<UserFormI[]>(`/organization/user`, {
+    const response = await sendAPIRequest<UserFormI[]>(`/user/organization`, {
         method: 'POST',
         body: JSON.stringify(user),
         headers: {
@@ -18,7 +18,7 @@ export const insertOrganizationUser = async (user: UserFormI): Promise<UserFormI
 }
 
 export const updateOrganizationUser = async (userId: number, user: UserFormI): Promise<UserFormI[]> => {
-    const response = await sendAPIRequest<UserFormI[]>(`/organization/user/${userId}`, {
+    const response = await sendAPIRequest<UserFormI[]>(`/user/organization/${userId}`, {
         method: 'PUT',
         body: JSON.stringify(user),
         headers: {

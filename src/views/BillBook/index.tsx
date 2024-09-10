@@ -66,7 +66,7 @@ export const BillBook = () => {
   const editing = useRef(false);
   let currTable: any[] = [];
   const { controlRoomSettings } = useControls();
-  const { createAccess, updateAccess, deleteAccess } = usePermission('bill_book_setup')
+  const { createAccess, updateAccess, deleteAccess } = usePermission('billbook')
 
   const initialValues = {
     stockNegative: controlRoomSettings.stockNegative || false,

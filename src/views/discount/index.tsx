@@ -32,7 +32,7 @@ export const PartyWiseDiscount = () => {
   const [companyData, setCompanyData] = useState<any[]>([]);
   const editing = useRef(false);
   const discountId = useRef('');
-  const { createAccess, updateAccess, deleteAccess } = usePermission('party_wise_discount')
+  const { createAccess, updateAccess, deleteAccess } = usePermission('partywisediscount')
   const getAndSetPartywiseDiscountHandler = useGetSetData(getAndSetPartywiseDiscount);
   
   const { controlRoomSettings } = useControls();

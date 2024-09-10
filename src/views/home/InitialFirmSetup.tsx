@@ -69,12 +69,11 @@ const InitialFirmSetup = () => {
                         method: 'post',
                         headers: {
                             'Content-type': 'application/json',
-                            Authorization: 'Bearer ' + getAccessToken(),
                         },
+                        credentials:'include',
                         body: JSON.stringify({ organizationId: organization.id }),
                     })
                     const readableData = await response.json();
-                    saveToken(readableData.access_token)
                     setUser(readableData.data);
                     navigate(`/`);
                 } else {

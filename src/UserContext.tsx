@@ -8,7 +8,7 @@ import React, {
   Dispatch,
   SetStateAction,
 } from 'react';
-import { mediAccessToken } from './auth';
+import { sendAPIRequest } from './helper/api';
 
 export interface User {
   id: number;
@@ -102,6 +102,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           email: email,
           password: password,
@@ -112,8 +113,6 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
         const parsedUser = {
           ...fetchRequest.data,
         };
-        localStorage.setItem(mediAccessToken, fetchRequest.access_token);
-        localStorage.setItem('password', password);
         setUser(parsedUser);
         return parsedUser;
       }
@@ -123,8 +122,11 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
     setUser(null);
+    await sendAPIRequest(`/auth/logout`, {
+      method: 'POST',
+    });
   };
 
   return (
