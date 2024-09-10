@@ -74,12 +74,11 @@ export const TopBar = () => {
       method: 'post',
       headers: {
         'Content-type': 'application/json',
-        Authorization: 'Bearer ' + getAccessToken() ,
       },
+      credentials: 'include',
       body: JSON.stringify({ organizationId : companyId }),
     })
     const readableData = await response.json();
-    saveToken(readableData.access_token)
     setUser(readableData.data);
     window.location.reload();
   };

@@ -32,7 +32,7 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<SalesPurchaseFormData>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
-  const { createAccess, updateAccess, deleteAccess } = usePermission(type === 'Sales' ?'sales_account' : 'purchase_account')
+  const { createAccess, updateAccess, deleteAccess } = usePermission(type === 'Sales' ?'saleaccount' : 'purchaseaccount')
   const { purchase: purchaseData, sales: salesData } = useSelector((state: any) => state.global);
   const [tableData, setTableData] = useState<SalesPurchaseFormData[]>([]);
 
@@ -95,8 +95,8 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
     if (formData !== initialValue) {
       const endPoint =
         type === 'Sales'
-          ? `/sale`
-          : `/purchase`;
+          ? `/saleAccount`
+          : `/purchaseAccount`;
       const endpoint = formData.sp_id
         ? `${endPoint}/${formData.sp_id}`
         : `${endPoint}`;
@@ -148,8 +148,8 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
     togglePopup(false);
     const endPoint =
       type === 'Sales'
-        ? `/sale`
-        : `/purchase`;
+        ? `/saleAccount`
+        : `/purchaseAccount`;
     const endpoint = `${endPoint}/${sp_id}`;
     togglePopup(false);
     await sendAPIRequest(endpoint, { method: 'DELETE' });
@@ -205,8 +205,8 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
     }
     const endPoint =
       type === 'Sales'
-        ? `/sale`
-        : `/purchase`;
+        ? `/saleAccount`
+        : `/purchaseAccount`;
     const endpoint = `${endPoint}/${data.sp_id}`;
     await sendAPIRequest(endpoint, {
       method: 'PUT',

@@ -9,12 +9,10 @@ export const sendAPIRequest = async <T>(
   init?: any,
   requireToken = true
 ): Promise<T> => {
-  const token = requireToken ? getAccessToken() : '';
   const url = `${APIURL}${subUrl}`;
 
   const headers = {
     'Content-type': 'application/json',
-    ...(requireToken && { Authorization: 'Bearer ' + token }),
   };
 
   try {
@@ -26,6 +24,7 @@ export const sendAPIRequest = async <T>(
       method: init?.method || 'GET',
       data: init?.method !== 'GET' ? init?.body : undefined,
       headers: { ...(init?.headers || {}), ...headers },
+      withCredentials: true,
     });
 
     return response?.data?.data || response?.data || response;

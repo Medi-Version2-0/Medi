@@ -24,7 +24,7 @@ export const CreateGroup: React.FC<CreateAccountGroupProps> = ({
   );
   const [groupData, setGroupData] = useState([]);
   const getGroups = async () => {
-    setGroupData(await sendAPIRequest(`/group/sub`));
+    setGroupData(await sendAPIRequest(`/subGroup`));
   };
 
   useEffect(() => {

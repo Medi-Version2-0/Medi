@@ -58,7 +58,7 @@ const Items = () => {
     isAlertOpen: false,
     message: '',
   });
-  const { createAccess, updateAccess, deleteAccess } = usePermission('items')
+  const { createAccess, updateAccess, deleteAccess } = usePermission('item')
   const { company, sales: saleData, purchase: purchasesData, itemGroups: itemGroupsData, item : itemReduxData} = useSelector((state: any) => state.global);
 
   const itemSettingsInitialValues = {

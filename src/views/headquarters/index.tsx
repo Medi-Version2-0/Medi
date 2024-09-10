@@ -137,12 +137,12 @@ export const Headquarters = () => {
       }
     });
     if (mode === false) {
-      await sendAPIRequest(`/station/headQuarter/${id}`, {
+      await sendAPIRequest(`/headquarters/${id}`, {
         method: 'PUT',
         body: formData,
       });
     } else {
-      await sendAPIRequest(`/station/headQuarter`, {
+      await sendAPIRequest(`/headquarters`, {
         method: 'POST',
         body: payload,
       });
@@ -175,7 +175,7 @@ export const Headquarters = () => {
     isDelete.current = false;
     togglePopup(false);
     await sendAPIRequest(
-      `/station/headQuarter/${station_id}`,
+      `/headquarters/${station_id}`,
       {
         method: 'DELETE',
       }
@@ -222,7 +222,7 @@ export const Headquarters = () => {
       }
     } else {
       await sendAPIRequest(
-        `/station/headQuarter/${data.station_id}`,
+        `/headquarters/${data.station_id}`,
         {
           method: 'PUT',
           body: { [field]: +newValue },

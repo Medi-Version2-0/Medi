@@ -20,7 +20,7 @@ const DeliveryChallan = () => {
     null
   );
   const editing = useRef(false);
-  const { createAccess, updateAccess, deleteAccess } = usePermission('sale_challan')
+  const { createAccess, updateAccess, deleteAccess } = usePermission('deliverychallan')
 
   const id = useRef('');
   const queryClient = useQueryClient();
