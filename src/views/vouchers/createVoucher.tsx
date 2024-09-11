@@ -7,6 +7,7 @@ import { ChallanTable } from '../../components/common/challanTable';
 import { sendAPIRequest } from '../../helper/api';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import {gridDataSchema} from './validation'
+import useToastManager from '../../helper/toastManager';
 
 interface RowData {
   columns: {
@@ -45,7 +46,7 @@ const CreateVouchers = ({ setView, data }: any) => {
       message: message,
     });
   };
-  
+  const [focused, setFocused] = useState('');
 
   const bankName = useRef<{partyName:string,partyId:number}>({
     partyName:'',
@@ -61,11 +62,11 @@ const CreateVouchers = ({ setView, data }: any) => {
   ];
 
   const commonHeaders1 = [
-    { name: 'Party', key: 'partyName', width: '16%', type: 'input', props: { inputType: 'text', label: true, required: true, handleFocus: (rowIndex: number, colIndex: number) => { handleFocus(rowIndex, colIndex) } } },
-    { name: 'Narration', key: 'narration', width: '20%', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
-    { name: 'Amount (₹)', key: 'amount', width: '15%', type: 'input', props: { inputType: 'number', required: true, handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); }, } },
+    { name: 'Party', key: 'partyName', width: '16vw', type: 'input', props: { inputType: 'text', label: true, required: true, handleFocus: (rowIndex: number, colIndex: number) => { handleFocus(rowIndex, colIndex) } } },
+    { name: 'Narration', key: 'narration', width: '20vw', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'Amount (₹)', key: 'amount', width: '15vw', type: 'input', props: { inputType: 'number', required: true, handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); }, } },
     {
-      name: 'Dr/Cr', key: 'debitOrCredit', width: '15%', type: 'input', props: {
+      name: 'Dr/Cr', key: 'debitOrCredit', width: '15vw', type: 'input', props: {
         inputType: 'text', handleChange: (args: handleChangeInHeaders) => {  
       if(args.header === 'debitOrCredit' && args.value){
         args.value = args.value[0].toUpperCase() + args.value.slice(1);
@@ -74,25 +75,25 @@ const CreateVouchers = ({ setView, data }: any) => {
     }, readOnly: false} },
   ];
   const checkNoCheckDateHeaders = [
-    { name: 'Cheque No.', key: 'chequeNumber', width: '12%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
-    { name: 'Cheque Date', key: 'chequeDate', width: '15%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'Cheque No.', key: 'chequeNumber', width: '12vw', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'Cheque Date', key: 'chequeDate', width: '15vw', type: 'input', props: { inputType: 'date', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
   ];
   const discountHeader = [
-    { name: 'Discount (₹)', key: 'discount', width: '14%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'Discount (₹)', key: 'discount', width: '14vw', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
   ];
   const commonHeaders2 = [
-    // { name: 'Party Balance', key: 'partyBalance', width: '20%', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
-    { name: 'Discount Narration', key: 'disNarration', width: '27%', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } }
+    // { name: 'Party Balance', key: 'partyBalance', width: '20vw', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'Discount Narration', key: 'disNarration', width: '27vw', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } }
   ];
   const gstNatureConditionHeaders = [
-    { name: 'Instrument Type', key: 'instrumentType', width: '18%', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
-    { name: 'Invoice No.', key: 'invoiceNumber', width: '10%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
-    { name: 'Invoice Date', key: 'invoiceDate', width: '15%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
-    { name: 'HSN Code', key: 'hsnCode', width: '12%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
-    { name: 'GST Rate', key: 'gstRate', width: '15%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
-    { name: 'SGST', key: 'sgstValue', width: '8%', type: 'input', props: { inputType: 'number', readOnly : true, handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
-    { name: 'CGST', key: 'cgstValue', width: '8%', type: 'input', props: { inputType: 'number', readOnly : true, handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
-    { name: 'IGST', key: 'igstValue', width: '8%', type: 'input', props: { inputType: 'number', readOnly : true, handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'Instrument Type', key: 'instrumentType', width: '18vw', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'Invoice No.', key: 'invoiceNumber', width: '10vw', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'Invoice Date', key: 'invoiceDate', width: '15vw', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'HSN Code', key: 'hsnCode', width: '12vw', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'GST Rate', key: 'gstRate', width: '15vw', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'SGST', key: 'sgstValue', width: '8vw', type: 'input', props: { inputType: 'number', readOnly : true, handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'CGST', key: 'cgstValue', width: '8vw', type: 'input', props: { inputType: 'number', readOnly : true, handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'IGST', key: 'igstValue', width: '8vw', type: 'input', props: { inputType: 'number', readOnly : true, handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
   ];
 
   const partyHeaders = [
@@ -117,8 +118,74 @@ const CreateVouchers = ({ setView, data }: any) => {
 
   useEffect(()=>{
     getPartyData();
+    setFocused('voucherType');
   },[])
   
+  useEffect(() => {
+    if( !gridData.length ){
+      return initializeGridData();
+    }
+    if (!data.rowData?.voucherNumber){
+      setDebitOrCredit();
+    }
+    setChequeDate();
+    if (voucherType?.value === 'JOUR' && !data){
+      const newGridData = [...gridData];
+      newGridData[gridData.length-1].columns.debitOrCredit = '';
+      setGridData(newGridData);
+    }
+
+    totalDebitAndCredit();
+
+    if (gridData.length > 0 && !!gridData[0]?.columns?.partyName?.value) {
+      const lastRowIndex = gridData.length - 1;
+      const lastColumn = headers.current.length - 1
+      const lastCellId = `cell-${lastRowIndex}-${lastColumn}`;
+      const lastCellElement = document.getElementById(lastCellId);
+      if (lastCellElement) {
+          lastCellElement.focus();
+      }
+  }
+    
+    
+  }, [gridData.length, voucherType?.value]);
+
+  useEffect(()=>{
+    if ((!data.rowData?.voucherNumber) && (voucherType?.value === 'BD' || voucherType?.value === 'BW') ) {
+      const datas = allParties.filter(p => p.accountCode === -106);
+      setPopupList({
+        isOpen: true,
+        data: {
+          heading: 'Select Party',
+          headers: [...partyHeaders],
+          tableData: datas,
+          handleSelect: (rowData: any) => {
+            bankName.current = {
+              partyName: rowData.partyName,
+              partyId: rowData.party_id
+            };
+            document.getElementById("dateInput")?.focus();
+          }
+        }
+      });
+    } else {
+      bankName.current = {
+        partyName: '',
+        partyId: 0
+      };
+    }
+    if(!data.rowData?.voucherNumber) setGstNature( null);
+  },[voucherType?.value])
+
+
+  useEffect(() => {
+    updateGridData();
+  }, [currentSavedData])
+
+  useEffect(() => {
+    initializeGridDataFromData();
+  },[headers])
+
   const getVoucherTypeLabel = (value: string) => {
     const voucherType = voucherTypes.find((type: any) => type.value === value);
     return voucherType ? voucherType.label : '';
@@ -172,13 +239,14 @@ const CreateVouchers = ({ setView, data }: any) => {
 
   const initializeGridData = () => {
     const { value: drCrValue } = getDrCrColumnProps();
-    setGridData(Array.from({ length: 1 }, (_, rowIndex) => ({
+    const newObj = Array.from({ length: 1 }, (_, rowIndex) => ({
       id: rowIndex + 1,
       columns: headers.current.reduce(
-        (acc, header) => ({ ...acc, [header.key]: header.key === 'debitOrCredit' ? drCrValue : '' }),
+        (acc, header) => ({ ...acc, [header.key]: header.key === 'debitOrCredit' ? drCrValue : ''}),
         {}
       ),
-    })));
+    }))
+    setGridData(newObj);
   };
 
   const getPartyBalance = async(rowIndex: any, partyId: number)=>{
@@ -249,13 +317,11 @@ const CreateVouchers = ({ setView, data }: any) => {
     if(option?.value != voucherType?.value){
       initializeGridData();
     }
+    setTotalValue({ totalDebit: 0,totalCredit: 0});
   };
 
   const handleGstNatureChange = (option: Option | null) => {
     setGstNature(option);
-    if(option?.value != gstNature?.value){
-      initializeGridData();
-    }
   }
 
   const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -287,15 +353,29 @@ const CreateVouchers = ({ setView, data }: any) => {
     };
     
     try {
-      await gridDataSchema.validate(dataToSend.rows, { abortEarly: false });
+      for (const row of dataToSend.rows) {
+        const { partyId, amount } = row;
+      
+        if ( !partyId && amount > 1) {
+          settingPopupState(false, "Error: Party ID is empty.");
+          return;
+        }
+      
+        if ( !amount && !!partyId) {
+          settingPopupState(false, "Error: Amount is empty.");
+          return;
+        }
+      }
+
       
       if(voucherType?.value === 'JOUR' && totalValue.totalCredit !== totalValue.totalDebit){
-        settingPopupState(false, "Validation errors: TotalDebit and totalCredit were not Equal");
+        settingPopupState(false, "Error: TotalDebit and totalCredit were not Equal");
         return
       }
       const voucherTypeValue: any = voucherType?.value ?? '';
-      if (['CP', 'JOUR', 'BW'].includes(voucherTypeValue) && !dataToSend.gstNature) {
-        settingPopupState(false, 'Validation errors: GstNature cannot be null for the selected voucher type.');
+      
+      if (['CP', 'JOUR', 'BW'].includes(voucherTypeValue) && !gstNature?.value) {
+        settingPopupState(false, 'Error: GstNature cannot be null for the selected voucher type.');
         return;
       }
       
@@ -331,8 +411,8 @@ const CreateVouchers = ({ setView, data }: any) => {
       console.error('Error saving voucher:', error);
       if (error.name === 'ValidationError') {
         const errorMessages = error.inner.map((err: any) => `${err.path} is empty`);
-        console.log('Validation errors:', errorMessages);
-        settingPopupState(false, `Validation errors: ${errorMessages.join(', ')}`);
+        console.log('Error:', errorMessages);
+        settingPopupState(false, `Error: ${errorMessages.join(', ')}`);
       } else {
         console.error('Error saving voucher:', error);
         settingPopupState(false, `${error.message}`);
@@ -342,28 +422,43 @@ const CreateVouchers = ({ setView, data }: any) => {
 
   const setDebitOrCredit = async () => {
     let { value } = getDrCrColumnProps();
-    if (voucherType?.value === 'JOUR'){
+  
+    if (voucherType?.value === 'JOUR') {
       value = '';
     }
-    const updatedData = [...gridData]
-    if(voucherType?.value !== 'JOUR'){
-      const newGridData = updatedData.map(row => ({
+  
+    setGridData((prevGridData: any[]) => {
+      const updatedData = prevGridData.map((row: { columns: any; }) => ({
         ...row,
         columns: {
           ...row.columns,
-          debitOrCredit: value,
+          debitOrCredit: voucherType?.value === 'JOUR' ? '' : value,
         },
       }));
-      setGridData(newGridData);
-    }else{
-      setGridData(updatedData);
-    }
+  
+      return updatedData;
+    });
   };
+  
+
+  const setChequeDate = async () => {
+    setGridData((prevGridData: any[]) => {
+      const newGridData = prevGridData.map((row: { columns: any; }) => ({
+        ...row,
+        columns: {
+          ...row.columns,
+          chequeDate: selectedDate,
+        },
+      }));
+  
+      return newGridData;
+    });
+  };
+  
 
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
-    // setView({ type: '', data: {} });
-    if (!popupState.message.includes("Validation errors")) {
+    if (!popupState.message.includes("Error" )  && !popupState.message.includes("500")) {
       setView({ type: '', data: {} });
     }
   };
@@ -404,19 +499,19 @@ const CreateVouchers = ({ setView, data }: any) => {
     }
 
     if (header === 'amount' || header === 'discount' || header === 'gstRate') {
-      // Remove leading zeros and validate the amount format
-      value = value.replace(/^0+(?=\d)/, '');
-  
-      // Allow only numbers and a single decimal point
-      const validAmount = /^[0-9]*\.?[0-9]{0,2}$/;
+      if (!value.startsWith('0.') && !value.includes('.')) {
+        value = value.replace(/^0+(?=\d)/, '');
+      }
+    
+      // Allow only numbers and a single decimal point, with up to two decimal places
+      const validAmount = /^[0-9]*\.?[0-9]{0,4}$/;  
       if (!validAmount.test(value)) {
-        settingPopupState(false, "Validation errors: Amount can only contain numbers and up to two decimal places.");
+        settingPopupState(false, "Error: Amount can only contain numbers and up to two decimal places.");
         return; 
       }
   
-      // Ensure that the value is a valid number
-      value = parseFloat(value);
     }
+    
 
     if (gridData[rowIndex]?.columns.amount && (voucherType?.value === 'JOUR' || voucherType?.value === 'CP' || voucherType?.value === 'BW') && (gstNature?.value == 2 || gstNature?.value == 3 ) && (header === 'gstRate' || header === 'amount' || header === 'partyName')) {
       let gstRate;
@@ -449,7 +544,7 @@ const CreateVouchers = ({ setView, data }: any) => {
       const amount = parseFloat(newGridData[rowIndex].columns.amount);
       const discount = parseFloat(value);
       if (discount > amount) {
-        settingPopupState(false, "Validation errors: Discount cannot be greater than the amount");
+        settingPopupState(false, "Error: Discount cannot be greater than the amount");
         return;
       }
     }
@@ -465,10 +560,8 @@ const CreateVouchers = ({ setView, data }: any) => {
       const igstValue = Number(data.columns.igstValue) || 0;
       const debitOrCredit = data.columns.debitOrCredit;
       if (debitOrCredit?.toLowerCase() === 'dr') {
-        // totalDebit += amount;
         totalDebit += amount + sgstValue + cgstValue + igstValue;
       } else if (debitOrCredit?.toLowerCase() === 'cr') {
-        // totalCredit += amount;
         totalCredit += amount + sgstValue + cgstValue + igstValue;
       }
     });
@@ -481,9 +574,6 @@ const CreateVouchers = ({ setView, data }: any) => {
     setGridData(newGridData);
   };
 
-  useEffect(() => {
-    initializeGridDataFromData();
-  },[headers])
   
   if (!voucherType?.value) {
     headers.current = [...commonHeaders1, ...checkNoCheckDateHeaders, ...discountHeader, ...commonHeaders2, ...gstNatureConditionHeaders];
@@ -513,42 +603,6 @@ const CreateVouchers = ({ setView, data }: any) => {
     headers.current = [...commonHeaders1, ...checkNoCheckDateHeaders, ...discountHeader, ...commonHeaders2];
   }
 
-  useEffect(() => {
-    if(!gridData.length && !data.voucherGridData){
-      return initializeGridData();
-    }
-    if (!data.rowData?.voucherNumber){
-      setDebitOrCredit();
-    }
-    if (voucherType?.value === 'JOUR' && !data){
-      const newGridData = [...gridData];
-      newGridData[gridData.length-1].columns.debitOrCredit = '';
-      setGridData(newGridData);
-    }
-    if (!data.rowData?.voucherNumber && (voucherType?.value === 'BD' || voucherType?.value === 'BW')){
-      const data = allParties.filter(p=> p.accountCode === -106);
-      setPopupList({
-        isOpen: true,
-        data: {
-          heading: 'Select Party',
-          headers: [...partyHeaders],
-          tableData: data,
-          handleSelect: (rowData: any) => {
-            bankName.current = {
-              partyName: rowData.partyName,
-              partyId: rowData.party_id
-            }
-          }
-        }
-      });
-    }
-  
-  }, [gridData.length, voucherType?.value]);
-
-
-  useEffect(() => {
-    updateGridData();
-  }, [currentSavedData])
 
   const updateGridData = () => {
     if (focusedRowIndex === null) return;
@@ -594,7 +648,7 @@ const CreateVouchers = ({ setView, data }: any) => {
         }
       });
     }
-  };
+  };  
 
   const partyFooterData: any[] = [
     {
@@ -659,25 +713,24 @@ const CreateVouchers = ({ setView, data }: any) => {
   ];
 
   const totalDebitAndCredit = async() => {
+    const newGridData = [...gridData]
     let totalDebit = 0;
     let totalCredit = 0;
+    
+    const dataToCalculate = !data?.voucherGridData ? newGridData: data?.voucherGridData;
 
-    if(data?.voucherGridData){
-      data?.voucherGridData?.forEach((item: any) => {
-        const amount = Number(item.amount) || 0;
-        const sgstValue = Number(item.sgstValue) || 0;
-        const cgstValue = Number(item.cgstValue) || 0;
-        const igstValue = Number(item.igstValue) || 0;
-        const debitOrCredit = item.debitOrCredit;
-
-      if (debitOrCredit === 'Dr') {
-        totalDebit += amount + cgstValue + sgstValue + igstValue;
-      } else if (debitOrCredit === 'Cr') {
-        totalCredit += amount + cgstValue + sgstValue + igstValue;
+      newGridData.forEach((data: any) => {
+      const amount = Number(data.columns.amount) || 0;
+      const sgstValue = Number(data.columns.sgstValue) || 0;
+      const cgstValue = Number(data.columns.cgstValue) || 0;
+      const igstValue = Number(data.columns.igstValue) || 0;
+      const debitOrCredit = data.columns.debitOrCredit;
+      if (debitOrCredit?.toLowerCase() === 'dr') {
+        totalDebit += amount + sgstValue + cgstValue + igstValue;
+      } else if (debitOrCredit?.toLowerCase() === 'cr') {
+        totalCredit += amount + sgstValue + cgstValue + igstValue;
       }
     });
-    
-    }    
 
     setTotalValue({
       ...totalValue,
@@ -685,7 +738,7 @@ const CreateVouchers = ({ setView, data }: any) => {
       totalCredit: totalCredit,
     });
   }
-  const isInputsDisabled = Boolean(data?.rowData?.setTotalValuevoucherType && data?.rowData?.voucherDate);
+  const isInputsDisabled = Boolean(data?.rowData?.voucherType && data?.rowData?.voucherDate);
 
   return (
     <div className="p-4">
@@ -718,6 +771,7 @@ const CreateVouchers = ({ setView, data }: any) => {
             id="voucherType"
             onChange={handleVoucherTypeChange}
             options={voucherTypes}
+            isFocused={focused === 'voucherType'}
             isSearchable={true}
             placeholder="Select Voucher Type"
             disableArrow={false}
@@ -725,6 +779,17 @@ const CreateVouchers = ({ setView, data }: any) => {
             containerClass="gap-[3.28rem] !w-60% !justify-between"
             className="!rounded-none !h-8 text-wrap: nowrap"
             isDisabled={isInputsDisabled}
+            onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+              const dropdown = document.querySelector(
+                '.custom-select__menu'
+              );
+              if (e.key === 'Enter') {
+                !dropdown && e.preventDefault();
+                const nextFieldId='dateInput';
+                document.getElementById(nextFieldId)?.focus();                    
+                setFocused(nextFieldId);
+              }
+            }}
           />
 
           {voucherType && (
@@ -734,44 +799,23 @@ const CreateVouchers = ({ setView, data }: any) => {
               </label>
               <input
                 type="date"
+                id = "dateInput"
                 value={selectedDate || ''}
                 onChange={handleDateChange}
                 className="border border-gray-300 rounded p-1"
                 disabled={isInputsDisabled}
+                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const nextFieldId = (voucherType?.value === 'CR' || voucherType?.value === 'BD') ? 'cell-0-0': 'gstNature' ;
+                    document.getElementById(nextFieldId)?.focus();                    
+                    setFocused(nextFieldId);
+                  }
+                }}
               />
             </div>
           )}
         </div>
-
-        {/* {voucherNumber && (
-          <div className="flex flex-col justify-end max-w-[14rem]">
-            <span className="text-sm font-medium text-gray-700">Voucher Number: {voucherNumber}</span>
-          </div>
-        )}
-        {(voucherType?.value !== 'CR' && voucherType?.value !== 'BD'&& voucherType?.value !== undefined) && (
-          <div className="flex items-center gap-2 w-[30%]">
-            <p>
-              <span className="text-sm font-medium text-gray-700 whitespace-nowrap">GST Nature</span>
-              <span className='text-red-600 font-medium text-sm'>*</span>
-              <span className="text-sm font-medium text-gray-700 whitespace-nowrap">: </span>
-            </p>
-            <CustomSelect
-              isPopupOpen={false}
-              label={``}
-              value={gstNature}
-              id="gstNature"
-              onChange={handleGstNatureChange}
-              options={gstNatureTypes}
-              isSearchable={true}
-              placeholder="Select GST Nature"
-              disableArrow={false}
-              hidePlaceholder={false}
-              containerClass="!w-[80%] !justify-between"
-              className="!rounded-none !h-8 whitespace-nowrap"
-              isDisabled={isInputsDisabled}
-            />
-          </div>
-        )} */}
 
         <div className="flex flex-col w-[30%] gap-2">
           {(voucherType?.value !== 'CR' && voucherType?.value !== 'BD' && voucherType?.value !== undefined) && (
@@ -789,12 +833,23 @@ const CreateVouchers = ({ setView, data }: any) => {
                 onChange={handleGstNatureChange}
                 options={gstNatureTypes}
                 isSearchable={true}
+                isFocused={focused === 'gstNature'}
                 placeholder="Select GST Nature"
                 disableArrow={false}
                 hidePlaceholder={false}
                 containerClass="!w-[80%] !justify-between"
                 className="!rounded-none !h-8 whitespace-nowrap"
                 isDisabled={isInputsDisabled}
+                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                  const dropdown = document.querySelector(
+                    '.custom-select__menu'
+                  );
+                  if (e.key === 'Enter') {
+                    !dropdown && e.preventDefault();
+                    if(gstNature?.value) document.getElementById('cell-0-0')?.focus();
+                    else setFocused('gstNature')
+                  }
+                }}
               />
             </div>
           )}
@@ -832,7 +887,6 @@ const CreateVouchers = ({ setView, data }: any) => {
           <Button type="highlight"
                   id="save_voucher_button"
                   handleOnClick={handleSubmit}
-            // disable={ ((voucherType.value === 'BW' || voucherType.value === 'JOUR' || voucherType.value === 'CP') && gstNature === null)  }
           >
             {data.rowData?.voucherNumber ? 'Update' : 'Submit'}
           </Button>

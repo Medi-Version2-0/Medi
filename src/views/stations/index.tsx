@@ -208,7 +208,7 @@ export const Stations = () => {
       newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
       const existingStation = tableData.find((station: StationFormData) => station.station_name.toLowerCase() === newValue.toLowerCase() && station.station_id !== data.station_id);
       if (existingStation) {
-        settingPopupState(false, 'Sub Group with this name already exists!');
+        settingPopupState(false, 'Station with this name already exists!');
         node.setDataValue(field, oldValue);
         return;
       }
