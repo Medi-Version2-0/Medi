@@ -14,8 +14,8 @@ import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 
 const Vouchers = () => {
     const [view, setView] = useState<View>({ type: '', data: {} });
-    const [selectedVoucherType, setSelectedVoucherType] = useState<string>(''); // State for selected voucher type
-    const [filterDate, setFilterDate] = useState<string>(getTodayDate(new Date())); // State for selected date filter
+    const [selectedVoucherType, setSelectedVoucherType] = useState<string>('');
+    const [filterDate, setFilterDate] = useState<string>(getTodayDate(new Date()));
     const { createAccess, updateAccess, deleteAccess } = usePermission('voucher');
     const [tableData, setTableData] = useState<Voucher | any>([]);
     const voucherNumber = useRef<string>('');
@@ -112,6 +112,11 @@ const Vouchers = () => {
         getVoucherData();
     }, [filterDate, view, selectedVoucherType]);
 
+    // useEffect(()=> {
+    //     const element = document.getElementById("createButton")
+    //     element && element.focus();
+    // },[])
+
     function getTodayDate(date: Date): string {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -196,7 +201,7 @@ const Vouchers = () => {
         setFilterDate(event.target.value);
     };
     const onCellClicked = (params: any, isEditButton: boolean = false) => {
-        if (params?.column?.colId === 'voucherDate' || isEditButton) {
+        if (isEditButton) {
             if (params.data) {
                 handleEditClick(params.data);
             } else {
@@ -218,6 +223,7 @@ const Vouchers = () => {
                         {true && (
                             <div className='flex items-center'>
                                 <Button
+                                    id ="createButton"
                                     type='highlight'
                                     handleOnClick={() => {
                                         setView({ type: 'add', data: {} });
