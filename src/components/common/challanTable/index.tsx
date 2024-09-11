@@ -43,12 +43,13 @@ interface ChallanTableProps {
   headers: HeaderConfig[];
   gridData: any;
   setGridData: (data: any[]) => void;
-  handleSave?: () => void;
+  handleSave?: any;
   withAddRow?: () => void;
   rowDeleteCallback?: (rowIndex: number, data: any) => void;
   newRowTrigger: number;
   skipIndexes?: number[];
   stikyColumn?: number[];
+  isFromSaleBill?: boolean;
   required?: any;
 }
 export const ChallanTable = ({
@@ -61,6 +62,7 @@ export const ChallanTable = ({
   newRowTrigger,
   skipIndexes,
   stikyColumn,
+  isFromSaleBill,
   required,
 }: ChallanTableProps) => {
   const [focused, setFocused] = useState('');
@@ -69,6 +71,7 @@ export const ChallanTable = ({
     isAlertOpen: false,
     message: '',
   });
+  const showPortal = isFromSaleBill ? document.getElementById('saleBillFormBtn') : document.getElementById('challanFormBtn');
   const handleKeyDown = async (
     e: React.KeyboardEvent<HTMLInputElement> | any,
     rowIndex: number,
@@ -117,8 +120,14 @@ export const ChallanTable = ({
             focusNextCell(rowIndex, colIndex + 1);
           }
         }
+        
       }
     }
+    else if (e.key === 'Escape') {
+      e.preventDefault();
+      handleSave();
+      document.getElementById('nextButton')?.focus();
+  }
   };
 
   const focusNextCell = async (rowIndex: number, colIndex: number) => {
@@ -339,7 +348,7 @@ export const ChallanTable = ({
           />
         )}
       </div>
-      {handleSave && (
+      {/* {handleSave && (
         <div className='flex justify-end'>
           <button
             type='button'
@@ -349,7 +358,19 @@ export const ChallanTable = ({
             Confirm
           </button>
         </div>
-      )}
+      )} */}
+      {/* {showPortal && createPortal(
+            <div className="flex justify-end sticky left-0">
+                <button
+                    type="button"
+                    className="px-4 py-2 bg-[#009196FF] hover:bg-[#009196e3] font-medium text-white rounded-md border-none focus:border-yellow-500 focus-visible:border-yellow-500"
+                    onClick={handleSave}
+                >
+                    {isFromSaleBill ? 'Next' : 'Confirm'}
+                </button>
+            </div>,
+            showPortal
+        )} */}
     </div>
   );
 };

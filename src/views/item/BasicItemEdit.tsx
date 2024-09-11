@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ItemFormValues, ItemFormInfoType } from './create-item';
 import CustomSelect from '../../components/custom_select/CustomSelect';
 import FormikInputField from '../../components/common/FormikInputField';
-import { ItemGroupFormData, Option, CompanyFormData, SalesPurchaseFormData   } from '../../interface/global';
+import { ItemGroupFormData, Option, CompanyFormData, SalesPurchaseFormData } from '../../interface/global';
 import { useControls } from '../../ControlRoomContext';
 import { FormikProps } from 'formik';
 import onKeyDown from '../../utilities/formKeyDown';
@@ -53,7 +53,7 @@ const Container: React.FC<ContainerProps> = ({ title, fields, formik, setFocused
       },
     });
   };
-  const { company:companiesData,  } = useSelector((state: any) => state.global)
+  const { company: companiesData, } = useSelector((state: any) => state.global)
   const [newImg, setNewImg] = useState(false);
   const [popupList, setPopupList] = useState<{ isOpen: boolean, data: any }>({
     isOpen: false,
@@ -65,25 +65,28 @@ const Container: React.FC<ContainerProps> = ({ title, fields, formik, setFocused
       setNewImg(true);
     }
   };
-  const handleOptionSelections = (field: any, option: any) => {
-    if (field.name === 'compId') {
-      const selectedCompany = companies.company.find((company: any) => company.company_id === option.value);
+
+  const handleFieldValue = (name: string, id: number) => {
+    if (name === 'compId') {
+      const selectedCompany = companies.company.find((company: any) => company.company_id === id);
       if (selectedCompany) {
         setSalePurchase && setSalePurchase({
           saleId: selectedCompany.salesId,
           purchaseId: selectedCompany.purchaseId,
-          salePurchase: selectedCompany.purSaleAc,
           discPercent: selectedCompany.discPercent,
           isDiscountPercent: selectedCompany.isDiscountPercent,
         });
       }
       formik.setFieldValue('shortName', selectedCompany.shortName);
     }
+  }
+
+  const handleOptionSelections = (field: any, option: any) => {
     formik.setFieldValue(field.name, option ? option.value : null);
   }
-  
-  function handleCompanyList(){
-    const tableData = companiesData.map((c:any,idx:number)=>{
+
+  function handleCompanyList() {
+    const tableData = companiesData.map((c: any, idx: number) => {
       return {
         ...companiesData[idx],
         station_name: c.Station.station_name,
@@ -100,10 +103,12 @@ const Container: React.FC<ContainerProps> = ({ title, fields, formik, setFocused
         tableData,
         handleSelect: (rowData: any) => {
           formik.setFieldValue('compId', rowData.company_id);
+          handleFieldValue('compId', rowData.company_id);
           document.getElementById('service')?.focus();
+          setFocused('service');
         }
       }
-      });
+    });
   }
   return (
     <div className='relative border w-full h-full pt-4 border-solid border-gray-400'>
@@ -113,7 +118,7 @@ const Container: React.FC<ContainerProps> = ({ title, fields, formik, setFocused
       <div
         className={`flex  ${title === 'Basic Info' ? 'flex-row' : 'flex-col'} gap-2 w-full px-4 py-2 text-xs leading-3 text-gray-600`}
       >
-        {fields.map((field) =>{
+        {fields.map((field) => {
           return field.type === 'select' && field.options ? (
             <CustomSelect
               key={field.id}
@@ -232,7 +237,7 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
   });
   const [focused, setFocused] = useState('');
   const [salePurchase, setSalePurchase] = useState<any>('');
-  const { company: companies ,sales: salesList, purchase: purchaseList, itemGroups } = useSelector((state: any) => state.global)
+  const { company: companies, sales: salesList, purchase: purchaseList, itemGroups } = useSelector((state: any) => state.global)
   useEffect(() => {
     setOptions((prevOption) => ({
       ...prevOption,
