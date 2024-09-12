@@ -24,8 +24,8 @@ import { validateField, decimalFormatter, createMap, extractKeys, lookupValue } 
 import useHandleKeydown from '../../hooks/useHandleKeydown';
 import { useGetSetData } from '../../hooks/useGetSetData';
 
-export const Ledger = () => {
-  const [view, setView] = useState<View>({ type: '', data: {} });
+export const Ledger = ({type = ''}) => {
+  const [view, setView] = useState<View>({ type, data: {} });
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const { stations: stationData, party: partyData } = useSelector((state: any) => state.global);
   const [tableData, setTableData] = useState(partyData);

@@ -35,8 +35,8 @@ const initialPopupState = {
   search: false,
 };
 
-const Items = () => {
-  const [view, setView] = useState<View>({ type: '', data: {} });
+const Items = ({type = '' , batchData = null}) => {
+  const [view, setView] = useState<View>({ type, data: {} });
   const getAndSetItemHandler = useGetSetData(getAndSetItem);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<ItemFormData | any>(null);
@@ -48,7 +48,7 @@ const Items = () => {
   );
   const [salesData, setSalesData] = useState<any[]>([]);
   const [purchaseData, setPurchaseData] = useState<any[]>([]);
-  const [showBatch, setShowBatch] = useState<any>(null);
+  const [showBatch, setShowBatch] = useState<any>(batchData);
   const [showPriceList, setShowPriceList] = useState<boolean>(false);
 
   const editing = useRef(false);
