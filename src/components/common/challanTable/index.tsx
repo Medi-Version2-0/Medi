@@ -183,7 +183,7 @@ export const ChallanTable = ({
         id='tableContainer'
         className='flex flex-col h-[30em] overflow-auto border-[1px] border-solid border-gray-400'
       >
-        <div className={`flex sticky border-solid w-fit top-0 z-[1]`}>
+        <div className={`flex sticky border-solid w-[100vw] top-0 z-[1]`}>
           {headers.map((header, index) => (
             <div
               key={index}
@@ -199,7 +199,7 @@ export const ChallanTable = ({
             Actions
           </div>
         </div>
-        <div className='flex flex-col w-fit h-[22rem]'>
+        <div className='flex flex-col w-[100vw] h-[22rem]'>
           {gridData &&
             gridData.map((row: any, rowIndex: number) => (
               <div key={row.id} className='flex relative'>
