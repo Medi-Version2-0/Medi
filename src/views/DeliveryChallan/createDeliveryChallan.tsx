@@ -15,8 +15,10 @@ import { CreateDeliveryChallanTable } from './createDeliveryChallanTable';
 import { saleChallanFormValidations } from './validation_schema';
 import { Popup } from '../../components/popup/Popup';
 import { useSelector } from 'react-redux';
-import { SelectList } from '../../components/common/selectList';
+import { SelectList } from '../../components/common/customSelectList/customSelectList';
 import { partyHeaders } from '../partywisePriceList/partywiseHeader';
+import { Ledger } from '../ledger';
+import { useTabs } from '../../TabsContext';
 
 export interface DeliveryChallanFormValues {
   oneStation: string;
@@ -116,7 +118,7 @@ export const SchemeSection = ({ togglePopup, heading, className, setOpenDataPopu
 };
 
 const CreateDeliveryChallan = ({ setView, data }: any) => {
-
+  const {openTab} = useTabs()
   const [stationOptions, setStationOptions] = useState<Option[]>([]);
   const [partyOptions, setPartyOptions] = useState<Option[]>([]);
   const [dataFromTable, setDataFromTable] = useState<any[]>([]);
@@ -125,7 +127,10 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
   const [focused, setFocused] = useState('');
   const queryClient = useQueryClient();
   const {party: allParty} = useSelector((state:any)=> state.global)
-  const { stations } = useSelector((state: any) => state.global);
+  const [pendingData, setPendingData] = useState({
+    pendingChallansAmount: 0,
+    totalPendingItems: 0
+})
   const [totalValue, setTotalValue] = useState({
     totalAmt: 0.0,
     totalQty: 0.0,
@@ -217,8 +222,6 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
 
   const fetchAllData = async () => {
     const stations = await sendAPIRequest<any[]>(`/station`);
-    const partyList = await sendAPIRequest<any[]>(`/ledger`);
-
     setStationOptions(
       stations.map((station: any) => ({
         value: station.station_id,
@@ -263,8 +266,6 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
     fetchAllData();
   }, [formik.values.stationId, formik.values.oneStation,allParty]);
 
-
-
   useEffect(() => {
     setFocused('oneStation');
     if (data) {
@@ -273,30 +274,50 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
   }, []);
 
 
+  useEffect(() => {
+    const fetchPendingData = async () => {
+      if (formik.values.partyId) {
+        try {
+          const resp: any = await sendAPIRequest(`/deliveryChallan/${formik.values.partyId}`);
+          setPendingData(resp);
+        } catch (error) {
+          console.error('Failed to fetch pending data:', error);
+        }
+      }
+    };
+  
+    fetchPendingData();
+  }, [formik.values.partyId]);
+  
+
+
   const handlePartyList = ()=>{
-    const tableData = formik.values.oneStation  === 'All Stations' ? allParty : allParty.filter((x:any)=> x.station_id === formik.values.stationId) 
-    if (tableData.length) {
+    if (formik.values.oneStation  !== 'All Stations' && !formik.values.stationId){
+      setFocused('stationId')
+      document.getElementById('personName')?.focus();     
+      setPopupState({ 
+        isModalOpen: false,
+        isAlertOpen: true,
+        message: `Select Station first`,
+        shouldBack: false
+      });
+    } 
+    else{
       setPopupList({
         isOpen: true,
         data: {
-          heading: 'Select Party',
+          heading: 'Party',
           headers: [...partyHeaders],
-          tableData: tableData,
-          handleSelect: (rowData: any) => { handleFieldChange({ label: rowData.partyName, value: rowData.party_id }, 'partyId') ,  document.getElementById('personName')?.focus();
-        }
+          footers: partyFooterData,
+          newItem: () => openTab('Ledger', <Ledger type='add' />),
+          autoClose: true,
+          apiRoute: '/ledger',
+          searchFrom: 'partyName',
+          handleSelect: (rowData: any) => { handleFieldChange({ label: rowData.partyName, value: rowData.party_id }, 'partyId') ,  document.getElementById('personName')?.focus()}
         }
     })
   }
-  else {
-    setFocused('')
-    document.getElementById('personName')?.focus();
-    setPopupState({ 
-      isModalOpen: false,
-      isAlertOpen: true,
-      message: `No Party found`,
-      shouldBack: false
-    });
-  }
+
   }
 
   const partyFooterData:any[] = [
@@ -607,6 +628,15 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
                 inputClassName='disabled:text-gray-800'
               />
             </div>
+            <div className='flex gap-1'>
+              <span>Total Pending Items:</span>
+              <span>{pendingData.totalPendingItems}</span>
+            </div>
+            <div className='flex gap-1'>
+              <span>Total Pending Amount:</span>
+              <span>{pendingData.pendingChallansAmount}</span>
+            </div>
+            
           </div>
         </div>
         <div className='my-4 mx-8'>
@@ -614,6 +644,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
             setDataFromTable={setDataFromTable}
             setTotalValue={setTotalValue}
             totalValue={totalValue}
+            partyId = {formik.values.partyId}
             challanTableData={challanTableData}
             setIsNetRateSymbol={setIsNetRateSymbol}
             setChallanTableData={setChallanTableData}
@@ -694,14 +725,28 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
           isAlert={popupState.isAlertOpen}
         />
       )}
-      {popupList.isOpen &&  <SelectList
+      {/* {popupList.isOpen &&  <SelectList
           heading={popupList.data.heading}
           closeList={()=> setPopupList({isOpen:false , data : {}})}
           headers={popupList.data.headers}
           tableData={popupList.data.tableData}
           footers={partyFooterData}
           handleSelect={(rowData)=> {popupList.data.handleSelect(rowData)}}
-        />}
+        />} */}
+
+{popupList.isOpen && <SelectList
+        tableData={[]}
+        heading={popupList.data.heading}
+        closeList={() => setPopupList({ isOpen: false, data: {} })}
+        headers={popupList.data.headers}
+        footers={popupList.data.footers}
+        apiRoute={popupList.data.apiRoute}
+        handleSelect={(rowData) => { popupList.data.handleSelect(rowData) }}
+        handleNewItem={popupList.data?.newItem}
+        searchFrom={popupList.data.searchFrom}
+        autoClose={popupList.data.autoClose}
+        onEsc={popupList.data.onEsc}
+      />}
     </div>
   );
 };
