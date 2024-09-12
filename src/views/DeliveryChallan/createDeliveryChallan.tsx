@@ -312,6 +312,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
           newItem: () => openTab('Ledger', <Ledger type='add' />),
           autoClose: true,
           apiRoute: '/ledger',
+          ...(formik.values.oneStation === 'One Station' && {extraQueryParams : {stationId : formik.values.stationId}}),
           searchFrom: 'partyName',
           handleSelect: (rowData: any) => { handleFieldChange({ label: rowData.partyName, value: rowData.party_id }, 'partyId') ,  document.getElementById('personName')?.focus()}
         }
@@ -746,6 +747,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
         searchFrom={popupList.data.searchFrom}
         autoClose={popupList.data.autoClose}
         onEsc={popupList.data.onEsc}
+        extraQueryParams = {popupList.data.extraQueryParams || {}}
       />}
     </div>
   );
