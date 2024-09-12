@@ -146,68 +146,99 @@ export const ChallanTable = ({ headers, gridData, setGridData, handleSave, withA
      
     }
 
-    return (
-       <div className='flex flex-col gap-2'>
-            <div className="flex flex-col h-[30em] overflow-scroll border-[1px] border-solid border-gray-400">
-                <div className={`flex sticky border-solid top-0 z-[1]`}>
-                {headers.map((header, index) => (
-                    <div
-                        key={index}
-                        className={`flex-shrink-0 border-[1px] border-solid bg-[#009196FF] border-gray-400 text-center text-white p-2 ${stikyColumn?.includes(index) ? 'sticky left-0' : ''}`}
-                        style={{ width: header.width }}
-                    >
-                        {header.name}
-                    </div>
-                ))}
-                <div
-                    className={`flex-shrink-0 border-[1px] border-solid bg-[#009196FF] border-gray-400 text-center text-white p-2 w-24`}
-                >
-                    Actions
-                </div>
+  return (
+    <div className='flex flex-col gap-2'>
+      <div
+        id='tableContainer'
+        className='flex flex-col h-[30em] overflow-auto border-[1px] border-solid border-gray-400'
+      >
+        <div className={`flex sticky border-solid w-[100vw] top-0 z-[1]`}>
+          {headers.map((header, index) => (
+            <div
+              key={index}
+              className={`flex-shrink-0 border-[1px] border-solid bg-[#009196FF] border-gray-400 text-center text-white p-2 ${stikyColumn?.includes(index) ? 'sticky left-0' : ''}`}
+              style={{ width: header.width }}
+            >
+              {header.name}
             </div>
-            <div className="flex flex-col h-[22rem]">
-                {gridData && gridData.map((row: any, rowIndex: number) => (
-                    <div key={row.id} className="flex relative">
-                        {headers.map((header, colIndex) => {
-                            const columnValue = header.props.label ? row.columns[header.key]?.label || '' : row.columns[header.key] || '';
-                            switch (header.type) {
-                                case 'customSelect':
-                                    return (
-                                        <div key={colIndex} style={{ minWidth: header.width }} className={`${stikyColumn?.includes(colIndex) ? 'sticky left-0' : ''}`}>
-                                            <CustomSelect
-                                                isPopupOpen={false}
-                                                isSearchable={true}
-                                                id={`cell-${rowIndex}-${colIndex}`}
-                                                isFocused={focused === `cell-${rowIndex}-${colIndex}`}
-                                                options={header.props.options || [{ label: '', value: '' }]}
-                                                value={
-                                                    columnValue === ''
-                                                        ? null
-                                                        : {
-                                                            label: header.props.options && header.props.options.find((option) => option.value === columnValue.value)?.label,
-                                                            value: columnValue,
-                                                        }
-                                                }
-                                                onChange={(selectedOption) => {
-                                                    const args = {
-                                                        selectedOption, row, rowIndex, colIndex, header: header.key
-                                                    }
-                                                    if (header.props.handleChange) {
-                                                        header.props.handleChange(args)
-                                                    }
-                                                }}
-                                                containerClass="flex-shrink-0 h-[3em] rounded-none w-fit"
-                                                className="rounded-none text-lg w-fit !leading-[2rem]"
-                                                onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-                                                    if (e.key === 'Enter') {
-                                                        const dropdown = document.querySelector('.custom-select__menu');
-                                                        if (!dropdown) e.preventDefault();
-                                                        document.getElementById(`cell-${rowIndex}-${colIndex + 1}`)?.focus();
-                                                    }
-                                                }}
-                                            />
-                                        </div>
-                                    );
+          ))}
+          <div
+            className={`flex-shrink-0 border-[1px] border-solid bg-[#009196FF] border-gray-400 text-center text-white p-2 w-24`}
+          >
+            Actions
+          </div>
+        </div>
+        <div className='flex flex-col w-[100vw] h-[22rem]'>
+          {gridData &&
+            gridData.map((row: any, rowIndex: number) => (
+              <div key={row.id} className='flex relative'>
+                {headers.map((header, colIndex) => {
+                  const columnValue = header.props.label
+                    ? row.columns[header.key]?.label || ''
+                    : row.columns[header.key] || '';
+                  switch (header.type) {
+                    case 'customSelect':
+                      return (
+                        <div
+                          key={colIndex}
+                          style={{ minWidth: header.width }}
+                          className={`${stikyColumn?.includes(colIndex) ? 'sticky left-0' : ''}`}
+                        >
+                          <CustomSelect
+                            isPopupOpen={false}
+                            isSearchable={true}
+                            id={`cell-${rowIndex}-${colIndex}`}
+                            isFocused={
+                              focused === `cell-${rowIndex}-${colIndex}`
+                            }
+                            options={
+                              header.props.options || [{ label: '', value: '' }]
+                            }
+                            value={
+                              columnValue === ''
+                                ? null
+                                : {
+                                    label:
+                                      header.props.options &&
+                                      header.props.options.find(
+                                        (option) =>
+                                          option.value === columnValue.value
+                                      )?.label,
+                                    value: columnValue,
+                                  }
+                            }
+                            onChange={(selectedOption) => {
+                              const args = {
+                                selectedOption,
+                                row,
+                                rowIndex,
+                                colIndex,
+                                header: header.key,
+                              };
+                              if (header.props.handleChange) {
+                                header.props.handleChange(args);
+                              }
+                            }}
+                            containerClass='flex-shrink-0 h-[3em] rounded-none w-fit'
+                            className='rounded-none text-lg w-fit !leading-[2rem]'
+                            onKeyDown={(
+                              e: React.KeyboardEvent<HTMLSelectElement>
+                            ) => {
+                              if (e.key === 'Enter') {
+                                const dropdown = document.querySelector(
+                                  '.custom-select__menu'
+                                );
+                                if (!dropdown) e.preventDefault();
+                                document
+                                  .getElementById(
+                                    `cell-${rowIndex}-${colIndex + 1}`
+                                  )
+                                  ?.focus();
+                              }
+                            }}
+                          />
+                        </div>
+                      );
 
                                 case 'input':
                                     return (
