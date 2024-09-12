@@ -345,7 +345,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
 
     newGridData.map(async (data: any) => {
       const item = itemValue?.find((item: any) => item.id === data.columns.itemId.value);
-      const isStateInOut = item.company?.stateInOut
+      const isStateInOut = item?.company?.stateInOut
       if (isStateInOut === 'Within State') {
         data.columns.cgst = Number(item.saleAccount.cgst);
         data.columns.sgst = Number(item.saleAccount.sgst);

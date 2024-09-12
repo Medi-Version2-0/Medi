@@ -17,6 +17,9 @@ interface DropDownPopupProps extends selectListProps {
     searchFrom?: string;
     onEsc?: () => void;
     autoClose?: boolean;
+    extraQueryParams?: {
+        [key: string]: string | number;
+      };
 
 }
 
@@ -28,6 +31,7 @@ export const SelectList = ({
     footers,
     footerClass,
     apiRoute,
+    extraQueryParams,
     handleSelect,
     handleNewItem,
     searchFrom,
@@ -60,7 +64,19 @@ export const SelectList = ({
             setIsLoading(true);
             const skip = page * 8;
             const limit = 8
-            const response = await sendAPIRequest<any>(`${apiRoute}?skip=${skip}&limit=${limit}${formik.values.searchBar.length ? `&name=${formik.values.searchBar}&field=${searchFrom}` : ''}`)
+            const queryParams = new URLSearchParams({
+                skip: skip.toLocaleString(),
+                limit: limit.toLocaleString(),
+            });
+            if (formik.values.searchBar.length > 0 && searchFrom) {
+                queryParams.append(searchFrom, formik.values.searchBar);
+            }
+            if (extraQueryParams && typeof (extraQueryParams) === 'object') {
+                for (const [key, value] of Object.entries(extraQueryParams)) {
+                    queryParams.append(key, value?.toLocaleString());
+                }
+            }
+            const response = await sendAPIRequest<any>(`${apiRoute}?${queryParams.toString()}`)
             const newData = Array.isArray(response) ? response : [];
 
             if (newData.length === 0) {
