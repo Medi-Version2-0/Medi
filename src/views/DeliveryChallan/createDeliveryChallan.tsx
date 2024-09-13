@@ -14,9 +14,10 @@ import titleCase from '../../utilities/titleCase';
 import { CreateDeliveryChallanTable } from './createDeliveryChallanTable';
 import { saleChallanFormValidations } from './validation_schema';
 import { Popup } from '../../components/popup/Popup';
-import { useSelector } from 'react-redux';
-import { SelectList } from '../../components/common/selectList';
+import { SelectList } from '../../components/common/customSelectList/customSelectList';
 import { partyHeaders } from '../partywisePriceList/partywiseHeader';
+import { Ledger } from '../ledger';
+import { useTabs } from '../../TabsContext';
 
 export interface DeliveryChallanFormValues {
   oneStation: string;
@@ -71,7 +72,7 @@ export const SchemeSection = ({ togglePopup, heading, className, setOpenDataPopu
                   nextField='scheme2'
                   prevField='scheme1'
                   sideField='scheme1'
-                  showErrorTooltip={ !!(formik.touched.scheme1 && formik.errors.scheme1)}
+                  showErrorTooltip={!!(formik.touched.scheme1 && formik.errors.scheme1)}
                 />
               </div>
               <div className=''> + </div>
@@ -116,16 +117,18 @@ export const SchemeSection = ({ togglePopup, heading, className, setOpenDataPopu
 };
 
 const CreateDeliveryChallan = ({ setView, data }: any) => {
-
+  const { openTab } = useTabs()
   const [stationOptions, setStationOptions] = useState<Option[]>([]);
-  const [partyOptions, setPartyOptions] = useState<Option[]>([]);
+  const [selectedParty, setSelectedParty] = useState<any>()
   const [dataFromTable, setDataFromTable] = useState<any[]>([]);
   const [challanTableData, setChallanTableData] = useState<any[]>([]);
   const [isNetRateSymbol, setIsNetRateSymbol] = useState<string>('');
   const [focused, setFocused] = useState('');
   const queryClient = useQueryClient();
-  const {party: allParty} = useSelector((state:any)=> state.global)
-  const { stations } = useSelector((state: any) => state.global);
+  const [pendingData, setPendingData] = useState({
+    pendingChallansAmount: 0,
+    totalPendingItems: 0
+  })
   const [totalValue, setTotalValue] = useState({
     totalAmt: 0.0,
     totalQty: 0.0,
@@ -133,7 +136,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
     totalGST: 0.0,
     totalCGST: 0.0,
     totalSGST: 0.0,
-    isDefault :true
+    isDefault: true
   });
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
@@ -141,9 +144,9 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
     message: '',
     shouldBack: true
   });
-  const [popupList, setPopupList] = useState<{isOpen:boolean, data:any}>({
-    isOpen :false,
-    data : {}
+  const [popupList, setPopupList] = useState<{ isOpen: boolean, data: any }>({
+    isOpen: false,
+    data: {}
   })
 
   const formik: DeliveryChallanFormInfoType = useFormik({
@@ -155,7 +158,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
       runningBalanceType: data?.runningBalanceType || '',
       challanNumber: data?.challanNumber || '',
       personName: data?.personName || '',
-      date: data?.date || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric'}), // dd//mm//yyyy
+      date: data?.date || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }), // dd//mm//yyyy
       qtyTotal: data?.qtyTotal || '',
       total: data?.total || '',
       totalDiscount: data?.totalDiscount || '',
@@ -178,9 +181,9 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
         if (values.oneStation === 'All Stations') {
           values.stationId = null;
         }
-        if(isNetRateSymbol !== ''){
+        if (isNetRateSymbol !== '') {
           values.netRateSymbol = isNetRateSymbol;
-        }else{
+        } else {
           values.netRateSymbol = 'No';
         }
         values.total = (+totalValue.totalAmt)?.toFixed(2);
@@ -192,7 +195,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
         const finalData = { ...values, challans: dataFromTable };
 
         if (data.id) {
-          await sendAPIRequest(`/deliveryChallan/${data.id}`,{ method: 'PUT', body: finalData });
+          await sendAPIRequest(`/deliveryChallan/${data.id}`, { method: 'PUT', body: finalData });
         } else {
           await sendAPIRequest(`/deliveryChallan`, { method: 'POST', body: finalData });
         }
@@ -202,14 +205,14 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
           isModalOpen: false,
           isAlertOpen: true,
           message: `Delivery Challan ${data.id ? 'updated' : 'created'} successfully`,
-          shouldBack:true
+          shouldBack: true
         });
       } catch (error) {
         setPopupState({
           isModalOpen: false,
           isAlertOpen: true,
           message: `Failed to ${data.id ? 'update' : 'create'} delivery challan`,
-          shouldBack:false
+          shouldBack: false
         });
       }
     },
@@ -217,25 +220,17 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
 
   const fetchAllData = async () => {
     const stations = await sendAPIRequest<any[]>(`/station`);
-    const partyList = await sendAPIRequest<any[]>(`/ledger`);
-
     setStationOptions(
       stations.map((station: any) => ({
         value: station.station_id,
         label: titleCase(station.station_name),
       }))
     );
-    setPartyOptions(
-        allParty.map((party: any) => ({
-          value: party.party_id,
-          label: titleCase(party.partyName),
-        }))
-      );
   };
 
   const handleAlertCloseModal = () => {
-    setPopupState({ ...popupState, isAlertOpen: false , shouldBack:true});
-    if(popupState.shouldBack){
+    setPopupState({ ...popupState, isAlertOpen: false, shouldBack: true });
+    if (popupState.shouldBack) {
       setView({ type: '', data: {} });
     }
   };
@@ -261,45 +256,73 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
 
   useEffect(() => {
     fetchAllData();
-  }, [formik.values.stationId, formik.values.oneStation,allParty]);
-
-
+  }, [formik.values.stationId, formik.values.oneStation]);
 
   useEffect(() => {
     setFocused('oneStation');
     if (data) {
+      fetchPartyById(data.partyId)
       setChallanTableData(data.challans);
     }
   }, []);
 
+  const fetchPartyById = async (id: string) => {
+    if (id) {
+      const resp = await sendAPIRequest(`/ledger/${id}`)
+      if (resp && typeof (resp) === 'object') {
+        setSelectedParty(resp)
+      }
+    }
+  }
+
+  useEffect(() => {
+    const fetchPendingData = async () => {
+      if (formik.values.partyId) {
+        try {
+          const resp: any = await sendAPIRequest(`/deliveryChallan/${formik.values.partyId}`);
+          setPendingData(resp);
+        } catch (error) {
+          console.error('Failed to fetch pending data:', error);
+        }
+      }
+    };
+  
+    fetchPendingData();
+  }, [formik.values.partyId]);
+  
+
 
   const handlePartyList = ()=>{
-    const tableData = formik.values.oneStation  === 'All Stations' ? allParty : allParty.filter((x:any)=> x.station_id === formik.values.stationId) 
-    if (tableData.length) {
+    if (formik.values.oneStation  !== 'All Stations' && !formik.values.stationId){
+      setFocused('stationId')
+      document.getElementById('personName')?.focus();     
+      setPopupState({ 
+        isModalOpen: false,
+        isAlertOpen: true,
+        message: `Select Station first`,
+        shouldBack: false
+      });
+    } 
+    else{
       setPopupList({
         isOpen: true,
         data: {
-          heading: 'Select Party',
+          heading: 'Party',
           headers: [...partyHeaders],
-          tableData: tableData,
-          handleSelect: (rowData: any) => { handleFieldChange({ label: rowData.partyName, value: rowData.party_id }, 'partyId') ,  document.getElementById('personName')?.focus();
+          footers: partyFooterData,
+          newItem: () => openTab('Ledger', <Ledger type='add' />),
+          autoClose: true,
+          apiRoute: '/ledger',
+          ...(formik.values.oneStation === 'One Station' && { extraQueryParams: { stationId: formik.values.stationId } }),
+          searchFrom: 'partyName',
+          handleSelect: (rowData: any) => { handleFieldChange({ label: rowData.partyName, value: rowData.party_id }, 'partyId'), document.getElementById('personName')?.focus(); setSelectedParty(rowData) }
         }
-        }
-    })
-  }
-  else {
-    setFocused('')
-    document.getElementById('personName')?.focus();
-    setPopupState({ 
-      isModalOpen: false,
-      isAlertOpen: true,
-      message: `No Party found`,
-      shouldBack: false
-    });
-  }
+      })
+    }
+
   }
 
-  const partyFooterData:any[] = [
+  const partyFooterData: any[] = [
     {
       label: 'Address',
       data: [
@@ -373,7 +396,6 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
       ]
     },
   ];
-
   return (
     <div className='w-full'>
       <div className='flex w-full items-center justify-between px-8 py-1'>
@@ -489,10 +511,10 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
                 isFocused={focused === 'partyId'}
                 onFocus={handlePartyList}
                 value={
-                  formik.values.partyId === ''
+                  formik.values.partyId === '' || !selectedParty
                     ? null
                     : {
-                      label: partyOptions.find((e) => e.value === formik.values.partyId)?.label,
+                      label: selectedParty?.partyName,
                       value: formik.values.partyId,
                     }
                 }
@@ -504,7 +526,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
                       : 'No party is associated with the selected station. select another station or first create the party'
                     : 'Create a party first'
                 }
-                options={partyOptions}
+                options={[]}
                 isSearchable={true}
                 disableArrow={true}
                 hidePlaceholder={false}
@@ -607,6 +629,21 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
                 inputClassName='disabled:text-gray-800'
               />
             </div>
+            <div className='flex gap-1'>
+              <span>Total Pending Items:</span>
+              <span>{pendingData.totalPendingItems}</span>
+            </div>
+            <div className='flex gap-1'>
+              <span>Total Pending Amount:</span>
+              <span>{pendingData.pendingChallansAmount}</span>
+            </div>
+
+          </div>
+          <div className='flex w-full justify-end'>
+            <div className='flex gap-1'>
+              <span>Party Balance:</span>
+              <span>{selectedParty?.closingBalance || 0} {selectedParty?.closingBalanceType}</span>
+            </div>
           </div>
         </div>
         <div className='my-4 mx-8'>
@@ -614,9 +651,11 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
             setDataFromTable={setDataFromTable}
             setTotalValue={setTotalValue}
             totalValue={totalValue}
+            partyId={formik.values.partyId}
             challanTableData={challanTableData}
             setIsNetRateSymbol={setIsNetRateSymbol}
             setChallanTableData={setChallanTableData}
+            challanId={data?.id}
           />
         </div>
         <div className='border-[1px] border-solid border-gray-400 my-4 p-4 mx-8'>
@@ -626,49 +665,49 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
               <span className='flex gap-2 text-base text-gray-900 p-2'>
                 Total Discount :{' '}
                 <span className='min-w-[50px] text-gray-700'>
-                  {totalValue.totalDiscount >=0 && !totalValue.isDefault ? parseFloat(Number(totalValue.totalDiscount)?.toFixed(2)) : (data?.totalDiscount || 0)}
+                  {totalValue.totalDiscount >= 0 && !totalValue.isDefault ? parseFloat(Number(totalValue.totalDiscount)?.toFixed(2)) : (data?.totalDiscount || 0)}
                 </span>
               </span>
-            </div>            
+            </div>
             <div className="border-[1px] border-solid w-[25%] border-gray-400 relative">
               <span className='absolute top-[-8px] left-2  px-2 w-fit bg-[#fff] text-xs'>Tax Info</span>
               <span className='flex gap-2 text-base text-gray-900 mt-3 mx-2'>
                 SGST :{' '}
                 <span className='min-w-[50px] text-gray-700'>
-                  {totalValue.totalSGST >=0 && !totalValue.isDefault ? parseFloat(Number(totalValue.totalSGST)?.toFixed(2)) : (data?.totalSGST || 0)}
+                  {totalValue.totalSGST >= 0 && !totalValue.isDefault ? parseFloat(Number(totalValue.totalSGST)?.toFixed(2)) : (data?.totalSGST || 0)}
                 </span>
               </span>
               <span className='flex gap-2 text-base text-gray-900 m-2'>
                 CGST :{' '}
                 <span className='min-w-[50px] text-gray-700'>
-                  {totalValue.totalCGST >=0 && !totalValue.isDefault ? parseFloat(Number(totalValue.totalCGST)?.toFixed(2)) : (data?.totalCGST || 0)}
+                  {totalValue.totalCGST >= 0 && !totalValue.isDefault ? parseFloat(Number(totalValue.totalCGST)?.toFixed(2)) : (data?.totalCGST || 0)}
                 </span>
               </span>
               <span className='flex gap-2 text-base text-gray-900 m-2'>
                 Total GST :{' '}
                 <span className='min-w-[50px] text-gray-700'>
-                  {totalValue.totalGST >=0 && !totalValue.isDefault ? parseFloat(Number(totalValue.totalGST)?.toFixed(2)) : (data?.totalGST || 0)}
+                  {totalValue.totalGST >= 0 && !totalValue.isDefault ? parseFloat(Number(totalValue.totalGST)?.toFixed(2)) : (data?.totalGST || 0)}
                 </span>
               </span>
-            </div>    
+            </div>
             <div className="border-[1px] border-solid w-[25%] border-gray-400 relative">
               <span className='absolute top-[-8px] left-2  px-2 w-fit bg-[#fff] text-xs'>Quantity Info</span>
               <span className='flex gap-2 text-base text-gray-900 m-2'>
                 Total Quantity :{' '}
                 <span className='min-w-[50px] text-gray-700'>
-                  {totalValue.totalQty >=0 && !totalValue.isDefault ?  parseFloat(Number(totalValue.totalQty)?.toFixed(2)) : (data?.qtyTotal || 0)}
+                  {totalValue.totalQty >= 0 && !totalValue.isDefault ? parseFloat(Number(totalValue.totalQty)?.toFixed(2)) : (data?.qtyTotal || 0)}
                 </span>
               </span>
-            </div>  
+            </div>
             <div className="border-[1px] border-solid w-[25%] border-gray-400 relative">
               <span className='absolute top-[-8px] left-2  px-2 w-fit bg-[#fff] text-xs'>Total Info</span>
               <span className='flex gap-2 text-base text-gray-900 m-2'>
                 Total :{' '}
                 <span className='min-w-[50px] text-gray-700'>
-                  {totalValue.totalAmt >=0 && !totalValue.isDefault ? parseFloat(Number(totalValue.totalAmt)?.toFixed(2)) : (data?.total || 0)}
+                  {totalValue.totalAmt >= 0 && !totalValue.isDefault ? parseFloat(Number(totalValue.totalAmt)?.toFixed(2)) : (data?.total || 0)}
                 </span>
               </span>
-            </div>          
+            </div>
           </div>
         </div>
         <div className='w-full px-8 py-2'>
@@ -694,14 +733,29 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
           isAlert={popupState.isAlertOpen}
         />
       )}
-      {popupList.isOpen &&  <SelectList
+      {/* {popupList.isOpen &&  <SelectList
           heading={popupList.data.heading}
           closeList={()=> setPopupList({isOpen:false , data : {}})}
           headers={popupList.data.headers}
           tableData={popupList.data.tableData}
           footers={partyFooterData}
           handleSelect={(rowData)=> {popupList.data.handleSelect(rowData)}}
-        />}
+        />} */}
+
+      {popupList.isOpen && <SelectList
+        tableData={[]}
+        heading={popupList.data.heading}
+        closeList={() => setPopupList({ isOpen: false, data: {} })}
+        headers={popupList.data.headers}
+        footers={popupList.data.footers}
+        apiRoute={popupList.data.apiRoute}
+        handleSelect={(rowData) => { popupList.data.handleSelect(rowData) }}
+        handleNewItem={popupList.data?.newItem}
+        searchFrom={popupList.data.searchFrom}
+        autoClose={popupList.data.autoClose}
+        onEsc={popupList.data.onEsc}
+        extraQueryParams = {popupList.data.extraQueryParams || {}}
+      />}
     </div>
   );
 };

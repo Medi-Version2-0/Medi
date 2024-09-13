@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { sendAPIRequest } from '../../helper/api';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { SchemeSection } from './createDeliveryChallan';
-import { schemeTypeOptions, itemHeader, batchHeader, itemFooter } from '../../constants/saleChallan';
+import { schemeTypeOptions, itemHeader, batchHeader, itemFooters, batchFooters, previousItemsList, pendingChallansList } from '../../constants/saleChallan';
 import { ChallanTable } from '../../components/common/challanTable';
-import { useSelector } from 'react-redux';
-import { SelectList } from '../../components/common/selectList';
+import { SelectList } from '../../components/common/customSelectList/customSelectList';
+import Items from '../item';
+import { useTabs } from '../../TabsContext';
+import { sendAPIRequest } from '../../helper/api';
 interface RowData {
   id: number;
   columns: {
@@ -14,7 +15,7 @@ interface RowData {
 }
 
 
-export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTotalValue, challanTableData, setIsNetRateSymbol, setChallanTableData }: any) => {
+export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTotalValue, challanTableData, setIsNetRateSymbol, setChallanTableData, partyId, challanId }: any) => {
   const headers = [
     { name: 'Item name', key: 'itemId', width: '15%', type: 'input', props: { inputType: 'text', label: true, handleFocus: (rowIndex: number, colIndex: number) => handleFocus(rowIndex, colIndex) } },
     { name: 'Batch no', key: 'batchNo', width: '15%', type: 'input', props: { inputType: 'text', label: true, handleFocus: (rowIndex: number, colIndex: number) => handleFocus(rowIndex, colIndex) } },
@@ -41,24 +42,22 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
   const [gridData, setGridData] = useState<RowData[]>(initialRows);
   const [itemValue, setItemValue] = useState<any[]>([]);
   const [batches, setBatches] = useState<any[]>([]);
-  const { item: globalItems , sales ,company , purchase } = useSelector((state: any) => state.global)
   const [focusedRowIndex, setFocusedRowIndex] = useState<number | null>(null);
   const [currentSavedData, setCurrentSavedData] = useState<{ item: any; batch: any; }>({ item: {}, batch: {} });
   const [schemeValue, setSchemeValue] = useState<any>({ scheme1: null, scheme2: null });
   const [open, setOpen] = useState<boolean>(false);
   const [openDataPopup, setOpenDataPopup] = useState<boolean>(false);
   const focusColIndex = useRef(0);
+  const { openTab } = useTabs()
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
     message: '',
   });
-  const [popupList, setPopupList] = useState<{isOpen:boolean, data:any}>({
-    isOpen :false,
-    data : {}
+  const [popupList, setPopupList] = useState<{ isOpen: boolean, data: any }>({
+    isOpen: false,
+    data: {}
   })
-  const cgst = useRef<number | null>(null);
-  const sgst = useRef<number | null>(null);
 
   useEffect(() => {
     updateGridData();
@@ -72,7 +71,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
   }, []);
 
   useEffect(() => {
-    if (challanTableData?.length > 0) {      
+    if (challanTableData?.length > 0) {
       const initialRows: RowData[] = challanTableData.map(
         (rowData: any, rowIndex: number) => {
           const obj = {
@@ -87,7 +86,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
                 };
               } else if (header.key === 'batchNo') {
                 data = {
-                  label: (itemValue.find((x) => x.id === rowData['itemId'])?.ItemBatches || []).find((x: any) => x.id === rowData[header.key])?.batchNo,
+                  label: batches.find((x) => x.id === rowData[header.key])?.batchNo,
                   value: rowData[header.key],
                 };
               }
@@ -100,7 +99,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
               return {
                 ...acc,
                 [header.key]: data,
-                rowId : rowData.id
+                rowId: rowData.id
               };
             }, {}),
           };
@@ -108,24 +107,58 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
         }
       );
       setGridData(initialRows);
+      calculateTotals(initialRows)
     }
   }, [challanTableData, itemValue]);
 
   useEffect(() => {
-    const allItems = JSON.parse(JSON.stringify(itemValue));
-    challanTableData?.forEach((challanItem:any) => {
-   const selectedItem = allItems.find((item:any) => item.id === challanItem.itemId);
-      if (selectedItem) {
-        const batch = selectedItem.ItemBatches.find((batch:any) => batch.id === challanItem.batchNo);
-        if (batch) {
-          batch.currentStock += challanItem.qty;
+    const setItemAndBatches = async () => {
+      if (challanId) {
+        try {
+          const resp = await sendAPIRequest(`/deliveryChallan/items/${challanId}`, { method: 'POST' });
+          if (resp && Array.isArray(resp)) {
+            const newItemValues: any = [];
+            const newBatches: any = [];
+            const processedItemIds = new Set();
+            const processedBatchNos = new Set();
+
+            resp.forEach(item => {
+              if (!processedItemIds.has(item.itemId)) {
+                newItemValues.push(item.Item);
+                processedItemIds.add(item.itemId);
+              }
+              if (!processedBatchNos.has(item.batchNo)) {
+                newBatches.push({ ...item.ItemBatch, additionalStockQty: item.schemeType === 'P' ? (item.qty + item.scheme) : item.qty });
+                processedBatchNos.add(item.batchNo);
+              } else {
+                const batchIndex = newBatches.findIndex((b: any) => b.id === item.batchNo);
+                if (batchIndex !== -1) {
+                  const existingBatch = newBatches[batchIndex];
+                  const additionalStock = item.schemeType === 'P' ? (item.qty + item.scheme) : item.qty;
+                  existingBatch.additionalStockQty = (existingBatch.additionalStockQty || 0) + additionalStock;
+                }
+              }
+            });
+
+            setItemValue(prevItemValue => [
+              ...prevItemValue,
+              ...newItemValues.filter((item: any) => !prevItemValue.some(i => i.id === item.id))
+            ]);
+
+            setBatches(prevBatches => [
+              ...prevBatches.filter(batch => !processedBatchNos.has(batch.id)),
+              ...newBatches
+            ]);
+
+          }
+        } catch (error) {
+          console.error('Error fetching data:', error);
         }
       }
-    });
-      setItemValue(allItems)    
-  }, [challanTableData])
-  
+    };
 
+    setItemAndBatches();
+  }, [challanId]);
 
   const updateGridData = () => {
     if (focusedRowIndex === null) return;
@@ -151,14 +184,29 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
         newGridData[focusedRowIndex].columns['batchNo']
       );
     }
-    
-    if(focusColIndex.current === 0){
-      handleFocus(focusedRowIndex,1)
-       }
 
-    if(focusColIndex.current === 1){
-      document.getElementById(`cell-${focusedRowIndex}-${focusColIndex.current + 1}`)?.focus();
+    if (focusColIndex.current === 0) {
+      if (partyId) {
+        setPopupList({
+          isOpen: true,
+          data: {
+            heading: 'Previous Challan Items',
+            headers: [...previousItemsList],
+            apiRoute: `/deliveryChallan/items/${partyId}/${currentSavedData.item.id}`,
+            handleSelect: () => { handleFocus(focusedRowIndex, 1) },
+            onEsc: () => { handleFocus(focusedRowIndex, 1) },
+            autoClose: false
+          }
+        })
       }
+      else {
+        handleFocus(focusedRowIndex, 1)
+      }
+    }
+
+    if (focusColIndex.current === 1) {
+      document.getElementById(`cell-${focusedRowIndex}-${focusColIndex.current + 1}`)?.focus();
+    }
 
   };
 
@@ -178,68 +226,69 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
         if (openDataPopup) setOpenDataPopup(false);
         if (togglePopup) togglePopup(false);
         break;
+      case 'p':
+      case 'P':
+        if (event.ctrlKey) {
+          pendingChallans()
+        }
+        break;
       default:
         break;
     }
   };
 
   useEffect(() => {
-    fetchItems();
-  }, [])
+    if (!gridData.length) {
+      return setGridData(initialRows)
+    }
+    return handleSave();
+  }, [gridData])
 
-  
-const updateUnlockedBatch = (unlockedBatch:any[], gridData:any[]) => {
-  const updatedBatch = unlockedBatch.map(batch => {
-    const totalQuantity = gridData
-      .filter(item => item.columns.batchNo.value === batch.id)
-      .reduce((sum, item) => Number(sum) + Number(item.columns.qty), 0);
-    
-    return {
-      ...batch,
-      currentStock: batch.currentStock - totalQuantity
-    };
-  });
-
-  return updatedBatch;
-};
 
   const handleFocus = (rowIndex: number, colIndex: number) => {
     focusColIndex.current = colIndex;
-    console.log('saved Data --> ',currentSavedData)
     setFocusedRowIndex(rowIndex);
     if (colIndex === 0) {
       setPopupList({
         isOpen: true,
         data: {
-          heading: 'Select Item',
+          heading: 'Item',
           headers: [...itemHeader],
-          footers : [...itemFooter],
-          tableData: itemValue,
-          handleSelect: (rowData: any) => { setCurrentSavedData({...currentSavedData , item : rowData})
+          footers: itemFooters,
+          newItem: () => openTab('Items', <Items type='add' />),
+          apiRoute: '/item',
+          searchFrom: 'name',
+          handleSelect: (rowData: any) => { setCurrentSavedData({ ...currentSavedData, item: rowData });
+          const isItemExists = itemValue.some((item: any) => item.id === rowData.id);
+          if (!isItemExists) {
+            setItemValue([...itemValue, rowData]);
+          }
+        },
+          autoClose: true
+
         }
-    }})
+      })
     }
-    if (colIndex === 1 ) {
+    if (colIndex === 1) {
       if (challanTableData && challanTableData.length > 0 && rowIndex < challanTableData.length) {
-        const item = challanTableData[rowIndex];
-        const selectedItem = itemValue.find((data: any) => data.id === item.itemId);
-        if (selectedItem) {
-          const unlockedBatches = selectedItem.ItemBatches.filter((x:any)=> x.locked.toLowerCase() !== 'y');
-          setBatches(unlockedBatches);
-          setPopupList({
-            isOpen: true,
-            data: {
-              heading: 'Select Batch',
-              headers: [...batchHeader],
-              tableData: updateUnlockedBatch(unlockedBatches , gridData),
-              handleSelect: (rowData: any) => { setCurrentSavedData({...currentSavedData , batch : rowData})
-            }
-        }})
-        }
+        setPopupList({
+          isOpen: true,
+          data: {
+            heading: 'Batch',
+            headers: [...batchHeader],
+            footers: batchFooters,
+            newItem: () => openTab('Item', <Items batchData={currentSavedData.item} />),
+            apiRoute: '/item',
+            handleSelect: (rowData: any) => { setCurrentSavedData({ ...currentSavedData, batch: rowData }) },
+            autoClose: true
+
+          }
+        })
+
       }
       else {
         const selectedItem = itemValue.find((item: any) => item.id === gridData[rowIndex].columns.itemId?.value);
-        if (!selectedItem){
+        if (!selectedItem) {
           setPopupState({
             ...popupState,
             isAlertOpen: true,
@@ -248,18 +297,28 @@ const updateUnlockedBatch = (unlockedBatch:any[], gridData:any[]) => {
           });
           return document.getElementById(`cell-${rowIndex}-${focusColIndex.current + 1}`)?.focus();
         }
-        const unlockedBatch = selectedItem?.ItemBatches.filter((x:any)=> x.locked.toLowerCase() !== 'y')
-        if (selectedItem && unlockedBatch.length) {
-          setBatches(unlockedBatch);
+        if (selectedItem) {
           setPopupList({
             isOpen: true,
             data: {
-              heading: 'Select Batch',
+              heading: 'Batch',
               headers: [...batchHeader],
-              tableData: updateUnlockedBatch(unlockedBatch , gridData),
-              handleSelect: (rowData: any) => { setCurrentSavedData({...currentSavedData , batch : rowData})
+              footers: batchFooters,
+              newItem: () => openTab('Item', <Items batchData={currentSavedData.item} />),
+              apiRoute: `/item/${currentSavedData.item.id}/batch`,
+              searchFrom: 'batchNo',
+              autoClose: true,
+              handleSelect: (rowData: any) => {
+                setCurrentSavedData({ ...currentSavedData, batch: rowData });
+                const isBatchExists = batches.some((batch: any) => batch.id === rowData.id);
+                if (!isBatchExists) {
+                  setBatches([...batches, rowData]);
+                }
+
+              },
+
             }
-        }})
+          })
         }
         else {
           setPopupState({
@@ -268,27 +327,11 @@ const updateUnlockedBatch = (unlockedBatch:any[], gridData:any[]) => {
             message:
               'No unlocked batch associated with this items',
           });
-         return document.getElementById(`cell-${rowIndex}-${focusColIndex.current + 1}`)?.focus();
+          return document.getElementById(`cell-${rowIndex}-${focusColIndex.current + 1}`)?.focus();
         }
       }
     }
   }
-
-  const fetchItems = async () => {
-    const items = [...globalItems]
-    items.map((item: any) => {
-      item.company = company.find((comp: any) => comp.company_id === item.compId)?.companyName;
-      item.sales = sales.find((sale: any) => sale.sp_id === item.saleAccId)?.sptype;
-      item.purchase = purchase.find((purchase: any) => purchase.sp_id === item.purAccId)?.sptype;
-      item.ItemBatches = item.ItemBatches.map((batch: any) => {
-        return {
-          ...batch,
-          updatedOpFree: parseFloat(((batch.opFree / batch.opBalance) * 100).toFixed(2))          
-        }
-      })
-    })
-    setItemValue(items);
-  };
 
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
@@ -296,12 +339,6 @@ const updateUnlockedBatch = (unlockedBatch:any[], gridData:any[]) => {
 
   const handleClosePopup = () => {
     setPopupState({ ...popupState, isModalOpen: false });
-  };
-
-  const getSalesPurchaseData = async () => {
-    const sale = await sendAPIRequest<any[]>(`/sale`);
-    const purchase = await sendAPIRequest<any[]>(`/purchase`);
-    return [...sale, ...purchase];
   };
 
   const handleInputChange = async ({ rowIndex, header, value }: any) => {
@@ -312,20 +349,11 @@ const updateUnlockedBatch = (unlockedBatch:any[], gridData:any[]) => {
 
   const updateTaxAndGst = async (rowIndex: number, value: any) => {
     const newGridData = [...gridData];
-    const company = await sendAPIRequest<any[]>(`/company`);
-    let selectedItem = '';
-    if (value !== undefined || !!value) {
-      selectedItem = value.value;
-    }
-    const item = itemValue?.find((item: any) => item.id === selectedItem);
-    const spData = await getSalesPurchaseData();
-    const salesPurchaseSelected = spData.find((data: any) => data.sp_id === item?.saleAccId);
-    const taxTypeInitial = salesPurchaseSelected?.sptype;
-    const isStateInOut = company.find((comp: any) => comp.company_id === item?.compId)?.stateInOut;
+    const item = itemValue?.find((item: any) => item.id === value?.value);
     newGridData[rowIndex].columns = {
       ...newGridData[rowIndex].columns,
-      taxType: taxTypeInitial,
-      gstAmount: isStateInOut === 'Within State' ? Number(salesPurchaseSelected.cgst) + Number(salesPurchaseSelected.sgst) : isStateInOut === 'Out Of State' ? Number(salesPurchaseSelected.igst) : 0,
+      taxType: item.saleAccount.sptype,
+      gstAmount: item.company?.stateInOut === 'Within State' ? Number(item.saleAccount.cgst) + Number(item.saleAccount.sgst) : item.company?.stateInOut === 'Out Of State' ? Number(item.saleAccount.igst) : 0,
     };
     setGridData(newGridData);
   };
@@ -334,8 +362,8 @@ const updateUnlockedBatch = (unlockedBatch:any[], gridData:any[]) => {
     if (selectedOption) handleInputChange({ rowIndex, header, value: selectedOption || {} });
   };
 
-  const handleTotalAmt = ({ rowIndex , data }: {rowIndex : number , data?:any[]}) => {
-    const newGridData =  [...(data?.length ? data :gridData)];
+  const handleTotalAmt = ({ rowIndex, data }: { rowIndex: number, data?: any[] }) => {
+    const newGridData = [...(data?.length ? data : gridData)];
     const { qty, schemeType, rate, disPer } = newGridData[rowIndex].columns;
     let { scheme } = newGridData[rowIndex].columns;
     let total = rate * qty;
@@ -351,32 +379,34 @@ const updateUnlockedBatch = (unlockedBatch:any[], gridData:any[]) => {
     total = parseFloat(total.toFixed(2));
 
     newGridData.map(async (data: any) => {
-      const item = itemValue?.find((item: any) => item.name === data.columns.itemId.label); 
-      const spData = await getSalesPurchaseData();
-      const salesPurchaseSelected = spData.find((data: any) => data.sp_id === item?.saleAccId);
-      const isStateInOut = company.find((comp: any) => comp.company_id === item?.compId)?.stateInOut;
-
-      if(isStateInOut === 'Within State'){
-      data.columns.cgst = Number(salesPurchaseSelected.cgst);
-      data.columns.sgst = Number(salesPurchaseSelected.sgst);
+      const item = itemValue?.find((item: any) => item.id === data.columns.itemId.value);
+      const isStateInOut = item?.company?.stateInOut
+      if (isStateInOut === 'Within State') {
+        data.columns.cgst = Number(item.saleAccount.cgst);
+        data.columns.sgst = Number(item.saleAccount.sgst);
       }
     })
-
-    const totalDiscount = newGridData.reduce((acc, data) => acc + (data.columns.amt * data.columns.disPer) / 100, 0);
-    const totalGST = newGridData.reduce((acc, data) => acc + ((data.columns.amt - (data.columns.amt * data.columns.disPer) / 100) * data.columns.gstAmount) / 100, 0);
-    const totalCGST = newGridData.reduce((acc, data) => acc + ((data.columns.amt - (data.columns.amt * data.columns.disPer) / 100) * data.columns.cgst) / 100, 0);
-    const totalSGST = newGridData.reduce((acc, data) => acc + ((data.columns.amt - (data.columns.amt * data.columns.disPer) / 100) * data.columns.sgst) / 100, 0);
-    const totalAmt = newGridData.reduce((acc, data) => acc + (data.columns.amt - (data.columns.amt * data.columns.disPer) / 100) + ((data.columns.amt - (data.columns.amt * data.columns.disPer) / 100) * data.columns.gstAmount) / 100, 0);
-    const totalQty = newGridData.reduce((acc, data) => acc + Number(data.columns.qty) + (data.columns.scheme !== '' && data.columns.schemeType.label === 'Pieces' ? Number(data.columns.scheme) : 0), 0);
     setGridData(newGridData);
+    calculateTotals(newGridData)
+  };
+
+  const calculateTotals = (data: typeof gridData) => {
+    const newGridData = [...(data?.length ? data : gridData)];
+    const totalDiscount = newGridData.reduce((acc, item) => acc + (item.columns.amt * item.columns.disPer) / 100, 0);
+    const totalGST = newGridData.reduce((acc, item) => acc + ((item.columns.amt - (item.columns.amt * item.columns.disPer) / 100) * item.columns.gstAmount) / 100, 0);
+    const totalCGST = newGridData.reduce((acc, item) => acc + ((item.columns.amt - (item.columns.amt * item.columns.disPer) / 100) * item.columns.cgst) / 100, 0);
+    const totalSGST = newGridData.reduce((acc, item) => acc + ((item.columns.amt - (item.columns.amt * item.columns.disPer) / 100) * item.columns.sgst) / 100, 0);
+    const totalAmt = newGridData.reduce((acc, item) => acc + (item.columns.amt - (item.columns.amt * item.columns.disPer) / 100) + ((item.columns.amt - (item.columns.amt * item.columns.disPer) / 100) * item.columns.gstAmount) / 100, 0);
+    const totalQty = newGridData.reduce((acc, item) => acc + Number(item.columns.qty) + (item.columns.scheme !== '' && item.columns.schemeType.label === 'Pieces' ? Number(item.columns.scheme) : 0), 0);
+
     setTotalValue({
       ...totalValue,
-      totalAmt: totalAmt,
-      totalQty: totalQty,
-      totalDiscount: totalDiscount,
-      totalGST: totalGST,
-      totalCGST: totalCGST,
-      totalSGST: totalSGST,
+      totalAmt,
+      totalQty,
+      totalDiscount,
+      totalGST,
+      totalCGST,
+      totalSGST,
       isDefault: false
     });
   };
@@ -390,15 +420,10 @@ const updateUnlockedBatch = (unlockedBatch:any[], gridData:any[]) => {
       setIsNetRateSymbol('Yes');
     }
     setDataFromTable(dataToSend);
-    setPopupState({
-      ...popupState,
-      isAlertOpen: true,
-      message: 'Table Data saved successfully.',
-    });
   };
 
   const handleRemainingQty = (rowIndex: number, selectedBatch: any) => {
-    let remainingQty = selectedBatch?.currentStock;
+    let remainingQty = selectedBatch?.currentStock + (selectedBatch.additionalStockQty || 0);
     gridData.forEach((data: any, index: number) => {
       if (index < rowIndex && data.columns['batchNo']?.value === selectedBatch?.id) {
         if (data.columns['scheme'] !== '' && data.columns['schemeType'].label === 'Pieces') {
@@ -408,19 +433,15 @@ const updateUnlockedBatch = (unlockedBatch:any[], gridData:any[]) => {
         }
       }
     });
-    return remainingQty;
+    remainingQty -= (gridData[rowIndex].columns['schemeType'].label === 'Pieces' ? Number(gridData[rowIndex].columns['scheme']) : 0);
+    return remainingQty
   };
 
   const handleQtyInput = (rowIndex: number, value: any) => {
     const updatedGridData = [...gridData];
-    const selectedBatch = value?.label;
-    const batch = batches?.find((batch: any) => batch.batchNo === selectedBatch);
-    if (rowIndex) {
-      const remainingQty = handleRemainingQty(rowIndex, batch);
-      updatedGridData[rowIndex].columns.qty = remainingQty;
-    } else {
-      updatedGridData[rowIndex].columns.qty = batch?.currentStock;
-    }
+    const batch = batches?.find((batch: any) => batch.id === value?.value);
+    const remainingQty = handleRemainingQty(rowIndex, batch);
+    updatedGridData[rowIndex].columns.qty = remainingQty;
     updatedGridData[rowIndex].columns.rate = batch?.salePrice;
     updatedGridData[rowIndex].columns.mrp = batch?.mrp;
     updatedGridData[rowIndex].columns.expDate = batch?.expiryDate;
@@ -435,7 +456,7 @@ const updateUnlockedBatch = (unlockedBatch:any[], gridData:any[]) => {
       if (data.columns['batchNo'].value === selectedBatch?.value) {
         if (data.columns['scheme'] !== '' && data.columns['schemeType'].label === 'Pieces') {
           sum = sum + Number(data.columns['qty']) + Number(data.columns['scheme']);
-          if (sum > batch?.currentStock) {
+          if (sum > batch?.currentStock + (batch?.additionalStockQty || 0)) {
             setPopupState({
               ...popupState,
               isAlertOpen: true,
@@ -446,7 +467,7 @@ const updateUnlockedBatch = (unlockedBatch:any[], gridData:any[]) => {
           }
         } else {
           sum += Number(data.columns['qty']);
-          if (sum > batch?.currentStock) {
+          if (sum > batch?.currentStock + (batch?.additionalStockQty || 0)) {
             setPopupState({
               ...popupState,
               isAlertOpen: true,
@@ -460,88 +481,56 @@ const updateUnlockedBatch = (unlockedBatch:any[], gridData:any[]) => {
     }
   };
 
-  const handleDeleteRow = (rowIndex: number, data: any) => {
-    const updateItems = [...itemValue]
-    const itemIndex = updateItems.findIndex((x: any) => x.id === data.columns.itemId?.value)
-    if (itemIndex >= 0) {
-      const batchIndex = updateItems[itemIndex].ItemBatches.findIndex((x: any) => x.id === data.columns.batchNo?.value)
-      if (batchIndex >= 0) {
-        updateItems[itemIndex].ItemBatches[batchIndex].currentStock += (Number(data.columns.qty) + (data.columns.scheme !== '' && data.columns.schemeType.label === 'Pieces' ? Number(data.columns.scheme) : 0))
-        if (challanTableData?.length && challanTableData.find((x: any) => x.id === data.columns.rowId)) {
-          setChallanTableData(challanTableData.filter((x: any) => x.id !== data.columns.rowId))
-          handleTotalAmt({ rowIndex: rowIndex - 1, data: gridData.filter((_, ind) => ind !== rowIndex) })
-        }
-        setItemValue(updateItems)
+  // const handleDeleteRow = (rowIndex: number, data: any) => {
+  //   const updateItems = [...itemValue]
+  //   const itemIndex = updateItems.findIndex((x: any) => x.id === data.columns.itemId?.value)
+  //   if (itemIndex >= 0) {
+  //     const batchIndex = updateItems[itemIndex].ItemBatches.findIndex((x: any) => x.id === data.columns.batchNo?.value)
+  //     if (batchIndex >= 0) {
+  //       updateItems[itemIndex].ItemBatches[batchIndex].currentStock += (Number(data.columns.qty) + (data.columns.scheme !== '' && data.columns.schemeType.label === 'Pieces' ? Number(data.columns.scheme) : 0))
+  //       if (challanTableData?.length && challanTableData.find((x: any) => x.id === data.columns.rowId)) {
+  //         setChallanTableData(challanTableData.filter((x: any) => x.id !== data.columns.rowId))
+  //         handleTotalAmt({ rowIndex: rowIndex - 1, data: gridData.filter((_, ind) => ind !== rowIndex) })
+  //       }
+  //       // setItemValue(updateItems)
+  //     }
+  //   }
+  // }
+
+const pendingChallans = ()=>{
+  if(partyId){
+    setPopupList({
+      isOpen: true,
+      data: {
+        heading: 'Pending Challan Items',
+        headers: [...pendingChallansList],
+        apiRoute: `/deliveryChallan/pending/${partyId}`,
+        handleSelect: () => { },
+        autoClose: true
       }
-    }
+    })
   }
+}
 
-
-  const itemFooters = [
-    {
-      label: 'Item Info',
-      data: [
-        { label: 'Item name', key: "name" },
-        { label: 'Company', key: 'company' },
-        { label: 'DPCOAct', key: 'dpcoact' },
-        { label: 'HSN/SAC', key: 'hsnCode' },
-      ]
-    },
-    {
-      label: 'Tax Info',
-      data: [
-        { label: 'Sales', key: "sales" },
-        { label: 'Purchase', key: 'purchase' },
-      ]
-    },
-    {
-      label: 'Other Info',
-      data: [
-        { label: 'Discount Percent', key: "discountPer" },
-        { label: 'Schedule Drug', key: 'scheduleDrug' },
-        { label: 'Prescription', key: 'prescriptionType' },
-      ]
-    }
-  ]
-
-  const batchFooters = [
-    {
-      label: 'Purchase Info',
-      data: [
-        { label: 'Purchase Price', key: 'purPrice' },
-        { label: 'MRP', key: 'mrp' },
-      ]
-    },
-    {
-      label: 'Selling Info',
-      data: [
-        { label: 'Sale Price 1', key: "salePrice" },
-        { label: 'Sale Price 2', key: "salePrice2" },
-        { label: 'Sale Price 3', key: "salePrice3" },
-        { label: 'Sale Price 4', key: "salePrice4" },
-        { label: 'Sale Price 5', key: "salePrice5" },
-      ]
-    },
-    {
-      label: 'Other Info',
-      data: [
-        { label: 'Batch', key: 'batchNo' },
-        { label: 'Stocks', key: "currentStock" },
-      ]
-    },
-  ]
   return (
-    <div className="">
+    <div className="flex flex-col gap-1">
       <ChallanTable
         headers={headers}
         gridData={gridData}
         setGridData={setGridData}
-        handleSave={handleSave}
-        withAddRow = {()=> setCurrentSavedData({ item: {}, batch: {} })}
-        rowDeleteCallback={handleDeleteRow}
-        newRowTrigger={headers.length-3}
+        withAddRow={() => setCurrentSavedData({ item: {}, batch: {} })}
+        // rowDeleteCallback={handleDeleteRow}
+        newRowTrigger={headers.length - 3}
       />
-
+      {partyId && <div className="flex justify-end">
+        <button
+          type="button"
+          className="px-4 py-2 bg-[#009196FF] hover:bg-[#009196e3] font-medium text-white rounded-md border-none focus:border-yellow-500 focus-visible:border-yellow-500"
+          onClick={pendingChallans}
+        >
+          Pending Challans
+        </button>
+      </div>}
       {popupState.isAlertOpen && (
         <Confirm_Alert_Popup
           onClose={handleClosePopup}
@@ -556,15 +545,19 @@ const updateUnlockedBatch = (unlockedBatch:any[], gridData:any[]) => {
           setSchemeValue={setSchemeValue}
         />
       )}
-      {popupList.isOpen &&  <SelectList
-          heading={popupList.data.heading}
-          closeList={()=> setPopupList({isOpen:false , data : {}})}
-          headers={popupList.data.headers}
-          footers={popupList.data.heading.includes("Batch")? batchFooters : itemFooters}
-        // footers={[{ label: popupList.data.footers.label, data: [{ key: popupList.data.footers.label }] }]}
-          tableData={popupList.data.tableData}
-          handleSelect={(rowData)=> {popupList.data.handleSelect(rowData)}}
-        />}
+      {popupList.isOpen && <SelectList
+        tableData={[]}
+        heading={popupList.data.heading}
+        closeList={() => setPopupList({ isOpen: false, data: {} })}
+        headers={popupList.data.headers}
+        footers={popupList.data.footers}
+        apiRoute={popupList.data.apiRoute}
+        handleSelect={(rowData) => { popupList.data.handleSelect(rowData) }}
+        handleNewItem={popupList.data?.newItem}
+        searchFrom={popupList.data.searchFrom}
+        autoClose={popupList.data.autoClose}
+        onEsc={popupList.data.onEsc}
+      />}
     </div>
   );
 

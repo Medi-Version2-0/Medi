@@ -150,6 +150,7 @@ export const Container = <FormValues,>({
                     id={field.id}
                     name={field.name}
                     formik={formik}
+                    onBlur={field.onBlur}
                     isTitleCase={field.isTitleCase}
                     className='!mb-0'
                     inputClassName='mr-4 text-xs py-3.5'

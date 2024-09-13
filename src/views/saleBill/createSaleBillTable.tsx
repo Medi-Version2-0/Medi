@@ -1,10 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { sendAPIRequest } from '../../helper/api';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
-import { SelectList } from '../../components/common/selectList';
-import { schemeTypeOptions, itemHeader, batchHeader, itemFooter, batchFooters, itemFooters } from '../../constants/saleChallan';
+import { SelectList } from '../../components/common/customSelectList/customSelectList';
+import { schemeTypeOptions, itemHeader, batchHeader, itemFooters, batchFooters } from '../../constants/saleChallan';
 import { ChallanTable } from '../../components/common/challanTable';
 import { useSelector } from 'react-redux';
+import { useTabs } from '../../TabsContext';
+import Items from '../item';
 
 interface RowData {
   id: number;
@@ -46,6 +48,7 @@ export const CreateSaleBillTable = ({ setDataFromTable, totalValue, setTotalValu
   const [schemeValue, setSchemeValue] = useState<any>({ scheme1: null, scheme2: null });
   const [open, setOpen] = useState<boolean>(false);
   const [openDataPopup, setOpenDataPopup] = useState<boolean>(false);
+  const { openTab } = useTabs()
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
@@ -213,21 +216,6 @@ export const CreateSaleBillTable = ({ setDataFromTable, totalValue, setTotalValu
     }
   };
 
-  const updateUnlockedBatch = (unlockedBatch: any[], gridData: any[]) => {
-    const updatedBatch = unlockedBatch.map(batch => {
-      const totalQuantity = gridData
-        .filter(item => item.columns.batchNo.value === batch.id)
-        .reduce((sum, item) => Number(sum) + Number(item.columns.qty) + (item.columns?.schemeType?.label === 'Pieces' ? Number(item.columns.scheme) : 0), 0);
-
-      return {
-        ...batch,
-        currentStock: batch.currentStock - totalQuantity
-      };
-    });
-
-    return updatedBatch;
-  };
-
   const handleFocus = (rowIndex: number, colIndex: number) => {
     if (!!billTableData && isEditing.current === false && rowIndex < billTableData.length) return;
     if (!!billTableData && rowIndex < billTableData.length && isEditing.current === true && billTableData[rowIndex]?.isFromChallan) return;
@@ -239,9 +227,18 @@ export const CreateSaleBillTable = ({ setDataFromTable, totalValue, setTotalValu
         data: {
           heading: 'Select Item',
           headers: [...itemHeader],
-          footers: [...itemFooter],
-          tableData: itemValue,
-          handleSelect: (rowData: any) => setCurrentSavedData({ ...currentSavedData, item: rowData })
+          footers: [...itemFooters],
+          newItem: () => openTab('Items', <Items type='add' />),
+          apiRoute: '/item',
+          searchFrom: 'name',
+          handleSelect: (rowData: any) => {
+            setCurrentSavedData({ ...currentSavedData, item: rowData });
+            const isItemExists = itemValue.some((item: any) => item.id === rowData.id);
+            if(!isItemExists) {
+              setItemValue([...itemValue, rowData]);
+            }
+          },
+          autoClose: true
         }
       })
     }
@@ -250,35 +247,44 @@ export const CreateSaleBillTable = ({ setDataFromTable, totalValue, setTotalValu
         const item = billTableData[rowIndex];
         const selectedItem = itemValue.find((data: any) => data.id === item.itemId);
         if (selectedItem) {
-          const unlockedBatches = selectedItem.ItemBatches.filter((x: any) => x.locked.toLowerCase() !== 'y');
-          setBatches(unlockedBatches);
           setPopupList({
             isOpen: true,
             data: {
               heading: 'Select Batch',
               headers: [...batchHeader],
-              tableData: updateUnlockedBatch(unlockedBatches, gridData),
-              handleSelect: (rowData: any) => setCurrentSavedData({ ...currentSavedData, batch: rowData })
+              footers: batchFooters,
+              newItem: () => openTab('Item', <Items batchData={currentSavedData.item} />),
+              apiRoute: '/item',
+              handleSelect: (rowData: any) => setCurrentSavedData({ ...currentSavedData, batch: rowData }),
+              autoClose: true
             }
           })
         }
       }
       else {
-        const selectedItem = itemValue.find((item: any) => item.name === currentSavedData.item.name);
+        const selectedItem = itemValue.find((item: any) => item.id === currentSavedData.item.id);
         if (!selectedItem) {
           settingPopupState(false, 'Select the item first...');
           return document.getElementById(`cell-${rowIndex}-${focusColIndex.current + 1}`)?.focus();
         }
-        const unlockedBatch = selectedItem?.ItemBatches.filter((x: any) => x.locked.toLowerCase() !== 'y')
-        if (selectedItem && unlockedBatch.length) {
-          setBatches(unlockedBatch);
+        if (selectedItem) {
           setPopupList({
             isOpen: true,
             data: {
               heading: 'Select Batch',
               headers: [...batchHeader],
-              tableData: updateUnlockedBatch(unlockedBatch, gridData),
-              handleSelect: (rowData: any) => setCurrentSavedData({ ...currentSavedData, batch: rowData })
+              footers: batchFooters,
+              newItem: () => openTab('Item', <Items batchData={currentSavedData.item} />),
+              apiRoute: `/item/${currentSavedData.item.id}/batch`,
+              searchFrom: 'batchNo',
+              autoClose: true,
+              handleSelect: (rowData: any) => {
+                setCurrentSavedData({ ...currentSavedData, batch: rowData });
+                const isBatchExists = batches.some((batch: any) => batch.id === rowData.id);
+                if (!isBatchExists) {
+                  setBatches([...batches, rowData]);
+                }
+              },
             }
           })
         }
@@ -315,12 +321,6 @@ export const CreateSaleBillTable = ({ setDataFromTable, totalValue, setTotalValu
     setPopupState({ ...popupState, isModalOpen: false });
   };
 
-  const getSalesPurchaseData = async () => {
-    const sale = await sendAPIRequest<any[]>(`/sale`);
-    const purchase = await sendAPIRequest<any[]>(`/purchase`);
-    return [...sale, ...purchase];
-  };
-
   const handleInputChange = async ({ rowIndex, header, value }: any) => {
     if (!!billTableData && rowIndex < billTableData.length && isEditing.current === false) return;
     if (!!billTableData && rowIndex < billTableData.length && isEditing.current === true && billTableData[rowIndex]?.isFromChallan) return;
@@ -331,22 +331,18 @@ export const CreateSaleBillTable = ({ setDataFromTable, totalValue, setTotalValu
 
   const updateTaxAndGst = async (rowIndex: number, value: any) => {
     const newGridData = [...gridData];
-    const company = await sendAPIRequest<any[]>(`/company`);
     let selectedItem = '';
     if (value !== undefined || !!value) {
       selectedItem = value.value;
     }
     const item = itemValue?.find((item: any) => item.id === selectedItem);
-    const spData = await getSalesPurchaseData();
-    const salesPurchaseSelected = spData.find((data: any) => data.sp_id === item?.saleAccId);
-    cgst.current = Number(salesPurchaseSelected?.cgst);
-    sgst.current = Number(salesPurchaseSelected?.cgst);
-    const taxTypeInitial = salesPurchaseSelected?.sptype;
+    cgst.current = Number(item.saleAccount?.cgst);
+    sgst.current = Number(item.saleAccount?.cgst);
     const isStateInOut = company.find((comp: any) => comp.company_id === item?.compId)?.stateInOut;
     newGridData[rowIndex].columns = {
       ...newGridData[rowIndex].columns,
-      taxType: taxTypeInitial,
-      gstAmount: isStateInOut === 'Within State' ? Number(salesPurchaseSelected.cgst) + Number(salesPurchaseSelected.sgst) : isStateInOut === 'Out Of State' ? Number(salesPurchaseSelected.igst) : 0,
+      taxType: item.saleAccount.sptype,
+      gstAmount: isStateInOut === 'Within State' ? Number(item.saleAccount.cgst) + Number(item.saleAccount.sgst) : isStateInOut === 'Out Of State' ? Number(item.saleAccount.igst) : 0,
     };
     setGridData(newGridData);
   };
@@ -375,14 +371,12 @@ export const CreateSaleBillTable = ({ setDataFromTable, totalValue, setTotalValu
       total = parseFloat(total.toFixed(2));
 
       newGridData.map(async (data: any) => {
-        const item = itemValue?.find((item: any) => item.name === data.columns.itemId.label);
-        const spData = await getSalesPurchaseData();
-        const salesPurchaseSelected = spData.find((data: any) => data.sp_id === item?.saleAccId);
+        const item = itemValue?.find((item: any) => item.id === data.columns.itemId.value);
         const isStateInOut = company.find((comp: any) => comp.company_id === item?.compId)?.stateInOut;
 
         if (isStateInOut === 'Within State') {
-          data.columns.cgst = Number(salesPurchaseSelected.cgst);
-          data.columns.sgst = Number(salesPurchaseSelected.sgst);
+          data.columns.cgst = Number(item.saleAccount.cgst);
+          data.columns.sgst = Number(item.saleAccount.sgst);
         }
       })
 
@@ -413,21 +407,23 @@ export const CreateSaleBillTable = ({ setDataFromTable, totalValue, setTotalValu
   const handleRemainingQty = (rowIndex: number, selectedBatch: any) => {
     let remainingQty = selectedBatch?.currentStock;
     gridData.forEach((data: any, index: number) => {
-      if (index < rowIndex && data.columns['batchNo']?.label === selectedBatch?.batchNo) {
-        if (data.columns['scheme'] !== '' && data.columns['schemeType'].label === 'Pieces') {
-          remainingQty = remainingQty - (Number(data.columns['qty']) + Number(data.columns['scheme']));
-        } else {
-          remainingQty -= Number(data.columns['qty']);
+      if((data.columns['isFromChallan' as keyof any] === undefined || null) && (data.columns['isSaleBillCreated' as keyof any] === undefined || null)){
+        if (index < rowIndex && data.columns['batchNo']?.value === selectedBatch?.id) {
+          if (data.columns['scheme'] !== '' && data.columns['schemeType'].label === 'Pieces') {
+            remainingQty = remainingQty - (Number(data.columns['qty']) + Number(data.columns['scheme']));
+          } else {
+            remainingQty -= Number(data.columns['qty']);
+          }
         }
       }
     });
+    remainingQty -= (gridData[rowIndex].columns['schemeType'].label === 'Pieces' ? Number(gridData[rowIndex].columns['scheme']) : 0);
     return remainingQty;
   };
 
   const handleQtyInput = (rowIndex: number, value: any) => {
     const updatedGridData = [...gridData];
-    const selectedBatch = value?.label;
-    const batch = batches?.find((batch: any) => batch.batchNo === selectedBatch);
+    const batch = batches?.find((batch: any) => batch.id === value?.value);
     if (rowIndex) {
       const remainingQty = handleRemainingQty(rowIndex, batch);
       updatedGridData[rowIndex].columns.qty = remainingQty;
@@ -443,9 +439,9 @@ export const CreateSaleBillTable = ({ setDataFromTable, totalValue, setTotalValu
   const handleQtyChange = ({ row }: any) => {
     let sum = 0;
     const selectedBatch = row.columns['batchNo'];
-    const batch = batches?.find((batch: any) => batch.batchNo === selectedBatch?.label);
+    const batch = batches?.find((batch: any) => batch.id === selectedBatch?.value);
     for (const data of gridData) {
-      if (data.columns['batchNo'].label === selectedBatch?.label) {
+      if (data.columns['batchNo'].value === selectedBatch?.value) {
         if (data.columns['scheme'] !== '' && data.columns['schemeType'].label === 'Pieces') {
           sum = sum + Number(data.columns['qty']) + Number(data.columns['scheme']);
           if (sum > batch?.currentStock) {
@@ -498,19 +494,18 @@ export const CreateSaleBillTable = ({ setDataFromTable, totalValue, setTotalValu
           isAlert={popupState.isAlertOpen}
         />
       )}
-      {/* {open && (
-        <SchemeSection
-          togglePopup={togglePopup}
-          setSchemeValue={setSchemeValue}
-        />
-      )} */}
       {popupList.isOpen && <SelectList
+        tableData={[]}
         heading={popupList.data.heading}
         closeList={() => setPopupList({ isOpen: false, data: {} })}
         headers={popupList.data.headers}
-        footers={popupList.data.heading.includes("Batch") ? batchFooters : itemFooters}
-        tableData={popupList.data.tableData}
+        footers={popupList.data.footers}
+        apiRoute={popupList.data.apiRoute}
         handleSelect={(rowData) => { popupList.data.handleSelect(rowData) }}
+        handleNewItem={popupList.data?.newItem}
+        searchFrom={popupList.data.searchFrom}
+        autoClose={popupList.data.autoClose}
+        onEsc={popupList.data.onEsc}
       />}
     </div>
   );

@@ -23,13 +23,13 @@ export const schemeTypeOptions = [
 export const itemHeader = [
   { label: 'ID', key: 'id' },
   { label: 'Name', key: 'name' },
-  { label: 'Company', key: 'company' },
-  { label: 'Sales', key: 'sales' },
-  { label: 'Purchase', key: 'purchase' },
+  { label: 'Company', key: 'company.companyName' },
+  { label: 'Sales', key: 'saleAccount.sptype' },
+  { label: 'Purchase', key: 'purchaseAccount.sptype' },
 ];
 export const itemHeaderForSaleBill = [
   { label: 'ID', key: 'id' },
-  { label: 'Name', key: 'name' },
+  { label: 'Name', key: 'Item.name' },
   { label: 'Quantity', key: 'qty' },
 ];
 export const challanHeaderForSaleBill = [
@@ -46,21 +46,13 @@ export const batchHeader = [
   { label: 'Scheme', key: 'opFree' },
 ];
 
-export const itemFooter = [
-  { label: 'Discount Per', key: 'discountPer' },
-  { label: 'DPCOACT', key: 'dpcoact' },
-  { label: 'Schedule Drug', key: 'scheduleDrug' },
-  { label: 'Sales', key: 'sales' },
-  { label: 'Purchase', key: 'purchase' },
-  { label: 'Scheme', key: 'updatedOpFree' },
-];
 
 export const itemFooters = [
   {
     label: 'Item Info',
     data: [
-      { label: 'Item name', key: 'name' },
-      { label: 'Company', key: 'company' },
+      { label: 'Item name', key: "name" },
+      { label: 'Company', key: 'company.companyName' },
       { label: 'DPCOAct', key: 'dpcoact' },
       { label: 'HSN/SAC', key: 'hsnCode' },
     ],
@@ -68,9 +60,9 @@ export const itemFooters = [
   {
     label: 'Tax Info',
     data: [
-      { label: 'Sales', key: 'sales' },
-      { label: 'Purchase', key: 'purchase' },
-    ],
+      { label: 'Sales', key: "saleAccount.sptype" },
+      { label: 'Purchase', key: 'saleAccount.sptype' },
+    ]
   },
   {
     label: 'Other Info',
@@ -107,4 +99,20 @@ export const batchFooters = [
       { label: 'Stocks', key: 'currentStock' },
     ],
   },
+]
+
+export const previousItemsList = [
+  { label: 'Item', key: 'Item.name' },
+  { label: 'Batch', key: 'ItemBatch.batchNo' },
+  { label: 'Qty', key: 'qty' },
+  { label: 'Rate', key: 'rate' },
+  { label: 'DisPer', key: 'disPer' },
+  { label: 'Tax', key: 'taxType' },
+  { label: 'Expiry Date', key: 'expDate' },
+];
+
+export const pendingChallansList = [
+  { label: 'Date', key: 'date' },
+  { label: 'Challan Number', key: 'challanNumber' },
+  { label: 'Total', key: 'total' },
 ];

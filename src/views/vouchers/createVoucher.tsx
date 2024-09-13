@@ -62,11 +62,11 @@ const CreateVouchers = ({ setView, data }: any) => {
   ];
 
   const commonHeaders1 = [
-    { name: 'Party', key: 'partyName', width: '16vw', type: 'input', props: { inputType: 'text', label: true, required: true, handleFocus: (rowIndex: number, colIndex: number) => { handleFocus(rowIndex, colIndex) } } },
-    { name: 'Narration', key: 'narration', width: '20vw', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
-    { name: 'Amount (₹)', key: 'amount', width: '15vw', type: 'input', props: { inputType: 'number', required: true, handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); }, } },
+    { name: 'Party', key: 'partyName', width: '17%', type: 'input', props: { inputType: 'text', label: true, required: true, handleFocus: (rowIndex: number, colIndex: number) => { handleFocus(rowIndex, colIndex) } } },
+    { name: 'Narration', key: 'narration', width: '20%', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'Amount (₹)', key: 'amount', width: '15%', type: 'input', props: { inputType: 'number', required: true, handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); }, } },
     {
-      name: 'Dr/Cr', key: 'debitOrCredit', width: '15vw', type: 'input', props: {
+      name: 'Dr/Cr', key: 'debitOrCredit', width: '15%', type: 'input', props: {
         inputType: 'text', handleChange: (args: handleChangeInHeaders) => {  
       if(args.header === 'debitOrCredit' && args.value){
         args.value = args.value[0].toUpperCase() + args.value.slice(1);
@@ -75,25 +75,25 @@ const CreateVouchers = ({ setView, data }: any) => {
     }, readOnly: false} },
   ];
   const checkNoCheckDateHeaders = [
-    { name: 'Cheque No.', key: 'chequeNumber', width: '12vw', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
-    { name: 'Cheque Date', key: 'chequeDate', width: '15vw', type: 'input', props: { inputType: 'date', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'Cheque No.', key: 'chequeNumber', width: '12%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'Cheque Date', key: 'chequeDate', width: '15%', type: 'input', props: { inputType: 'date', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
   ];
   const discountHeader = [
-    { name: 'Discount (₹)', key: 'discount', width: '14vw', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'Discount (₹)', key: 'discount', width: '14%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
   ];
   const commonHeaders2 = [
-    // { name: 'Party Balance', key: 'partyBalance', width: '20vw', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
-    { name: 'Discount Narration', key: 'disNarration', width: '27vw', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } }
+    // { name: 'Party Balance', key: 'partyBalance', width: '20%', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'Discount Narration', key: 'disNarration', width: '27%', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } }
   ];
   const gstNatureConditionHeaders = [
-    { name: 'Instrument Type', key: 'instrumentType', width: '18vw', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
-    { name: 'Invoice No.', key: 'invoiceNumber', width: '10vw', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
-    { name: 'Invoice Date', key: 'invoiceDate', width: '15vw', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
-    { name: 'HSN Code', key: 'hsnCode', width: '12vw', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
-    { name: 'GST Rate', key: 'gstRate', width: '15vw', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
-    { name: 'SGST', key: 'sgstValue', width: '8vw', type: 'input', props: { inputType: 'number', readOnly : true, handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
-    { name: 'CGST', key: 'cgstValue', width: '8vw', type: 'input', props: { inputType: 'number', readOnly : true, handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
-    { name: 'IGST', key: 'igstValue', width: '8vw', type: 'input', props: { inputType: 'number', readOnly : true, handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'Instrument Type', key: 'instrumentType', width: '18%', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'Invoice No.', key: 'invoiceNumber', width: '10%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'Invoice Date', key: 'invoiceDate', width: '15%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'HSN Code', key: 'hsnCode', width: '12%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'GST Rate', key: 'gstRate', width: '15%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'SGST', key: 'sgstValue', width: '8%', type: 'input', props: { inputType: 'number', readOnly : true, handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'CGST', key: 'cgstValue', width: '8%', type: 'input', props: { inputType: 'number', readOnly : true, handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'IGST', key: 'igstValue', width: '8%', type: 'input', props: { inputType: 'number', readOnly : true, handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
   ];
 
   const partyHeaders = [

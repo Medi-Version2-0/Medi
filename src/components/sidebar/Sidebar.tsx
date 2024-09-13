@@ -29,17 +29,18 @@ import { ControlRoomSettings } from '../common/controlRoom/ControlRoomSettings';
 import { useControls } from '../../ControlRoomContext';
 import PriceList from '../../views/partywisePriceList/PriceList';
 import CopyPratywisePriceList from '../../views/partywisePriceList/copyPartyWisePriseList';
+import { useTabs } from '../../TabsContext';
 
 interface SidebarProps {
   isGroup?: boolean;
   isSubGroup?: boolean;
-  openTab?: (title: string, component: React.ReactNode) => void;
+  // openTab?: (title: string, component: React.ReactNode) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
   isGroup = false,
   isSubGroup = false,
-  openTab,
+  // openTab,
 }) => {
   const [showSubElements, setShowSubElements] = useState({
     master: false,
@@ -48,7 +49,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const permissions = usePermission()
   const [isSidebar, setIsSidebar] = useState<boolean>(true);
   const { controlRoomSettings } = useControls();
-
+  const {openTab} = useTabs()
   const isNotReadAccess = (key: string) => {
     if (permissions[key]) {
       return !permissions[key].readAccess

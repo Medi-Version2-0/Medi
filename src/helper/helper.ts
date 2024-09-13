@@ -55,3 +55,7 @@ export const validateField = async (schema: any, field: string, value: any) => {
     return error.message;
   }
 };
+
+export const getNestedValue = (obj: any, path: string): any => {
+  return path.split('.').reduce((acc, key) => acc && acc[key], obj);
+};

@@ -6,10 +6,10 @@ import * as Yup from 'yup';
 import CustomSelect from '../../components/custom_select/CustomSelect';
 import { Option } from '../../interface/global';
 import Button from '../../components/common/button/Button';
-import { SelectList } from '../../components/common/selectList';
+import { SelectList } from '../../components/common/customSelectList/customSelectList';
 import { challanHeaderForSaleBill, itemHeaderForSaleBill } from '../../constants/saleChallan';
 
-export const PendingChallanPopup = ({ heading, className, challanItemsByPartyId, setBillTableData, isEditing, setPendingChallansPopup }: any) => {
+export const PendingChallanPopup = ({ heading, className, challanItemsByPartyId, setBillTableData, isEditing, setPendingChallansPopup, partyId }: any) => {
   const [focused, setFocused] = useState('');
   const [popupList, setPopupList] = useState<{ isOpen: boolean, data: any }>({ isOpen: false, data: {} })
 
@@ -59,33 +59,27 @@ export const PendingChallanPopup = ({ heading, className, challanItemsByPartyId,
     if (selectItem === 'No of Items') {
       pendingChallansFormik.setFieldValue('itemsSelected', challanItemsByPartyId.length);
     } else if (selectItem === 'Select By *') {
-      const tableData = challanItemsByPartyId.map((challans: any) => ({
-        id: challans.id,
-        name: challans.Item?.name,
-        qty: challans.qty,
-      }));
       setPopupList({
         isOpen: true,
         data: {
           heading: 'Select Items',
           headers: [...itemHeaderForSaleBill],
-          tableData: tableData,
-          handleSelect: (selectedData: any) => handleSelectChallansByItems(selectedData, 'id')
+          apiRoute: `/invoiceBill/challans/${partyId}`,
+          searchFrom: 'name',
+          handleSelect: (selectedData: any) => handleSelectChallansByItems(selectedData, 'id'),
+          autoClose: true
         }
       })
     } else if (selectItem === 'Select by CH. NO.') {
-      const tableData = challanItemsByPartyId.map((challans: any) => ({
-        challanId: challans.challanId,
-        challanNumber: challans.challanNumber,
-      })).filter((challan: any, index: number, self: any) => index === self.findIndex((c: any) => c.challanNumber === challan.challanNumber));
-
       setPopupList({
         isOpen: true,
         data: {
           heading: 'Select Challan',
           headers: [...challanHeaderForSaleBill],
-          tableData: tableData,
-          handleSelect: (selectedData: any) => handleSelectChallansByItems(selectedData, 'challanNumber')
+          apiRoute: `/invoiceBill/challans/${partyId}`,
+          searchFrom: 'challanNumber',
+          handleSelect: (selectedData: any) => handleSelectChallansByItems(selectedData, 'challanNumber'),
+          autoClose: true
         }
       })
     } else {
@@ -185,17 +179,21 @@ export const PendingChallanPopup = ({ heading, className, challanItemsByPartyId,
                   </div>
                 )}
               </form>
-              {popupList.isOpen && (
-                <SelectList
-                  heading={popupList.data.heading}
-                  closeList={() => setPopupList({ isOpen: false, data: {} })}
-                  headers={popupList.data.headers}
-                  tableData={popupList.data.tableData}
-                  handleSelect={(rowData) => { popupList.data.handleSelect(rowData) }}
-                  selectMultiple={true}
-                />
-              )
-              }
+              {popupList.isOpen && <SelectList
+                tableData={[]}
+                heading={popupList.data.heading}
+                closeList={() => setPopupList({ isOpen: false, data: {} })}
+                headers={popupList.data.headers}
+                footers={popupList.data.footers}
+                apiRoute={popupList.data.apiRoute}
+                handleSelect={(rowData) => { popupList.data.handleSelect(rowData) }}
+                handleNewItem={popupList.data?.newItem}
+                searchFrom={popupList.data.searchFrom}
+                autoClose={popupList.data.autoClose}
+                onEsc={popupList.data.onEsc}
+                extraQueryParams={popupList.data.extraQueryParams || {}}
+                selectMultiple={true}
+              />}
               <div className='w-full flex justify-end p-2'>
                 <Button
                   type='fill'

@@ -463,6 +463,7 @@ export type FieldConfig = {
   isTitleCase?: boolean;
   onFocus?: () => void;
   onChange?: () => void;
+  onBlur?: () => void;
 };
 
 export type SaleBillFormInfoType = FormikProps<saleBillFormValues>;

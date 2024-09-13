@@ -13,10 +13,13 @@ import { CreateSaleBillTable } from './createSaleBillTable';
 import { saleBillFormValidations } from './vaildation_schema';
 import { PendingChallanPopup } from './pendingChallanPopup';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
-import { SelectList } from '../../components/common/selectList';
+import { SelectList } from '../../components/common/customSelectList/customSelectList';
 import { BillBookFormData, LedgerFormData, Option, SaleBillFormInfoType, StationFormData } from '../../interface/global';
 import { DrugLicenceSection } from './drugLicenceSection';
 import { partyHeaders } from '../partywisePriceList/partywiseHeader';
+import { partyFooterData } from '../../constants/saleBill';
+import { useTabs } from '../../TabsContext';
+import { Ledger } from '../ledger';
 
 const CreateSaleBill = ({ setView, data }: any) => {
   const [options, setOptions] = useState<{ seriesOption: Option[]; stationOption: Option[]; partyOption: Option[]; }>({ seriesOption: [], stationOption: [], partyOption: [] });
@@ -33,6 +36,7 @@ const CreateSaleBill = ({ setView, data }: any) => {
   const [pendingChallansPopup, setPendingChallansPopup] = useState<boolean>(false);
   const isEditing = useRef<boolean>(false);
   const invoiceNo = useRef<string>('');
+  const { openTab } = useTabs();
 
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
@@ -122,7 +126,6 @@ const CreateSaleBill = ({ setView, data }: any) => {
   }, []);
 
   useEffect(() => {
-    console.log("Data ----> ", data);
     if (data) {
       isEditing.current = true;
       setBillTableData(data.bills);
@@ -223,6 +226,24 @@ const CreateSaleBill = ({ setView, data }: any) => {
         togglePopup(true);
       }
       getChallanItemsByPartyId();
+      checkCreditLimit(); 
+    }
+  }
+
+  const checkCreditLimit = async () => {
+    const partyId = SaleBillFormInfo.values.partyId;
+    const getTotalCreditAndDebit = await sendAPIRequest<any>(`/invoiceBill/getTotalDebitCredit/${partyId}`);
+    const parties = await sendAPIRequest<any[]>(`/ledger`);
+    const party = parties?.find((party: any) => party.party_id === partyId);
+    const {totalCredit, totalDebit} = getTotalCreditAndDebit;
+
+    if(!!party.creditLimit && party.closingBalanceType === 'Dr' && party.closingBalance > party.crediLimit){
+      settingPopupState(false,'Credit limit exceeds for this party. Please choose another party');
+      setFocused('billBookSeriesId');
+    }
+    if(totalDebit > totalCredit){
+      settingPopupState(false,'Credit days limit exceeds');
+      setFocused('billBookSeriesId');
     }
   }
 
@@ -251,14 +272,18 @@ const CreateSaleBill = ({ setView, data }: any) => {
   };
 
   const handlePartyList = () => {
-    const tableData = SaleBillFormInfo.values.oneStation === 'All Stations' ? ledgerPartyData : ledgerPartyData.filter((x: any) => x.station_id === SaleBillFormInfo.values.stationId)
-    if (tableData.length) {
+    if (SaleBillFormInfo.values.oneStation === 'One Station' && !!SaleBillFormInfo.values.stationId) {
       setPopupList({
         isOpen: true,
         data: {
           heading: 'Select Party',
           headers: [...partyHeaders],
-          tableData: tableData,
+          footers: partyFooterData,
+          newItem: () => openTab('Ledger', <Ledger type='add' />),
+          autoClose: true,
+          apiRoute: '/ledger',
+          ...(SaleBillFormInfo.values.oneStation === 'One Station' && { extraQueryParams: { stationId: SaleBillFormInfo.values.stationId } }),
+          searchFrom: 'partyName',
           handleSelect: (rowData: any) => { handleFieldChange({ label: rowData.partyName, value: rowData.party_id }, 'partyId'), document.getElementById('invoiceNumber')?.focus() }
         }
       })
@@ -271,6 +296,21 @@ const CreateSaleBill = ({ setView, data }: any) => {
   }
 
   const totalChallanAmt = challanItemsByPartyId.reduce((acc: number, curr: { amt: number }) => acc + curr.amt, 0);
+
+  const handleBlur = (id: string) => {
+    if (id === 'invoiceNumber') {
+      const expectedValue = parseInt(invoiceNo.current?.replace(/\D/g, ''), 10);
+      const actualValue = parseInt(SaleBillFormInfo.values.invoiceNumber?.replace(/\D/g, ''), 10);
+      if (actualValue != expectedValue && actualValue > expectedValue) {
+        settingPopupState(false, `Pending Invoices : ${Number(actualValue) - Number(expectedValue)}`);
+        setFocused('terms');
+      } else if (actualValue != expectedValue && actualValue < expectedValue) {
+        settingPopupState(false, `Invoice No is already in use`);
+        document.getElementById('invoiceNumber')?.focus();
+        setFocused('invoiceNumber');
+      }
+    }
+  }
 
   const basicInfoFields = [
     {
@@ -323,6 +363,7 @@ const CreateSaleBill = ({ setView, data }: any) => {
       label: 'Invoice No',
       id: 'invoiceNumber',
       name: 'invoiceNumber',
+      onBlur: () => handleBlur('invoiceNumber'),
       isTitleCase: false,
       isRequired: true,
       type: 'text',
@@ -506,6 +547,7 @@ const CreateSaleBill = ({ setView, data }: any) => {
             setBillTableData={setBillTableData}
             isEditing={isEditing}
             setPendingChallansPopup={setPendingChallansPopup}
+            partyId={SaleBillFormInfo.values.partyId}
           />}
           <div className='mb-4'>
             <CreateSaleBillTable
@@ -563,11 +605,18 @@ const CreateSaleBill = ({ setView, data }: any) => {
         />
       )}
       {popupList.isOpen && <SelectList
+        tableData={[]}
         heading={popupList.data.heading}
         closeList={() => setPopupList({ isOpen: false, data: {} })}
         headers={popupList.data.headers}
-        tableData={popupList.data.tableData}
+        footers={popupList.data.footers}
+        apiRoute={popupList.data.apiRoute}
         handleSelect={(rowData) => { popupList.data.handleSelect(rowData) }}
+        handleNewItem={popupList.data?.newItem}
+        searchFrom={popupList.data.searchFrom}
+        autoClose={popupList.data.autoClose}
+        onEsc={popupList.data.onEsc}
+        extraQueryParams={popupList.data.extraQueryParams || {}}
       />}
     </div>
   );

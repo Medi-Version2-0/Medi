@@ -18,7 +18,7 @@ const SaleBill = () => {
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<any>(null);
   const editing = useRef(false);
-  const { createAccess, updateAccess, deleteAccess } = usePermission('sale_bill')
+  const { createAccess, updateAccess, deleteAccess } = usePermission('invoicebill')
   const id = useRef('');
   const queryClient = useQueryClient();
 

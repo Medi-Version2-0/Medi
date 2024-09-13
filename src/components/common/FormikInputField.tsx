@@ -37,6 +37,7 @@ interface FormikInputFieldProps {
   inputClassName?: string;
   onClick?: (e: React.MouseEvent<HTMLInputElement>) => void;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onBlur?: (e: React.FocusEvent<any>) => void;
   isDisabled?: boolean;
   nextField?: string;
   prevField?: string;
@@ -60,6 +61,7 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
   name,
   onChange,
   onKeyDown,
+  onBlur,
   className,
   labelClassName,
   inputClassName,
@@ -157,7 +159,7 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
         name={name}
         maxLength={maxLength}
         className={`w-full border border-solid border-[#9ca3af] text-[10px] text-gray-800 h-full rounded-sm p-1 appearance-none disabled:text-[#4c4c4c] disabled:bg-[#f5f5f5] focus:rounded-none focus:!outline-yellow-500 focus:bg-[#EAFBFCFF] ${!!(formik.touched[id] && formik.errors[id]) && '!border-red-500'} ${inputClassName}`}
-        onBlur={formik.handleBlur}
+        onBlur={onBlur || formik.handleBlur}
         onChange={onChange || handleChange}
         onKeyDown={handleKeyDown}
         onClick={onClick}
