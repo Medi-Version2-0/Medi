@@ -196,6 +196,7 @@ export const SelectList = ({
             makeRecordVisibility(focusedRowIndex >= 1 ? focusedRowIndex - 2 : -1);
         } else if (event.key === 'Enter') {
             event.preventDefault();
+            event.stopPropagation();
             if (!tableData.length) return;
             handleSelect(focusedRowData);
             if (autoClose) {
