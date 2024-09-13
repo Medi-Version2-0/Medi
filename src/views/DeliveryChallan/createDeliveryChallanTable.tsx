@@ -258,61 +258,78 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
           newItem: () => openTab('Items', <Items type='add' />),
           apiRoute: '/item',
           searchFrom: 'name',
-          handleSelect: (rowData: any) => {
-            setCurrentSavedData({ ...currentSavedData, item: rowData });
-            const isItemExists = itemValue.some((item: any) => item.id === rowData.id);
-            if (!isItemExists) {
-              setItemValue([...itemValue, rowData]);
-            }
-          },
+          handleSelect: (rowData: any) => { setCurrentSavedData({ ...currentSavedData, item: rowData });
+          const isItemExists = itemValue.some((item: any) => item.id === rowData.id);
+          if (!isItemExists) {
+            setItemValue([...itemValue, rowData]);
+          }
+        },
           autoClose: true
 
         }
       })
     }
     if (colIndex === 1) {
-
-      const selectedItem = itemValue.find((item: any) => item.id === gridData[rowIndex].columns.itemId?.value);
-      if (!selectedItem) {
-        setPopupState({
-          ...popupState,
-          isAlertOpen: true,
-          message:
-            'Select item name first',
-        });
-        return document.getElementById(`cell-${rowIndex}-${focusColIndex.current + 1}`)?.focus();
-      }
-      if (selectedItem) {
+      if (challanTableData && challanTableData.length > 0 && rowIndex < challanTableData.length) {
         setPopupList({
           isOpen: true,
           data: {
             heading: 'Batch',
             headers: [...batchHeader],
             footers: batchFooters,
-            newItem: () => openTab('Item', <Items batchData={itemValue.find((x) => x.id === gridData[rowIndex].columns.itemId?.value)} />),
-            apiRoute: `/item/${gridData[rowIndex].columns.itemId?.value}/batch`,
-            searchFrom: 'batchNo',
-            autoClose: true,
-            handleSelect: (rowData: any) => {
-              setCurrentSavedData({ ...currentSavedData, batch: rowData });
-              const isBatchExists = batches.some((batch: any) => batch.id === rowData.id);
-              if (!isBatchExists) {
-                setBatches([...batches, rowData]);
-              }
-            },
+            newItem: () => openTab('Item', <Items batchData={currentSavedData.item} />),
+            apiRoute: '/item',
+            handleSelect: (rowData: any) => { setCurrentSavedData({ ...currentSavedData, batch: rowData }) },
+            autoClose: true
+
           }
         })
+
       }
       else {
-        setPopupState({
-          ...popupState,
-          isAlertOpen: true,
-          message:
-            'No unlocked batch associated with this items',
-        });
-        return document.getElementById(`cell-${rowIndex}-${focusColIndex.current + 1}`)?.focus();
-      }
+        const selectedItem = itemValue.find((item: any) => item.id === gridData[rowIndex].columns.itemId?.value);
+        if (!selectedItem) {
+          setPopupState({
+            ...popupState,
+            isAlertOpen: true,
+            message:
+              'Select item name first',
+          });
+          return document.getElementById(`cell-${rowIndex}-${focusColIndex.current + 1}`)?.focus();
+        }
+        if (selectedItem) {
+          setPopupList({
+            isOpen: true,
+            data: {
+              heading: 'Batch',
+              headers: [...batchHeader],
+              footers: batchFooters,
+              newItem: () => openTab('Item', <Items batchData={currentSavedData.item} />),
+              apiRoute: `/item/${currentSavedData.item.id}/batch`,
+              searchFrom: 'batchNo',
+              autoClose: true,
+              handleSelect: (rowData: any) => {
+                setCurrentSavedData({ ...currentSavedData, batch: rowData });
+                const isBatchExists = batches.some((batch: any) => batch.id === rowData.id);
+                if (!isBatchExists) {
+                  setBatches([...batches, rowData]);
+                }
 
+              },
+
+            }
+          })
+        }
+        else {
+          setPopupState({
+            ...popupState,
+            isAlertOpen: true,
+            message:
+              'No unlocked batch associated with this items',
+          });
+          return document.getElementById(`cell-${rowIndex}-${focusColIndex.current + 1}`)?.focus();
+        }
+      }
     }
   }
 
@@ -335,7 +352,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     const item = itemValue?.find((item: any) => item.id === value?.value);
     newGridData[rowIndex].columns = {
       ...newGridData[rowIndex].columns,
-      taxType: item.saleAccount?.sptype,
+      taxType: item.saleAccount.sptype,
       gstAmount: item.company?.stateInOut === 'Within State' ? Number(item.saleAccount.cgst) + Number(item.saleAccount.sgst) : item.company?.stateInOut === 'Out Of State' ? Number(item.saleAccount.igst) : 0,
     };
     setGridData(newGridData);
@@ -480,20 +497,20 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
   //   }
   // }
 
-  const pendingChallans = () => {
-    if (partyId) {
-      setPopupList({
-        isOpen: true,
-        data: {
-          heading: 'Pending Challan Items',
-          headers: [...pendingChallansList],
-          apiRoute: `/deliveryChallan/pending/${partyId}`,
-          handleSelect: () => { },
-          autoClose: true
-        }
-      })
-    }
+const pendingChallans = ()=>{
+  if(partyId){
+    setPopupList({
+      isOpen: true,
+      data: {
+        heading: 'Pending Challan Items',
+        headers: [...pendingChallansList],
+        apiRoute: `/deliveryChallan/pending/${partyId}`,
+        handleSelect: () => { },
+        autoClose: true
+      }
+    })
   }
+}
 
   return (
     <div className="flex flex-col gap-1">

@@ -27,6 +27,15 @@ export const itemHeader = [
   { label: 'Sales', key: 'saleAccount.sptype' },
   { label: 'Purchase', key: 'purchaseAccount.sptype' },
 ];
+export const itemHeaderForSaleBill = [
+  { label: 'ID', key: 'id' },
+  { label: 'Name', key: 'Item.name' },
+  { label: 'Quantity', key: 'qty' },
+];
+export const challanHeaderForSaleBill = [
+  { label: 'ID', key: 'challanId' },
+  { label: 'Challan Number', key: 'challanNumber' },
+];
 
 export const batchHeader = [
   { label: 'ID', key: 'id' },
@@ -46,7 +55,7 @@ export const itemFooters = [
       { label: 'Company', key: 'company.companyName' },
       { label: 'DPCOAct', key: 'dpcoact' },
       { label: 'HSN/SAC', key: 'hsnCode' },
-    ]
+    ],
   },
   {
     label: 'Tax Info',
@@ -58,12 +67,12 @@ export const itemFooters = [
   {
     label: 'Other Info',
     data: [
-      { label: 'Discount Percent', key: "discountPer" },
+      { label: 'Discount Percent', key: 'discountPer' },
       { label: 'Schedule Drug', key: 'scheduleDrug' },
       { label: 'Prescription', key: 'prescriptionType' },
-    ]
-  }
-]
+    ],
+  },
+];
 
 export const batchFooters = [
   {
@@ -71,24 +80,24 @@ export const batchFooters = [
     data: [
       { label: 'Purchase Price', key: 'purPrice' },
       { label: 'MRP', key: 'mrp' },
-    ]
+    ],
   },
   {
     label: 'Selling Info',
     data: [
-      { label: 'Sale Price 1', key: "salePrice" },
-      { label: 'Sale Price 2', key: "salePrice2" },
-      { label: 'Sale Price 3', key: "salePrice3" },
-      { label: 'Sale Price 4', key: "salePrice4" },
-      { label: 'Sale Price 5', key: "salePrice5" },
-    ]
+      { label: 'Sale Price 1', key: 'salePrice' },
+      { label: 'Sale Price 2', key: 'salePrice2' },
+      { label: 'Sale Price 3', key: 'salePrice3' },
+      { label: 'Sale Price 4', key: 'salePrice4' },
+      { label: 'Sale Price 5', key: 'salePrice5' },
+    ],
   },
   {
     label: 'Other Info',
     data: [
       { label: 'Batch', key: 'batchNo' },
-      { label: 'Stocks', key: "currentStock" },
-    ]
+      { label: 'Stocks', key: 'currentStock' },
+    ],
   },
 ]
 
@@ -101,7 +110,6 @@ export const previousItemsList = [
   { label: 'Tax', key: 'taxType' },
   { label: 'Expiry Date', key: 'expDate' },
 ];
-
 
 export const pendingChallansList = [
   { label: 'Date', key: 'date' },

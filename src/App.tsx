@@ -31,6 +31,7 @@ import DeliveryChallan from './views/DeliveryChallan';
 import { Organization } from './views/organization';
 import InitialFirmSetup from './views/home/InitialFirmSetup';
 import UserForm from './views/user/UserForm';
+import SaleBill from './views/saleBill';
 
 export const App = () => {
   return (
@@ -110,6 +111,12 @@ const AppRoot = () => {
         path='/deliveryChallan'
         element={
           <ProtectedRoute element={<DeliveryChallan />} requiredPermissions={['admin']} />
+        }
+      />
+      <Route
+        path='/saleBill'
+        element={
+          <ProtectedRoute element={<SaleBill />} requiredPermissions={['admin']} />
         }
       />
     </Routes>

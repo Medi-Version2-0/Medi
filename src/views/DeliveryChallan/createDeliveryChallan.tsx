@@ -286,24 +286,24 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
         }
       }
     };
-
+  
     fetchPendingData();
   }, [formik.values.partyId]);
+  
 
 
-
-  const handlePartyList = () => {
-    if (formik.values.oneStation !== 'All Stations' && !formik.values.stationId) {
+  const handlePartyList = ()=>{
+    if (formik.values.oneStation  !== 'All Stations' && !formik.values.stationId){
       setFocused('stationId')
-      document.getElementById('personName')?.focus();
-      setPopupState({
+      document.getElementById('personName')?.focus();     
+      setPopupState({ 
         isModalOpen: false,
         isAlertOpen: true,
         message: `Select Station first`,
         shouldBack: false
       });
-    }
-    else {
+    } 
+    else{
       setPopupList({
         isOpen: true,
         data: {
@@ -754,7 +754,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
         searchFrom={popupList.data.searchFrom}
         autoClose={popupList.data.autoClose}
         onEsc={popupList.data.onEsc}
-        extraQueryParams={popupList.data.extraQueryParams || {}}
+        extraQueryParams = {popupList.data.extraQueryParams || {}}
       />}
     </div>
   );

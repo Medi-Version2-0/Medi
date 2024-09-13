@@ -21,6 +21,7 @@ import DeliveryChallan from '../../views/DeliveryChallan';
 import { Vouchers } from '../../views/vouchers/index'
 import { Organization } from '../../views/organization';
 import usePermission from '../../hooks/useRole';
+import SaleBill from '../../views/saleBill';
 type SubElementKey = 'master' | 'setup';
 import { useSelector } from 'react-redux';
 import { generalSettingFields } from '../common/controlRoom/settings';
@@ -168,6 +169,12 @@ const Sidebar: React.FC<SidebarProps> = ({
       label: 'Vouchers',
       onClick: () => openTab?.('Vouchers', <Vouchers />),
       isDisabled: isNotReadAccess('vouchers')
+    },
+    {
+      url: '/saleBill',
+      label: 'Sale Bill',
+      onClick: () => openTab?.('Sale Bill', <SaleBill />),
+      isDisabled: isNotReadAccess('sale_bill')
     }
   ];
 

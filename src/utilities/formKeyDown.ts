@@ -3,7 +3,9 @@ import { FormikProps } from 'formik';
 type FormikPropsType = FormikProps<any>;
 
 interface HandleKeyDownParams {
-  e: React.KeyboardEvent<HTMLInputElement | HTMLButtonElement>;
+  e: React.KeyboardEvent<
+    HTMLInputElement | HTMLButtonElement | HTMLTextAreaElement
+  >;
   formik?: FormikPropsType;
   focusedSetter?: (field: string) => void;
   radioField?: {

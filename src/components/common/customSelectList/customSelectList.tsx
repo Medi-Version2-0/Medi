@@ -7,6 +7,7 @@ import { getNestedValue } from '../../../helper/helper';
 import { MdAddCircleOutline } from "react-icons/md";
 import { sendAPIRequest } from '../../../helper/api';
 import useDebounce from '../../../hooks/useDebounce';
+import Button from '../button/Button';
 
 interface DropDownPopupProps extends selectListProps {
     dataKeys?: {
@@ -19,7 +20,7 @@ interface DropDownPopupProps extends selectListProps {
     autoClose?: boolean;
     extraQueryParams?: {
         [key: string]: string | number;
-      };
+    };
 
 }
 
@@ -36,7 +37,8 @@ export const SelectList = ({
     handleNewItem,
     searchFrom,
     onEsc,
-    autoClose = true
+    autoClose = true,
+    selectMultiple = false,
 }: DropDownPopupProps) => {
     const [focusedRowIndex, setFocusedRowIndex] = useState<number>(0);
     const [focusedRowData, setFocusedRowData] = useState<any>(null);
@@ -46,7 +48,8 @@ export const SelectList = ({
     const [page, setPage] = useState<number>(0);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [hasMore, setHasMore] = useState<boolean>(true);
-    const pageReset = useRef(false)
+    const pageReset = useRef(false);
+    const selectedMultipleRowData = useRef<any[]>([]);
 
     const formik = useFormik({
         initialValues: {
@@ -196,12 +199,22 @@ export const SelectList = ({
             makeRecordVisibility(focusedRowIndex >= 1 ? focusedRowIndex - 2 : -1);
         } else if (event.key === 'Enter') {
             event.preventDefault();
-            event.stopPropagation();
-            if (!tableData.length) return;
-            handleSelect(focusedRowData);
-            if (autoClose) {
-                closeList();
+            if (!selectMultiple) {
+                if (!tableData.length) return;
+                handleSelect(focusedRowData);
+                if (autoClose) {
+                    closeList();
+                }
+            } else {
+                const focusedELement = document.activeElement;
+                if (focusedELement?.tagName != 'BUTTON') {
+                    document.getElementById(`multipleSelectCheckbox${focusedRowIndex}`)?.click();
+                } else {
+                    handleSelect(selectedMultipleRowData.current);
+                    closeList();
+                }
             }
+
         } else if (event.key === 'Escape') {
             event.preventDefault();
             if (onEsc) {
@@ -216,8 +229,23 @@ export const SelectList = ({
         else if (event.key === 'n' && event.ctrlKey) {
             event.preventDefault();
             handleNewItem()
+        } else if (event.key === 'Tab') {
+            event.preventDefault();
+            document.getElementById('confirmSelectData')?.focus();
         }
     };
+
+    const handleCheckBoxChange = (e: any, rowIndex: number) => {
+        const isChecked = e.target.checked;
+        if (isChecked) {
+            const data = tableData[rowIndex];
+            data.rowIndex = rowIndex;
+            selectedMultipleRowData.current.push(data);
+        } else {
+            const data = selectedMultipleRowData.current.filter(d => d.rowIndex !== rowIndex);
+            selectedMultipleRowData.current = data;
+        }
+    }
 
     return (
 
@@ -266,6 +294,9 @@ export const SelectList = ({
                     <table className='table-auto w-full border-collapse'>
                         <thead className='sticky top-0'>
                             <tr>
+                                {selectMultiple && (
+                                    <th className='w-fit border-[1px] border-solid bg-[#009196FF] border-gray-400 text-center text-white p-2'></th>
+                                )}
                                 {headers.map((header: any, index: number) => (
                                     <th
                                         key={index}
@@ -286,6 +317,11 @@ export const SelectList = ({
                                     onClick={() => { setFocusedRowIndex(rowIndex); }}
                                     className={focusedRowIndex === rowIndex ? 'bg-[#EAFBFCFF] border-t-2 border-b-2 focus:outline-0 !rounded-lg border-solid border-black' : ''}
                                 >
+                                    {selectMultiple && (
+                                        <td className='border border-gray-400 px-1'>
+                                            <input type="checkbox" id={`multipleSelectCheckbox${rowIndex}`} onChange={(e) => { handleCheckBoxChange(e, rowIndex) }} className="form-checkbox h-5 w-full text-blue-600 rounded-md focus:ring-2 focus:ring-blue-500" />
+                                        </td>
+                                    )}
                                     {headers.map((header: any, colIndex: number) => (
                                         <td key={colIndex} className='border-[1px] border-gray-400 p-2'>
                                             {header.auto ? rowIndex + 1 : getNestedValue(row, header.key) || ''
@@ -297,6 +333,17 @@ export const SelectList = ({
                         </tbody>
                     </table>
                 </div>
+
+                {selectMultiple && (
+                    <div className='h-[5%] flex justify-end px-4'>
+                        <Button type='fill' id='confirmSelectData' handleOnClick={() => {
+                            handleSelect(selectedMultipleRowData.current);
+                            closeList();
+                        }}>
+                            Confirm
+                        </Button>
+                    </div>
+                )}
 
                 {/* Footer */}
                 <div className={`h-[17vh] left-0 mx-4 ${footerClass}`}>

@@ -5,7 +5,7 @@ export const partyHeaders = [
     { label: 'Closing Balance Type', key: 'closingBalanceType' },
   ];
 
-  export const itemHeaders = [
-    { label: 'Item Name', key: 'name' },
-    { label: 'Current Price', key: 'salePrice' },
-  ];
+export const itemHeaders = [
+  { label: 'Item Name', key: 'name' },
+  { label: 'Current Price', key: 'salePrice' },
+];

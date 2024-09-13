@@ -216,7 +216,8 @@ export interface State {
 }
 
 interface Option {
-  value: string | undefined | boolean | number;
+  id?: number;
+  value: string | undefined | number;
   label: string | undefined;
 }
 
@@ -386,27 +387,83 @@ export interface dropDownPopupProps {
 
 export interface selectListProps {
   heading: string;
-  closeList: ()=> void;
+  closeList: () => void;
   className?: string;
   headers: any[];
-  footers? :any[];
+  footers?: any[];
   footerClass?: string;
   tableData: any[];
-  handleSelect: (rowData : any)=> void;
+  handleSelect: (rowData: any) => void;
   dataKeys?: any;
+  selectMultiple?: boolean;
+  rightAlignCells?: any[];
 }
 export type Mapping = { [key: number | string]: string };
 export interface Voucher {
-    voucherDate: Date;
-    voucherNumber: number;
-    partyId: number;
-    amount: number;
-    discount: number;
-    voucherType: string;
-    narration: string;
-    discNarration: string;
-    debitOrCredit: DebitCreditEnum;
-    organizationId: number;
-    createdBy: number;
-    updatedBy: number;
+  voucherDate: Date;
+  voucherNumber: number;
+  partyId: number;
+  amount: number;
+  discount: number;
+  voucherType: string;
+  narration: string;
+  discNarration: string;
+  debitOrCredit: DebitCreditEnum;
+  organizationId: number;
+  createdBy: number;
+  updatedBy: number;
 }
+
+export interface DrugLicenceSectionProps {
+  togglePopup: Function;
+  className?: string;
+  setDLNo?: any;
+}
+export interface DrugLicenceSectionFormProps {
+  drugLicenceNo1: string;
+}
+
+export interface saleBillFormValues {
+  billBookSeriesId: string;
+  oneStation: string;
+  stationId: string;
+  partyId: string;
+  balance: number;
+  terms: string; // ki vo cash h ya credit h
+  invoiceNumber: string;
+  drugLicenceNo1: string;
+  date: string;
+  gstNo: string;
+  grNo: string;
+  despDate: string;
+  packingSlipNo: string;
+  transport: string;
+  narration: string;
+  tempName: string;
+  eWay: string;
+  cases: string;
+  oldPartyId: string;
+}
+
+export type FieldConfig = {
+  label: string;
+  id: string;
+  name: string;
+  type?: string;
+  isRequired?: boolean;
+  disableArrow?: boolean;
+  isSearchable?: boolean;
+  options?: Option[];
+  nextField?: string;
+  prevField?: string;
+  disabled?: boolean;
+  autoFocus?: boolean;
+  labelClassName?: string;
+  textFieldClassName?: string;
+  isTitleCase?: boolean;
+  onFocus?: () => void;
+  onChange?: () => void;
+  onBlur?: () => void;
+};
+
+export type SaleBillFormInfoType = FormikProps<saleBillFormValues>;
