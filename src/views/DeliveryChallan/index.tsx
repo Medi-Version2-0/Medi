@@ -12,6 +12,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import CreateDeliveryChallan from './createDeliveryChallan';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import usePermission from '../../hooks/useRole';
+import useToastManager from '../../helper/toastManager';
 
 const DeliveryChallan = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
@@ -21,6 +22,7 @@ const DeliveryChallan = () => {
   );
   const editing = useRef(false);
   const { createAccess, updateAccess, deleteAccess } = usePermission('deliverychallan')
+  const { successToast } = useToastManager();
 
   const id = useRef('');
   const queryClient = useQueryClient();
@@ -62,11 +64,22 @@ const DeliveryChallan = () => {
   };
 
   const handleConfirmPopup = async () => {
-    setPopupState({ ...popupState, isModalOpen: false });
-    await sendAPIRequest(`/deliveryChallan/${id.current}`, {
-      method: 'DELETE',
-    });
-    queryClient.invalidateQueries({ queryKey: ['get-deliveryChallan'] });
+    try {
+      setPopupState({ ...popupState, isModalOpen: false });
+      await sendAPIRequest(`/deliveryChallan/${id.current}`, {
+        method: 'DELETE',
+      });
+      queryClient.invalidateQueries({ queryKey: ['get-deliveryChallan'] });
+    }
+    catch (error: any) {
+      console.log(error)
+      if (error.response?.data?.error) {
+        successToast(error.response?.data?.error)
+      }
+      else {
+        successToast("Failed to delete Challan")
+      }
+    }
   };
 
   const handleDelete = (oldData: any) => {
@@ -93,7 +106,7 @@ const DeliveryChallan = () => {
       undefined,
       undefined,
       selectedRow,
-      setView 
+      setView
     );
   };
 
@@ -130,14 +143,14 @@ const DeliveryChallan = () => {
       },
       cellRenderer: (params: { data: any }) => (
         <div className='table_edit_buttons'>
-          {updateAccess &&<FaEdit
+          {updateAccess && <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
             onClick={() => {
               setView({ type: 'add', data: params.data });
             }}
           />}
 
-         {deleteAccess && <MdDeleteForever
+          {deleteAccess && <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
             onClick={() => handleDelete(params.data)}
           />}
@@ -152,10 +165,10 @@ const DeliveryChallan = () => {
         <div className='w-full relative'>
           <div className='flex w-full items-center justify-between px-8 py-1'>
             <h1 className='font-bold'>Delivery Challan</h1>
-           {createAccess && <Button
+            {createAccess && <Button
               type='highlight'
               handleOnClick={async () => {
-                try{
+                try {
                   const challanNumber = await sendAPIRequest<string>(
                     `/deliveryChallan/challanNumber`
                   );
@@ -164,7 +177,7 @@ const DeliveryChallan = () => {
                     data: { challanNumber: challanNumber },
                   });
                 }
-                catch(error: any){
+                catch (error: any) {
                   setPopupState({
                     ...popupState,
                     isAlertOpen: true,
@@ -172,7 +185,7 @@ const DeliveryChallan = () => {
                   });
                   return;
                 }
-                
+
               }}
             >
               Add Challan

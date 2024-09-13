@@ -84,6 +84,9 @@ export const ChallanTable = ({
       return;
     }
     if (e.key === 'Enter' || (e.key === 'Tab' && !e.shiftKey)) {
+      if(e.key === 'Enter'){
+        e.preventDefault()
+      }
       const shouldAddRow = colIndex === newRowTrigger;
       const isLastRow = rowIndex === gridData.length - 1;
       const isLastColumn = colIndex === headers.length - 1;
