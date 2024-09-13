@@ -642,7 +642,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
           <div className='flex w-full justify-end'>
             <div className='flex gap-1'>
               <span>Party Balance:</span>
-              <span>{selectedParty.closingBalance || 0} {selectedParty.closingBalanceType}</span>
+              <span>{selectedParty?.closingBalance || 0} {selectedParty?.closingBalanceType}</span>
             </div>
           </div>
         </div>
