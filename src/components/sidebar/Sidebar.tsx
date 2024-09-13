@@ -10,6 +10,7 @@ import { SubGroups } from '../../views/subgroups';
 import { ItemGroups } from '../../views/itemGroups';
 import Items from '../../views/item';
 import { Stations } from '../../views/stations';
+import { PartyLockedSetup } from '../../views/partyLockedPopup/addPartyLockedSetup'
 import { Headquarters } from '../../views/headquarters';
 import { Store } from '../../views/Stores';
 import { Company } from '../../views/company';
@@ -22,7 +23,7 @@ import { Vouchers } from '../../views/vouchers/index'
 import { Organization } from '../../views/organization';
 import usePermission from '../../hooks/useRole';
 import SaleBill from '../../views/saleBill';
-type SubElementKey = 'master' | 'setup';
+type SubElementKey = 'master' | 'miscellaneous';
 import { useSelector } from 'react-redux';
 import { generalSettingFields } from '../common/controlRoom/settings';
 import { ControlRoomSettings } from '../common/controlRoom/ControlRoomSettings';
@@ -44,7 +45,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const [showSubElements, setShowSubElements] = useState({
     master: false,
-    setup: false,
+    miscellaneous: false,
   });
   const permissions = usePermission()
   const [isSidebar, setIsSidebar] = useState<boolean>(true);
@@ -178,12 +179,22 @@ const Sidebar: React.FC<SidebarProps> = ({
     }
   ];
 
+  const miscellaneousItems =[
+    {
+      url: '/partyLockedSetup',
+      label: 'Party Locked Setup',
+      icon: <FaPlus className='fill-red-900' />,
+      onClick: () => openTab?.('Party Locked Setup', <PartyLockedSetup />),
+      isDisabled: isNotReadAccess('party_locked_setup')
+    },
+  ]
+
 
   useEffect(() => {
     if (isGroup || isSubGroup) {
       setShowSubElements({
         master: true,
-        setup: true,
+        miscellaneous: true,
       });
     }
   }, [isGroup, isSubGroup]);
@@ -261,6 +272,38 @@ const Sidebar: React.FC<SidebarProps> = ({
           </span>
           <MdNavigateNext />
         </div>
+        <div
+          className='flex justify-between bg-[#EAFBFCFF] cursor-pointer text-base p-2 border border-solid border-[#009196FF]'
+          onClick={() => toggleSubElements('miscellaneous')}
+        >
+          <span className='flex items-center gap-2'>
+            <MdLibraryBooks />
+            {'  '}Miscellaneous
+          </span>
+          <span className=''>
+            {showSubElements.master ? (
+              <IoChevronDownSharp />
+            ) : (
+              <MdNavigateNext />
+            )}
+          </span>
+        </div>
+        {showSubElements.miscellaneous && (
+          <>
+            {miscellaneousItems.map((item, index) => {
+              return (
+                <MenuItem
+                  key={index}
+                  url={item.url}
+                  label={item.label}
+                  icon={item.icon}
+                  onClick={() => item.onClick()}
+                  isDisabled={item.isDisabled}
+                />
+              )
+            })}
+          </>
+        )}
         <div className='flex justify-between bg-[#EAFBFCFF] cursor-pointer text-base p-2 border border-solid border-[#009196FF]' onClick={() => openTab?.('Main Settings', <Organization />)}>
           <span className='flex items-center gap-2' >
             <MdLibraryBooks />

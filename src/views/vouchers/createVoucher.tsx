@@ -67,7 +67,7 @@ const CreateVouchers = ({ setView, data }: any) => {
     { name: 'Amount (₹)', key: 'amount', width: '15%', type: 'input', props: { inputType: 'number', required: true, handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); }, } },
     {
       name: 'Dr/Cr', key: 'debitOrCredit', width: '15%', type: 'input', props: {
-        inputType: 'text', handleChange: (args: handleChangeInHeaders) => {  
+        inputType: 'text',required: true, handleChange: (args: handleChangeInHeaders) => {  
       if(args.header === 'debitOrCredit' && args.value){
         args.value = args.value[0].toUpperCase() + args.value.slice(1);
       }
@@ -82,7 +82,6 @@ const CreateVouchers = ({ setView, data }: any) => {
     { name: 'Discount (₹)', key: 'discount', width: '14%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
   ];
   const commonHeaders2 = [
-    // { name: 'Party Balance', key: 'partyBalance', width: '20%', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
     { name: 'Discount Narration', key: 'disNarration', width: '27%', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } }
   ];
   const gstNatureConditionHeaders = [
@@ -132,6 +131,7 @@ const CreateVouchers = ({ setView, data }: any) => {
     if (voucherType?.value === 'JOUR' && !data){
       const newGridData = [...gridData];
       newGridData[gridData.length-1].columns.debitOrCredit = '';
+      console.log("🚀 ~ useEffect ~ newGridData:-1-----", newGridData)
       setGridData(newGridData);
     }
 
@@ -246,6 +246,7 @@ const CreateVouchers = ({ setView, data }: any) => {
         {}
       ),
     }))
+    console.log("🚀 ~ initializeGridData ~ newObj:-2-----", newObj)
     setGridData(newObj);
   };
 
@@ -256,7 +257,8 @@ const CreateVouchers = ({ setView, data }: any) => {
       const newGridData = [...gridData];
 
       newGridData[rowIndex].columns.partyBalance = response;
-      setGridData(newGridData)  
+      console.log("🚀 ~ getPartyBalance ~ newGridData:-3-----", newGridData)
+      // setGridData(newGridData)  
   }
 
 
@@ -304,6 +306,8 @@ const CreateVouchers = ({ setView, data }: any) => {
         case 'CP':
         case 'BW':
           return { value: 'Dr', readOnly: true };
+        case 'JOUR':
+          return { value: 'Dr'};
         default:
           return { value: gridData[Number(focusedRowIndex)]?.columns.debitOrCredit, readOnly: false };
       }
@@ -354,15 +358,22 @@ const CreateVouchers = ({ setView, data }: any) => {
     
     try {
       for (const row of dataToSend.rows) {
-        const { partyId, amount } = row;
+        const { partyId, amount, voucherType, debitOrCredit } = row;
       
         if ( !partyId && amount > 1) {
           settingPopupState(false, "Error: Party ID is empty.");
           return;
         }
       
+        console.log("🚀 ~ handleSubmit ~ voucherType:-1----", voucherType,debitOrCredit)
         if ( !amount && !!partyId) {
           settingPopupState(false, "Error: Amount is empty.");
+          return;
+        }
+        
+        if( voucherType === "JOUR" && !debitOrCredit){
+          console.log("🚀 ~ handleSubmit ~ voucherType:-2---", voucherType,debitOrCredit)
+          settingPopupState(false, "Error: Debit or Credit must be filled");
           return;
         }
       }
@@ -421,18 +432,14 @@ const CreateVouchers = ({ setView, data }: any) => {
   };
 
   const setDebitOrCredit = async () => {
-    let { value } = getDrCrColumnProps();
-  
-    if (voucherType?.value === 'JOUR') {
-      value = '';
-    }
+    const { value } = getDrCrColumnProps();
   
     setGridData((prevGridData: any[]) => {
       const updatedData = prevGridData.map((row: { columns: any; }) => ({
         ...row,
         columns: {
           ...row.columns,
-          debitOrCredit: voucherType?.value === 'JOUR' ? '' : value,
+          // debitOrCredit: voucherType?.value === 'JOUR' ? 'Dr' : value,
         },
       }));
   
@@ -588,10 +595,10 @@ const CreateVouchers = ({ setView, data }: any) => {
     headers.current = [...commonHeaders1, ...discountHeader, ...commonHeaders2];
   }
   if (voucherType?.value === 'JOUR' && (gstNature?.value == 2 || gstNature?.value == 3)) {
-    headers.current = [...commonHeaders1, ...commonHeaders2, ...gstNatureConditionHeaders];
+    headers.current = [...commonHeaders1, ...gstNatureConditionHeaders];
   }
   if (voucherType?.value === 'JOUR' && (gstNature?.value == 1 || !gstNature?.value)) {
-    headers.current = [...commonHeaders1, ...commonHeaders2];
+    headers.current = [...commonHeaders1];
   }
   if (voucherType?.value === 'BD') {
     headers.current = [...commonHeaders1, ...checkNoCheckDateHeaders, ...discountHeader, ...commonHeaders2];
@@ -877,7 +884,7 @@ const CreateVouchers = ({ setView, data }: any) => {
             skipIndexes={voucherType?.value!=='JOUR' ? [3]:[]}
             newRowTrigger={headers.current.length-1}
             stikyColumn={[0]}
-            required={[1, 3]} 
+            required={[1, 3, 4]} 
           />}
         </div>
       

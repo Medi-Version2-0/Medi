@@ -467,3 +467,10 @@ export type FieldConfig = {
 };
 
 export type SaleBillFormInfoType = FormikProps<saleBillFormValues>;
+export interface partyLockedSetup {
+  partyName: string,
+  partyId?: number,
+  locked: string,
+  closingBalance: number | string,
+  closingBalanceType: string,
+}

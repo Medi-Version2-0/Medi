@@ -320,6 +320,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
       })
     }
 
+  
   }
 
   const partyFooterData: any[] = [
