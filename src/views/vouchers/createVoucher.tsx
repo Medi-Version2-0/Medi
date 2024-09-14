@@ -131,7 +131,6 @@ const CreateVouchers = ({ setView, data }: any) => {
     if (voucherType?.value === 'JOUR' && !data){
       const newGridData = [...gridData];
       newGridData[gridData.length-1].columns.debitOrCredit = '';
-      console.log("🚀 ~ useEffect ~ newGridData:-1-----", newGridData)
       setGridData(newGridData);
     }
 
@@ -246,7 +245,6 @@ const CreateVouchers = ({ setView, data }: any) => {
         {}
       ),
     }))
-    console.log("🚀 ~ initializeGridData ~ newObj:-2-----", newObj)
     setGridData(newObj);
   };
 
@@ -257,7 +255,6 @@ const CreateVouchers = ({ setView, data }: any) => {
       const newGridData = [...gridData];
 
       newGridData[rowIndex].columns.partyBalance = response;
-      console.log("🚀 ~ getPartyBalance ~ newGridData:-3-----", newGridData)
       // setGridData(newGridData)  
   }
 
@@ -365,14 +362,12 @@ const CreateVouchers = ({ setView, data }: any) => {
           return;
         }
       
-        console.log("🚀 ~ handleSubmit ~ voucherType:-1----", voucherType,debitOrCredit)
         if ( !amount && !!partyId) {
           settingPopupState(false, "Error: Amount is empty.");
           return;
         }
         
         if( voucherType === "JOUR" && !debitOrCredit){
-          console.log("🚀 ~ handleSubmit ~ voucherType:-2---", voucherType,debitOrCredit)
           settingPopupState(false, "Error: Debit or Credit must be filled");
           return;
         }
@@ -513,7 +508,7 @@ const CreateVouchers = ({ setView, data }: any) => {
       // Allow only numbers and a single decimal point, with up to two decimal places
       const validAmount = /^[0-9]*\.?[0-9]{0,4}$/;  
       if (!validAmount.test(value)) {
-        settingPopupState(false, "Error: Amount can only contain numbers and up to two decimal places.");
+        settingPopupState(false, "Error: Amount can only contain numbers and up to four decimal places.");
         return; 
       }
   
