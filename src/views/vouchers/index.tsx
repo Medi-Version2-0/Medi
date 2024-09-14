@@ -154,7 +154,7 @@ const Vouchers = () => {
             cellRenderer: (params: { data: any }) => (
                 <div className='table_edit_buttons'>
                     {/* put access updateAccess  */}
-                    {true && (
+                    {updateAccess && (
                         <FaEdit
                             id='editButton'
                             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
@@ -164,7 +164,7 @@ const Vouchers = () => {
                         />
                     )}
                     {/* put access deleteAccess  */}
-                    {true && (
+                    {deleteAccess && (
                         <MdDeleteForever
                             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
                             onClick={() => handleDelete(params.data)}
@@ -220,7 +220,7 @@ const Vouchers = () => {
                             Vouchers
                         </h1>
                         {/* Add this in the place of createAccess */}
-                        {true && (
+                        {createAccess && (
                             <div className='flex items-center'>
                                 <Button
                                     id ="createButton"
@@ -257,7 +257,7 @@ const Vouchers = () => {
                 </div>
 
                 {/* Show AgGrid only if date is selected */}
-                {true && (
+                {/* {true && ( */}
                     <div id='account_table' className='ag-theme-quartz'>
                         <AgGridReact
                             rowData={tableData}
@@ -266,7 +266,7 @@ const Vouchers = () => {
                             onCellClicked={onCellClicked}
                         />
                     </div>
-                )}
+                {/* )} */}
                 {(popupState.isModalOpen || popupState.isAlertOpen) && (
                     <Confirm_Alert_Popup
                         onClose={handleClosePopup}
