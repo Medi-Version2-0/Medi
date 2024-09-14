@@ -97,40 +97,42 @@ export const PartyLockedSetup = () => {
 
   const onCellClicked = (params: any) => {
     setSelectedRow(selectedRow !== null ? null : params.data);
-    if (params.column.colId === "partyName") {
-      setPopupList({
-        isOpen: true,
-        data: {
-          heading: 'Select Party',
-          headers: [...partyHeaders],
-          footers: partyFooterData,
-          autoClose: true,
-          apiRoute: '/ledger',
-          extraQueryParams: { locked: "!Y" },
-          searchFrom: 'partyName',
-          handleSelect: (rowData: any) => {
-            setSelectedParty(rowData);
-            updateTableData(rowData);
-            const api = gridRef?.current?.api;
-            const focusedCell = api.getFocusedCell();
-
-            if (focusedCell) {
-              const lastEditedRowIndex = focusedCell.rowIndex;
-              const lastEditedColKey = 'locked';
-              setTimeout(async () => {
-                api.setFocusedCell(lastEditedRowIndex, lastEditedColKey);
-                await api.startEditingCell({
-                  rowIndex: lastEditedRowIndex,
-                  colKey: lastEditedColKey,
-                });
-              }, 100);
+    if(params.node.rowIndex === 0){
+      if (params.column.colId === "partyName") {
+        setPopupList({
+          isOpen: true,
+          data: {
+            heading: 'Select Party',
+            headers: [...partyHeaders],
+            footers: partyFooterData,
+            autoClose: true,
+            apiRoute: '/ledger',
+            extraQueryParams: { locked: "!Y" },
+            searchFrom: 'partyName',
+            handleSelect: (rowData: any) => {
+              setSelectedParty(rowData);
+              updateTableData(rowData);
+              const api = gridRef?.current?.api;
+              const focusedCell = api.getFocusedCell();
+  
+              if (focusedCell) {
+                const lastEditedRowIndex = focusedCell.rowIndex;
+                const lastEditedColKey = 'locked';
+                setTimeout(async () => {
+                  api.setFocusedCell(lastEditedRowIndex, lastEditedColKey);
+                  await api.startEditingCell({
+                    rowIndex: lastEditedRowIndex,
+                    colKey: lastEditedColKey,
+                  });
+                }, 100);
+              }
+              document.getElementById('locked')?.focus()
+  
             }
-            document.getElementById('locked')?.focus()
-
           }
-        }
-      });
+        });
 
+      }
     }
   };
 
@@ -308,7 +310,7 @@ export const PartyLockedSetup = () => {
       headerName: 'Locked',
       field: 'locked',
       valueGetter: () => 'Y',
-      editable: true
+      editable: (params: any) => params.node.rowIndex === 0,
     },
     {
       headerName: 'Closing Balance',
