@@ -8,7 +8,6 @@ import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { StationFormData } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import Button from '../../components/common/button/Button';
-import { sendAPIRequest } from '../../helper/api';
 import { IoSettingsOutline } from 'react-icons/io5';
 import { ControlRoomSettings } from '../../components/common/controlRoom/ControlRoomSettings';
 import { stationSettingFields } from '../../components/common/controlRoom/settings';
@@ -22,6 +21,8 @@ import useHandleKeydown from '../../hooks/useHandleKeydown';
 import { extractKeys, lookupValue } from '../../helper/helper';
 import { getAndSetStations } from '../../store/action/globalAction';
 import { useGetSetData } from '../../hooks/useGetSetData';
+import useApi from '../../hooks/useApi';
+import { APIURL } from '../../helper/api';
 
 export const Stations = () => {
   const initialValue = {
@@ -42,7 +43,7 @@ export const Stations = () => {
   const gridRef = useRef<any>(null);
   const { stations } = useSelector((state: any) => state.global);
   const { createAccess, updateAccess, deleteAccess } = usePermission('station')
-
+  const { sendAPIRequest } = useApi();
   const { controlRoomSettings } = useControls();
 
   const initialValues = {
@@ -66,14 +67,14 @@ export const Stations = () => {
   };
 
   useEffect(() => {
-    sendAPIRequest<any[]>('/state').then((response) => {
-      setStateData(response);
-    })
+    fetch(`${APIURL}/state`).then((response) => response.json()).then(states => {
+      setStateData(states.data);
+    });
   }, []);
 
   useEffect(() => {
-    setTableData([...(createAccess ? [initialValue] : []), ...stations])
-  }, [stations])
+    setTableData([...(createAccess ? [initialValue] : []), ...stations]);
+  }, [stations,createAccess])
 
   const togglePopup = (isOpen: boolean) => {
     if (!isOpen) {
@@ -110,25 +111,32 @@ export const Stations = () => {
       igst_sale: respData.igst_sale ? respData.igst_sale : formData.igst_sale,
     };
 
-    if (payload !== initialValue) {
-      formData.state_code = +formData.state_code;
-      if (formData.station_id) {
-        delete formData.station_headQuarter;
-        await sendAPIRequest(
-          `/station/${formData.station_id}`,
-          {
-            method: 'PUT',
-            body: formData,
-          }
-        );
-      } else {
-        await sendAPIRequest(`/station`, {
-          method: 'POST',
-          body: payload,
-        });
+    
+    try {
+      if (payload !== initialValue) {
+        formData.state_code = +formData.state_code;
+        if (formData.station_id) {
+          delete formData.station_headQuarter;
+          await sendAPIRequest(
+            `/station/${formData.station_id}`,
+            {
+              method: 'PUT',
+              body: formData,
+            }
+          );
+        } else {
+          await sendAPIRequest(`/station`, {
+            method: 'POST',
+            body: payload,
+          });
+        }
+        togglePopup(false);
+        getAndSetStationHandler();
       }
-      togglePopup(false);
-      getAndSetStationHandler();
+    } catch (error: any) {
+      if (!error?.isErrorHandled) {
+        console.log('Station not created or updated')
+      }
     }
   };
 
@@ -159,14 +167,16 @@ export const Stations = () => {
 
   const deleteAcc = async (station_id: string) => {
     isDelete.current = false;
-    togglePopup(false);
     try {
       await sendAPIRequest(`/station/${station_id}`, {
         method: 'DELETE',
       });
+      togglePopup(false);
       getAndSetStationHandler();
-    } catch {
-      settingPopupState(false, 'This Station is associated')
+    } catch(error:any){
+      if (!error?.isErrorHandled) {
+        settingPopupState(false, 'This Station is associated')
+      }
     }
   };
 
@@ -274,7 +284,12 @@ export const Stations = () => {
   useHandleKeydown(handleKeyDown, [selectedRow])
 
   const defaultCol = {
-    editable: updateAccess,
+    editable: (params:any)=>{
+      if (params.node.rowIndex===0){
+        return createAccess;
+      }
+      return updateAccess;
+    },
     flex: 1,
     filter: true,
     floatingFilter: true,
@@ -359,17 +374,17 @@ export const Stations = () => {
       },
       cellRenderer: (params: { data: StationFormData }) => (
         <div className='table_edit_buttons'>
-          {updateAccess && <FaEdit
+          <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
             onClick={() => handleUpdate(params.data)}
-          />}
+          />
 
-          {deleteAccess && <MdDeleteForever
+          <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
             onClick={() => {
               handleDelete(params.data);
             }}
-          />}
+          />
         </div>
       ),
     },

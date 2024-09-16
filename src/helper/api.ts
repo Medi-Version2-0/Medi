@@ -1,5 +1,3 @@
-import { USER_LS_KEY } from '../UserContext';
-import { getAccessToken, refreshToken } from '../auth';
 import axios, { AxiosError } from 'axios';
 
 export const APIURL = process.env.REACT_APP_API_URL;
@@ -8,7 +6,7 @@ export const sendAPIRequest = async <T>(
   subUrl: string,
   init?: any,
   requireToken = true
-): Promise<T> => {
+) => {
   const url = `${APIURL}${subUrl}`;
 
   const headers = {
@@ -29,30 +27,8 @@ export const sendAPIRequest = async <T>(
 
     return response?.data?.data || response?.data || response;
 
-  } catch (error) {
-    const axiosError = error as AxiosError;
-
-    if (axiosError.response?.status === 401) {
-      const storedUser = localStorage.getItem(USER_LS_KEY);
-      const storedPassword = localStorage.getItem('password');
-
-      if (!storedUser || !storedPassword) {
-        throw new Error('User credentials not found locally');
-      }
-
-      const parsedUser = JSON.parse(storedUser);
-
-      try {
-        const newToken = await refreshToken({ password: storedPassword, email: parsedUser.email });
-        return sendAPIRequest<T>(subUrl, {
-          ...init,
-          headers: { ...(init?.headers || {}), Authorization: `Bearer ${newToken}` },
-        }, requireToken);
-      } catch (refreshError) {
-        throw new Error('Failed to refresh token: ' + (refreshError as Error).message);
-      }
-    } else {
-      throw error;
-    }
+  } catch (error:any) {
+    console.log('Error in sendAPIResponse ==> ', error);
+    throw error;
   }
 };

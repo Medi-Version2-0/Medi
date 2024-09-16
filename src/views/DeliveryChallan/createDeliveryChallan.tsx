@@ -4,7 +4,6 @@ import Button from '../../components/common/button/Button';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
-import { sendAPIRequest } from '../../helper/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { CompanyFormData, Option, schemeSectionFormProps, schemeSectionProps } from '../../interface/global';
 import onKeyDown from '../../utilities/formKeyDown';
@@ -18,6 +17,7 @@ import { SelectList } from '../../components/common/customSelectList/customSelec
 import { partyHeaders } from '../partywisePriceList/partywiseHeader';
 import { Ledger } from '../ledger';
 import { useTabs } from '../../TabsContext';
+import useApi from '../../hooks/useApi';
 
 export interface DeliveryChallanFormValues {
   oneStation: string;
@@ -124,6 +124,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
   const [challanTableData, setChallanTableData] = useState<any[]>([]);
   const [isNetRateSymbol, setIsNetRateSymbol] = useState<string>('');
   const [focused, setFocused] = useState('');
+  const { sendAPIRequest } = useApi();
   const queryClient = useQueryClient();
   const [pendingData, setPendingData] = useState({
     pendingChallansAmount: 0,
@@ -207,25 +208,34 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
           message: `Delivery Challan ${data.id ? 'updated' : 'created'} successfully`,
           shouldBack: true
         });
-      } catch (error) {
-        setPopupState({
-          isModalOpen: false,
-          isAlertOpen: true,
-          message: `Failed to ${data.id ? 'update' : 'create'} delivery challan`,
-          shouldBack: false
-        });
+      } catch (error:any) {
+        if (!error?.isErrorHandled) {
+          setPopupState({
+            isModalOpen: false,
+            isAlertOpen: true,
+            message: `Failed to ${data.id ? 'update' : 'create'} delivery challan`,
+            shouldBack: false
+          });
+        }
       }
     },
   });
 
   const fetchAllData = async () => {
-    const stations = await sendAPIRequest<any[]>(`/station`);
-    setStationOptions(
-      stations.map((station: any) => ({
-        value: station.station_id,
-        label: titleCase(station.station_name),
-      }))
-    );
+
+    try {
+      const stations = await sendAPIRequest<any[]>(`/station`);
+      setStationOptions(
+        stations.map((station: any) => ({
+          value: station.station_id,
+          label: titleCase(station.station_name),
+        }))
+      );
+    } catch (error: any) {
+      if (!error?.isErrorHandled) {
+        console.log('Station not fetched in Delivery Challan');
+      }
+    }
   };
 
   const handleAlertCloseModal = () => {
@@ -268,9 +278,15 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
 
   const fetchPartyById = async (id: string) => {
     if (id) {
-      const resp = await sendAPIRequest(`/ledger/${id}`)
-      if (resp && typeof (resp) === 'object') {
-        setSelectedParty(resp)
+      try {
+        const resp = await sendAPIRequest(`/ledger/${id}`)
+        if (resp && typeof (resp) === 'object') {
+          setSelectedParty(resp)
+        }
+      } catch (error: any) {
+        if (!error?.isErrorHandled) {
+          console.log('Party not fetched in createDelivery challan');
+        }
       }
     }
   }

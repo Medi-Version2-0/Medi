@@ -9,7 +9,6 @@ import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { ColDef, ColGroupDef } from 'ag-grid-community';
 import { CreateSubGroup } from './CreateSubGroup';
 import Button from '../../components/common/button/Button';
-import { sendAPIRequest } from '../../helper/api';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { subgroupValidationSchema } from './validation_schema';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
@@ -19,6 +18,7 @@ import { getAndSetSubGroups } from '../../store/action/globalAction';
 import { extractKeys, lookupValue } from '../../helper/helper';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
 import { useGetSetData } from '../../hooks/useGetSetData';
+import useApi from '../../hooks/useApi';
 
 export const SubGroups = () => {
   const initialValue = {
@@ -26,7 +26,9 @@ export const SubGroups = () => {
     group_name: '',
     parent_code: '',
   };
+  const { sendAPIRequest } = useApi();
   const [open, setOpen] = useState<boolean>(false);
+  const { createAccess, updateAccess } = usePermission('subgroup');
   const [formData, setFormData] = useState<SubGroupFormData>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<SubGroupFormData | any>(null);
@@ -73,23 +75,29 @@ export const SubGroups = () => {
       parent_code: respData.group_name ? respData.parent_code : formData.parent_code,
     };
 
-    if (payload !== initialValue) {
-      if (formData.group_code) {
-        await sendAPIRequest(
-          `/subGroup/${formData.group_code}`,
-          {
-            method: 'PUT',
-            body: formData,
-          }
-        );
-      } else {
-        await sendAPIRequest(`/subGroup`, {
-          method: 'POST',
-          body: payload,
-        });
+    try{
+      if (payload !== initialValue) {
+        if (formData.group_code) {
+          await sendAPIRequest(
+            `/subGroup/${formData.group_code}`,
+            {
+              method: 'PUT',
+              body: formData,
+            }
+          );
+        } else {
+          await sendAPIRequest(`/subGroup`, {
+            method: 'POST',
+            body: payload,
+          });
+        }
+        togglePopup(false);
+        getAndSetSubGroupsHandler();
       }
-      togglePopup(false);
-      getAndSetSubGroupsHandler();
+    }catch(error:any){
+      if (!error?.isErrorHandled) {
+        console.log('Sub Group not created or updated')
+      }
     }
   };
   const isDelete = useRef(false);
@@ -106,12 +114,18 @@ export const SubGroups = () => {
   },[subGroups])
 
   const deleteAcc = async (group_code: string) => {
-    isDelete.current = false;
-    togglePopup(false);
-    await sendAPIRequest(`/subGroup/${group_code}`, {
-      method: 'DELETE',
-    });
-    getAndSetSubGroupsHandler();
+    try{
+      isDelete.current = false;
+      togglePopup(false);
+      await sendAPIRequest(`/subGroup/${group_code}`, {
+        method: 'DELETE',
+      });
+      getAndSetSubGroupsHandler();
+    }catch(error:any){
+      if (!error?.isErrorHandled) {
+        console.log('Sub Group not deleted');
+      }
+    }
   };
 
   const handleDelete = (oldData: SubGroupFormData) => {
@@ -199,10 +213,12 @@ export const SubGroups = () => {
         body: { [field]: newValue },
       });
       getAndSetSubGroupsHandler();
-    }catch(err){
-      settingPopupState(false, 'Subgroup name should not be empty');
-      node.setDataValue(field, oldValue);
-      return;
+    }catch(error:any){
+      if (!error?.isErrorHandled) {
+        settingPopupState(false, 'Subgroup name should not be empty');
+        node.setDataValue(field, oldValue);
+        return;
+      }
     }
   }
   };
@@ -239,7 +255,7 @@ export const SubGroups = () => {
     floatingFilter: true,
     flex: 1,
     filter: true,
-    editable:true,
+    editable: (params: any) => params.node.rowIndex === 0 ? createAccess : updateAccess,
     suppressMovable: true,
     headerClass: 'custom-header',
     cellRenderer: (params: any) => (
@@ -296,19 +312,18 @@ export const SubGroups = () => {
         },
         cellRenderer: (params: { data: SubGroupFormData }) => (
           <div className='table_edit_buttons'>
-            {permissions.updateAccess && <FaEdit
+            <FaEdit
               style={{ cursor: 'pointer', fontSize: '1.1rem' }}
               onClick={() => {
                 handleUpdate(params.data);
               }}
-            />}
-
-           {permissions.deleteAccess &&  <MdDeleteForever
+            />
+            <MdDeleteForever
               style={{ cursor: 'pointer', fontSize: '1.2rem' }}
               onClick={() => {
                 handleDelete(params.data);
               }}
-            />}
+            />
           </div>
         ),
       },

@@ -8,7 +8,6 @@ import { CompanyFormData, View, } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { ValueFormatterParams } from 'ag-grid-community';
 import Button from '../../components/common/button/Button';
-import { sendAPIRequest } from '../../helper/api';
 import { CreateCompany } from './CreateCompany';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { getCompanyFormSchema } from './validation_schema';
@@ -18,10 +17,12 @@ import usePermission from '../../hooks/useRole';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
 import { createMap, extractKeys, lookupValue, decimalFormatter } from '../../helper/helper';
 import { useGetSetData } from '../../hooks/useGetSetData';
+import useApi from '../../hooks/useApi';
 
 export const Company = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
   const [selectedRow, setSelectedRow] = useState<any>(null);
+  const { sendAPIRequest } = useApi();
   const [tableData, setTableData] = useState<CompanyFormData | any>(null);
   const { stations: stationData, company: companiesData } = useSelector((state: any) => state.global)
 
@@ -64,10 +65,16 @@ export const Company = () => {
 
   const handleConfirmPopup = async () => {
     setPopupState({ ...popupState, isModalOpen: false });
-    await sendAPIRequest(`/company/${companyId.current}`, {
-      method: 'DELETE',
-    });
-    getAndSetCompanyHandler();
+    try {
+      await sendAPIRequest(`/company/${companyId.current}`, {
+        method: 'DELETE',
+      });
+      getAndSetCompanyHandler();
+    } catch (error: any) {
+      if (!error?.isErrorHandled) {
+        console.log('Company not deleted');
+      }
+    }
   };
 
   const handleDelete = (oldData: any) => {
@@ -111,11 +118,17 @@ export const Company = () => {
     }
 
     node.setDataValue(field, newValue);
-    await sendAPIRequest(`/company/${data.company_id}`, {
-      method: 'PUT',
-      body: { [field]: newValue },
-    });
-    getAndSetCompanyHandler();
+    try {
+      await sendAPIRequest(`/company/${data.company_id}`, {
+        method: 'PUT',
+        body: { [field]: newValue },
+      });
+      getAndSetCompanyHandler();
+    } catch (error: any) {
+      if (!error?.isErrorHandled) {
+        console.log('Company not updated');
+      }
+    }
   };
 
   const onCellClicked = (params: { data: any }) => {
@@ -145,7 +158,7 @@ export const Company = () => {
     suppressMovable: true,
     headerClass: 'custom-header',
     floatingFilter: true,
-    editable:updateAccess
+    editable: (params: any) => params.node.rowIndex === 0 ? createAccess : updateAccess,
   }
 
   const colDefs: any[] = [
@@ -204,16 +217,16 @@ export const Company = () => {
       },
       cellRenderer: (params: { data: any }) => (
         <div className='table_edit_buttons'>
-         {updateAccess && <FaEdit
+          <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
             onClick={() => {
               setView({ type: 'add', data: params.data });
             }}
-          />}
-         {deleteAccess &&  <MdDeleteForever
+          />
+          <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
             onClick={() => handleDelete(params.data)}
-          />}
+          />
         </div>
       ),
     },

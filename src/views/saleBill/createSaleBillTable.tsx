@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { sendAPIRequest } from '../../helper/api';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { SelectList } from '../../components/common/customSelectList/customSelectList';
 import { schemeTypeOptions, itemHeader, batchHeader, itemFooters, batchFooters } from '../../constants/saleChallan';
@@ -7,6 +6,7 @@ import { ChallanTable } from '../../components/common/challanTable';
 import { useSelector } from 'react-redux';
 import { useTabs } from '../../TabsContext';
 import Items from '../item';
+import useApi from '../../hooks/useApi';
 
 interface RowData {
   id: number;
@@ -49,6 +49,7 @@ export const CreateSaleBillTable = ({ setDataFromTable, totalValue, setTotalValu
   const [open, setOpen] = useState<boolean>(false);
   const [openDataPopup, setOpenDataPopup] = useState<boolean>(false);
   const { openTab } = useTabs()
+  const { sendAPIRequest } = useApi();
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
@@ -152,18 +153,24 @@ export const CreateSaleBillTable = ({ setDataFromTable, totalValue, setTotalValu
     if (value !== undefined || !!value) selectedItem = value.value;
     const item = itemValue?.find((item: any) => item.id === selectedItem);
 
-    const getPartyWiseDiscount = await sendAPIRequest<any[]>(`/partyWiseDiscount`);
-    const allPartyWiseDiscount = getPartyWiseDiscount.filter((party: any) => party?.partyId === selectedParty);
-    const partyWiseDiscountForCompany = allPartyWiseDiscount.filter((party: any) => party?.companyId === item.compId);
-    const companyWiseDiscount = partyWiseDiscountForCompany.filter((party: any) => party?.discountType === 'companyWise');
-    const dpcoActDiscount = partyWiseDiscountForCompany.filter((party: any) => party?.discountType === 'dpcoact');
-
-    const discountGiven = !!dpcoActDiscount.length ? dpcoActDiscount[0].discount : (!!companyWiseDiscount.length ? companyWiseDiscount[0].discount : (!!allPartyWiseDiscount.length ? allPartyWiseDiscount[0].discount : 0))
-
-    newGridData[rowIndex].columns = {
-      ...newGridData[rowIndex].columns,
-      disPer: discountGiven,
-    };
+    try {
+      const getPartyWiseDiscount = await sendAPIRequest<any[]>(`/partyWiseDiscount`);
+      const allPartyWiseDiscount = getPartyWiseDiscount.filter((party: any) => party?.partyId === selectedParty);
+      const partyWiseDiscountForCompany = allPartyWiseDiscount.filter((party: any) => party?.companyId === item.compId);
+      const companyWiseDiscount = partyWiseDiscountForCompany.filter((party: any) => party?.discountType === 'companyWise');
+      const dpcoActDiscount = partyWiseDiscountForCompany.filter((party: any) => party?.discountType === 'dpcoact');
+  
+      const discountGiven = !!dpcoActDiscount.length ? dpcoActDiscount[0].discount : (!!companyWiseDiscount.length ? companyWiseDiscount[0].discount : (!!allPartyWiseDiscount.length ? allPartyWiseDiscount[0].discount : 0))
+  
+      newGridData[rowIndex].columns = {
+        ...newGridData[rowIndex].columns,
+        disPer: discountGiven,
+      };
+    } catch (error: any) {
+      if (!error?.isErrorHandled) {
+        console.log('Party wise discount not fetched in salebill');
+      }
+    }
   }
 
   const updateGridData = () => {
@@ -298,19 +305,25 @@ export const CreateSaleBillTable = ({ setDataFromTable, totalValue, setTotalValu
   }
 
   const fetchItems = async () => {
-    const items = await sendAPIRequest<any[]>(`/item`)
-    items.map((item: any) => {
-      item.company = company.find((comp: any) => comp.company_id === item.compId)?.companyName;
-      item.sales = sales.find((sale: any) => sale.sp_id === item.saleAccId)?.sptype;
-      item.purchase = purchase.find((purchase: any) => purchase.sp_id === item.purAccId)?.sptype;
-      item.ItemBatches = item.ItemBatches.map((batch: any) => {
-        return {
-          ...batch,
-          updatedOpFree: parseFloat(((batch.opFree / batch.opBalance) * 100).toFixed(2))
-        }
+    try {
+      const items = await sendAPIRequest<any[]>(`/item`)
+      items.map((item: any) => {
+        item.company = company.find((comp: any) => comp.company_id === item.compId)?.companyName;
+        item.sales = sales.find((sale: any) => sale.sp_id === item.saleAccId)?.sptype;
+        item.purchase = purchase.find((purchase: any) => purchase.sp_id === item.purAccId)?.sptype;
+        item.ItemBatches = item.ItemBatches.map((batch: any) => {
+          return {
+            ...batch,
+            updatedOpFree: parseFloat(((batch.opFree / batch.opBalance) * 100).toFixed(2))
+          }
+        })
       })
-    })
-    setItemValue(items);
+      setItemValue(items);
+    } catch (error: any) {
+      if (!error?.isErrorHandled) {
+        console.log('Items not feteched in salebill');
+      }
+    }
   };
 
   const handleAlertCloseModal = () => {

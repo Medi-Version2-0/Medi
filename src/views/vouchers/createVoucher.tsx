@@ -4,10 +4,10 @@ import { Option } from '../../interface/global';
 import Button from '../../components/common/button/Button';
 import { SelectList } from '../../components/common/selectList';
 import { ChallanTable } from '../../components/common/challanTable';
-import { sendAPIRequest } from '../../helper/api';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import {gridDataSchema} from './validation'
 import useToastManager from '../../helper/toastManager';
+import useApi from '../../hooks/useApi';
 
 interface RowData {
   columns: {
@@ -22,6 +22,7 @@ interface handleChangeInHeaders{
 }
 
 const CreateVouchers = ({ setView, data }: any) => {
+  const { sendAPIRequest } = useApi();
   const [voucherType, setVoucherType] = useState<Option | null>(data?.rowData?.voucherType || null);
   const [selectedDate, setSelectedDate] = useState<string | null>(data?.rowData?.voucherDate || null);
   const [gridData, setGridData] = useState<RowData[] | any>(data?.gridData || []);
@@ -249,6 +250,7 @@ const CreateVouchers = ({ setView, data }: any) => {
   };
 
   const getPartyBalance = async(rowIndex: any, partyId: number)=>{
+    try {
       const response: any = await sendAPIRequest(`/voucher/totalBalance?partyId=${partyId}`,{
         method: 'GET',
       })
@@ -256,6 +258,11 @@ const CreateVouchers = ({ setView, data }: any) => {
 
       newGridData[rowIndex].columns.partyBalance = response;
       // setGridData(newGridData)  
+    } catch (error: any) {
+      if (!error?.isErrorHandled) {
+        console.log('Party Balance not fetched');
+      }
+    }
   }
 
 
@@ -270,7 +277,6 @@ const CreateVouchers = ({ setView, data }: any) => {
       return response;
     } catch (error) {
       console.error('Error fetching voucher data:', error);
-      throw error;
     }
   }
 
@@ -285,11 +291,14 @@ const CreateVouchers = ({ setView, data }: any) => {
       setHasBankAccount(hasBankAccount);
 
     } catch (error: any) {
-      setPopupState({
-        ...popupState,
-        isAlertOpen: true,
-        message: `${error.message}`,
-      });
+      if (!error?.isErrorHandled) {
+        console.log('Party not fetched in Voucher');
+        setPopupState({
+          ...popupState,
+          isAlertOpen: true,
+          message: `${error.message}`,
+        });
+      }
     }
   }
 
@@ -387,29 +396,40 @@ const CreateVouchers = ({ setView, data }: any) => {
       
       if (data.rowData?.voucherNumber) {
         dataToSend.voucherNumber = data.rowData.voucherNumber;
-        const response: any = await sendAPIRequest(`/voucher/${data.rowData.voucherNumber}`, {
-          method: 'PUT',
-          body: dataToSend,
-        });
-
-        const firstRow: any = dataToSend.rows[0];
-        if (firstRow.voucherDate !== null) await getVoucherData(firstRow.voucherDate, firstRow.voucherType);
-
-        setVoucherNumber(response?.voucherNumber);
-        settingPopupState(false, `Voucher ${data.rowData.voucherNumber ? 'updated' : 'created'} successfully`);
-
-      } else {
-        const response: any = await sendAPIRequest(`/voucher/`, {
-          method: 'POST',
-          body: dataToSend,
-        })
-        setVoucherNumber(response?.voucherNumber);
-        if (response?.voucherNumber) {
-          setPopupState({
-            ...popupState,
-            isAlertOpen: true,
-            message: 'Voucher saved successfully.',
+        try {
+          const response: any = await sendAPIRequest(`/voucher/${data.rowData.voucherNumber}`, {
+            method: 'PUT',
+            body: dataToSend,
           });
+
+          const firstRow: any = dataToSend.rows[0];
+          if (firstRow.voucherDate !== null) await getVoucherData(firstRow.voucherDate, firstRow.voucherType);
+
+          setVoucherNumber(response?.voucherNumber);
+          settingPopupState(false, `Voucher ${data.rowData.voucherNumber ? 'updated' : 'created'} successfully`);
+        } catch (error: any) {
+          if (!error?.isErrorHandled) {
+            console.log("Voucher can't be updated");
+          }
+        }
+      } else {
+        try {
+          const response: any = await sendAPIRequest(`/voucher/`, {
+            method: 'POST',
+            body: dataToSend,
+          })
+          setVoucherNumber(response?.voucherNumber);
+          if (response?.voucherNumber) {
+            setPopupState({
+              ...popupState,
+              isAlertOpen: true,
+              message: 'Voucher saved successfully.',
+            });
+          }
+        } catch (error: any) {
+          if (!error?.isErrorHandled) {
+            console.log('Voucher not created');
+          }
         }
       }
 

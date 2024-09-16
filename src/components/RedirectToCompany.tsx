@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../UserContext';
-import { getOrganizations } from '../api/organizationApi';
+import useApi from '../hooks/useApi';
+import { OrganizationI } from '../views/organization/types';
 
 interface ModalProps {
   isOpen: boolean;
@@ -11,24 +12,27 @@ interface ModalProps {
 
 export const RedirectToCompany = () => {
   const navigate = useNavigate();
-  const { setSelectedOrganization, user } = useUser();
+  const { setSelectedOrganization } = useUser();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [organizations, setOrganizations] = useState<any[]>([]);
   const [isSetupPrompt, setIsSetupPrompt] = useState(false);
+  const { sendAPIRequest } = useApi();
 
   const fetchOrganizations = async () => {
     try {
-      const orgs = await getOrganizations(user?.id);
+      const orgs = await sendAPIRequest<OrganizationI[]>(`/organization`);
       setOrganizations(orgs.map((org: any) => ({
         id: org.id,
         name: org.name
       })));
 
     } catch (error:any) {
-      if (error.response.status === 404){
-        console.log('User does not have any organization')
+      if (!error?.isErrorHandled) {
+        if (error.response.status === 404){
+          console.log('User does not have any organization')
+        }
+        setOrganizations([]);
       }
-      setOrganizations([]);
     }
   }
 

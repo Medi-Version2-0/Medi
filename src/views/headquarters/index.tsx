@@ -9,7 +9,6 @@ import { StationFormData } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { CreateHQ } from './CreateHQ';
 import Button from '../../components/common/button/Button';
-import { sendAPIRequest } from '../../helper/api';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { useSelector } from 'react-redux';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
@@ -17,6 +16,7 @@ import { getAndSetStations } from '../../store/action/globalAction';
 import usePermission from '../../hooks/useRole';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
 import { useGetSetData } from '../../hooks/useGetSetData';
+import useApi from '../../hooks/useApi';
 
 export const Headquarters = () => {
   const initialValue = {
@@ -25,6 +25,7 @@ export const Headquarters = () => {
     station_headQuarter: '',
   };
   const [open, setOpen] = useState(false);
+  const { sendAPIRequest } = useApi();
   const [formData, setFormData] = useState<StationFormData>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<StationFormData[]>([]);
@@ -76,7 +77,7 @@ export const Headquarters = () => {
       !headQuarter.some((hq: any) => hq.station_id === station.station_id)
     );
     setFilteredStations(filteredStations);
-  }, [allStations])
+  }, [allStations, createAccess])
 
   const handleKeyDown = (event: KeyboardEvent) => {
     handleKeyDownCommon(
@@ -136,19 +137,25 @@ export const Headquarters = () => {
         return false;
       }
     });
-    if (mode === false) {
-      await sendAPIRequest(`/headquarters/${id}`, {
-        method: 'PUT',
-        body: formData,
-      });
-    } else {
-      await sendAPIRequest(`/headquarters`, {
-        method: 'POST',
-        body: payload,
-      });
+    try {
+      if (mode === false) {
+        await sendAPIRequest(`/headquarters/${id}`, {
+          method: 'PUT',
+          body: formData,
+        });
+      } else {
+        await sendAPIRequest(`/headquarters`, {
+          method: 'POST',
+          body: payload,
+        });
+      }
+      getAndSetHeadQuarterHandler();
+      togglePopup(false);
+    } catch (error: any) {
+      if (!error?.isErrorHandled) {
+        console.log('HeadQuarter not created or updated');
+      }
     }
-    getAndSetHeadQuarterHandler();
-    togglePopup(false);
   };
 
   const handleFormSubmit = (values: StationFormData) => {
@@ -174,13 +181,19 @@ export const Headquarters = () => {
   const deleteAcc = async (station_id: string) => {
     isDelete.current = false;
     togglePopup(false);
-    await sendAPIRequest(
-      `/headquarters/${station_id}`,
-      {
-        method: 'DELETE',
+    try {
+      await sendAPIRequest(
+        `/headquarters/${station_id}`,
+        {
+          method: 'DELETE',
+        }
+      );
+      getAndSetHeadQuarterHandler();
+    } catch (error: any) {
+      if (!error?.isErrorHandled) {
+        console.log('Station not deleted');
       }
-    );
-    getAndSetHeadQuarterHandler();
+    }
   };
 
   const stationHeadquarterMap: { [key: number]: string } = {};
@@ -221,14 +234,20 @@ export const Headquarters = () => {
         }
       }
     } else {
-      await sendAPIRequest(
-        `/headquarters/${data.station_id}`,
-        {
-          method: 'PUT',
-          body: { [field]: +newValue },
+      try {
+        await sendAPIRequest(
+          `/headquarters/${data.station_id}`,
+          {
+            method: 'PUT',
+            body: { [field]: +newValue },
+          }
+        );
+        getAndSetHeadQuarterHandler();
+      } catch (error: any) {
+        if (!error?.isErrorHandled) {
+          console.log('Station not updated');
         }
-      );
-      getAndSetHeadQuarterHandler();
+      }
     }
   };
 
@@ -305,14 +324,14 @@ export const Headquarters = () => {
       },
       cellRenderer: (params: any) => (
         <div className='table_edit_buttons'>
-          {updateAccess && <FaEdit
+          <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
             onClick={() => handleUpdate(params.data)}
-          />}
-          {deleteAccess && <MdDeleteForever
+          />
+          <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
             onClick={() => handleDelete(params.data)}
-          />}
+          />
         </div>
       ),
     },

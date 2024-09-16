@@ -2,14 +2,13 @@ import { useEffect, useState } from 'react';
 import { useFormik } from 'formik';
 import { organizationValidationSchema } from '../organization/validation_schema';
 import Button from '../../components/common/button/Button';
-import { createOrganization } from '../../api/organizationApi';
 import useToastManager from '../../helper/toastManager';
 import ContactSection from '../../components/organization/ContactSection';
 import GeneralSection from '../../components/organization/GeneralSection';
 import LicencseSection from '../../components/organization/LicenceSection';
 import { useUser } from '../../UserContext';
 import { useNavigate } from 'react-router-dom';
-import { getAccessToken, saveToken } from '../../auth';
+import useApi from '../../hooks/useApi';
 
 const Step1 = ({ formik }: any) => (
     <div>
@@ -38,6 +37,7 @@ const InitialFirmSetup = () => {
     const navigate = useNavigate();
     const apiUrl = process.env.REACT_APP_API_URL;
     const { successToast } = useToastManager();
+    const { sendAPIRequest } = useApi();
 
     const formik = useFormik({
         initialValues: {
@@ -63,7 +63,10 @@ const InitialFirmSetup = () => {
         onSubmit: async (values) => {
             try {
                 if (user?.id) {
-                    const organization: any = await createOrganization(values, user.id);
+                    const organization: any = await await sendAPIRequest(`/organization`, {
+                        method: 'POST',
+                        body: values,
+                    });
                     successToast('Firm setup has been completed.Happy Accounting!');
                     const response: any = await fetch(apiUrl + `/auth/switch-company`, {
                         method: 'post',

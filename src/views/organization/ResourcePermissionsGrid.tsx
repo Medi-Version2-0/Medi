@@ -11,17 +11,12 @@ import HeaderCheckbox from '../../components/ag_grid/HeaderCheckBox';
 import FormikInputField from '../../components/common/FormikInputField';
 import CheckboxCellRenderer from '../../components/ag_grid/CheckBoxCellRenderer';
 import { userValidationSchema } from './validation_schema';
-import { getUserPermissions, updateUserPermissions } from '../../api/permissionsApi';
-import { insertOrganizationUser, updateOrganizationUser } from '../../api/organizationUserApi';
 import useToastManager from '../../helper/toastManager';
-import { useDispatch } from 'react-redux';
-import { AppDispatch } from '../../store/types/globalTypes';
-import { getAndSetPermssions } from '../../store/action/globalAction';
+import useApi from '../../hooks/useApi';
 
 const ResourcePermissionsGrid: React.FC<ResourcePermissionsGridProps> = ({ user, onCancel }) => {
     const gridRef = useRef<any>(null);
     const { successToast, errorToast } = useToastManager();
-    const dispatch = useDispatch<AppDispatch>()
     const [rowData, setRowData] = useState<ResourceI[]>([{
         id: 0,
         name: '',
@@ -39,6 +34,7 @@ const ResourcePermissionsGrid: React.FC<ResourcePermissionsGridProps> = ({ user,
     const [selectAllUpdate, setSelectAllUpdate] = useState(false);
     const [selectAllDelete, setSelectAllDelete] = useState(false);
     const [role, setRole] = useState<any>();
+    const { sendAPIRequest } = useApi();
     const gridApi = useRef<any>(null);
     const initialValues: UserFormI = {
         name: user?.name || '',
@@ -50,10 +46,21 @@ const ResourcePermissionsGrid: React.FC<ResourcePermissionsGridProps> = ({ user,
         onSubmit: async (values) => {
             try {
                 if (user && user.id) {
-                    await updateOrganizationUser(user.id, values);
+                    await sendAPIRequest<UserFormI[]>(`/user/organization/${user.id}`, {
+                        method: 'PUT',
+                        body: JSON.stringify(values),
+                        headers: {
+                            'Content-Type': 'application/json'
+                    }});
                     handleSave(user.id);
                 } else {
-                    const newUser: any = await insertOrganizationUser(values);
+                    const newUser: any = await sendAPIRequest<UserFormI[]>(`/user/organization`, {
+                        method: 'POST',
+                        body: JSON.stringify(values),
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
                     handleSave(newUser.userId);
                 }
                 successToast(`User has been successfully ${user?.id ? 'updated' : 'created'}`);
@@ -68,7 +75,8 @@ const ResourcePermissionsGrid: React.FC<ResourcePermissionsGridProps> = ({ user,
     });
 
     const getRoles = async (userId?: number) => {
-        const roles: any = await getUserPermissions(userId);
+        userId = userId || 0;
+        const roles: any = await sendAPIRequest<any[]>(`/permissions/${userId}`);
         setRowData(roles.role.Resources);
         setRole(roles.role);
         return roles;
@@ -142,8 +150,10 @@ const ResourcePermissionsGrid: React.FC<ResourcePermissionsGridProps> = ({ user,
                 id: role.id,
                 Resources: permissionsData
             }
-            await updateUserPermissions(userId, data);
-            dispatch(getAndSetPermssions())
+            await sendAPIRequest<any>(`/permissions/${userId}`, {
+                method: 'POST',
+                body: data,
+            });
         } catch (error) {
             console.error("Error saving permissions:-", error);
         }
