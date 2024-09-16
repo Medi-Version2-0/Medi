@@ -7,7 +7,6 @@ import { numberedStringLowerCase } from '../../utilities/numberedStringLowercase
 import Button from '../../components/common/button/Button';
 import { ColDef } from 'ag-grid-community';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
-import { sendAPIRequest } from '../../helper/api';
 import { useControls } from '../../ControlRoomContext';
 import { batchSchema, validatePrices } from './validation_schema';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
@@ -15,6 +14,7 @@ import { useDispatch } from 'react-redux';
 import { AppDispatch } from '../../store/types/globalTypes';
 import { getAndSetItem } from '../../store/action/globalAction';
 import { useSelector } from 'react-redux';
+import useApi from '../../hooks/useApi';
 
 export const Batch = ({
   params,
@@ -25,6 +25,8 @@ export const Batch = ({
   };
 }) => {
   const { id } = params.showBatch;
+  const { sendAPIRequest } = useApi();
+
   const { controlRoomSettings } = useControls();
   const pinnedRow: BatchForm = {
     itemId: id ? +id : 0,

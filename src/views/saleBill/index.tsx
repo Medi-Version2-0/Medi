@@ -8,10 +8,10 @@ import Button from '../../components/common/button/Button';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import usePermission from '../../hooks/useRole';
 import CreateSaleBill from './createSaleBill';
-import { sendAPIRequest } from '../../helper/api';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { DiscountTypeSection } from './discountTypeSection';
 import { MdDeleteForever } from 'react-icons/md';
+import useApi from '../../hooks/useApi';
 
 const SaleBill = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
@@ -21,6 +21,7 @@ const SaleBill = () => {
   const { createAccess, updateAccess, deleteAccess } = usePermission('invoicebill')
   const id = useRef('');
   const queryClient = useQueryClient();
+  const { sendAPIRequest } = useApi();
 
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
@@ -52,11 +53,16 @@ const SaleBill = () => {
 
   const handleConfirmPopup = async () => {
     setPopupState({ ...popupState, isModalOpen: false });
-    await sendAPIRequest(`/invoiceBill/${id.current}`, {
-      method: 'DELETE',
-    });
-    queryClient.invalidateQueries({ queryKey: ['get-saleBill'] });
-
+    try {
+      await sendAPIRequest(`/invoiceBill/${id.current}`, {
+        method: 'DELETE',
+      });
+      queryClient.invalidateQueries({ queryKey: ['get-saleBill'] });
+    } catch (error: any) {
+      if (!error?.isErrorHandled) {
+        console.log('Sale Bill not deleted');
+      }
+    }
   };
 
   const handleDelete = (oldData: any) => {
@@ -109,16 +115,16 @@ const SaleBill = () => {
       },
       cellRenderer: (params: { data: any }) => (
         <div className='table_edit_buttons'>
-          {updateAccess && <FaEdit
+          <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
             onClick={() => {
               setView({ type: 'add', data: params.data });
             }}
-          />}
-          {deleteAccess && <MdDeleteForever
+          />
+          <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
             onClick={() => handleDelete(params.data)}
-          />}
+          />
         </div>
       ),
     },

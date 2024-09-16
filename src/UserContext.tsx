@@ -1,4 +1,5 @@
 // src/UserContext.tsx
+import axios from 'axios';
 import React, {
   createContext,
   useState,
@@ -8,10 +9,10 @@ import React, {
   Dispatch,
   SetStateAction,
 } from 'react';
-import { sendAPIRequest } from './helper/api';
 
 export interface User {
   id: number;
+  isAdmin: boolean;
   name?:string;
   city?:string;
   address?:string;  
@@ -124,8 +125,11 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
 
   const logout = async () => {
     setUser(null);
-    await sendAPIRequest(`/auth/logout`, {
-      method: 'POST',
+    await axios.post(`${apiUrl}/auth/logout`, {}, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      withCredentials: true,
     });
   };
 

@@ -10,10 +10,10 @@ import { CompanyFormData, Option, StationFormData, SalesPurchaseFormData } from 
 import CustomSelect from '../../components/custom_select/CustomSelect';
 import onKeyDown from '../../utilities/formKeyDown';
 import titleCase from '../../utilities/titleCase';
-import { sendAPIRequest } from '../../helper/api';
 import { useSelector } from 'react-redux'
 import { getAndSetCompany } from '../../store/action/globalAction';
 import { useGetSetData } from '../../hooks/useGetSetData';
+import useApi from '../../hooks/useApi';
 
 export const CreateCompany = ({ setView , data }: any) => {
   const [stationOptions, setStationOptions] = useState<Option[]>([]);
@@ -27,6 +27,7 @@ export const CreateCompany = ({ setView , data }: any) => {
     message: '',
   });
   const getAndSetCompanyHandler = useGetSetData(getAndSetCompany);
+  const { sendAPIRequest } = useApi();
 
   const formik: any = useFormik({
     initialValues: {
@@ -63,18 +64,29 @@ export const CreateCompany = ({ setView , data }: any) => {
     validationSchema: getCompanyFormSchema,
     onSubmit: async (values) => {
       const allData = { ...values };
-      if (data.company_id) {
-        await sendAPIRequest(`/company/${data.company_id}`, {
-          method: 'PUT',
-          body: allData,
+      try {
+        if (data.company_id) {
+          await sendAPIRequest(`/company/${data.company_id}`, {
+            method: 'PUT',
+            body: allData,
+          });
+        } else {
+          await sendAPIRequest(`/company`, {
+            method: 'POST',
+            body: allData,
+          });
+        }
+        setPopupState({
+          ...popupState,
+          isAlertOpen: true,
+          message: `Company ${!!data.company_id ? 'updated' : 'created'} successfully`,
         });
-      } else {
-        await sendAPIRequest(`/company`, {
-          method: 'POST',
-          body: allData,
-        });
+        getAndSetCompanyHandler();
+      } catch (error: any) {
+        if (!error?.isErrorHandled) {
+          console.log(`Company not ${!!data.company_id ? 'updated' : 'created'}`);
+        }
       }
-      getAndSetCompanyHandler();
     },
   });
 
@@ -822,13 +834,6 @@ export const CreateCompany = ({ setView , data }: any) => {
             id='submit_company'
             btnType='submit'
             disable={!(formik.isValid)}
-            handleOnClick={() => {
-              setPopupState({
-                ...popupState,
-                isAlertOpen: true,
-                message: `Company ${!!data.company_id ? 'updated' : 'created'} successfully`,
-              });
-            }}
             handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
               if (e.key === 'ArrowUp' || e.shiftKey && e.key === 'Tab') {
                 document.getElementById('emailId3')?.focus();

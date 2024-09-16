@@ -3,12 +3,9 @@ import { Option, StationFormData } from '../../interface/global';
 import CustomSelect from '../custom_select/CustomSelect';
 import FormikInputField from '../common/FormikInputField';
 import titleCase from '../../utilities/titleCase';
-import { sendAPIRequest } from '../../helper/api';
-import { useParams } from 'react-router-dom';
 import onKeyDown from '../../utilities/formKeyDown';
 import { useSelector } from 'react-redux';
 import { useControls } from '../../ControlRoomContext';
-import { ItemFormData, } from '../../interface/global';
 
 interface GeneralInfoProps {
   onValueChange?: any;

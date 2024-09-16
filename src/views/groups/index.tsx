@@ -9,7 +9,6 @@ import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { ColDef, ColGroupDef, ValueFormatterParams } from 'ag-grid-community';
 import { CreateGroup } from './CreateGroup';
 import Button from '../../components/common/button/Button';
-import { sendAPIRequest } from '../../helper/api';
 import { groupValidationSchema } from './validation_schema';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
 import { useSelector } from 'react-redux'
@@ -18,6 +17,7 @@ import usePermission from '../../hooks/useRole';
 import { lookupValue } from '../../helper/helper';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { useGetSetData } from '../../hooks/useGetSetData';
+import useApi from '../../hooks/useApi';
 
 export const Groups = () => {
   const initialValue = {
@@ -27,7 +27,8 @@ export const Groups = () => {
     parent_code: '',
     isPredefinedGroup: true,
   };
-  const { createAccess, updateAccess, deleteAccess } = usePermission('ledger')
+  const { sendAPIRequest } = useApi();
+  const { createAccess, updateAccess } = usePermission('group')
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<GroupFormData>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
@@ -89,7 +90,6 @@ export const Groups = () => {
               body: formData,
             }
           );
-          getAndSetGroupsHandler();
         } else {
           const response: any = await sendAPIRequest(`/group`, {
             method: 'POST',
@@ -98,12 +98,14 @@ export const Groups = () => {
           if (respData.group_name && !response.error) {
             settingPopupState(false, 'Group saved successfully');
           }
-          getAndSetGroupsHandler();
         }
+        getAndSetGroupsHandler();
         togglePopup(false);
         setFormData(pinnedRow)
-      } catch (error) {
-        console.error('Error saving group:', error);
+      } catch (error:any) {
+        if (!error?.isErrorHandled) {
+          console.error('Group either not created or updated');
+        }
       }
     }
   };
@@ -120,10 +122,16 @@ export const Groups = () => {
   const deleteAcc = async (group_code: string) => {
     isDelete.current = false;
     togglePopup(false);
-    await sendAPIRequest(`/group/${group_code}`, {
-      method: 'DELETE',
-    });
-    getAndSetGroupsHandler();
+    try{
+      await sendAPIRequest(`/group/${group_code}`, {
+        method: 'DELETE',
+      });
+      getAndSetGroupsHandler();
+    }catch(error:any) {
+      if (error?.response?.status!== 401 && error.response?.status!== 403) {
+        console.error('Group not deleted');
+      }
+    }
   };
 
   const handleDelete = (rowData: GroupFormData) => {
@@ -213,9 +221,11 @@ export const Groups = () => {
         });
         getAndSetGroupsHandler();
       } catch (error: any) {
-        settingPopupState(false, `${error.message}`);
-        node.setDataValue(field, oldValue);
-        return;
+        if (!error?.isErrorHandled) {
+          settingPopupState(false, `${error.message}`);
+          node.setDataValue(field, oldValue);
+          return;
+        }
       }
     }
   };
@@ -274,7 +284,7 @@ export const Groups = () => {
     filter: true,
     suppressMovable: true,
     headerClass: 'custom-header',
-    editable: (params: any) => (!params.data.isPredefinedGroup || !params.data.group_code) && updateAccess,
+    editable: (params: any) => (!params.data.isPredefinedGroup || !params.data.group_code) && params.node.rowIndex === 0 ? createAccess : updateAccess,
     cellRenderer: (params: any) => (
       <PlaceholderCellRenderer
         value={params.value}
@@ -312,18 +322,17 @@ export const Groups = () => {
         },
         cellRenderer: (params: { data: GroupFormData }) => (
           <div className='table_edit_buttons'>
-            {updateAccess && <FaEdit
+            <FaEdit
               style={{ cursor: 'pointer', fontSize: '1.1rem' }}
               onClick={() => {
                 setSelectedRow(selectedRow !== null ? null : params.data);
                 handleUpdate(params.data);
               }}
             />
-}
-            {deleteAccess &&<MdDeleteForever
+            <MdDeleteForever
               style={{ cursor: 'pointer', fontSize: '1.2rem' }}
               onClick={() => handleDelete(params.data)}
-            />}
+            />
           </div>
         ),
       },

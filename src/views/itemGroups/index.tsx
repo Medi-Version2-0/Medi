@@ -9,7 +9,6 @@ import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { ColDef, ColGroupDef, ValueFormatterParams } from 'ag-grid-community';
 import { CreateItemGroup } from './createItemGroup';
 import Button from '../../components/common/button/Button';
-import { sendAPIRequest } from '../../helper/api';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { itemGroupValidationSchema } from './validation_schema';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
@@ -19,6 +18,7 @@ import usePermission from '../../hooks/useRole';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
 import { lookupValue } from '../../helper/helper';
 import { useGetSetData } from '../../hooks/useGetSetData';
+import useApi from '../../hooks/useApi';
 
 export const ItemGroups = () => {
   const initialData = {
@@ -26,6 +26,7 @@ export const ItemGroups = () => {
     group_name: '',
     type: '',
   };
+  const { sendAPIRequest } = useApi();
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<ItemGroupFormData>({
     group_name: '',
@@ -35,7 +36,7 @@ export const ItemGroups = () => {
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const editing = useRef(false);
   const getAndSetItemGroupHandler = useGetSetData(getAndSetItemGroups);
-  const {createAccess , updateAccess , deleteAccess} = usePermission('item_groups')
+  const {createAccess , updateAccess , deleteAccess} = usePermission('itemgroup')
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
@@ -77,26 +78,32 @@ export const ItemGroups = () => {
       type: respData.group_name ? respData.type : formData.type,
     };
 
-    if (payload !== initialData) {
-      if (formData.group_code) {
-        await sendAPIRequest(
-          `/itemGroup/${formData.group_code}`,
-          {
-            method: 'PUT',
-            body: formData,
+    try{
+      if (payload !== initialData) {
+        if (formData.group_code) {
+          await sendAPIRequest(
+            `/itemGroup/${formData.group_code}`,
+            {
+              method: 'PUT',
+              body: formData,
+            }
+          );
+        } else {
+          const response: any = await sendAPIRequest(`/itemGroup`, {
+            method: 'POST',
+            body: payload,
+          });
+          if (respData.group_name && !response.error) {
+            settingPopupState(false, 'Item Group saved successfully');
           }
-        );
-      } else {
-        const response: any = await sendAPIRequest(`/itemGroup`, {
-          method: 'POST',
-          body: payload,
-        });
-        if (respData.group_name && !response.error) {
-          settingPopupState(false, 'Item Group saved successfully');
         }
+        getAndSetItemGroupHandler();
+        togglePopup(false);
       }
-      getAndSetItemGroupHandler();
-      togglePopup(false);
+    }catch (error:any){
+      if (!error?.isErrorHandled) {
+        console.log('Item Group not created or updated');
+      }
     }
   };
 
@@ -119,10 +126,16 @@ export const ItemGroups = () => {
     togglePopup(false);
     isDelete.current = false;
 
-    await sendAPIRequest(`/itemGroup/${group_code}`, {
-      method: 'DELETE',
-    });
-    getAndSetItemGroupHandler();
+    try{
+      await sendAPIRequest(`/itemGroup/${group_code}`, {
+        method: 'DELETE',
+      });
+      getAndSetItemGroupHandler();
+    }catch(error:any){
+      if (!error?.isErrorHandled) {
+        console.log('Item Group not deleted');
+      }
+    }
   };
 
   const handleDelete = (oldData: ItemGroupFormData) => {
@@ -208,8 +221,10 @@ export const ItemGroups = () => {
         );
         getAndSetItemGroupHandler();
       } catch (error: any) {
-        settingPopupState(false, `${error.message}`);
-        node.setDataValue(field, oldValue);
+        if (!error?.isErrorHandled) {
+          settingPopupState(false, `${error.message}`);
+          node.setDataValue(field, oldValue);
+        }
       }
     }
   };
@@ -246,7 +261,7 @@ export const ItemGroups = () => {
       headerClass: 'custom-header',
       suppressMovable: true,
       floatingFilter: true,
-      editable : updateAccess,
+      editable: (params: any) => params.node.rowIndex === 0 ? createAccess : updateAccess,
       cellRenderer: (params: any) => (
         <PlaceholderCellRenderer
           value={params.value}
@@ -287,19 +302,18 @@ export const ItemGroups = () => {
         },
         cellRenderer: (params: { data: ItemGroupFormData }) => (
           <div className='table_edit_buttons'>
-           {updateAccess &&  <FaEdit
+            <FaEdit
               style={{ cursor: 'pointer', fontSize: '1.1rem' }}
               onClick={() => {
                 handleUpdate(params.data);
               }}
-            />}
-
-           {deleteAccess && <MdDeleteForever
+            />
+            <MdDeleteForever
               style={{ cursor: 'pointer', fontSize: '1.2rem' }}
               onClick={() => {
                 handleDelete(params.data);
               }}
-            />}
+            />
           </div>
         ),
       },

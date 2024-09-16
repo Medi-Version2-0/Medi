@@ -17,7 +17,8 @@ function createWindow() {
     protocol: 'file',
   });
 
-  win.loadURL(startUrl);
+  // win.loadURL(startUrl);
+  win.loadURL('http://localhost:3000'); // this is used only for testing purposes this will change in the future
 }
 
 app.whenReady().then(createWindow);

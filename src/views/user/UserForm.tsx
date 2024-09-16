@@ -4,11 +4,12 @@ import FormikInputField from '../../components/common/FormikInputField';
 import Button from '../../components/common/button/Button';
 import { useUser } from '../../UserContext';
 import { userValidationSchema } from './validation_schema';
-import { updateUser } from '../../api/userApi';
 import { useNavigate } from 'react-router-dom';
+import useApi from '../../hooks/useApi';
 
 const UserForm = () => {
     const { user } = useUser();
+    const { sendAPIRequest } = useApi();
     const navigate = useNavigate();
     const initialValues = {
         name: user?.name || '',
@@ -27,7 +28,10 @@ const UserForm = () => {
         onSubmit: async (values) => {
             try {
                 const { email, ...user } = values;
-                await updateUser(user);
+                await sendAPIRequest(`/user`, {
+                    method: 'PUT',
+                    body: user,
+                });
                 navigate('/redirecttocompany')
                 console.log("User created successfully with email", email);
             } catch (error) {

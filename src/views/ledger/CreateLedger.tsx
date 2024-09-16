@@ -11,7 +11,6 @@ import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 
 import Button from '../../components/common/button/Button';
 import { getLedgerFormValidationSchema } from './validation_schema';
-import { sendAPIRequest } from '../../helper/api';
 import titleCase from '../../utilities/titleCase';
 import { Option, GroupFormData, StationFormData } from '../../interface/global';
 import 'ag-grid-community/styles/ag-grid.css';
@@ -19,6 +18,7 @@ import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { useSelector } from 'react-redux';
 import { getAndSetParty } from '../../store/action/globalAction';
 import { useGetSetData } from '../../hooks/useGetSetData';
+import useApi from '../../hooks/useApi';
 
 const initialState = {
   btn_1: false,
@@ -29,6 +29,7 @@ const initialState = {
 
 export const CreateLedger = ({ setView, data }: any) => {
   const getAndSetLedgerHandler = useGetSetData(getAndSetParty);
+  const { sendAPIRequest } = useApi();
   const {stations} = useSelector((state:any)=> state.global)
   const {groups : groupDataList} = useSelector((state:any)=> state.global)
   const [showActiveElement, setShowActiveElement] = useState(initialState);
@@ -127,9 +128,18 @@ export const CreateLedger = ({ setView, data }: any) => {
         : `/ledger`;
 
       const method = data?.party_id ? 'PUT' : 'POST';
-
-      await sendAPIRequest(apiPath, { method, body: allData });
-      getAndSetLedgerHandler();
+      try{
+        await sendAPIRequest(apiPath, { method, body: allData });
+        setPopupState({
+          ...popupState,
+          isAlertOpen: true,
+          message: `Ledger ${!!data?.party_id ? 'updated' : 'created'} successfully`,
+        });
+        getAndSetLedgerHandler();
+      }catch(errr){
+        if (method === 'PUT') console.log('Party not Updated');
+        if (method === 'POST') console.log('Party not Created');
+      }
     },
   });
 
@@ -214,7 +224,7 @@ export const CreateLedger = ({ setView, data }: any) => {
         return "gstIn"
     }
   }
-
+  console.log('Group Options in creLedr => ', groupOptions)
   return (
     <div className='w-full'>
       <div className='flex w-full items-center justify-between px-8 py-1'>
@@ -296,13 +306,9 @@ export const CreateLedger = ({ setView, data }: any) => {
             padding='px-4 py-2'
             id='submit_all'
             disable={!ledgerFormInfo.isValid}
-            handleOnClick={() => {
-              setPopupState({
-                ...popupState,
-                isAlertOpen: true,
-                message: `Ledger ${!!data?.party_id ? 'updated' : 'created'} successfully`,
-              });
-            }}
+            // handleOnClick={() => {
+              
+            // }}
             handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
               if (e.key === 'ArrowUp') {
                 document

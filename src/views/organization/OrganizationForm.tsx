@@ -4,16 +4,17 @@ import { organizationValidationSchema } from './validation_schema';
 import FormikInputField from '../../components/common/FormikInputField';
 import { OrganizationI, OrganizationFormProps } from './types';
 import Button from '../../components/common/button/Button';
-import { createOrganization, getOrganizations, updateOrganization } from '../../api/organizationApi';
 import useToastManager from '../../helper/toastManager';
 import { setOrganization } from '../../store/action/globalAction';
 import { useDispatch } from 'react-redux';
 import { useUser } from '../../UserContext';
+import useApi from '../../hooks/useApi';
 
 const OrganizationForm: React.FC<OrganizationFormProps> = ({ data, setEditing }) => {
   const { successToast } = useToastManager();
   const dispatch = useDispatch();
   const { user } = useUser();
+  const { sendAPIRequest } = useApi();
 
   const initialValues: OrganizationI = {
     name: data?.name || '',
@@ -41,13 +42,19 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({ data, setEditing })
     onSubmit: async (values) => {
       try {
         if (data?.id) {
-          await updateOrganization(data.id, values);
+          await sendAPIRequest(`/organization/${data.id}`, {
+            method: 'PUT',
+            body: values,
+          });
         } else {
-          user?.id && await createOrganization(values, user.id);
+          user?.id && await sendAPIRequest(`/organization`, {
+            method: 'POST',
+            body: values,
+          });
         }
         setEditing && setEditing(null);
         successToast(`Company has been successfully ${data?.id ? 'updated' : 'created'}`);
-        const organizations = user?.id && await getOrganizations(user.id);
+        const organizations = user?.id && await sendAPIRequest<OrganizationI[]>(`/organization`);
         dispatch(setOrganization(organizations || []));
       } catch (error) {
         console.error('Error:-', error);

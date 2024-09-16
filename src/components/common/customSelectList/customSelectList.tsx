@@ -5,9 +5,9 @@ import { useFormik } from 'formik';
 import FormikInputField from './../FormikInputField';
 import { getNestedValue } from '../../../helper/helper';
 import { MdAddCircleOutline } from "react-icons/md";
-import { sendAPIRequest } from '../../../helper/api';
 import useDebounce from '../../../hooks/useDebounce';
 import Button from '../button/Button';
+import useApi from '../../../hooks/useApi';
 
 interface DropDownPopupProps extends selectListProps {
     dataKeys?: {
@@ -50,6 +50,7 @@ export const SelectList = ({
     const [hasMore, setHasMore] = useState<boolean>(true);
     const pageReset = useRef(false);
     const selectedMultipleRowData = useRef<any[]>([]);
+    const { sendAPIRequest } = useApi();
 
     const formik = useFormik({
         initialValues: {

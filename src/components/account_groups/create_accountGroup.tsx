@@ -4,7 +4,7 @@ import * as Yup from 'yup';
 import { CreateAccountGroupProps, FormDataProps } from '../../interface/global';
 import { Popup } from '../popup/Popup';
 import '../stations/stations.css';
-import { sendAPIRequest } from '../../helper/api';
+import useApi from '../../hooks/useApi';
 
 export const CreateGroup: React.FC<CreateAccountGroupProps> = ({
   togglePopup,
@@ -14,6 +14,7 @@ export const CreateGroup: React.FC<CreateAccountGroupProps> = ({
   deleteAcc,
 }) => {
   const { head_code } = data;
+  const { sendAPIRequest } = useApi();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [suggestions, setSuggestions] = useState<any>([]);

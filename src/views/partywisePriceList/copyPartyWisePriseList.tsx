@@ -1,14 +1,15 @@
 import React, { useState, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { sendAPIRequest } from '../../helper/api';
 import { AgGridReact } from 'ag-grid-react';
 import Button from '../../components/common/button/Button';
 import { partyHeaders } from './partywiseHeader';
 import { SelectList } from '../../components/common/selectList';
+import useApi from '../../hooks/useApi';
 
 const CopyPratywisePriceList: React.FC = () => {
   const [copyFrom, setCopyFrom] = useState<{ [key: string]: string }>({});
   const [copyTo, setCopyTo] = useState<any>(null);
+  const { sendAPIRequest } = useApi();
   const { party: partyData } = useSelector((state: any) => state.global);
   const [tableData, setTableData] = useState<any[]>([]);
   const [popupList, setPopupList] = useState<{ isOpen: boolean, data: any }>({
@@ -17,13 +18,19 @@ const CopyPratywisePriceList: React.FC = () => {
   })
 
   const getItemData = async (partyId?: any) => {
-    const itemData = await sendAPIRequest<any[]>(
-      `/partyWisePriceList/${partyId}`,
-      {
-        method: 'GET',
+    try {
+      const itemData = await sendAPIRequest<any[]>(
+        `/partyWisePriceList/${partyId}`,
+        {
+          method: 'GET',
+        }
+      );
+      setTableData(itemData);
+    } catch (error: any) {
+      if (!error?.isErrorHandled) {
+        console.log('Partywise price list not read');
       }
-    );
-    setTableData(itemData);
+    }
   };
 
   const handleCopy = async () => {
@@ -32,18 +39,24 @@ const CopyPratywisePriceList: React.FC = () => {
       copyTo: copyTo.party_id,
     };
 
-    await sendAPIRequest(
-      `/partyWisePriceList/copyPartyWisePriceList`,
-      {
-        method: 'POST',
-        body: JSON.stringify(finalData),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+    try {
+      await sendAPIRequest(
+        `/partyWisePriceList/copyPartyWisePriceList`,
+        {
+          method: 'POST',
+          body: JSON.stringify(finalData),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+  
+      getItemData(copyTo.party_id);
+    } catch (error: any) {
+      if (!error?.isErrorHandled) {
+        console.log('Partywise price list not created');
       }
-    );
-
-    getItemData(copyTo.party_id);
+    }
   };
   
   const colDefs = useMemo(

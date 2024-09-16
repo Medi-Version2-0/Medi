@@ -8,7 +8,6 @@ import { StoreFormData } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import Button from '../../components/common/button/Button';
 import { CreateStore } from './CreateStore';
-import { sendAPIRequest } from '../../helper/api';
 import { storeValidationSchema } from './validation_schema';
 import usePermission from '../../hooks/useRole';
 import { useDispatch, useSelector } from 'react-redux'
@@ -16,6 +15,7 @@ import { AppDispatch } from '../../store/types/globalTypes';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { getAndSetStore } from '../../store/action/globalAction';
+import useApi from '../../hooks/useApi';
 
 const initialValue = {
   store_code: '',
@@ -27,6 +27,7 @@ const initialValue = {
 };
 
 export const Store = () => {
+  const { sendAPIRequest } = useApi();
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<StoreFormData | any>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
@@ -75,23 +76,29 @@ export const Store = () => {
         formData.store_name.charAt(0).toUpperCase() +
         formData.store_name.slice(1);
     }
-    if (formData !== initialValue) {
-      if (formData.store_code) {
-        await sendAPIRequest(
-          `/store/${formData.store_code}`,
-          {
-            method: 'PUT',
+    try {
+      if (formData !== initialValue) {
+        if (formData.store_code) {
+          await sendAPIRequest(
+            `/store/${formData.store_code}`,
+            {
+              method: 'PUT',
+              body: formData,
+            }
+          );
+        } else {
+          await sendAPIRequest(`/store`, {
+            method: 'POST',
             body: formData,
-          }
-        );
-      } else {
-        await sendAPIRequest(`/store`, {
-          method: 'POST',
-          body: formData,
-        });
+          });
+        }
+        dispatch(getAndSetStore())
+        togglePopup(false);
       }
-      dispatch(getAndSetStore())
-      togglePopup(false);
+    } catch (error: any) {
+      if (!error?.isErrorHandled) {
+        console.log('Store not created or updated');
+      }
     }
   };
 
@@ -135,10 +142,16 @@ export const Store = () => {
   const deleteAcc = async (store_code: string) => {
     isDelete.current = false;
     togglePopup(false);
-    await sendAPIRequest(`/store/${store_code}`, {
-      method: 'DELETE',
-    });
-    dispatch(getAndSetStore())
+    try {
+      await sendAPIRequest(`/store/${store_code}`, {
+        method: 'DELETE',
+      });
+      dispatch(getAndSetStore())
+    } catch (error: any) {
+      if (!error?.isErrorHandled) {
+        console.log('Store not deleted');
+      }
+    }
   };
 
   const handleDelete = (oldData: StoreFormData) => {
@@ -194,11 +207,17 @@ export const Store = () => {
     }
 
     node.setDataValue(field, newValue);
-    await sendAPIRequest(`/store/${data.store_code}`, {
-      method: 'PUT',
-      body: { [field]: newValue },
-    });
-    dispatch(getAndSetStore())
+    try {
+      await sendAPIRequest(`/store/${data.store_code}`, {
+        method: 'PUT',
+        body: { [field]: newValue },
+      });
+      dispatch(getAndSetStore())
+    } catch (error: any) {
+      if (!error?.isErrorHandled) {
+        console.log('Store not updated');
+      }
+    }
   };
 
   const onCellClicked = (params: { data: any }) => {
@@ -263,7 +282,7 @@ export const Store = () => {
       },
       cellRenderer: (params: { data: StoreFormData }) => (
         <div className='table_edit_buttons'>
-          {updateAccess && <FaEdit
+          <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
             onClick={() => {
               if (params.data.isPredefinedStore) {
@@ -276,9 +295,8 @@ export const Store = () => {
                 handleUpdate(params.data);
               }
             }}
-          />}
-
-          {deleteAccess && <MdDeleteForever
+          />
+          <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
             onClick={() => {
               if (params.data.isPredefinedStore) {
@@ -291,7 +309,7 @@ export const Store = () => {
                 handleDelete(params.data);
               }
             }}
-          />}
+          />
         </div>
       ),
     },

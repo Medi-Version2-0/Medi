@@ -6,9 +6,9 @@ import BasicItemEdit from './BasicItemEdit';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
-import { sendAPIRequest } from '../../helper/api';
 import { getAndSetItem } from '../../store/action/globalAction';
 import { useGetSetData } from '../../hooks/useGetSetData';
+import useApi from '../../hooks/useApi';
 
 export interface ItemFormValues {
   name: string;
@@ -44,6 +44,7 @@ const CreateItem = ({ setView, data, setShowBatch }: any) => {
     addText: '',
   });
   const getAndSetItemHandler = useGetSetData(getAndSetItem);
+  const { sendAPIRequest } = useApi();
 
   const itemFormInfo: ItemFormInfoType = useFormik({
     initialValues: {
@@ -101,13 +102,15 @@ const CreateItem = ({ setView, data, setShowBatch }: any) => {
           message: `Item ${data.id ? 'updated' : 'created'} successfully.`,
           addText: 'Add Batch',
         });
-      } catch (error) {
-        setPopupState({
-          isModalOpen: false,
-          isAlertOpen: true,
-          message: `Failed to ${data.id ? 'update' : 'create'} item`,
-          addText: ''
-        });
+      } catch (error:any) {
+        if (!error?.isErrorHandled){
+          setPopupState({
+            isModalOpen: false,
+            isAlertOpen: true,
+            message: `Failed to ${data.id ? 'update' : 'create'} item`,
+            addText: ''
+          });
+        }      
       }
     },
   });

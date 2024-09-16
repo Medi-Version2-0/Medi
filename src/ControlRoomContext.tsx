@@ -8,11 +8,11 @@ import React, {
   useEffect,
   SetStateAction,
 } from 'react';
-import { sendAPIRequest } from './helper/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useUser } from './UserContext';
 import { useDispatch } from 'react-redux'
 import { setControlRoomSettings } from './store/action/globalAction';
+import useApi from './hooks/useApi';
 export interface ControlFields {
   //LEDGER
   multiplePriceList: boolean;
@@ -118,15 +118,16 @@ const controlRoomContext = createContext<ControlRoomContextType | undefined>(
 
 export const ControlRoomProvider = ({ children }: { children: ReactNode }) => {
   const queryClient = useQueryClient();
-  const { selectedCompany } = useUser();
+  const { user } = useUser();
+  const { sendAPIRequest } = useApi();
   const dispatch = useDispatch()
   //TO-DO: Add default settings if custom settings not available
-  const [controlRoomSettings, updateControlRoomSettings] =
+   const [controlRoomSettings, updateControlRoomSettings] =
     useState<ControlFields>(defaultSettings);
-
   const { data, isPending } = useQuery<any>({
     queryKey: ['get-controlSettings'],
     queryFn: () => sendAPIRequest<any>(`/controlRoom`),
+    enabled: !!user?.email, // api call only when user is authenticated
   });
 
   useEffect(() => {

@@ -9,13 +9,14 @@ import {CreateVouchers} from './createVoucher';
 import usePermission from '../../hooks/useRole';
 import { FaEdit } from 'react-icons/fa';
 import { MdDeleteForever } from 'react-icons/md';
-import { sendAPIRequest } from '../../helper/api';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
+import useApi from '../../hooks/useApi';
 
 const Vouchers = () => {
     const [view, setView] = useState<View>({ type: '', data: {} });
-    const [selectedVoucherType, setSelectedVoucherType] = useState<string>('');
-    const [filterDate, setFilterDate] = useState<string>(getTodayDate(new Date()));
+    const [selectedVoucherType, setSelectedVoucherType] = useState<string>(''); // State for selected voucher type
+    const [filterDate, setFilterDate] = useState<string>(getTodayDate(new Date())); // State for selected date filter
+    const { sendAPIRequest } = useApi();
     const { createAccess, updateAccess, deleteAccess } = usePermission('voucher');
     const [tableData, setTableData] = useState<Voucher | any>([]);
     const voucherNumber = useRef<string>('');
@@ -95,10 +96,16 @@ const Vouchers = () => {
     const handleConfirmPopup = async () => {
         setPopupState({ ...popupState, isModalOpen: false });
         const url = `/voucher/${voucherNumber.current}?voucherDate=${voucherDate.current}&voucherType=${voucherType.current}`;
-        await sendAPIRequest(url, {
-            method: 'DELETE',
-        });
-        await getVoucherData();
+        try {
+            await sendAPIRequest(url, {
+                method: 'DELETE',
+            });
+            await getVoucherData();
+        } catch (error: any) {
+            if (!error?.isErrorHandled) {
+                console.log('Vouchers not deleted');
+            }
+        }
     };
 
     const handleDelete = (oldData: any) => {
@@ -153,23 +160,17 @@ const Vouchers = () => {
             },
             cellRenderer: (params: { data: any }) => (
                 <div className='table_edit_buttons'>
-                    {/* put access updateAccess  */}
-                    {updateAccess && (
-                        <FaEdit
+                    <FaEdit
                             id='editButton'
                             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
                             onClick={() => {
                                 onCellClicked(params, true)
                             }}
                         />
-                    )}
-                    {/* put access deleteAccess  */}
-                    {deleteAccess && (
-                        <MdDeleteForever
+                    <MdDeleteForever
                             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
                             onClick={() => handleDelete(params.data)}
                         />
-                    )}
                 </div>
             ),
         },

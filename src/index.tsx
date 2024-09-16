@@ -9,6 +9,7 @@ import { Provider } from 'react-redux';
 import configureStore from './store/configureStore';
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { GlobalProvider } from './GlobalContext';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -26,9 +27,11 @@ root.render(
   <Provider store={store}>
     <QueryClientProvider client={queryClient}>
       <UserProvider>
-        <ControlRoomProvider>
-          <App />
-        </ControlRoomProvider>
+        <GlobalProvider>
+          <ControlRoomProvider>
+            <App />
+          </ControlRoomProvider>
+        </GlobalProvider>
       </UserProvider>
       <ToastContainer />
     </QueryClientProvider>

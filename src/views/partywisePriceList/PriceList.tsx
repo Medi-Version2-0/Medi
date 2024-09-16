@@ -4,10 +4,10 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { useSelector } from 'react-redux';
 import { partyHeaders } from './partywiseHeader';
-import { sendAPIRequest } from '../../helper/api';
 import Button from '../../components/common/button/Button';
 import { printData } from '../../components/common/ExportData';
 import { SelectList } from '../../components/common/selectList';
+import useApi from '../../hooks/useApi';
 
 const PriceList = () => {
   const { party: partyData, item: itemData } = useSelector((state: any) => state.global);
@@ -15,6 +15,7 @@ const PriceList = () => {
   const [currentSavedData, setCurrentSavedData] = useState<{[key: string] : string}>({});
   const [tableData, setTableData] = useState<any[]>([]);
   const checkItemData = useRef(false);
+  const { sendAPIRequest } = useApi();
 
   const [popupList, setPopupList] = useState<{ isOpen: boolean, data: any }>({
     isOpen: false,
@@ -22,13 +23,19 @@ const PriceList = () => {
   })
 
   const getItemData = async (partyId?: any) => {
-    const getItemData = await sendAPIRequest<any[]>(`/partyWisePriceList/${partyId}`, {method: 'GET'});
-    const hasMatchingId = getItemData.some(item => item.partyId === partyId);
-    if (hasMatchingId && (itemData.length === getItemData.length)) {
-      checkItemData.current = true;
-      setTableData(getItemData)
-    } else {
-      checkItemData.current = false;
+    try {
+      const getItemData = await sendAPIRequest<any[]>(`/partyWisePriceList/${partyId}`, {method: 'GET'});
+      const hasMatchingId = getItemData.some((item:any) => item.partyId === partyId);
+      if (hasMatchingId && (itemData.length === getItemData.length)) {
+        checkItemData.current = true;
+        setTableData(getItemData)
+      } else {
+        checkItemData.current = false;
+      }
+    } catch (error: any) {
+      if (!error?.isErrorHandled) {
+        console.log('Partywise price list not read');
+      }
     }
   }
 
@@ -66,12 +73,17 @@ const PriceList = () => {
       node.setDataValue(field, oldValue);
       return;
     }
-    await sendAPIRequest(`/partyWisePriceList/${data.combinedId}`, {
-      method: 'PUT',
-      body: { [field]: newValue },
-    });
-    getItemData(currentSavedData?.party_id);
-
+    try {
+      await sendAPIRequest(`/partyWisePriceList/${data.combinedId}`, {
+        method: 'PUT',
+        body: { [field]: newValue },
+      });
+      getItemData(currentSavedData?.party_id);
+    } catch (error: any) {
+      if (!error?.isErrorHandled) {
+        console.log('Partywise price list not updated');
+      }
+    }
   };
 
   const handleAdd = async (itemData: any) => {
@@ -85,11 +97,17 @@ const PriceList = () => {
  
       finalData.push(value);
     })
-    await sendAPIRequest(`/partyWisePriceList`, {
-      method: 'POST',
-      body: finalData,
-    });
-    getItemData(currentSavedData?.party_id);
+    try {
+      await sendAPIRequest(`/partyWisePriceList`, {
+        method: 'POST',
+        body: finalData,
+      });
+      getItemData(currentSavedData?.party_id);   
+    } catch (error: any) {
+      if (!error?.isErrorHandled) {
+        console.log('Partywise price list not created');
+      }
+    }
   }
 
   useEffect(() => {
@@ -126,9 +144,15 @@ const PriceList = () => {
   };
 
   const handleDelete = async (id: any) => {
-    await sendAPIRequest(`/partyWisePriceList/${id}`, { method: 'DELETE' });
-    setSelectedPartyStation('');
-    setCurrentSavedData({});
+    try {
+      await sendAPIRequest(`/partyWisePriceList/${id}`, { method: 'DELETE' });
+      setSelectedPartyStation('');
+      setCurrentSavedData({});
+    } catch (error: any) {
+      if (!error?.isErrorHandled) {
+        console.log('Partywise price list not deleted');
+      }
+    }
   };
 
   return (

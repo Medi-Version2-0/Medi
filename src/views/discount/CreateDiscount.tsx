@@ -8,19 +8,20 @@ import FormikInputField from '../../components/common/FormikInputField';
 import { Option } from '../../interface/global';
 import CustomSelect from '../../components/custom_select/CustomSelect';
 import titleCase from '../../utilities/titleCase';
-import { sendAPIRequest } from '../../helper/api';
 import './discount.css';
 import { useSelector } from 'react-redux'
 import { discountValidationSchema } from './validation_schema';
 import { useGetSetData } from '../../hooks/useGetSetData';
 import { getAndSetPartywiseDiscount } from '../../store/action/globalAction';
 import { useControls } from '../../ControlRoomContext';
+import useApi from '../../hooks/useApi';
 
 export const CreateDiscount = ({
   setView,
   data,
   discountTypeOptions,
 }: any) => {
+  const { sendAPIRequest } = useApi();
   const [companyOptions, setCompanyOptions] = useState<Option[]>([]);
   const [partyOptions, setPartyOptions] = useState<Option[]>([]);
   const [focused, setFocused] = useState('');
@@ -91,7 +92,7 @@ export const CreateDiscount = ({
         settingPopupState(false, `Partywise discount ${!!data.discount_id ? 'updated' : 'created'} successfully`)
         getAndSetPartywiseDiscountHandler();
       }catch(error: any){
-        if (error.response.status === 409){
+        if (!error?.isErrorHandled && error.response.status === 409) {
           settingPopupState(false, `${error.response.data} please check in tabledata`)
         }
       }

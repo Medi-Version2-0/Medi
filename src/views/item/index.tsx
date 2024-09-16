@@ -12,7 +12,6 @@ import {
 } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import Button from '../../components/common/button/Button';
-import { sendAPIRequest } from '../../helper/api';
 import { ICellRendererParams } from 'ag-grid-community';
 import CreateItem from './create-item';
 import { Batch } from '../itembatch';
@@ -29,6 +28,7 @@ import usePermission from '../../hooks/useRole';
 import { getAndSetItem } from '../../store/action/globalAction';
 import { useSelector } from 'react-redux';
 import { useGetSetData } from '../../hooks/useGetSetData';
+import useApi from '../../hooks/useApi';
 
 const initialPopupState = {
   setting: false,
@@ -36,6 +36,7 @@ const initialPopupState = {
 };
 
 const Items = ({type = '' , batchData = null}) => {
+  const { sendAPIRequest } = useApi();
   const [view, setView] = useState<View>({ type, data: {} });
   const getAndSetItemHandler = useGetSetData(getAndSetItem);
   const [selectedRow, setSelectedRow] = useState<any>(null);
@@ -171,10 +172,11 @@ const Items = ({type = '' , batchData = null}) => {
       method: 'DELETE',
     });
     getAndSetItemHandler();
-  }
-  catch{
-    setPopupState({ ...popupState, isAlertOpen: true, message:'This item is associated' });
-  }
+    }catch(error:any){
+      if (!error?.isErrorHandled) {
+        setPopupState({ ...popupState, isAlertOpen: true, message:'This item is associated' });
+      }
+    }
   }
   const handleDelete = (oldData: any) => {
     setPopupState({
@@ -210,11 +212,17 @@ const Items = ({type = '' , batchData = null}) => {
 
     node.setDataValue(field, newValue);
 
-    await sendAPIRequest(`/item/${data.id}`, {
-      method: 'PUT',
-      body: { [field]: newValue },
-    });
-    getAndSetItemHandler();
+    try{
+      await sendAPIRequest(`/item/${data.id}`, {
+        method: 'PUT',
+        body: { [field]: newValue },
+      });
+      getAndSetItemHandler();
+    }catch (error: any) {
+      if (!error?.isErrorHandled) {
+        console.log('Item not updated');
+      }
+    }
   };
 
   const onCellClicked = (params: { data: any }) => {
@@ -247,7 +255,7 @@ const Items = ({type = '' , batchData = null}) => {
   const commonColDefConfig = {
     flex: 1,
     filter: true,
-    editable: updateAccess,
+    editable: (params: any) => params.node.rowIndex === 0 ? createAccess : updateAccess,
     suppressMovable: true,
     headerClass: 'custom-header',
   };
@@ -266,7 +274,6 @@ const Items = ({type = '' , batchData = null}) => {
       headerClass: 'custom-header custom_header_class ag-right-aligned-header',
       flex: 1,
       filter: true,
-      editable: updateAccess,
       suppressMovable: true,
       hide: !controlRoomSettings.batchWiseManufacturingCode,
     },
@@ -341,17 +348,16 @@ const Items = ({type = '' , batchData = null}) => {
       },
       cellRenderer: (params: { data: any }) => (
         <div className='table_edit_buttons'>
-          {updateAccess && <FaEdit
+          <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
             onClick={() => {
               setView({ type: 'add', data: params.data });
             }}
-          />}
-
-          {deleteAccess && <MdDeleteForever
+          />
+          <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
             onClick={() => handleDelete(params.data)}
-          />}
+          />
         </div>
       ),
     },

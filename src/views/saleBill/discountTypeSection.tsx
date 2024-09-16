@@ -3,11 +3,12 @@ import { useFormik } from 'formik';
 import Button from '../../components/common/button/Button';
 import { Container } from '../../components/common/commonFormFields';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
-import { sendAPIRequest } from '../../helper/api';
 import { useQueryClient } from '@tanstack/react-query';
+import useApi from '../../hooks/useApi';
 
 export const DiscountTypeSection = ({ setView, data }: any) => {
     const [focused, setFocused] = useState('');
+    const { sendAPIRequest } = useApi();
     const queryClient = useQueryClient();
     const [popupState, setPopupState] = useState({
         isModalOpen: false,
@@ -70,8 +71,10 @@ export const DiscountTypeSection = ({ setView, data }: any) => {
                 }
                 await queryClient.invalidateQueries({ queryKey: ['get-saleBill'] });
                 settingPopupState(true, `Sale Bill ${data.id ? 'updated' : 'created'} successfully`, true);
-            } catch (error) {
-                settingPopupState(false, `Failed to ${data.id ? 'update' : 'create'} Sale Bill`, false);
+            } catch (error:any) {
+                if (!error?.isErrorHandled) {
+                    settingPopupState(false, `Failed to ${data.id ? 'update' : 'create'} Sale Bill`, false);
+                }
             }
         },
     });

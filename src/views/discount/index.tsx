@@ -12,7 +12,6 @@ import {
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { ValueFormatterParams } from 'ag-grid-community';
 import Button from '../../components/common/button/Button';
-import { sendAPIRequest } from '../../helper/api';
 import { CreateDiscount } from './CreateDiscount';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import usePermission from '../../hooks/useRole';
@@ -23,9 +22,11 @@ import { discountValidationSchema } from './validation_schema';
 import { useGetSetData } from '../../hooks/useGetSetData';
 import { getAndSetPartywiseDiscount } from '../../store/action/globalAction';
 import { useControls } from '../../ControlRoomContext';
+import useApi from '../../hooks/useApi';
 
 export const PartyWiseDiscount = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
+  const { sendAPIRequest } = useApi();
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<CompanyFormData | any>(null);
   const [partyData, setPartyData] = useState<any[]>([]);
@@ -97,13 +98,19 @@ export const PartyWiseDiscount = () => {
 
   const handleConfirmPopup = async () => {
     setPopupState({ ...popupState, isModalOpen: false });
-    await sendAPIRequest(
-      `/partyWiseDiscount/${discountId.current}`,
-      {
-        method: 'DELETE',
+    try {
+      await sendAPIRequest(
+        `/partyWiseDiscount/${discountId.current}`,
+        {
+          method: 'DELETE',
+        }
+      );
+      getAndSetPartywiseDiscountHandler();
+    } catch (error: any) {
+      if (!error?.isErrorHandled) {
+        console.log('Partywise discount not deleted');
       }
-    );
-    getAndSetPartywiseDiscountHandler();
+    }
   };
 
   const handleDelete = (oldData: any) => {
@@ -157,14 +164,16 @@ export const PartyWiseDiscount = () => {
       );
       getAndSetPartywiseDiscountHandler();
     }catch(err:any){
-      if (err?.response?.status === 409) {
-        settingPopupState(false, err.response.data)
-      }else if(err.message){
-        settingPopupState(false, err.message)
-      }else{
-        console.log('Error while updateing the Party-wise discount ---> ',err)
+      if (!err?.isErrorHandled) {
+        if (err?.response?.status === 409) {
+          settingPopupState(false, err.response.data)
+        } else if (err.message) {
+          settingPopupState(false, err.message)
+        } else {
+          console.log('Error while updateing the Party-wise discount ---> ', err)
+        }
+        getAndSetPartywiseDiscountHandler();
       }
-      getAndSetPartywiseDiscountHandler();
     }
   };
 
@@ -284,16 +293,16 @@ export const PartyWiseDiscount = () => {
       },
       cellRenderer: (params: { data: any }) => (
         <div className='table_edit_buttons'>
-          {updateAccess && <FaEdit
+          <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
             onClick={() => {
               setView({ type: 'add', data: params.data });
             }}
-          />}
-          {deleteAccess && <MdDeleteForever
+          />
+          <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
             onClick={() => handleDelete(params.data)}
-          />}
+          />
         </div>
       ),
     },

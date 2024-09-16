@@ -9,7 +9,6 @@ import {
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import Button from '../../components/common/button/Button';
 import { CreateSalePurchase } from './CreateSalePurchase';
-import { sendAPIRequest } from '../../helper/api';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { useSelector } from 'react-redux'
 import { getAndSetSales, getAndSetPurchase } from '../../store/action/globalAction';
@@ -17,6 +16,7 @@ import usePermission from '../../hooks/useRole';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
 import { decimalFormatter } from '../../helper/helper';
 import { useGetSetData } from '../../hooks/useGetSetData';
+import useApi from '../../hooks/useApi';
 
 const initialValue: SalesPurchaseFormData = {
   sptype: '',
@@ -27,6 +27,7 @@ const initialValue: SalesPurchaseFormData = {
 };
 
 export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
+  const { sendAPIRequest } = useApi();
   const getAndSetSalesHandler = useGetSetData(getAndSetSales);
   const getAndSetPurchaseHandler = useGetSetData(getAndSetPurchase);
   const [open, setOpen] = useState<boolean>(false);
@@ -101,10 +102,15 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
         ? `${endPoint}/${formData.sp_id}`
         : `${endPoint}`;
       const method = formData.sp_id ? 'PUT' : 'POST';
-
-      await sendAPIRequest(endpoint, { method, body: formData });
-      type === 'Sales' ?  getAndSetSalesHandler() : getAndSetPurchaseHandler();
-      togglePopup(false);
+      try {
+        await sendAPIRequest(endpoint, { method, body: formData });
+        type === 'Sales' ?  getAndSetSalesHandler() : getAndSetPurchaseHandler();
+        togglePopup(false);
+      } catch (error: any) {
+        if (!error?.isErrorHandled) {
+          console.log(`${type === 'Sales' ? "SaleAccount" : "PurchaseAccount"} not ${method === 'PUT' ? "updated" : "created"}`);
+        }
+      }
     }
   };
 
@@ -152,8 +158,14 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
         : `/purchaseAccount`;
     const endpoint = `${endPoint}/${sp_id}`;
     togglePopup(false);
-    await sendAPIRequest(endpoint, { method: 'DELETE' });
-    type === 'Sales' ? await getAndSetSalesHandler() : await getAndSetPurchaseHandler();
+    try {
+      await sendAPIRequest(endpoint, { method: 'DELETE' });
+      type === 'Sales' ? getAndSetSalesHandler() : getAndSetPurchaseHandler();
+    } catch (error: any) {
+      if (!error?.isErrorHandled) {
+        console.log(`${type === 'Sales' ? "SaleAccount" : "PurchaseAccount"} not deleted`);
+      }
+    }
   };
 
   const handleDelete = (oldData: SalesPurchaseFormData) => {
@@ -208,11 +220,17 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
         ? `/saleAccount`
         : `/purchaseAccount`;
     const endpoint = `${endPoint}/${data.sp_id}`;
-    await sendAPIRequest(endpoint, {
-      method: 'PUT',
-      body: { ...data, [field]: newValue },
-    });
-    type === 'Sales' ? getAndSetSalesHandler() : getAndSetPurchaseHandler();
+    try {
+      await sendAPIRequest(endpoint, {
+        method: 'PUT',
+        body: { ...data, [field]: newValue },
+      });
+      type === 'Sales' ? getAndSetSalesHandler() : getAndSetPurchaseHandler();
+    } catch (error: any) {
+      if (!error?.isErrorHandled) {
+        console.log(`${type === 'Sales' ? "SaleAccount" : "PurchaseAccount"} not updated`);
+      }
+    }
   };
 
     const defaultCols={
@@ -270,14 +288,14 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
       },
       cellRenderer: (params: { data: SalesPurchaseFormData }) => (
         <div className='table_edit_buttons'>
-         {updateAccess && <FaEdit
+          <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
             onClick={() => handleUpdate(params.data)}
-          />}
-          {deleteAccess && <MdDeleteForever
+          />
+          <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
             onClick={() => handleDelete(params.data)}
-          />}
+          />
         </div>
       ),
     },

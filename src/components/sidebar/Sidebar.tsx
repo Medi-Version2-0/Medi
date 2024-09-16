@@ -24,13 +24,11 @@ import { Organization } from '../../views/organization';
 import usePermission from '../../hooks/useRole';
 import SaleBill from '../../views/saleBill';
 type SubElementKey = 'master' | 'miscellaneous';
-import { useSelector } from 'react-redux';
-import { generalSettingFields } from '../common/controlRoom/settings';
-import { ControlRoomSettings } from '../common/controlRoom/ControlRoomSettings';
 import { useControls } from '../../ControlRoomContext';
 import PriceList from '../../views/partywisePriceList/PriceList';
 import CopyPratywisePriceList from '../../views/partywisePriceList/copyPartyWisePriseList';
 import { useTabs } from '../../TabsContext';
+import { useUser } from '../../UserContext';
 
 interface SidebarProps {
   isGroup?: boolean;
@@ -51,6 +49,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   const [isSidebar, setIsSidebar] = useState<boolean>(true);
   const { controlRoomSettings } = useControls();
   const {openTab} = useTabs()
+  const { user } = useUser();
+
   const isNotReadAccess = (key: string) => {
     if (permissions[key]) {
       return !permissions[key].readAccess
@@ -71,31 +71,31 @@ const Sidebar: React.FC<SidebarProps> = ({
       url: '/groups',
       label: 'Groups',
       onClick: () => openTab?.('Groups', <Groups />),
-      isDisabled: isNotReadAccess('groups')
+      isDisabled: isNotReadAccess('group')
     },
     {
       url: '/subgroups',
       label: 'Sub Groups',
       onClick: () => openTab?.('Sub Groups', <SubGroups />),
-      isDisabled: isNotReadAccess('sub_groups')
+      isDisabled: isNotReadAccess('subgroup')
     },
     {
       url: '/itemGroup',
       label: 'Item Groups',
       onClick: () => openTab?.('Item Groups', <ItemGroups />),
-      isDisabled: isNotReadAccess('item_groups')
+      isDisabled: isNotReadAccess('itemgroup')
     },
     {
       url: '/items',
       label: 'Items',
       onClick: () => openTab?.('Items', <Items />),
-      isDisabled: isNotReadAccess('items')
+      isDisabled: isNotReadAccess('item')
     },
     {
       url: '/stations',
       label: 'Station Setup',
       onClick: () => openTab?.('Station Setup', <Stations />),
-      isDisabled: isNotReadAccess('station_setup')
+      isDisabled: isNotReadAccess('station')
     },
     {
       url: '/headquarters',
@@ -107,13 +107,13 @@ const Sidebar: React.FC<SidebarProps> = ({
       url: '/sales_purchase_table',
       label: 'Sales Account',
       onClick: () => openTab?.('Sales Account', <Sales_Table type={'Sales'} />),
-      isDisabled: isNotReadAccess('sales_account')
+      isDisabled: isNotReadAccess('saleaccount')
     },
     {
       url: '/sales_purchase_table',
       label: 'Purchase Account',
       onClick: () => openTab?.('Purchase Account', <Sales_Table type='Purchase' />),
-      isDisabled: isNotReadAccess('purchase_account')
+      isDisabled: isNotReadAccess('purchaseaccount')
     },
     {
       url: '/stores',
@@ -132,14 +132,14 @@ const Sidebar: React.FC<SidebarProps> = ({
       url: '/billBook',
       label: 'Bill Book Setup',
       onClick: () => openTab?.('Bill Book Setup', <BillBook />),
-      isDisabled: isNotReadAccess('bill_book_setup')
+      isDisabled: isNotReadAccess('billbook')
     },
     {
       url: '/discount',
       label: 'Party-wise discount',
       icon: <FaPlus className='fill-yellow-900' />,
       onClick: () => openTab?.('Party-wise discount', <PartyWiseDiscount />),
-      isDisabled: isNotReadAccess('party_wise_discount')
+      isDisabled: isNotReadAccess('partywisediscount')
     },
     ...(controlRoomSettings.pricewisePartyList ? [
       {
@@ -163,7 +163,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       url: '/deliveryChallan',
       label: 'Sale Challan',
       onClick: () => openTab?.('Sale Challan', <DeliveryChallan />),
-      isDisabled: isNotReadAccess('sale_challan')
+      isDisabled: isNotReadAccess('deliverychallan')
     },
     {
       url: '/vouchers',
@@ -175,7 +175,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       url: '/saleBill',
       label: 'Sale Bill',
       onClick: () => openTab?.('Sale Bill', <SaleBill />),
-      isDisabled: isNotReadAccess('sale_bill')
+      isDisabled: isNotReadAccess('invoicebill')
     }
   ];
 
@@ -304,13 +304,16 @@ const Sidebar: React.FC<SidebarProps> = ({
             })}
           </>
         )}
-        <div className='flex justify-between bg-[#EAFBFCFF] cursor-pointer text-base p-2 border border-solid border-[#009196FF]' onClick={() => openTab?.('Main Settings', <Organization />)}>
-          <span className='flex items-center gap-2' >
-            <MdLibraryBooks />
-            {'  '}Main Settings
-          </span>
-          {<MdNavigateNext />}
-        </div>
+        {/* only admin can access this */}
+        {user?.isAdmin && (
+          <div className='flex justify-between bg-[#EAFBFCFF] cursor-pointer text-base p-2 border border-solid border-[#009196FF]' onClick={() => openTab?.('Main Settings', <Organization />)}>
+            <span className='flex items-center gap-2' >
+              <MdLibraryBooks />
+              {'  '}Main Settings
+            </span>
+            {<MdNavigateNext />}
+          </div>
+        ) }
       </div>
     </div>
   ) : (

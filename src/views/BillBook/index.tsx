@@ -7,7 +7,6 @@ import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { BillBookForm } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import Button from '../../components/common/button/Button';
-import { sendAPIRequest } from '../../helper/api';
 import { CreateBillBook } from './CreateBillBook';
 import { IoSettingsOutline } from 'react-icons/io5';
 import { ControlRoomSettings } from '../../components/common/controlRoom/ControlRoomSettings';
@@ -22,6 +21,7 @@ import { ValueFormatterParams } from 'ag-grid-community';
 import { lookupValue } from '../../helper/helper';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
 import { useGetSetData } from '../../hooks/useGetSetData';
+import useApi from '../../hooks/useApi';
 
 type SeriesOption = {
   id: number;
@@ -56,6 +56,7 @@ const seriesOptions: SeriesOption[] = [
 
 export const BillBook = () => {
   const getAndSetBillBookHandler = useGetSetData(getAndSetBillBook);
+  const { sendAPIRequest } = useApi();
   const { billBookSeries: billBookSeriesData } = useSelector((state: any) => state.global);
   const [open, setOpen] = useState<boolean>(false);
   const [settingToggleOpen, setSettingToggleOpen] = useState<boolean>(false);
@@ -66,7 +67,7 @@ export const BillBook = () => {
   const editing = useRef(false);
   let currTable: any[] = [];
   const { controlRoomSettings } = useControls();
-  const { createAccess, updateAccess, deleteAccess } = usePermission('billbook')
+  const { createAccess, updateAccess, deleteAccess } = usePermission('invoicebill')
 
   const initialValues = {
     stockNegative: controlRoomSettings.stockNegative || false,
@@ -139,20 +140,26 @@ export const BillBook = () => {
     formData.seriesId = selectedSeries;
 
     if (formData !== initialValue) {
-      if (formData.id) {
-        await sendAPIRequest(`/billBook/${formData.id}`, {
-          method: 'PUT',
-          body: formData,
-        });
-      } else {
-        await sendAPIRequest(`/billBook`, {
-          method: 'POST',
-          body: formData,
-        });
-      }
+      try {
+        if (formData.id) {
+          await sendAPIRequest(`/billBook/${formData.id}`, {
+            method: 'PUT',
+            body: formData,
+          });
+        } else {
+          await sendAPIRequest(`/billBook`, {
+            method: 'POST',
+            body: formData,
+          });
+        }
 
-      togglePopup(false);
-      getAndSetBillBookHandler();
+        togglePopup(false);
+        getAndSetBillBookHandler();
+      } catch (error: any) {
+        if (!error?.isErrorHandled) {
+          console.log('BillBook not created or updated');
+        }
+      }
     }
   };
 
@@ -185,10 +192,11 @@ export const BillBook = () => {
         method: 'DELETE',
       });
       getAndSetBillBookHandler();
-    } catch {
-      settingPopupState(false, 'This bill book series is associated');
+    } catch(error:any) {
+      if (!error?.isErrorHandled) {
+        settingPopupState(false, 'This bill book series is associated');
+      }
     }
-    
   };
 
   const handleDelete = (oldData: BillBookForm) => {
@@ -251,11 +259,17 @@ export const BillBook = () => {
       return;
     }
     node.setDataValue(field, newValue);
-    await sendAPIRequest(`/billBook/${data.id}`, {
-      method: 'PUT',
-      body: { [field]: newValue },
-    });
-    getAndSetBillBookHandler();
+    try {
+      await sendAPIRequest(`/billBook/${data.id}`, {
+        method: 'PUT',
+        body: { [field]: newValue },
+      });
+      getAndSetBillBookHandler();
+    } catch (error: any) {
+      if (!error?.isErrorHandled) {
+        console.log('BillBook not updated');
+      }
+    }
   };
 
   const onCellClicked = (params: { data: any }) => {
@@ -338,18 +352,17 @@ export const BillBook = () => {
       },
       cellRenderer: (params: { data: BillBookForm }) => (
         <div className='table_edit_buttons'>
-          {updateAccess && <FaEdit
+          <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
             onClick={() => {
               setSelectedRow(selectedRow !== null ? null : params.data);
               handleUpdate(params.data);
             }}
-          />}
-
-          {deleteAccess && <MdDeleteForever
+          />
+          <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
             onClick={() => handleDelete(params.data)}
-          />}
+          />
         </div>
       ),
     },

@@ -7,12 +7,12 @@ import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { DeliveryChallanFormData, View } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import Button from '../../components/common/button/Button';
-import { sendAPIRequest } from '../../helper/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import CreateDeliveryChallan from './createDeliveryChallan';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import usePermission from '../../hooks/useRole';
 import useToastManager from '../../helper/toastManager';
+import useApi from '../../hooks/useApi';
 
 const DeliveryChallan = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
@@ -21,8 +21,9 @@ const DeliveryChallan = () => {
     null
   );
   const editing = useRef(false);
-  const { createAccess, updateAccess, deleteAccess } = usePermission('deliverychallan')
+  const { createAccess } = usePermission('deliverychallan')
   const { successToast } = useToastManager();
+  const { sendAPIRequest } = useApi();
 
   const id = useRef('');
   const queryClient = useQueryClient();
@@ -31,14 +32,20 @@ const DeliveryChallan = () => {
     isAlertOpen: false,
     message: '',
   });
-
-  const { data } = useQuery<{ data: DeliveryChallanFormData }>({
-    queryKey: ['get-deliveryChallan'],
-    queryFn: () =>
-      sendAPIRequest<{ data: DeliveryChallanFormData }>(
-        `/deliveryChallan`
-      ),
-  });
+  let data:any;
+  try {
+    data = useQuery<{ data: DeliveryChallanFormData }>({
+      queryKey: ['get-deliveryChallan'],
+      queryFn: () =>
+        sendAPIRequest<{ data: DeliveryChallanFormData }>(
+          `/deliveryChallan`
+        ),
+    }).data;
+  } catch (error: any) {
+    if (!error?.isErrorHandled) {
+      console.log('DeliveryChallan not fetched');
+    }
+  }
 
   const getDeliveryChallanData = async () => {
     if (data) setTableData(data);
@@ -72,12 +79,14 @@ const DeliveryChallan = () => {
       queryClient.invalidateQueries({ queryKey: ['get-deliveryChallan'] });
     }
     catch (error: any) {
-      console.log(error)
-      if (error.response?.data?.error) {
-        successToast(error.response?.data?.error)
-      }
-      else {
-        successToast("Failed to delete Challan")
+      if (!error?.isErrorHandled) {
+        console.log('Delivery challan not updated');
+        if (error.response?.data?.error) {
+          successToast(error.response?.data?.error)
+        }
+        else {
+          successToast("Failed to delete Challan")
+        }
       }
     }
   };
@@ -143,17 +152,16 @@ const DeliveryChallan = () => {
       },
       cellRenderer: (params: { data: any }) => (
         <div className='table_edit_buttons'>
-          {updateAccess && <FaEdit
+          <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
             onClick={() => {
               setView({ type: 'add', data: params.data });
             }}
-          />}
-
-          {deleteAccess && <MdDeleteForever
+          />
+          <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
             onClick={() => handleDelete(params.data)}
-          />}
+          />
         </div>
       ),
     },
@@ -178,14 +186,15 @@ const DeliveryChallan = () => {
                   });
                 }
                 catch (error: any) {
-                  setPopupState({
-                    ...popupState,
-                    isAlertOpen: true,
-                    message: 'Add series first in bill book setup ...',
-                  });
-                  return;
+                  if (!error?.isErrorHandled) {
+                    setPopupState({
+                      ...popupState,
+                      isAlertOpen: true,
+                      message: 'Add series first in bill book setup ...',
+                    });
+                    return;
+                  }
                 }
-
               }}
             >
               Add Challan

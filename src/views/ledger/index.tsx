@@ -10,7 +10,6 @@ import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { ColDef, ValueFormatterParams } from 'ag-grid-community';
 import Button from '../../components/common/button/Button';
 import { IoSettingsOutline } from 'react-icons/io5';
-import { sendAPIRequest } from '../../helper/api';
 import { useControls } from '../../ControlRoomContext';
 import { ControlRoomSettings } from '../../components/common/controlRoom/ControlRoomSettings';
 import { ledgerSettingFields } from '../../components/common/controlRoom/settings';
@@ -23,6 +22,7 @@ import { getLedgerFormValidationSchema } from './validation_schema';
 import { validateField, decimalFormatter, createMap, extractKeys, lookupValue } from '../../helper/helper';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
 import { useGetSetData } from '../../hooks/useGetSetData';
+import useApi from '../../hooks/useApi';
 
 export const Ledger = ({type = ''}) => {
   const [view, setView] = useState<View>({ type, data: {} });
@@ -30,6 +30,7 @@ export const Ledger = ({type = ''}) => {
   const { stations: stationData, party: partyData } = useSelector((state: any) => state.global);
   const [tableData, setTableData] = useState(partyData);
   const editing = useRef(false);
+  const { sendAPIRequest } = useApi();
   const partyId = useRef('');
   const [open, setOpen] = useState<boolean>(false);
   const [popupState, setPopupState] = useState({
@@ -95,13 +96,14 @@ export const Ledger = ({type = ''}) => {
     try {
       await sendAPIRequest(`/ledger/${partyId.current}`, { method: 'DELETE' });
       getAndSetLedgerHandler();
-      
-    } catch {
-      setPopupState({
-        ...popupState,
-        isAlertOpen: true,
-        message: 'This Party is associated',
-      });
+    } catch(error:any) {
+      if (error?.response?.status !== 401 && error?.response?.status !== 403){
+        setPopupState({
+          ...popupState,
+          isAlertOpen: true,
+          message: 'This Party is associated',
+        });
+      }
     }
   };
 
@@ -137,11 +139,17 @@ export const Ledger = ({type = ''}) => {
     if (field === 'partyName')
       newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
     node.setDataValue(field, newValue);
-    await sendAPIRequest(`/ledger/${data.party_id}`, {
-      method: 'PUT',
-      body: { [field]: newValue },
-    });
-    getAndSetLedgerHandler();
+    try{
+      await sendAPIRequest(`/ledger/${data.party_id}`, {
+        method: 'PUT',
+        body: { [field]: newValue },
+      });
+      getAndSetLedgerHandler();
+    }catch(error:any){
+      if (!error?.isErrorHandled){
+        console.log('Party not updated from AgGrid')
+      }
+    }
   };
 
   const onCellClicked = (params: { data: any }) =>{
@@ -167,7 +175,7 @@ export const Ledger = ({type = ''}) => {
     filter: true,
     suppressMovable: true,
     headerClass: 'custom-header',
-    editable: (params: any) => !params.data.isPredefinedLedger && updateAccess,
+    editable: (params: any) => !params.data.isPredefinedLedger && params.node.rowIndex === 0 ? createAccess : updateAccess 
   }
 
   const colDefs: ColDef[]= [
@@ -209,7 +217,7 @@ export const Ledger = ({type = ''}) => {
       },
       cellRenderer: (params: { data: any }) => (
         <div className='table_edit_buttons'>
-          {updateAccess && <FaEdit
+          <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
             onClick={() => {
               if (params.data.isPredefinedLedger) {
@@ -222,8 +230,8 @@ export const Ledger = ({type = ''}) => {
                 setView({ type: 'add', data: params.data });
               }
             }}
-          />}
-          {deleteAccess &&<MdDeleteForever
+          />
+          <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
             onClick={() => {
               if (params.data.isPredefinedLedger) {
@@ -236,7 +244,7 @@ export const Ledger = ({type = ''}) => {
                 handleDelete(params.data);
               }
             }}
-          />}
+          />
         </div>
       ),
     },
@@ -256,13 +264,14 @@ export const Ledger = ({type = ''}) => {
             >
               <IoSettingsOutline />
             </Button>
-            <Button
-              type='highlight'
-              handleOnClick={() => setView({ type: 'add', data: {} })}
-              disable={!createAccess}
-            >
-              Add Ledger
-            </Button>
+            {createAccess && (
+              <Button
+                type='highlight'
+                handleOnClick={() => setView({ type: 'add', data: {} })}
+              >
+                Add Ledger
+              </Button>
+            )}
           </div>
         </div>
         <div id='account_table' className='ag-theme-quartz'>

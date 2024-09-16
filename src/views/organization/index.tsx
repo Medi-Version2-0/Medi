@@ -10,8 +10,9 @@ import ResourcePermissionsGrid from './ResourcePermissionsGrid';
 import OrganizationForm from './OrganizationForm';
 import { Popup } from '../../components/popup/Popup';
 import { ColTypeDef } from 'ag-grid-community';
-import { getOrganizationUsers } from '../../api/organizationUserApi';
 import { useUser } from '../../UserContext';
+import { UserFormI } from '../../interface/global';
+import useApi from '../../hooks/useApi';
 
 export const Organization = () => {
     const { organizations } = useSelector((state: any) => state.global);
@@ -20,6 +21,7 @@ export const Organization = () => {
     const [data, setData] = useState<any[]>([]);
     const [columnDefs, setColumnDefs] = useState<ColTypeDef | any>([]);
     const [editing, setEditing] = useState<any>(null);
+    const { sendAPIRequest } = useApi();
 
     const fetchData = async (type: string) => {
         try {
@@ -30,7 +32,7 @@ export const Organization = () => {
                 result = organizations;
                 headerConfig = companyHeaders;
             } else if (type === 'users') {
-                result = await getOrganizationUsers();
+                result = await sendAPIRequest<UserFormI[]>(`/user/organization`);
                 headerConfig = userHeaders;
             }
 
