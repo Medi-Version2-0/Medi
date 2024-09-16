@@ -177,12 +177,9 @@ const DeliveryChallan = () => {
               type='highlight'
               handleOnClick={async () => {
                 try {
-                  const challanNumber = await sendAPIRequest<string>(
-                    `/deliveryChallan/challanNumber`
-                  );
                   setView({
                     type: 'add',
-                    data: { challanNumber: challanNumber },
+                    data: { },
                   });
                 }
                 catch (error: any) {

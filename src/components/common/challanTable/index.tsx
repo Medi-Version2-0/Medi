@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import CustomSelect from '../../custom_select/CustomSelect';
 import { dateSchema } from '../../../views/DeliveryChallan/validation_schema';
 import Confirm_Alert_Popup from '../../popup/Confirm_Alert_Popup';
@@ -130,7 +130,9 @@ export const ChallanTable = ({
     }
     else if (e.key === 'Escape') {
       e.preventDefault();
-      handleSave();
+      if(handleSave){
+        handleSave();
+      }
       document.getElementById('nextButton')?.focus();
   }
   };
@@ -292,7 +294,10 @@ export const ChallanTable = ({
                           id={`cell-${rowIndex}-${colIndex}`}
                           type={header.props.inputType}
                           value={columnValue}
-                          onFocus={() => {
+                          onFocus={(event) => {
+                            if (header.props.inputType === 'number') {
+                              event.target.addEventListener('wheel', (event:any) => event.preventDefault(), { passive: false });
+                            }
                             return header.props.handleFocus
                               ? header.props.handleFocus(rowIndex, colIndex)
                               : () => {};
@@ -307,6 +312,7 @@ export const ChallanTable = ({
                               header.props.handleChange(args);
                             }
                           }}
+                          min={header.props.inputType === 'number' ? 0 : undefined}
                           onKeyDown={(e) =>
                             handleKeyDown(e, rowIndex, colIndex)
                           }
