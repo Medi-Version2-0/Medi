@@ -200,7 +200,7 @@ export const Groups = () => {
   }) => {
     const { data, column, oldValue, newValue, valueChanged, node } = e;
     const field = column.colId;
-    if (!valueChanged) return;
+    if (!valueChanged && node.rowIndex !== 0) return;
     if (node.rowIndex === 0 && createAccess) {  
       
       if (data.group_name && data.type) {
@@ -276,7 +276,7 @@ export const Groups = () => {
 
   useEffect(() => {
     fetchGroupData();
-  }, [groupsData]);
+  }, [groupsData,createAccess]);
 
   const defaultCols = {
     floatingFilter: true,

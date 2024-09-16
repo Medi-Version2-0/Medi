@@ -63,7 +63,7 @@ const InitialFirmSetup = () => {
         onSubmit: async (values) => {
             try {
                 if (user?.id) {
-                    const organization: any = await await sendAPIRequest(`/organization`, {
+                    const organization: any = await sendAPIRequest(`/organization`, {
                         method: 'POST',
                         body: values,
                     });

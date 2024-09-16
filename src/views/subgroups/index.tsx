@@ -111,7 +111,7 @@ export const SubGroups = () => {
   };
   useEffect(()=>{
     setTableData([...(permissions.createAccess ?[pinnedRow]:[]), ...subGroups]);
-  },[subGroups])
+  }, [subGroups, permissions.createAccess]);
 
   const deleteAcc = async (group_code: string) => {
     try{
@@ -180,7 +180,7 @@ export const SubGroups = () => {
     editing.current = false;
     const { data, column, oldValue, valueChanged, node } = e;
     let { newValue } = e;
-    if (!valueChanged) return;
+    if (!valueChanged && node.rowIndex !== 0) return;
     const field = column.colId;
     if (field === 'group_name'){
       newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
