@@ -340,10 +340,10 @@ const BasicItemEdit = ({ formik }: BasicItemEditProps) => {
       type: 'select',
       options: controlRoomSettings.allowItemAsService
         ? [
-          { label: 'Goods', value: 'Goods' },
-          { label: 'Services', value: 'Services' },
+          { label: 'Goods', value: 'goods' },
+          { label: 'Services', value: 'services' },
         ]
-        : [{ label: 'Goods', value: 'Goods' }],
+        : [{ label: 'Goods', value: 'goods' }],
       nextField: 'hsnCode',
       prevField: controlRoomSettings.batchWiseManufacturingCode ? 'shortName' : controlRoomSettings.packaging ? 'packing' : 'compId',
     },

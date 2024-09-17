@@ -20,7 +20,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     { name: 'Item name', key: 'itemId', width: '15%', type: 'input', props: { inputType: 'text', label: true, handleFocus: (rowIndex: number, colIndex: number) => handleFocus(rowIndex, colIndex) } },
     { name: 'Batch no', key: 'batchNo', width: '15%', type: 'input', props: { inputType: 'text', label: true, handleFocus: (rowIndex: number, colIndex: number) => handleFocus(rowIndex, colIndex) } },
     { name: 'Qty', key: 'qty', width: '5%', type: 'input', props: { inputType: 'number', handleBlur: (args: any) => { handleQtyChange(args); handleTotalAmt(args) }, handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
-    { name: 'Scheme', key: 'scheme', width: '7%', type: 'input', props: { inputType: 'number', handleBlur: (args: any) => { handleQtyChange(args); handleTotalAmt(args) }, handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
+    { name: 'Scheme', key: 'scheme', width: '7%', type: 'input', props: { inputType: 'text', handleBlur: (args: any) => { handleQtyChange(args); handleTotalAmt(args) }, handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
     { name: 'Scheme type', key: 'schemeType', width: '10%', type: 'customSelect', props: { options: schemeTypeOptions, handleChange: (args: any) => { handleSelectChange(args); handleQtyChange(args); handleTotalAmt(args) } } },
     { name: 'Rate', key: 'rate', width: '5%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
     { name: 'Dis.%', key: 'disPer', width: '5%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
@@ -49,12 +49,10 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
   const [openDataPopup, setOpenDataPopup] = useState<boolean>(false);
   const focusColIndex = useRef(0);
   const { openTab } = useTabs()
-
-  const [popupState, setPopupState] = useState<any>({
+  const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
     message: '',
-    onClose : null
   });
   const [popupList, setPopupList] = useState<{ isOpen: boolean, data: any }>({
     isOpen: false,
@@ -110,7 +108,6 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
       );
       setGridData(initialRows);
       calculateTotals(initialRows)
-      handleTotalAmt({ rowIndex: -1, data: initialRows })
     }
   }, [challanTableData, itemValue]);
 
@@ -189,22 +186,22 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     }
 
     if (focusColIndex.current === 0) {
-      // if (partyId) {
-      //   setPopupList({
-      //     isOpen: true,
-      //     data: {
-      //       heading: 'Previous Challan Items',
-      //       headers: [...previousItemsList],
-      //       apiRoute: `/deliveryChallan/items/${partyId}/${currentSavedData.item.id}`,
-      //       handleSelect: () => { handleFocus(focusedRowIndex, 1) },
-      //       onEsc: () => { handleFocus(focusedRowIndex, 1) },
-      //       autoClose: false
-      //     }
-      //   })
-      // }
-      // else {
+      if (partyId) {
+        setPopupList({
+          isOpen: true,
+          data: {
+            heading: 'Previous Challan Items',
+            headers: [...previousItemsList],
+            apiRoute: `/deliveryChallan/items/${partyId}/${currentSavedData.item.id}`,
+            handleSelect: () => { handleFocus(focusedRowIndex, 1) },
+            onEsc: () => { handleFocus(focusedRowIndex, 1) },
+            autoClose: false
+          }
+        })
+      }
+      else {
         handleFocus(focusedRowIndex, 1)
-      // }
+      }
     }
 
     if (focusColIndex.current === 1) {
@@ -229,6 +226,12 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
         if (openDataPopup) setOpenDataPopup(false);
         if (togglePopup) togglePopup(false);
         break;
+      case 'p':
+      case 'P':
+        if (event.ctrlKey) {
+          pendingChallans()
+        }
+        break;
       default:
         break;
     }
@@ -240,13 +243,6 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     }
     return handleSave();
   }, [gridData])
-
-  useEffect(() => {
-    if (!popupState.isAlertOpen && popupState.onClose) {
-          popupState.onClose();
-          setPopupState({ ...popupState, isAlertOpen: false , onClose:null});
-        }
-  }, [popupState])
 
 
   const handleFocus = (rowIndex: number, colIndex: number) => {
@@ -262,76 +258,83 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
           newItem: () => openTab('Items', <Items type='add' />),
           apiRoute: '/item',
           searchFrom: 'name',
-          handleSelect: (rowData: any) => {
-            const isItemSelected = gridData.findIndex((x)=> x.columns.itemId?.value === rowData.id)
-            setCurrentSavedData({ ...currentSavedData, item: rowData });
-            const isItemExists = itemValue.some((item: any) => item.id === rowData.id);
-            if (!isItemExists) {
-              setItemValue([...itemValue, rowData]);
-            }
-            if(isItemSelected > -1 && isItemSelected !== rowIndex){
-              setPopupState({
-                ...popupState,
-                isAlertOpen: true,
-                message:
-                  "Alert! , You've already selected this item",
-                  onClose : ()=> document.getElementById('searchBar')?.focus()
-              });
-            }
-          },
+          handleSelect: (rowData: any) => { setCurrentSavedData({ ...currentSavedData, item: rowData });
+          const isItemExists = itemValue.some((item: any) => item.id === rowData.id);
+          if (!isItemExists) {
+            setItemValue([...itemValue, rowData]);
+          }
+        },
           autoClose: true
 
         }
       })
     }
     if (colIndex === 1) {
-
-      const selectedItem = itemValue.find((item: any) => item.id === gridData[rowIndex].columns.itemId?.value);
-      if (!selectedItem) {
-        setPopupState({
-          ...popupState,
-          isAlertOpen: true,
-          message:
-            'Select item name first',
-        });
-        return document.getElementById(`cell-${rowIndex}-${focusColIndex.current + 1}`)?.focus();
-      }
-      if (selectedItem) {
+      if (challanTableData && challanTableData.length > 0 && rowIndex < challanTableData.length) {
         setPopupList({
           isOpen: true,
           data: {
             heading: 'Batch',
             headers: [...batchHeader],
             footers: batchFooters,
-            newItem: () => openTab('Item', <Items batchData={itemValue.find((x) => x.id === gridData[rowIndex].columns.itemId?.value)} />),
-            apiRoute: `/item/${gridData[rowIndex].columns.itemId?.value}/batch`,
-            searchFrom: 'batchNo',
-            autoClose: true,
-            handleSelect: (rowData: any) => {
-              setCurrentSavedData({ ...currentSavedData, batch: rowData });
-              const isBatchExists = batches.some((batch: any) => batch.id === rowData.id);
-              if (!isBatchExists) {
-                setBatches([...batches, rowData]);
-              }
-            },
+            newItem: () => openTab('Item', <Items batchData={currentSavedData.item} />),
+            apiRoute: '/item',
+            handleSelect: (rowData: any) => { setCurrentSavedData({ ...currentSavedData, batch: rowData }) },
+            autoClose: true
+
           }
         })
+
       }
       else {
-        setPopupState({
-          ...popupState,
-          isAlertOpen: true,
-          message:
-            'No unlocked batch associated with this items',
-        });
-        return document.getElementById(`cell-${rowIndex}-${focusColIndex.current + 1}`)?.focus();
-      }
+        const selectedItem = itemValue.find((item: any) => item.id === gridData[rowIndex].columns.itemId?.value);
+        if (!selectedItem) {
+          setPopupState({
+            ...popupState,
+            isAlertOpen: true,
+            message:
+              'Select item name first',
+          });
+          return document.getElementById(`cell-${rowIndex}-${focusColIndex.current + 1}`)?.focus();
+        }
+        if (selectedItem) {
+          setPopupList({
+            isOpen: true,
+            data: {
+              heading: 'Batch',
+              headers: [...batchHeader],
+              footers: batchFooters,
+              newItem: () => openTab('Item', <Items batchData={currentSavedData.item} />),
+              apiRoute: `/item/${currentSavedData.item.id}/batch`,
+              searchFrom: 'batchNo',
+              autoClose: true,
+              handleSelect: (rowData: any) => {
+                setCurrentSavedData({ ...currentSavedData, batch: rowData });
+                const isBatchExists = batches.some((batch: any) => batch.id === rowData.id);
+                if (!isBatchExists) {
+                  setBatches([...batches, rowData]);
+                }
 
+              },
+
+            }
+          })
+        }
+        else {
+          setPopupState({
+            ...popupState,
+            isAlertOpen: true,
+            message:
+              'No unlocked batch associated with this items',
+          });
+          return document.getElementById(`cell-${rowIndex}-${focusColIndex.current + 1}`)?.focus();
+        }
+      }
     }
   }
-  
+
   const handleAlertCloseModal = () => {
-    setPopupState({ ...popupState, isAlertOpen: false});
+    setPopupState({ ...popupState, isAlertOpen: false });
   };
 
   const handleClosePopup = () => {
@@ -349,7 +352,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     const item = itemValue?.find((item: any) => item.id === value?.value);
     newGridData[rowIndex].columns = {
       ...newGridData[rowIndex].columns,
-      taxType: item.saleAccount?.sptype,
+      taxType: item.saleAccount.sptype,
       gstAmount: item.company?.stateInOut === 'Within State' ? Number(item.saleAccount.cgst) + Number(item.saleAccount.sgst) : item.company?.stateInOut === 'Out Of State' ? Number(item.saleAccount.igst) : 0,
     };
     setGridData(newGridData);
@@ -361,21 +364,19 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
 
   const handleTotalAmt = ({ rowIndex, data }: { rowIndex: number, data?: any[] }) => {
     const newGridData = [...(data?.length ? data : gridData)];
-    if (rowIndex >= 0) {
-      const { qty, schemeType, rate, disPer } = newGridData[rowIndex].columns;
-      let { scheme } = newGridData[rowIndex].columns;
-      let total = rate * qty;
-      // Todo:  confirm the net rate symbol calculations
-      if (schemeValue.scheme1 !== null) {
-        const value = +schemeValue.scheme1 + (schemeValue.scheme2 === null ? 0 : +schemeValue.scheme2);
-        scheme = +schemeValue.scheme1 / +value;
-      }
-      if (schemeType.value === '%') total -= (total * scheme) / 100;
-      else if (schemeType.value === 'R') total -= scheme;
-      else if (schemeType.value === '/') total -= qty * scheme;
-      newGridData[rowIndex].columns.amt = total;
-      total = parseFloat(total.toFixed(2));
+    const { qty, schemeType, rate, disPer } = newGridData[rowIndex].columns;
+    let { scheme } = newGridData[rowIndex].columns;
+    let total = rate * qty;
+    // Todo:  confirm the net rate symbol calculations
+    if (schemeValue.scheme1 !== null) {
+      const value = +schemeValue.scheme1 + (schemeValue.scheme2 === null ? 0 : +schemeValue.scheme2);
+      scheme = +schemeValue.scheme1 / +value;
     }
+    if (schemeType.value === '%') total -= (total * scheme) / 100;
+    else if (schemeType.value === 'R') total -= scheme;
+    else if (schemeType.value === '/') total -= qty * scheme;
+    newGridData[rowIndex].columns.amt = total;
+    total = parseFloat(total.toFixed(2));
 
     newGridData.map(async (data: any) => {
       const item = itemValue?.find((item: any) => item.id === data.columns.itemId.value);
@@ -386,10 +387,11 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
       }
     })
     setGridData(newGridData);
+    calculateTotals(newGridData)
   };
 
   const calculateTotals = (data: typeof gridData) => {
-    const newGridData = [...(Array.isArray(data)? data : gridData)];
+    const newGridData = [...(data?.length ? data : gridData)];
     const totalDiscount = newGridData.reduce((acc, item) => acc + (item.columns.amt * item.columns.disPer) / 100, 0);
     const totalGST = newGridData.reduce((acc, item) => acc + ((item.columns.amt - (item.columns.amt * item.columns.disPer) / 100) * item.columns.gstAmount) / 100, 0);
     const totalCGST = newGridData.reduce((acc, item) => acc + ((item.columns.amt - (item.columns.amt * item.columns.disPer) / 100) * item.columns.cgst) / 100, 0);
@@ -410,7 +412,6 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
   };
 
   const handleSave = () => {
-    calculateTotals(gridData)
     const dataToSend = gridData.map((row) => ({
       id: row.id,
       ...row.columns,
@@ -480,9 +481,36 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     }
   };
 
-  const handleDeleteRow = (rowIndex: number) => {
-    calculateTotals(gridData.filter((_, ind) => ind !== rowIndex))
+  // const handleDeleteRow = (rowIndex: number, data: any) => {
+  //   const updateItems = [...itemValue]
+  //   const itemIndex = updateItems.findIndex((x: any) => x.id === data.columns.itemId?.value)
+  //   if (itemIndex >= 0) {
+  //     const batchIndex = updateItems[itemIndex].ItemBatches.findIndex((x: any) => x.id === data.columns.batchNo?.value)
+  //     if (batchIndex >= 0) {
+  //       updateItems[itemIndex].ItemBatches[batchIndex].currentStock += (Number(data.columns.qty) + (data.columns.scheme !== '' && data.columns.schemeType.label === 'Pieces' ? Number(data.columns.scheme) : 0))
+  //       if (challanTableData?.length && challanTableData.find((x: any) => x.id === data.columns.rowId)) {
+  //         setChallanTableData(challanTableData.filter((x: any) => x.id !== data.columns.rowId))
+  //         handleTotalAmt({ rowIndex: rowIndex - 1, data: gridData.filter((_, ind) => ind !== rowIndex) })
+  //       }
+  //       // setItemValue(updateItems)
+  //     }
+  //   }
+  // }
+
+const pendingChallans = ()=>{
+  if(partyId){
+    setPopupList({
+      isOpen: true,
+      data: {
+        heading: 'Pending Challan Items',
+        headers: [...pendingChallansList],
+        apiRoute: `/deliveryChallan/pending/${partyId}`,
+        handleSelect: () => { },
+        autoClose: true
+      }
+    })
   }
+}
 
   return (
     <div className="flex flex-col gap-1">
@@ -491,10 +519,18 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
         gridData={gridData}
         setGridData={setGridData}
         withAddRow={() => setCurrentSavedData({ item: {}, batch: {} })}
-        rowDeleteCallback={handleDeleteRow}
+        // rowDeleteCallback={handleDeleteRow}
         newRowTrigger={headers.length - 3}
       />
-      
+      {partyId && <div className="flex justify-end">
+        <button
+          type="button"
+          className="px-4 py-2 bg-[#009196FF] hover:bg-[#009196e3] font-medium text-white rounded-md border-none focus:border-yellow-500 focus-visible:border-yellow-500"
+          onClick={pendingChallans}
+        >
+          Pending Challans
+        </button>
+      </div>}
       {popupState.isAlertOpen && (
         <Confirm_Alert_Popup
           onClose={handleClosePopup}
