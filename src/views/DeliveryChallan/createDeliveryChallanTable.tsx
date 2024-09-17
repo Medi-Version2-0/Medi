@@ -186,6 +186,8 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
         focusedRowIndex,
         newGridData[focusedRowIndex].columns['batchNo']
       );
+      handleTotalAmt({ rowIndex: focusedRowIndex, data: newGridData })
+
     }
 
     if (focusColIndex.current === 0) {
