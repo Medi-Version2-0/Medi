@@ -25,7 +25,7 @@ export const Groups = () => {
     group_name: '',
     type: '',
     parent_code: '',
-    isPredefinedGroup: true,
+    isPredefinedGroup: false,
   };
   const { sendAPIRequest } = useApi();
   const { createAccess, updateAccess } = usePermission('group')
@@ -36,6 +36,7 @@ export const Groups = () => {
   const { groups: groupsData, subGroups: subGroupsData } = useSelector((state: any) => state.global);
   const [tableData, setTableData] = useState([...(createAccess ? [initialValue] :[]), ...groupsData]);
   const editing = useRef(false);
+  const addGroupButton = useRef<HTMLElement | null>(null);
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
@@ -57,6 +58,11 @@ export const Groups = () => {
   };
 
   useEffect(() => {
+    addGroupButton.current = document.getElementById('addGroupButton');
+    addGroupButton.current?.focus();
+  }, [addGroupButton.current]);
+
+  useEffect(() => {
     setSubgroups(subGroupsData);
   }, [subGroupsData]);
 
@@ -72,16 +78,21 @@ export const Groups = () => {
 
   const handleConfirmPopup = async (dataa?: any) => {
    const respData = dataa ? dataa : formData;
-    setPopupState({ ...popupState, isModalOpen: false });
-    if (formData.group_name) {
-      formData.group_name =
-        formData.group_name.charAt(0).toUpperCase() +
-        formData.group_name.slice(1);
+   setPopupState({ ...popupState, isModalOpen: false });
+   if (formData.group_name) {
+     formData.group_name =
+     formData.group_name.charAt(0).toUpperCase() +
+     formData.group_name.slice(1);
     }
     const payload = {
       group_name: respData.group_name || formData.group_name,
       type: formData.type || respData.type
     };
+    const isPayloadGroupNameExist = tableData.find((grp:GroupFormData)=> grp.group_name.toLowerCase() === payload.group_name.toLowerCase() && grp.group_code);
+    if (isPayloadGroupNameExist && !formData.group_code) {
+      settingPopupState(false, `${payload.group_name} group already exists`);
+      return;
+    }
     if (payload !== initialValue) {
       try {
         if (formData.group_code) {
@@ -172,8 +183,8 @@ export const Groups = () => {
           group.group_name.toLowerCase() === values.group_name.toLowerCase()
         );
       return (
-        group.group_name.toLowerCase() === values.group_name.toLowerCase() &&
-        group.group_code !== values.group_code
+        group.group_name.toLowerCase() === values.group_name.toLowerCase() && group.group_code
+        && group.group_code !== values.group_code 
       );
     });
     if (existingGroup) {
@@ -214,12 +225,25 @@ export const Groups = () => {
       node.setDataValue(field, newValue);
     } else {
       try {
-        node.setDataValue(field, e.newValue);
-        await sendAPIRequest(`/group/${data.group_code}`, {
-          method: 'PUT',
-          body: { [field]: newValue },
-        });
-        getAndSetGroupsHandler();
+        if (newValue) {
+          if (column.colId === 'group_name'){
+            const isPayloadGroupNameExist = tableData.find((grp: GroupFormData) => grp.group_name.toLowerCase() === newValue.toLowerCase() && grp.group_code && grp.group_code !== data.group_code);
+            if (isPayloadGroupNameExist) {
+              settingPopupState(false, `${newValue} group name already exists`);
+              node.setDataValue(field, oldValue);
+              return;
+            }
+          }
+          node.setDataValue(field, e.newValue);
+          await sendAPIRequest(`/group/${data.group_code}`, {
+            method: 'PUT',
+            body: { [field]: newValue },
+          });
+          getAndSetGroupsHandler();
+        }else{
+          settingPopupState(false,"Name is Required");
+          node.setDataValue(field, oldValue);
+        }
       } catch (error: any) {
         if (!error?.isErrorHandled) {
           settingPopupState(false, `${error.message}`);
@@ -320,21 +344,23 @@ export const Groups = () => {
           justifyContent: 'center',
           alignItems: 'center',
         },
-        cellRenderer: (params: { data: GroupFormData }) => (
-          <div className='table_edit_buttons'>
-            <FaEdit
-              style={{ cursor: 'pointer', fontSize: '1.1rem' }}
-              onClick={() => {
-                setSelectedRow(selectedRow !== null ? null : params.data);
-                handleUpdate(params.data);
-              }}
-            />
-            <MdDeleteForever
-              style={{ cursor: 'pointer', fontSize: '1.2rem' }}
-              onClick={() => handleDelete(params.data)}
-            />
-          </div>
-        ),
+        cellRenderer: (params: { data: GroupFormData,node:any }) => (
+          !params.data.isPredefinedGroup && <div className='table_edit_buttons'>
+              <FaEdit
+                style={{ cursor: 'pointer', fontSize: '1.1rem' }}
+                onClick={() => {
+                  setSelectedRow(selectedRow !== null ? null : params.data);
+                  handleUpdate(params.data);
+                }}
+              />
+              { params.node.rowIndex !== 0 &&
+              <MdDeleteForever
+                style={{ cursor: 'pointer', fontSize: '1.2rem' }}
+                onClick={() => handleDelete(params.data)}
+              />
+              }
+            </div>
+          )
       },
     ];
 
@@ -346,6 +372,7 @@ export const Groups = () => {
          {createAccess && <Button
             type='highlight'
             className=''
+            id='addGroupButton'
             handleOnClick={() => togglePopup(true)}
           >
             Add Group
