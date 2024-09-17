@@ -325,7 +325,7 @@ export const SelectList = ({
                                     )}
                                     {headers.map((header: any, colIndex: number) => (
                                         <td key={colIndex} className='border-[1px] border-gray-400 p-2'>
-                                            {header.auto ? rowIndex + 1 : getNestedValue(row, header.key) || ''
+                                            {header.auto ? rowIndex + 1 : getNestedValue(row, header.key)
                                             }
                                         </td>
                                     ))}
