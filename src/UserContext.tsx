@@ -53,17 +53,9 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [selectedCompany, setSelectedOrganization] = useState<number | undefined>(1);
-  const [user, setUser] = useState<User | null>(() => {
-    const storedUser = localStorage.getItem(USER_LS_KEY);
-    return storedUser ? JSON.parse(storedUser) : null;
-  });
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    if (user) {
-      localStorage.setItem(USER_LS_KEY, JSON.stringify(user));
-    } else {
-      localStorage.removeItem(USER_LS_KEY);
-    }
     if(user?.organizationId){
       setSelectedOrganization(user.organizationId)
     }
