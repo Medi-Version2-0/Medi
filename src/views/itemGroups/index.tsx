@@ -117,7 +117,7 @@ export const ItemGroups = () => {
 
   const getGroups = async () => {
     if (Array.isArray(itemGroups)) {
-      setTableData([initialData, ...itemGroups]);
+      setTableData([...(createAccess ? [initialData] : []), ...itemGroups]);
     }
     return itemGroups;
   };
@@ -190,7 +190,7 @@ export const ItemGroups = () => {
     editing.current = false;
     const { data, column, oldValue, valueChanged, node } = e;
     let { newValue } = e;
-    if (!valueChanged) return;
+    if (!valueChanged && node.rowIndex !== 0) return;
     const field = column.colId;
     if (node.rowIndex === 0 && createAccess) {
       if (data.group_name && data.type) {
@@ -253,7 +253,7 @@ export const ItemGroups = () => {
 
   useEffect(() => {
     getGroups();
-  }, [itemGroups]);
+  }, [itemGroups,createAccess]);
 
   const defaultCols = {
       flex: 1,

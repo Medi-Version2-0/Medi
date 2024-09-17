@@ -215,7 +215,7 @@ export const Headquarters = () => {
   const handleCellEditingStopped = async (e: any) => {
     editing.current = false;
     const { data, column, node, oldValue, newValue } = e;
-    if (oldValue === newValue) return;
+    if (oldValue === newValue && node.rowIndex !== 0) return;
     const field = column.colId;
 
     const stationName = await allStations.filter(

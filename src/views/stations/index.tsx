@@ -167,11 +167,11 @@ export const Stations = () => {
 
   const deleteAcc = async (station_id: string) => {
     isDelete.current = false;
+    togglePopup(false);
     try {
       await sendAPIRequest(`/station/${station_id}`, {
         method: 'DELETE',
       });
-      togglePopup(false);
       getAndSetStationHandler();
     } catch(error:any){
       if (!error?.isErrorHandled) {
@@ -212,7 +212,7 @@ export const Stations = () => {
     editing.current = false;
     const { data, column, oldValue, valueChanged, node } = e;
     let { newValue } = e;
-    if (!valueChanged) return;
+    if (!valueChanged && node.rowIndex !== 0) return;
     const field = column.colId;
     if(field === 'station_name'){
       newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
@@ -382,6 +382,7 @@ export const Stations = () => {
           <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
             onClick={() => {
+              console.log(params.data);
               handleDelete(params.data);
             }}
           />
