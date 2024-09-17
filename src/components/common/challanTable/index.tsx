@@ -313,6 +313,7 @@ export const ChallanTable = ({
                             }
                           }}
                           min={header.props.inputType === 'number' ? 0 : undefined}
+                          step={header.props.inputType === 'number' ? 'any' : undefined}
                           onKeyDown={(e) =>
                             handleKeyDown(e, rowIndex, colIndex)
                           }
