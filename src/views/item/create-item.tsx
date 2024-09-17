@@ -50,7 +50,7 @@ const CreateItem = ({ setView, data, setShowBatch }: any) => {
     initialValues: {
       name: data?.name || '',
       packing: data?.packing || '',
-      service: data?.service || 'goods',
+      service: data?.service || 'Goods',
       shortName: data?.shortName || '',
       hsnCode: data?.hsnCode || '',
       compId: data?.compId || '',
