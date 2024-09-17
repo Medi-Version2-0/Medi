@@ -17,7 +17,6 @@ import { SelectList } from '../../components/common/customSelectList/customSelec
 import { partyHeaders } from '../partywisePriceList/partywiseHeader';
 import { Ledger } from '../ledger';
 import { useTabs } from '../../TabsContext';
-import { pendingChallansList } from '../../constants/saleChallan';
 import useApi from '../../hooks/useApi';
 
 export interface DeliveryChallanFormValues {
@@ -189,7 +188,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
           values.netRateSymbol = 'No';
         }
         values.total = (+totalValue.totalAmt)?.toFixed(2);
-        values.qtyTotal = (+totalValue.totalQty)
+        values.qtyTotal = (+totalValue.totalQty)?.toFixed(2);
         values.totalDiscount = (+totalValue.totalDiscount)?.toFixed(2);
         values.totalCGST = (+totalValue.totalCGST)?.toFixed(2);
         values.totalSGST = (+totalValue.totalSGST)?.toFixed(2);
@@ -303,24 +302,24 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
         }
       }
     };
-
+  
     fetchPendingData();
   }, [formik.values.partyId]);
+  
 
 
-
-  const handlePartyList = () => {
-    if (formik.values.oneStation !== 'All Stations' && !formik.values.stationId) {
+  const handlePartyList = ()=>{
+    if (formik.values.oneStation  !== 'All Stations' && !formik.values.stationId){
       setFocused('stationId')
-      document.getElementById('personName')?.focus();
-      setPopupState({
+      document.getElementById('personName')?.focus();     
+      setPopupState({ 
         isModalOpen: false,
         isAlertOpen: true,
         message: `Select Station first`,
         shouldBack: false
       });
-    }
-    else {
+    } 
+    else{
       setPopupList({
         isOpen: true,
         data: {
@@ -336,35 +335,9 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
         }
       })
     }
-  }
 
-  const pendingChallans = () => {
-    if (formik.values.partyId) {
-      setPopupList({
-        isOpen: true,
-        data: {
-          heading: 'Pending Challan Items',
-          headers: [...pendingChallansList],
-          apiRoute: `/deliveryChallan/pending/${formik.values.partyId}`,
-          handleSelect: () => { },
-          autoClose: true
-        }
-      })
-    }
+  
   }
-
-  const hasMissingKeys = (): boolean => {
-    if (!dataFromTable.length || !formik.isValid) return true;
-    return dataFromTable?.some((columns) => {
-      if (!columns) return true;
-      const { itemId, batchNo, qty, rate, scheme, schemeType } = columns;
-      if (!itemId || !batchNo || !qty || !rate) {
-        return true;
-      }
-      return (scheme && !schemeType?.value) || (!scheme && schemeType?.value);
-    });
-  }
-
 
   const partyFooterData: any[] = [
     {
@@ -440,7 +413,6 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
       ]
     },
   ];
-
   return (
     <div className='w-full'>
       <div className='flex w-full items-center justify-between px-8 py-1'>
@@ -495,11 +467,9 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
                 onKeyDown={(e: any) => {
                   if (e.key === 'Enter' || e.key === 'Tab') {
                     const dropdown = document.querySelector('.custom-select__menu');
-                    if (!dropdown) {
-                      e.preventDefault();
-                      if (formik.values.oneStation === 'One Station') setFocused('stationId');
-                      else if (formik.values.oneStation === 'All Stations') setFocused('partyId');
-                    }
+                    if (!dropdown) e.preventDefault();
+                    if (formik.values.oneStation === 'One Station') setFocused('stationId');
+                    else if (formik.values.oneStation === 'All Stations') setFocused('partyId');
                   }
                 }}
                 showErrorTooltip={true}
@@ -539,10 +509,8 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
                     onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
                       if (e.key === 'Enter' || e.key === 'Tab') {
                         const dropdown = document.querySelector('.custom-select__menu');
-                        if (!dropdown) {
-                          e.preventDefault();
-                          setFocused('partyId');
-                        }
+                        if (!dropdown) e.preventDefault();
+                        setFocused('partyId');
                       }
                       if (e.shiftKey && e.key === 'Tab') setFocused('oneStation');
                     }}
@@ -678,18 +646,18 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
                 inputClassName='disabled:text-gray-800'
               />
             </div>
-            <div className='flex gap-1 text-gray-700'>
+            <div className='flex gap-1'>
               <span>Total Pending Items:</span>
               <span>{pendingData.totalPendingItems}</span>
             </div>
-            <div className='flex gap-1 text-gray-700'>
+            <div className='flex gap-1'>
               <span>Total Pending Amount:</span>
               <span>{pendingData.pendingChallansAmount}</span>
             </div>
 
           </div>
           <div className='flex w-full justify-end'>
-            <div className='flex gap-1 text-gray-700'>
+            <div className='flex gap-1'>
               <span>Party Balance:</span>
               <span>{selectedParty?.closingBalance || 0} {selectedParty?.closingBalanceType}</span>
             </div>
@@ -707,16 +675,6 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
             challanId={data?.id}
           />
         </div>
-
-        {formik.values.partyId && <div className="flex justify-end">
-          <button
-            type="button"
-            className="px-4 py-2 bg-[#009196FF] hover:bg-[#009196e3] font-medium text-white rounded-md border-none focus:border-yellow-500 focus-visible:border-yellow-500"
-            onClick={pendingChallans}
-          >
-            Pending Challans
-          </button>
-        </div>}
         <div className='border-[1px] border-solid border-gray-400 my-4 p-4 mx-8'>
           <div className='flex gap-12 justify-between'>
             <div className="border-[1px] border-solid w-[25%] border-gray-400 relative">
@@ -774,7 +732,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
             type='fill'
             padding='px-4 py-2'
             id='submit_all'
-            disable={hasMissingKeys()}
+            disable={!formik.isValid || !dataFromTable?.length}
             handleOnClick={() => formik.handleSubmit}
             handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
               if (e.key === 'ArrowUp') e.preventDefault();
@@ -813,7 +771,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
         searchFrom={popupList.data.searchFrom}
         autoClose={popupList.data.autoClose}
         onEsc={popupList.data.onEsc}
-        extraQueryParams={popupList.data.extraQueryParams || {}}
+        extraQueryParams = {popupList.data.extraQueryParams || {}}
       />}
     </div>
   );
