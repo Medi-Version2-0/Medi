@@ -13,17 +13,17 @@ import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import usePermission from '../../hooks/useRole';
 import useToastManager from '../../helper/toastManager';
 import useApi from '../../hooks/useApi';
+import { useSelector } from 'react-redux';
 
 const DeliveryChallan = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
   const [selectedRow, setSelectedRow] = useState<any>(null);
-  const [tableData, setTableData] = useState<DeliveryChallanFormData | any>(
-    null
-  );
+  const [tableData, setTableData] = useState<DeliveryChallanFormData | any>(null);
   const editing = useRef(false);
   const { createAccess } = usePermission('deliverychallan')
   const { successToast } = useToastManager();
   const { sendAPIRequest } = useApi();
+  const {billBookSeries} = useSelector((state:any)=> state.global)
 
   const id = useRef('');
   const queryClient = useQueryClient();
@@ -176,25 +176,17 @@ const DeliveryChallan = () => {
             {createAccess && <Button
               type='highlight'
               handleOnClick={async () => {
-                try {
-                  const challanNumber = await sendAPIRequest<string>(
-                    `/deliveryChallan/challanNumber`
-                  );
-                  setView({
-                    type: 'add',
-                    data: { challanNumber: challanNumber },
+                if(!billBookSeries.length){
+                  return  setPopupState({
+                    ...popupState,
+                    isAlertOpen: true,
+                    message: 'Add series first in bill book setup ...',
                   });
                 }
-                catch (error: any) {
-                  if (!error?.isErrorHandled) {
-                    setPopupState({
-                      ...popupState,
-                      isAlertOpen: true,
-                      message: 'Add series first in bill book setup ...',
-                    });
-                    return;
-                  }
-                }
+                 return setView({
+                    type: 'add',
+                    data: { },
+                  });
               }}
             >
               Add Challan
