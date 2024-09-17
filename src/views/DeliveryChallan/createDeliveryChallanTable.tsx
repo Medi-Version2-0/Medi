@@ -354,6 +354,8 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
       ...newGridData[rowIndex].columns,
       taxType: item.saleAccount.sptype,
       gstAmount: item.company?.stateInOut === 'Within State' ? Number(item.saleAccount.cgst) + Number(item.saleAccount.sgst) : item.company?.stateInOut === 'Out Of State' ? Number(item.saleAccount.igst) : 0,
+      cgst : item.company?.stateInOut === 'Within State' ? Number(item.saleAccount.cgst): 0,
+      sgst : item.company?.stateInOut === 'Within State' ? Number(item.saleAccount.sgst) :  0,
     };
     setGridData(newGridData);
   };
@@ -361,6 +363,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
   const handleSelectChange = ({ selectedOption, rowIndex, header }: any) => {
     if (selectedOption) handleInputChange({ rowIndex, header, value: selectedOption || {} });
   };
+
 
   const handleTotalAmt = ({ rowIndex, data }: { rowIndex: number, data?: any[] }) => {
     const newGridData = [...(data?.length ? data : gridData)];
@@ -385,20 +388,23 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
         data.columns.cgst = Number(item.saleAccount.cgst);
         data.columns.sgst = Number(item.saleAccount.sgst);
       }
+      else {
+        data.columns.cgst = 0
+        data.columns.sgst = 0
+      }
     })
     setGridData(newGridData);
     calculateTotals(newGridData)
   };
 
-  const calculateTotals = (data: typeof gridData) => {
-    const newGridData = [...(data?.length ? data : gridData)];
+  const calculateTotals = (data?: typeof gridData) => {
+    const newGridData = [...(Array.isArray(data)? data : gridData)];
     const totalDiscount = newGridData.reduce((acc, item) => acc + (item.columns.amt * item.columns.disPer) / 100, 0);
     const totalGST = newGridData.reduce((acc, item) => acc + ((item.columns.amt - (item.columns.amt * item.columns.disPer) / 100) * item.columns.gstAmount) / 100, 0);
-    const totalCGST = newGridData.reduce((acc, item) => acc + ((item.columns.amt - (item.columns.amt * item.columns.disPer) / 100) * item.columns.cgst) / 100, 0);
-    const totalSGST = newGridData.reduce((acc, item) => acc + ((item.columns.amt - (item.columns.amt * item.columns.disPer) / 100) * item.columns.sgst) / 100, 0);
+    const totalCGST = newGridData.reduce((acc, item) => acc + ((item.columns.amt - (item.columns.amt * item.columns.disPer) / 100) * (item.columns.cgst || 0)) / 100, 0);
+    const totalSGST = newGridData.reduce((acc, item) => acc + ((item.columns.amt - (item.columns.amt * item.columns.disPer) / 100) * (item.columns.sgst || 0)) / 100, 0);
     const totalAmt = newGridData.reduce((acc, item) => acc + (item.columns.amt - (item.columns.amt * item.columns.disPer) / 100) + ((item.columns.amt - (item.columns.amt * item.columns.disPer) / 100) * item.columns.gstAmount) / 100, 0);
     const totalQty = newGridData.reduce((acc, item) => acc + Number(item.columns.qty) + (item.columns.scheme !== '' && item.columns.schemeType.label === 'Pieces' ? Number(item.columns.scheme) : 0), 0);
-
     setTotalValue({
       ...totalValue,
       totalAmt,
@@ -412,10 +418,16 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
   };
 
   const handleSave = () => {
-    const dataToSend = gridData.map((row) => ({
-      id: row.id,
-      ...row.columns,
-    }));
+    calculateTotals(gridData)
+    const dataToSend = gridData.map((row) => {
+      if (row.columns?.itemId?.value) {
+        return {
+          id: row.id,
+          ...row.columns,
+        };
+      }
+      return null;
+    }).filter(Boolean);
     if (schemeValue.scheme1 !== null) {
       setIsNetRateSymbol('Yes');
     }

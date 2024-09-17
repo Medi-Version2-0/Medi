@@ -218,7 +218,7 @@ export const ChallanTable = ({
                 {headers.map((header, colIndex) => {
                   const columnValue = header.props.label
                     ? row.columns[header.key]?.label || ''
-                    : row.columns[header.key] || '';
+                    : row.columns[header.key];
                   switch (header.type) {
                     case 'customSelect':
                       return (
@@ -299,7 +299,7 @@ export const ChallanTable = ({
                             const args = {
                               rowIndex,
                               header: header.key,
-                              value: e.target.value,
+                              value:  header.props.inputType === 'number' ? Number(e.target.value) : e.target.value,
                             };
                             if (header.props.handleChange) {
                               header.props.handleChange(args);
