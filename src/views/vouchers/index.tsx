@@ -23,6 +23,7 @@ const Vouchers = () => {
     const voucherDate = useRef<string>('');
     const voucherType = useRef<string>('');
     const [originalTableData, setOriginalTableData] = useState<Voucher[]>([]);
+    const createButtonRef = useRef<HTMLElement | null>(null);
 
 
     const [popupState, setPopupState] = useState({
@@ -119,10 +120,10 @@ const Vouchers = () => {
         getVoucherData();
     }, [filterDate, view, selectedVoucherType]);
 
-    // useEffect(()=> {
-    //     const element = document.getElementById("createButton")
-    //     element && element.focus();
-    // },[])
+    useEffect(()=> {
+        createButtonRef.current = document.getElementById('createButton')
+        createButtonRef.current?.focus();
+    },[createButtonRef.current])
 
     function getTodayDate(date: Date): string {
         const year = date.getFullYear();

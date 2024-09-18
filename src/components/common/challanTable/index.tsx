@@ -51,6 +51,7 @@ interface ChallanTableProps {
   stikyColumn?: number[];
   isFromSaleBill?: boolean;
   required?: any;
+  widthRequired?: any;
 }
 export const ChallanTable = ({
   headers,
@@ -64,6 +65,7 @@ export const ChallanTable = ({
   stikyColumn,
   isFromSaleBill,
   required,
+  widthRequired = '100vw',
 }: ChallanTableProps) => {
   const [focused, setFocused] = useState('');
   const [popupState, setPopupState] = useState({
@@ -82,7 +84,7 @@ export const ChallanTable = ({
       e.target.value = ''
     }
 
-    if (e.key === '-' || e.key === '+' || e.key === 'E' || e.key === 'e') {
+    if (e.key === '-' || e.key === '+' ) {   // || e.key === 'E' || e.key === 'e'
       e.preventDefault();
       return;
     }
@@ -193,9 +195,9 @@ export const ChallanTable = ({
     <div className='flex flex-col gap-2'>
       <div
         id='tableContainer'
-        className='flex flex-col h-[30em] overflow-auto border-[1px] border-solid border-gray-400'
+        className={`flex flex-col h-[30em] border-[1px] border-solid border-gray-400 overflow-auto`}
       >
-        <div className={`flex sticky border-solid w-[100vw] top-0 z-[1]`}>
+        <div className={`flex sticky border-solid w-[${widthRequired}] top-0 z-[1]`}>
           {headers.map((header, index) => (
             <div
               key={index}
@@ -211,7 +213,7 @@ export const ChallanTable = ({
             Actions
           </div>
         </div>
-        <div className='flex flex-col w-[100vw] h-[22rem]'>
+        <div className={`flex flex-col w-[${widthRequired}] h-[22rem]`}>
           {gridData &&
             gridData.map((row: any, rowIndex: number) => (
               <div key={row.id} className='flex relative'>

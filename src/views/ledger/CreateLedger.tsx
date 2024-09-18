@@ -224,7 +224,7 @@ export const CreateLedger = ({ setView, data }: any) => {
         return "gstIn"
     }
   }
-  console.log('Group Options in creLedr => ', groupOptions)
+
   return (
     <div className='w-full'>
       <div className='flex w-full items-center justify-between px-8 py-1'>

@@ -1,9 +1,11 @@
-import React from 'react';
 import '../../../index.css';
 import useToastManager from '../../../helper/toastManager';
+import { useSelector } from 'react-redux';
+import { useEffect } from 'react';
 
-const CustomToggleSwitch = ({ field, form, label, index, formik }: any) => {
+const   CustomToggleSwitch = ({ field, form, label, index, formik }: any) => {
   const { successToast } = useToastManager();
+  const {controlRoomSettings} = useSelector((state:any)=>state.global)
 
   const handleDiscountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.currentTarget.value;
@@ -37,7 +39,20 @@ const CustomToggleSwitch = ({ field, form, label, index, formik }: any) => {
     if (field.name === 'multiPriceList' && !newValue) {
       form.setFieldValue('salesPriceLimit', 0);
     }
+    if (field.name === 'decimalValue' && !newValue) {
+      form.setFieldValue('decimalValueCount',2);
+    }
   };
+
+  const handleDecimalValueChange = (value: number) => {
+    formik.setFieldValue('decimalValueCount', value);
+  };
+  useEffect(() => {
+    if(field.name === 'decimalValue'){
+      formik.setFieldValue('decimalValueCount', controlRoomSettings.decimalValueCount, 2);
+    }
+  }, [])
+  
 
   return (
     <div
@@ -111,6 +126,40 @@ const CustomToggleSwitch = ({ field, form, label, index, formik }: any) => {
           </label>
         </div>
       )}
+      {field.name === 'decimalValue' && formik.values.decimalValue && (
+        <div className={`flex flex-col border-[1px] border-solid border-[#009196FF] bg-[#EAFBFC] pr-4 border-t-0`}>
+          <div className='flex flex-row justify-between items-center'>
+            <span className='ml-[0.7rem] w-[70%] p-2 border-r-[1px] border-solid border-[#009196FF]'>
+              How many Numbers you want after decimal
+            </span>
+          <div className='flex flex-row justify-start items-center p-2'>
+            <label className='flex items-center mr-4'>
+              <input
+                type='radio'
+                name='decimalValueCount'
+                value={2}
+                checked={formik.values.decimalValueCount === 2}
+                onChange={() => handleDecimalValueChange(2)}
+                className='mr-2'
+              />
+              <span>2</span>
+            </label>
+            <label className='flex items-center'>
+              <input
+                type='radio'
+                name='decimalValueCount'
+                value={4}
+                checked={formik.values.decimalValueCount === 4}
+                onChange={() => handleDecimalValueChange(4)}
+                className='mr-2'
+              />
+              <span>4</span>
+            </label>
+          </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

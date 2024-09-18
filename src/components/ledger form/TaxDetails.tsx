@@ -27,9 +27,9 @@ export const TaxDetails: React.FC<TaxInfoProps> = ({
     }
   };
 
-  const handleClick = () => {
-    document.getElementById('Licence_Info')?.focus();
-  }
+  // const handleClick = () => {
+  //   document.getElementById('Licence_Info')?.focus();
+  // }
 
   return (
     <div className='flex flex-col  gap-x-4 gap-y-2 w-1/2 px-2 m-2 text-xs leading-3 text-gray-600'>
@@ -59,8 +59,8 @@ export const TaxDetails: React.FC<TaxInfoProps> = ({
         formik={formik}
         labelClassName='min-w-[90px]'
         prevField='gstIn'
-        nextField='drugLicenceNo1'
-        onKeyDown={handleClick}
+        nextField='Licence_Info'
+        // onKeyDown={handleClick}
         showErrorTooltip={formik.touched.panCard && formik.errors.panCard}
       />
     </div>

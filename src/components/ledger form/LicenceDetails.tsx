@@ -33,8 +33,8 @@ export const LicenceDetails: React.FC<LicenceDetailsProps> = ({ formik }) => {
         className='!w-2/3'
         formik={formik}
         prevField='drugLicenceNo1'
-        nextField={(licenseId2 || (formik.values.drugLicenceNo2 !== '')) ? 'drugLicenceNo2' : 'firstName'}
-        onKeyDown={handleClick}
+        nextField={(licenseId2 || (formik.values.drugLicenceNo2 !== '')) ? 'drugLicenceNo2' : 'Contact_Info'}
+        // onKeyDown={handleClick}
       />
       <div className='flex gap-2 '>
         {(licenseId2 || (formik.values.drugLicenceNo2 !== '')) &&
