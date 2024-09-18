@@ -7,7 +7,6 @@ import Button from '../components/common/button/Button';
 import { generalSettingFields } from './common/controlRoom/settings';
 import { ControlRoomSettings } from './common/controlRoom/ControlRoomSettings';
 import { useSelector } from 'react-redux';
-import { getAccessToken, saveToken } from '../auth';
 
 export const TopBar = () => {
   const [isPopupVisible, setPopupVisible] = useState(false);
@@ -34,6 +33,9 @@ export const TopBar = () => {
     itemWiseDiscount: controlRoomSettings.itemWiseDiscount || false,
     decimalValue: controlRoomSettings.decimalValue || false,
     decimalValueCount: controlRoomSettings.decimalValueCount || 2,
+    expiryWarning: controlRoomSettings.expiryWarning || false,
+    expiryWarningMonths: controlRoomSettings.expiryWarningMonths || 6,
+    stockWarning: controlRoomSettings.stockWarning || false,
   };
   const { setUser } = useUser();
 

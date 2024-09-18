@@ -59,3 +59,10 @@ export const validateField = async (schema: any, field: string, value: any) => {
 export const getNestedValue = (obj: any, path: string): any => {
   return path.split('.').reduce((acc, key) => acc && acc[key], obj);
 };
+
+export const isLessThanMonths = (date1Str:string, date2Str:string , months:number) => {
+  const date1 = new Date(date1Str.split("/").reverse().join("-"));
+  const date2 = new Date(date2Str.split("/").reverse().join("-") + "-01");
+  const monthDiff = (date2.getFullYear() - date1.getFullYear()) * 12 + (date2.getMonth() - date1.getMonth());
+  return Math.abs(monthDiff) <= months;
+}

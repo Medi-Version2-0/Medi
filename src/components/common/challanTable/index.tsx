@@ -130,7 +130,9 @@ export const ChallanTable = ({
     }
     else if (e.key === 'Escape') {
       e.preventDefault();
-      handleSave && handleSave();
+     if(handleSave){
+      handleSave();
+     }
       document.getElementById('nextButton')?.focus();
   }
   };
@@ -160,7 +162,7 @@ export const ChallanTable = ({
         (_, rowIndex) => ({
           id: gridData.length + rowIndex + 1,
           columns: headers.reduce(
-            (acc, header) => ({ ...acc, [header.key]: '' }),
+            (acc, header) => ({ ...acc, [header.key]: header.props?.inputType === 'number' ? null : '' }),
             {}
           ),
         })
@@ -298,10 +300,14 @@ export const ChallanTable = ({
                               : () => {};
                           }}
                           onChange={(e) => {
+                            const inputValue = e.target.value;
+
                             const args = {
                               rowIndex,
                               header: header.key,
-                              value:  header.props.inputType === 'number' ? Number(e.target.value) : e.target.value,
+                              value:  header.props.inputType === 'number'
+                              ? inputValue === '' ? null : Number(inputValue)  // Set to null if input is empty
+                              : inputValue,
                             };
                             if (header.props.handleChange) {
                               header.props.handleChange(args);

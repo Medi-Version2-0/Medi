@@ -86,19 +86,14 @@ const Container: React.FC<ContainerProps> = ({ title, fields, formik, setFocused
   }
 
   function handleCompanyList() {
-    const tableData = companiesData.map((c: any, idx: number) => {
-      return {
-        ...companiesData[idx],
-        station_name: c.Station.station_name,
-      }
-    })
+    const tableData = companiesData
     setPopupList({
       isOpen: true,
       data: {
         heading: 'Select Company',
         headers: [
           { label: 'Company', key: 'companyName' },
-          { label: 'Station', key: 'station_name' },
+          { label: 'Station', key: 'Station.station_name' },
         ],
         tableData,
         handleSelect: (rowData: any) => {
