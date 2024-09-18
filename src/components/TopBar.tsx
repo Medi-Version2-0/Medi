@@ -32,6 +32,8 @@ export const TopBar = () => {
     removeStripOption: controlRoomSettings.removeStripOption || false,
     defaultDownloadPath: controlRoomSettings.defaultDownloadPath || false,
     itemWiseDiscount: controlRoomSettings.itemWiseDiscount || false,
+    decimalValue: controlRoomSettings.decimalValue || false,
+    decimalValueCount: controlRoomSettings.decimalValueCount || 2,
   };
   const { setUser } = useUser();
 

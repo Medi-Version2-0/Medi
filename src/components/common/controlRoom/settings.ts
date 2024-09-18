@@ -143,6 +143,11 @@ export const generalSettingFields: SettingField[] = [
     id: 'pricewisePartyList',
     name: 'pricewisePartyList',
   },
+  {
+    label: 'Decimal Value',
+    id: 'decimalValue',
+    name: 'decimalValue',
+  },
 ];
 
 export const stationSettingFields: SettingField[] = [  

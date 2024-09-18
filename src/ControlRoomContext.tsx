@@ -45,6 +45,8 @@ export interface ControlFields {
   printPriceToRetailer: boolean;
   removeStripOption: boolean;
   defaultDownloadPath: boolean;
+  decimalValue: boolean;
+  decimalValueCount: number;
   // station
   igstSaleFacility: boolean;
   // invoice
@@ -110,6 +112,8 @@ const defaultSettings: ControlFields = {
   cursorAtSave: false,
   smsOfInvoice: false,
   shippingAddressRequired: false,
+  decimalValue: false, 
+  decimalValueCount: 2
 };
 
 const controlRoomContext = createContext<ControlRoomContextType | undefined>(

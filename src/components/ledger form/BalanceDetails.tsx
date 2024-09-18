@@ -152,11 +152,20 @@ export const BalanceDetails = ({
             }}
             onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
               const dropdown = document.querySelector('.custom-select__menu');
-              if (e.key === 'Enter' || e.key === 'Tab' ) {
-                !dropdown && e.preventDefault();
-                const nextFieldId = (formik.isValid && !isSpecialGroup) ?  'submit_all'  : (!formik.isValid && !isSpecialGroup) ? 'partyName' : 'creditLimit';
-                    document.getElementById(nextFieldId)?.focus();
-                    setFocused(nextFieldId);
+              if (e.key === 'Enter' || (e.key === 'Tab' && !e.shiftKey)) {
+                if (!dropdown) {
+                  e.preventDefault();
+                }
+                const nextFieldId = (formik.isValid && !isSpecialGroup)? 'submit_all': (!formik.isValid && !isSpecialGroup)? 'openingBalType': 'creditLimit';
+                document.getElementById(nextFieldId)?.focus();
+                setFocused(nextFieldId);
+              } else if (e.key === 'Tab' && e.shiftKey) {
+                if (!dropdown) {
+                  e.preventDefault();
+                }
+                const prevFieldId = (formik.isValid && !isSpecialGroup)? 'openingBalType': (!formik.isValid && !isSpecialGroup)? 'partyType ': 'openingBalType';
+                document.getElementById(prevFieldId)?.focus();
+                setFocused(prevFieldId);
               }
             }}
           />
@@ -178,6 +187,13 @@ export const BalanceDetails = ({
               onClick={resetField}
               prevField='partyType'
               nextField='creditDays'
+              onKeyDown={(e) => {
+                if (e.key === 'Tab' && e.shiftKey) {
+                  e.preventDefault();
+                  setFocused('partyType');
+                }
+              }}
+            
             />
             <FormikInputField
               isPopupOpen={false}

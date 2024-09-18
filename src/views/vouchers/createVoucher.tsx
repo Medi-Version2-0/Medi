@@ -5,9 +5,9 @@ import Button from '../../components/common/button/Button';
 import { SelectList } from '../../components/common/selectList';
 import { ChallanTable } from '../../components/common/challanTable';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
-import {gridDataSchema} from './validation'
-import useToastManager from '../../helper/toastManager';
+import {validateValue} from './validation'
 import useApi from '../../hooks/useApi';
+import { useSelector } from 'react-redux';
 
 interface RowData {
   columns: {
@@ -48,6 +48,7 @@ const CreateVouchers = ({ setView, data }: any) => {
     });
   };
   const [focused, setFocused] = useState('');
+  const decimalPlaces = useSelector((state: any) => state.global.controlRoomSettings.decimalValueCount || 2);
 
   const bankName = useRef<{partyName:string,partyId:number}>({
     partyName:'',
@@ -63,11 +64,11 @@ const CreateVouchers = ({ setView, data }: any) => {
   ];
 
   const commonHeaders1 = [
-    { name: 'Party', key: 'partyName', width: '17%', type: 'input', props: { inputType: 'text', label: true, required: true, handleFocus: (rowIndex: number, colIndex: number) => { handleFocus(rowIndex, colIndex) } } },
-    { name: 'Narration', key: 'narration', width: '20%', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
-    { name: 'Amount (₹)', key: 'amount', width: '15%', type: 'input', props: { inputType: 'number', required: true, handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); }, } },
+    { name: 'Party', key: 'partyName', width: '17vw', type: 'input', props: { inputType: 'text', label: true, required: true, handleFocus: (rowIndex: number, colIndex: number) => { handleFocus(rowIndex, colIndex) } } },
+    { name: 'Narration', key: 'narration', width: '31vw', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'Amount (₹)', key: 'amount', width: '15vw', type: 'input', props: { inputType: 'number', required: true, handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); }, } },
     {
-      name: 'Dr/Cr', key: 'debitOrCredit', width: '15%', type: 'input', props: {
+      name: 'Dr/Cr', key: 'debitOrCredit', width: '15vw', type: 'input', props: {
         inputType: 'text',required: true, handleChange: (args: handleChangeInHeaders) => {  
       if(args.header === 'debitOrCredit' && args.value){
         args.value = args.value[0].toUpperCase() + args.value.slice(1);
@@ -76,24 +77,24 @@ const CreateVouchers = ({ setView, data }: any) => {
     }, readOnly: false} },
   ];
   const checkNoCheckDateHeaders = [
-    { name: 'Cheque No.', key: 'chequeNumber', width: '12%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
-    { name: 'Cheque Date', key: 'chequeDate', width: '15%', type: 'input', props: { inputType: 'date', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'Cheque No.', key: 'chequeNumber', width: '12vw', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); },  parseFloat: true } },
+    { name: 'Cheque Date', key: 'chequeDate', width: '15vw', type: 'input', props: { inputType: 'date', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
   ];
   const discountHeader = [
-    { name: 'Discount (₹)', key: 'discount', width: '14%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'Discount (₹)', key: 'discount', width: '14vw', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); },  parseFloat: true } },
   ];
   const commonHeaders2 = [
-    { name: 'Discount Narration', key: 'disNarration', width: '27%', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } }
+    { name: 'Discount Narration', key: 'disNarration', width: '27vw', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } }
   ];
   const gstNatureConditionHeaders = [
-    { name: 'Instrument Type', key: 'instrumentType', width: '18%', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
-    { name: 'Invoice No.', key: 'invoiceNumber', width: '10%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
-    { name: 'Invoice Date', key: 'invoiceDate', width: '15%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
-    { name: 'HSN Code', key: 'hsnCode', width: '12%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
-    { name: 'GST Rate', key: 'gstRate', width: '15%', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
-    { name: 'SGST', key: 'sgstValue', width: '8%', type: 'input', props: { inputType: 'number', readOnly : true, handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
-    { name: 'CGST', key: 'cgstValue', width: '8%', type: 'input', props: { inputType: 'number', readOnly : true, handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
-    { name: 'IGST', key: 'igstValue', width: '8%', type: 'input', props: { inputType: 'number', readOnly : true, handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'Instrument Type', key: 'instrumentType', width: '18vw', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'Invoice No.', key: 'invoiceNumber', width: '10vw', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); },  parseFloat: true } },
+    { name: 'Invoice Date', key: 'invoiceDate', width: '15vw', type: 'input', props: { inputType: 'date', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
+    { name: 'HSN Code', key: 'hsnCode', width: '12vw', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); },  parseFloat: true } },
+    { name: 'GST Rate', key: 'gstRate', width: '15vw', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); },  parseFloat: true } },
+    { name: 'SGST', key: 'sgstValue', width: '8vw', type: 'input', props: { inputType: 'number', readOnly : true, handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); },  parseFloat: true } },
+    { name: 'CGST', key: 'cgstValue', width: '8vw', type: 'input', props: { inputType: 'number', readOnly : true, handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); },  parseFloat: true } },
+    { name: 'IGST', key: 'igstValue', width: '8vw', type: 'input', props: { inputType: 'number', readOnly : true, handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); },  parseFloat: true } },
   ];
 
   const partyHeaders = [
@@ -147,6 +148,12 @@ const CreateVouchers = ({ setView, data }: any) => {
       }
   }
     
+  const ele = document.getElementById(`tableContainer`)
+      ele?.scrollTo({
+        top: 100,
+        left: 0,
+        behavior: 'smooth'
+      });
     
   }, [gridData.length, voucherType?.value]);
 
@@ -249,23 +256,6 @@ const CreateVouchers = ({ setView, data }: any) => {
     setGridData(newObj);
   };
 
-  const getPartyBalance = async(rowIndex: any, partyId: number)=>{
-    try {
-      const response: any = await sendAPIRequest(`/voucher/totalBalance?partyId=${partyId}`,{
-        method: 'GET',
-      })
-      const newGridData = [...gridData];
-
-      newGridData[rowIndex].columns.partyBalance = response;
-      // setGridData(newGridData)  
-    } catch (error: any) {
-      if (!error?.isErrorHandled) {
-        console.log('Party Balance not fetched');
-      }
-    }
-  }
-
-
   const getVoucherData = async (voucherDate: string, voucherType: string) => {
     const url = `/voucher/?voucherDate=${voucherDate}&voucherType=${voucherType}`;
 
@@ -338,13 +328,49 @@ const CreateVouchers = ({ setView, data }: any) => {
     setSelectedDate(event.target.value);
   };
 
+  
+  // Create a mapping of the keys to their expected types
+  const fieldTypeMapping: Record<string, string> = {};
+  headers.current.forEach((header: any) => {
+    fieldTypeMapping[header.key] = header.props.inputType;
+  });
+
+
+  const convertRowDataTypes = (row: any) => {
+    const convertedRow = { ...row };
+  
+    Object.keys(convertedRow).forEach((key) => {
+      if (fieldTypeMapping[key]) {
+        const type = fieldTypeMapping[key];
+  
+        switch (type) {
+          case 'number':
+            convertedRow[key] = Number(convertedRow[key]) || 0;
+            break;
+          case 'date':
+            convertedRow[key] = convertedRow[key] ? new Date(convertedRow[key]).toISOString() : null;
+            break;
+          case 'text':
+          default:
+            convertedRow[key] = String(convertedRow[key] || '');
+            break;
+        }
+      }
+    });
+  
+    return convertedRow;
+  };
+
   const handleSubmit = async () => {
     const dataToSend: any = {
       rows: gridData.map((row : any) => {
         const { label, value } = row.columns.partyName || {};
 
+        const convertedColumns = convertRowDataTypes(row.columns);
+
         return {
-          ...row.columns,
+          // ...row.columns,
+          ...convertedColumns,
           amount: Number(row.columns.amount),
           discount: Number(row.columns.discount),
           voucherType: voucherType?.value,
@@ -470,6 +496,7 @@ const CreateVouchers = ({ setView, data }: any) => {
         columns: {
           ...row.columns,
           chequeDate: selectedDate,
+          invoiceDate: selectedDate,
         },
       }));
   
@@ -519,21 +546,23 @@ const CreateVouchers = ({ setView, data }: any) => {
       alert("Party Name cannot be empty");
       return;
     }
-
-    if (header === 'amount' || header === 'discount' || header === 'gstRate') {
-      if (!value.startsWith('0.') && !value.includes('.')) {
-        value = value.replace(/^0+(?=\d)/, '');
-      }
     
-      // Allow only numbers and a single decimal point, with up to two decimal places
-      const validAmount = /^[0-9]*\.?[0-9]{0,4}$/;  
-      if (!validAmount.test(value)) {
-        settingPopupState(false, "Error: Amount can only contain numbers and up to four decimal places.");
-        return; 
+    if (['amount', 'discount', 'gstRate' ].includes(header)) {
+      const isValid = validateValue(value, decimalPlaces, settingPopupState);
+      if (!isValid) {
+        return;
       }
-  
+      
+      if (!isNaN(parseFloat(value))) {
+        value = value.replace(/^0+(?!\.|$)/, '');
+        const [integerPart, decimalPart] = value.split('.');
+        if (decimalPart) {
+          value = `${integerPart}.${decimalPart.slice(0, decimalPlaces)}`;
+        } else {
+          value = integerPart;
+        }
+      }
     }
-    
 
     if (gridData[rowIndex]?.columns.amount && (voucherType?.value === 'JOUR' || voucherType?.value === 'CP' || voucherType?.value === 'BW') && (gstNature?.value == 2 || gstNature?.value == 3 ) && (header === 'gstRate' || header === 'amount' || header === 'partyName')) {
       let gstRate;
@@ -636,8 +665,6 @@ const CreateVouchers = ({ setView, data }: any) => {
         stateInout: currentSavedData.party.stateInout
       };
 
-      getPartyBalance(focusedRowIndex,currentSavedData.party.party_id);
-
       const { value } = getDrCrColumnProps();
       newGridData[focusedRowIndex].columns['debitOrCredit'] = value;
 
@@ -668,6 +695,12 @@ const CreateVouchers = ({ setView, data }: any) => {
             setCurrentSavedData({ ...currentSavedData, party: rowData })
           }
         }
+      });
+      const ele = document.getElementById(`tableContainer`)
+      ele?.scrollTo({
+        top: 100,
+        left: 0,
+        behavior: 'smooth'
       });
     }
   };  
@@ -900,6 +933,7 @@ const CreateVouchers = ({ setView, data }: any) => {
             newRowTrigger={headers.current.length-1}
             stikyColumn={[0]}
             required={[1, 3, 4]} 
+            widthRequired={voucherType?.value === 'JOUR' && gstNature?.value === '1' ? '76vw' : '100vw'}
           />}
         </div>
       

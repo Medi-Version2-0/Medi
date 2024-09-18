@@ -54,8 +54,8 @@ export const ContactDetails: React.FC<personalInfoProps> = ({ formik }) => {
         placeholder='abc@example.com'
         formik={formik}
         prevField='emailId1'
-        nextField='bankName'
-        onKeyDown={handleClick}
+        nextField='Bank_Details'
+        // onKeyDown={handleClick}
         showErrorTooltip={formik.touched.emailId2 && formik.errors.emailId2}
       />
     </div>

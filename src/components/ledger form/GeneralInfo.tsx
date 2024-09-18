@@ -85,10 +85,6 @@ export const GeneralInfo = ({
     }
   };
 
-  const isSpecialGroup = selectedGroup?.toUpperCase() === 'SUNDRY CREDITORS' ||
-  selectedGroup?.toUpperCase() === 'SUNDRY DEBTORS' ||
-  selectedGroup?.toUpperCase() === 'GENERAL GROUP' ||
-  selectedGroup?.toUpperCase() === 'DISTRIBUTORS, C & F';
 
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
@@ -164,7 +160,7 @@ export const GeneralInfo = ({
                   );
                   if (e.key === 'Enter' && selectedGroup) {
                     !dropdown && e.preventDefault();
-                    const nextFieldId = isSpecialGroup ? 'stationName' : 'stateInout';
+                    const nextFieldId = isSUNDRY ? 'stationName' : 'stateInout';
                     document.getElementById(nextFieldId)?.focus();                    
                     setFocused(nextFieldId);
                   }
@@ -239,6 +235,12 @@ export const GeneralInfo = ({
                 className='!mb-0'
                 prevField='stationName'
                 nextField='address2'
+                onKeyDown={(e) => {
+                  if (e.key === 'Tab' && e.shiftKey) {
+                    e.preventDefault();
+                    setFocused('stationName');
+                  }
+                }}
               />
               <FormikInputField
                 isPopupOpen={false}
@@ -286,13 +288,13 @@ export const GeneralInfo = ({
                 onChange={handleChange}
                 prevField='address3'
                 nextField={
-                  isSpecialGroup
+                  isSUNDRY
                     ? 'transport'
                     : 'excessRate'
                 }
               />
             </div>
-            {isSpecialGroup && (
+            {isSUNDRY && (
                 <div className='flex w-[40%]'>
                   <FormikInputField
                     isPopupOpen={false}
@@ -310,7 +312,7 @@ export const GeneralInfo = ({
           </div>
         )}
         <div className='flex flex-row justify-between w-full items-center'>
-        {isSpecialGroup && (
+        {isSUNDRY && (
             <div className='w-[50.3%]'>
               <FormikInputField
                 isPopupOpen={false}
@@ -330,12 +332,12 @@ export const GeneralInfo = ({
               />
             </div>
         )}
-        <div className={`flex items-center ${isSpecialGroup ? 'w-[40%]' : 'w-[50%]'}`}>
+        <div className={`flex items-center ${isSUNDRY ? 'w-[40%]' : 'w-[50%]'}`}>
           <CustomSelect
             isPopupOpen={false}
             label='State In Out'
             id='stateInout'
-            labelClass={`${isSpecialGroup ? 'items-center w-1/2 ' : 'min-w-[90px]'}`}
+            labelClass={`${isSUNDRY ? 'items-center w-1/2 ' : 'min-w-[90px]'}`}
             value={
               formik.values.stateInout === ''
                 ? null
@@ -363,7 +365,7 @@ export const GeneralInfo = ({
               const dropdown = document.querySelector('.custom-select__menu');
               if (e.key === 'Enter') {
                 !dropdown && e.preventDefault();
-                const nextFieldId = isSpecialGroup &&  controlRoomSettings.multiPriceList ? 'salesPriceList' : 'openingBal';
+                const nextFieldId = isSUNDRY &&  controlRoomSettings.multiPriceList ? 'salesPriceList' : 'openingBal';
                 document.getElementById(nextFieldId)?.focus();                    
                 setFocused(nextFieldId);
               }
@@ -372,7 +374,7 @@ export const GeneralInfo = ({
         </div>
         </div>
         <div>
-          {isSpecialGroup &&  controlRoomSettings.multiPriceList && (
+          {isSUNDRY &&  controlRoomSettings.multiPriceList && (
               <div className='w-[50.3%]'>
                 <CustomSelect
                   isPopupOpen={false}
