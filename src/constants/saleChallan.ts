@@ -33,7 +33,7 @@ export const itemHeaderForSaleBill = [
   { label: 'Quantity', key: 'qty' },
 ];
 export const challanHeaderForSaleBill = [
-  { label: 'ID', key: 'challanId' },
+  { label: 'ID', key: 'id' },
   { label: 'Challan Number', key: 'challanNumber' },
 ];
 

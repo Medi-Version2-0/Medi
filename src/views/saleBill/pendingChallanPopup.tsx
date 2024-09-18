@@ -46,8 +46,8 @@ export const PendingChallanPopup = ({ heading, className, challanItemsByPartyId,
   }, []);
 
   const handleSelectChallansByItems = (selectedData: any, key: any) => {
-    const selectedIds = new Set(selectedData?.map((data: any) => data.key));
-    const finalData = challanItemsByPartyId.filter((challans: any) => selectedIds.has(challans.key));
+    const selectedIds = new Set(selectedData?.map((data: any) => data[key]));
+    const finalData = challanItemsByPartyId.filter((challans: any) => selectedIds.has(challans[key]));
     isEditing.current = false;
     setBillTableData(finalData);
     closePopup();
@@ -64,7 +64,7 @@ export const PendingChallanPopup = ({ heading, className, challanItemsByPartyId,
         data: {
           heading: 'Select Items',
           headers: [...itemHeaderForSaleBill],
-          apiRoute: `/invoiceBill/challans/${partyId}`,
+          apiRoute: `/invoiceBill/lineItems/${partyId}`,
           searchFrom: 'name',
           handleSelect: (selectedData: any) => handleSelectChallansByItems(selectedData, 'id'),
           autoClose: true

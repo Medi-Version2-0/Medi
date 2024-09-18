@@ -130,7 +130,7 @@ export const ChallanTable = ({
     }
     else if (e.key === 'Escape') {
       e.preventDefault();
-      handleSave();
+      handleSave && handleSave();
       document.getElementById('nextButton')?.focus();
   }
   };
