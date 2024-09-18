@@ -140,11 +140,12 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
     totalSGST: 0.0,
     isDefault: true
   });
-  const [popupState, setPopupState] = useState({
+  const [popupState, setPopupState] = useState<any>({
     isModalOpen: false,
     isAlertOpen: false,
     message: '',
-    shouldBack: true
+    shouldBack: true,
+    onClose : null
   });
   const [popupList, setPopupList] = useState<{ isOpen: boolean, data: any }>({
     isOpen: false,
@@ -221,6 +222,14 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
       }
     },
   });
+
+
+  useEffect(() => {
+    if (!popupState.isAlertOpen && popupState.onClose) {
+          popupState.onClose();
+          setPopupState({ ...popupState, isAlertOpen: false , onClose:null});
+        }
+  }, [popupState])
 
   const fetchAllData = async () => {
 
@@ -311,13 +320,13 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
 
   const handlePartyList = () => {
     if (formik.values.oneStation !== 'All Stations' && !formik.values.stationId) {
-      setFocused('stationId')
       document.getElementById('personName')?.focus();
       setPopupState({
         isModalOpen: false,
         isAlertOpen: true,
         message: `Select Station first`,
-        shouldBack: false
+        shouldBack: false,
+        // onClose : ()=> setFocused('stationId')
       });
     }
     else {
@@ -347,7 +356,8 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
           headers: [...pendingChallansList],
           apiRoute: `/deliveryChallan/pending/${formik.values.partyId}`,
           handleSelect: () => { },
-          autoClose: true
+          autoClose: true,
+          onEsc : ()=> {setPopupList({isOpen:false , data :{}}); document.getElementById('submit_all')?.focus()}
         }
       })
     }
@@ -364,6 +374,20 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
       return (scheme && !schemeType?.value) || (!scheme && schemeType?.value);
     });
   }
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault(); 
+        document.getElementById('submit_all')?.click();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
 
 
   const partyFooterData: any[] = [
@@ -699,7 +723,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
             setDataFromTable={setDataFromTable}
             setTotalValue={setTotalValue}
             totalValue={totalValue}
-            partyId={formik.values.partyId}
+            challanDate={formik.values.date}
             challanTableData={challanTableData}
             setIsNetRateSymbol={setIsNetRateSymbol}
             setChallanTableData={setChallanTableData}

@@ -148,6 +148,16 @@ export const generalSettingFields: SettingField[] = [
     id: 'decimalValue',
     name: 'decimalValue',
   },
+  {
+    label: 'Expiry Warning for 6 months',
+    id: 'expiryWarning',
+    name: 'expiryWarning',
+  },
+  {
+    label: 'Batch out of Stock Warning',
+    id: 'stockWarning',
+    name: 'stockWarning',
+  },
 ];
 
 export const stationSettingFields: SettingField[] = [  

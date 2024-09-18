@@ -4,6 +4,7 @@ import { selectListProps } from '../../interface/global';
 import { useFormik } from 'formik';
 import FormikInputField from './FormikInputField';
 import Button from './button/Button';
+import { getNestedValue } from '../../helper/helper';
 
 interface DropDownPopupProps extends selectListProps {
   dataKeys?: {
@@ -223,7 +224,7 @@ export const SelectList = ({
                   )}
                   {headers.map((header: any, colIndex: number) => (
                     <td key={colIndex} className={`border border-gray-400 py-2 px-4 ${rightAlignCells.includes(colIndex) ? 'text-right' : ''}`}>
-                      {header.auto ? rowIndex + 1 : row[header.key]}
+                      {header.auto ? rowIndex + 1 : getNestedValue(row, header.key)}
                     </td>
                   ))}
                 </tr>
@@ -262,7 +263,7 @@ export const SelectList = ({
                                   {d.label}
                                 </div>
                                 <div className="w-7/12 text-right flex justify-end">
-                                  <span className=" whitespace-nowrap">&nbsp;{focusedRowData && focusedRowData[d.key]}</span>
+                                  <span className=" whitespace-nowrap">&nbsp;{focusedRowData && getNestedValue(focusedRowData, d.key)}</span>
                                 </div>
                               </div>
                             </li>

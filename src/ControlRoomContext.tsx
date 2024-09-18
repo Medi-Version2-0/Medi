@@ -47,6 +47,9 @@ export interface ControlFields {
   defaultDownloadPath: boolean;
   decimalValue: boolean;
   decimalValueCount: number;
+  expiryWarning: boolean;
+  expiryWarningMonths: number;
+  stockWarning: boolean;
   // station
   igstSaleFacility: boolean;
   // invoice
@@ -113,7 +116,10 @@ const defaultSettings: ControlFields = {
   smsOfInvoice: false,
   shippingAddressRequired: false,
   decimalValue: false, 
-  decimalValueCount: 2
+  decimalValueCount: 2,
+  expiryWarning: true,
+  expiryWarningMonths : 6,
+  stockWarning: true
 };
 
 const controlRoomContext = createContext<ControlRoomContextType | undefined>(

@@ -159,6 +159,27 @@ const   CustomToggleSwitch = ({ field, form, label, index, formik }: any) => {
           </div>
         </div>
       )}
+      {field.name === 'expiryWarning' && formik.values.expiryWarning && (
+        <div className={`flex flex-col border-[1px] border-solid border-[#009196FF] bg-[#EAFBFC] pr-4 border-t-0`}>
+          <div className='flex flex-row justify-between items-center'>
+            <span className='ml-[0.7rem] w-[70%] p-2 border-r-[1px] border-solid border-[#009196FF]'>
+              How many month differnce you want to show warning ?
+            </span>
+          <div className='flex flex-row justify-start items-center p-2'>
+          <input
+              id='expiryWarningMonths'
+              name='expiryWarningMonths'
+              type='number'
+              value={formik.values.expiryWarningMonths}
+              placeholder='Enter No. of days'
+              className='input-class w-full h-full text-right border-none outline-none px-2 bg-[#EAFBFC]'
+              onChange={(e)=> formik.setFieldValue('expiryWarningMonths', e.target.value)}
+              required
+            />
+          </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

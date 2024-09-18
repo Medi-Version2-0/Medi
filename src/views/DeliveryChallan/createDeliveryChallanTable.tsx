@@ -7,6 +7,8 @@ import { SelectList } from '../../components/common/customSelectList/customSelec
 import Items from '../item';
 import { useTabs } from '../../TabsContext';
 import { sendAPIRequest } from '../../helper/api';
+import { useControls } from '../../ControlRoomContext';
+import { isLessThanMonths } from '../../helper/helper';
 interface RowData {
   id: number;
   columns: {
@@ -15,7 +17,7 @@ interface RowData {
 }
 
 
-export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTotalValue, challanTableData, setIsNetRateSymbol, setChallanTableData, partyId, challanId }: any) => {
+export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTotalValue, challanTableData, setIsNetRateSymbol, challanId , challanDate }: any) => {
   const headers = [
     { name: 'Item name', key: 'itemId', width: '15%', type: 'input', props: { inputType: 'text', label: true, handleFocus: (rowIndex: number, colIndex: number) => handleFocus(rowIndex, colIndex) } },
     { name: 'Batch no', key: 'batchNo', width: '15%', type: 'input', props: { inputType: 'text', label: true, handleFocus: (rowIndex: number, colIndex: number) => handleFocus(rowIndex, colIndex) } },
@@ -34,7 +36,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
   const initialRows: RowData[] = Array.from({ length: 1 }, (_, rowIndex) => ({
     id: rowIndex + 1,
     columns: headers.reduce(
-      (acc, header) => ({ ...acc, [header.key]: '' }),
+      (acc, header) => ({ ...acc, [header.key]: header.props?.inputType === 'number' ? null : '' }),
       {}
     ),
   }));
@@ -49,6 +51,8 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
   const [openDataPopup, setOpenDataPopup] = useState<boolean>(false);
   const focusColIndex = useRef(0);
   const { openTab } = useTabs()
+  const { controlRoomSettings } = useControls();
+
 
   const [popupState, setPopupState] = useState<any>({
     isModalOpen: false,
@@ -311,9 +315,19 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
             autoClose: true,
             handleSelect: (rowData: any) => {
               setCurrentSavedData({ ...currentSavedData, batch: rowData });
+              const nearexpiry = isLessThanMonths(challanDate , rowData.expiryDate , Number(controlRoomSettings.expiryWarningMonths))
               const isBatchExists = batches.some((batch: any) => batch.id === rowData.id);
               if (!isBatchExists) {
                 setBatches([...batches, rowData]);
+              }
+              if(nearexpiry){
+                setPopupState({
+                  ...popupState,
+                  isAlertOpen: true,
+                  message:'Item is near expiary',
+                  onClose: ()=> {return document.getElementById(`cell-${rowIndex}-${focusColIndex.current + 1}`)?.focus();
+                }
+                });
               }
             },
           }
@@ -461,7 +475,8 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     setGridData(updatedGridData);
   };
 
-  const handleQtyChange = ({ row }: any) => {
+  const handleQtyChange = ({ row , colIndex }: any) => {
+    if(controlRoomSettings.stockWarning){
     let sum = 0;
     const selectedBatch = row.columns['batchNo'];
     const batch = batches?.find((batch: any) => batch.id === selectedBatch?.value);
@@ -475,6 +490,8 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
               isAlertOpen: true,
               message:
                 'No more available stocks. Please select a smaller quantity or scheme.',
+              onClose: ()=> {return document.getElementById(`cell-${row.id-1}-${colIndex===3 ? 3:4}`)?.focus();}
+
             });
             break;
           }
@@ -486,12 +503,14 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
               isAlertOpen: true,
               message:
                 'Selected quantity exceeds the available stock. Please select a smaller quantity.',
+              onClose: ()=> {return document.getElementById(`cell-${row.id-1}-${2}`)?.focus();}
             });
             break;
           }
         }
       }
     }
+  }
   };
 
   const handleDeleteRow = (rowIndex: number) => {
