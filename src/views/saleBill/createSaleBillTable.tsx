@@ -261,8 +261,15 @@ export const CreateSaleBillTable = ({ setDataFromTable, totalValue, setTotalValu
               headers: [...batchHeader],
               footers: batchFooters,
               newItem: () => openTab('Item', <Items batchData={currentSavedData.item} />),
-              apiRoute: '/item',
-              handleSelect: (rowData: any) => setCurrentSavedData({ ...currentSavedData, batch: rowData }),
+              apiRoute: `/item/${currentSavedData.item.id}/batch`,
+              searchFrom: 'batchNo',
+              handleSelect: (rowData: any) => {
+                setCurrentSavedData({ ...currentSavedData, batch: rowData });
+                const isBatchExists = batches.some((batch: any) => batch.id === rowData.id);
+                if (!isBatchExists) {
+                  setBatches([...batches, rowData]);
+                }
+              },
               autoClose: true
             }
           })

@@ -23,7 +23,7 @@ import { Ledger } from '../ledger';
 
 const CreateSaleBill = ({ setView, data }: any) => {
   const [options, setOptions] = useState<{ seriesOption: Option[]; stationOption: Option[]; partyOption: Option[]; }>({ seriesOption: [], stationOption: [], partyOption: [] });
-  const { billBookSeries: billBookSeriesData, stations: stationsData, party: ledgerPartyData } = useSelector((state: any) => state.global);
+  const [fetchedData, setFetchedData] = useState<{ billBookSeriesData: BillBookFormData[]; stationsData: any[]; ledgerPartyData: any[]; }>({ billBookSeriesData: [], stationsData: [], ledgerPartyData: [] });
   const [challanItemsByPartyId, setAllChallanItemsByPartyId] = useState<any[]>([]);
   const [focused, setFocused] = useState('');
   const [open, setOpen] = useState(false);
@@ -38,11 +38,12 @@ const CreateSaleBill = ({ setView, data }: any) => {
   const invoiceNo = useRef<string>('');
   const { openTab } = useTabs();
 
-  const [popupState, setPopupState] = useState({
+  const [popupState, setPopupState] = useState<any>({
     isModalOpen: false,
     isAlertOpen: false,
     message: '',
-    shouldBack: true
+    shouldBack: true, 
+    onClose: null
   });
 
   const [popupList, setPopupList] = useState<{ isOpen: boolean, data: any }>({ isOpen: false, data: {} })
@@ -62,11 +63,17 @@ const CreateSaleBill = ({ setView, data }: any) => {
     setPopupState({ ...popupState, isModalOpen: false });
   };
 
-  const settingPopupState = (isModal: boolean, message: string) => {
+  const settingPopupState = (isModal: boolean, message: string, id: string) => {
     setPopupState({
       ...popupState,
       [isModal ? 'isModalOpen' : 'isAlertOpen']: true,
       message: message,
+      onClose : () => {
+        if(!isModal){
+          document.getElementById(id)?.focus();
+          setFocused(id);
+        }        
+      },
     });
   };
 
@@ -89,18 +96,18 @@ const CreateSaleBill = ({ setView, data }: any) => {
       narration: data?.narration || '',
       tempName: data?.tempName || '',
       eWay: data?.eWay || '',
-      cases: data?.cases || '',
+      cases: data?.cases || null,
       oldPartyId: data?.partyId || '',
       oldTotal: data?.total || '',
     },
     validationSchema: saleBillFormValidations,
     onSubmit: async (values: any) => {
       values.stationId = values.oneStation === 'All Stations' ? null : values.stationId;
-      values.balance = (values.balance)?.split(' ')[0];
+      values.balance = Number((values.balance)?.split(' ')[0]);
       values.netRateSymbol = isNetRateSymbol || 'No';
-      values.billBookPrefix = (billBookSeriesData?.find((data: any) => data.id == values.billBookSeriesId))?.billBookPrefix;
-      values.total = (+totalValue.totalAmt)?.toFixed(2);
-      values.qtyTotal = (+totalValue.totalQty)?.toFixed(2);
+      values.billBookPrefix = (fetchedData.billBookSeriesData?.find((data: any) => data.id == values.billBookSeriesId))?.billBookPrefix;
+      values.total = Number((+totalValue.totalAmt)?.toFixed(2));
+      values.qtyTotal = Number((+totalValue.totalQty)?.toFixed(2));
       values.isDiscountGiven = isDiscount;
 
       const tableData = dataFromTable.map((data: any) => ({
@@ -122,7 +129,15 @@ const CreateSaleBill = ({ setView, data }: any) => {
   });
 
   useEffect(() => {
+    if (!popupState.isAlertOpen && popupState.onClose) {
+          popupState.onClose();
+          setPopupState({ ...popupState, isAlertOpen: false , onClose:null});
+        }
+  }, [popupState])
+
+  useEffect(() => {
     setFocused('billBookSeriesId');
+    fetchedInitialData();
   }, []);
 
   useEffect(() => {
@@ -133,12 +148,12 @@ const CreateSaleBill = ({ setView, data }: any) => {
   }, [data]);
 
   useEffect(() => {
-    if (billBookSeriesData.length > 0) setBillBookInputOptions();
-  }, [billBookSeriesData]);
+    if (fetchedData.billBookSeriesData.length > 0) setBillBookInputOptions();
+  }, [fetchedData.billBookSeriesData]);
 
   useEffect(() => {
-    if (stationsData.length > 0) setStationsOptions();
-  }, [stationsData]);
+    if (fetchedData.stationsData.length > 0) setStationsOptions();
+  }, [fetchedData.stationsData]);
 
   useEffect(() => {
     if (!!SaleBillFormInfo.values.billBookSeriesId) getInvoiceNumber();
@@ -147,7 +162,7 @@ const CreateSaleBill = ({ setView, data }: any) => {
 
   useEffect(() => {
     setPartyOptions();
-  }, [ledgerPartyData, SaleBillFormInfo.values.oneStation, SaleBillFormInfo.values.stationId]);
+  }, [fetchedData.ledgerPartyData, SaleBillFormInfo.values.oneStation, SaleBillFormInfo.values.stationId]);
 
   useEffect(() => {
     setInputValues();
@@ -166,30 +181,48 @@ const CreateSaleBill = ({ setView, data }: any) => {
     }
   }, [dataFromTable]);
 
-  const setBillBookInputOptions = () => {
-    const requiredBillBookSeries = billBookSeriesData.filter((series: any) => series.seriesId == 2 && series.locked === 'No');
+  const fetchedInitialData = async() => {
+    try{
+      const billBookSeriesData = await sendAPIRequest<BillBookFormData[]>(`/billBook`);
+      const stationData = await sendAPIRequest<any[]>(`/station`);
+      const ledgerPartyData = await sendAPIRequest<any[]>(`/ledger`);
+
+      setFetchedData({
+        billBookSeriesData,
+        stationsData: stationData,
+        ledgerPartyData,
+      });
+    } catch(error: any){
+      if(!error?.isErrorHandled){
+        console.log("Error in fetching data for sale bill")
+      }
+    }    
+  }
+
+  const setBillBookInputOptions = async() => {
+    const requiredBillBookSeries = fetchedData.billBookSeriesData?.filter((series: any) => series.seriesId == 2 && series.locked === false);
     setOptions((prevOption) => ({
       ...prevOption,
-      seriesOption: requiredBillBookSeries.map((series: BillBookFormData) => ({
+      seriesOption: requiredBillBookSeries?.map((series: BillBookFormData) => ({
         value: series.id,
         label: series.billName,
       })),
     }));
   }
 
-  const setStationsOptions = () => {
+  const setStationsOptions = async() => {
     setOptions((prevOption) => ({
       ...prevOption,
-      stationOption: stationsData?.map((station: StationFormData) => ({
+      stationOption: fetchedData.stationsData?.map((station: StationFormData) => ({
         value: station.station_id,
         label: station.station_name,
       })),
     }));
   }
 
-  const setPartyOptions = () => {
+  const setPartyOptions = async() => {
     const isOneStation = SaleBillFormInfo.values.oneStation === 'One Station';
-    const filteredParties = isOneStation ? ledgerPartyData.filter((party: any) => party.station_id === SaleBillFormInfo.values.stationId) : ledgerPartyData;
+    const filteredParties = isOneStation ? fetchedData.ledgerPartyData?.filter((party: any) => party.station_id === SaleBillFormInfo.values.stationId) : fetchedData.ledgerPartyData;
     setOptions((prevOptions) => ({
       ...prevOptions,
       partyOption: filteredParties.map((party: LedgerFormData) => ({
@@ -200,21 +233,23 @@ const CreateSaleBill = ({ setView, data }: any) => {
   };
 
   const getInvoiceNumber = async () => {
-    const billBookPrefix = (billBookSeriesData?.find((data: any) => data.id == SaleBillFormInfo.values.billBookSeriesId))?.billBookPrefix;
     try {
-      const invoiceNumber = await sendAPIRequest<string>(`/invoiceBill/invoiceNumber?billBookPrefix=${billBookPrefix}`);
-      SaleBillFormInfo.setFieldValue('invoiceNumber', invoiceNumber);
-      invoiceNo.current = invoiceNumber;
+        const billBookSeriesData = await sendAPIRequest<BillBookFormData[]>(`/billBook`);
+        const billBookPrefix = (billBookSeriesData?.find((data: any) => data.id == SaleBillFormInfo.values.billBookSeriesId))?.billBookPrefix;
+        const invoiceNumber = await sendAPIRequest<string>(`/invoiceBill/invoiceNumber?billBookPrefix=${billBookPrefix}`);
+        SaleBillFormInfo.setFieldValue('invoiceNumber', invoiceNumber);
+        invoiceNo.current = invoiceNumber;
     } catch (error) {
-      settingPopupState(false, 'Add a sale Bill series first');
+      settingPopupState(false, 'Add a sale Bill series first', '');
       return;
     }
   }
 
-  const setInputValues = () => {
+  const setInputValues = async() => {
     if (!!SaleBillFormInfo.values.partyId) {
       setAllChallanItemsByPartyId([]);
-      const selectedParty = (ledgerPartyData.find((party: any) => party.party_id === SaleBillFormInfo.values.partyId));
+      const ledgerPartyData = await sendAPIRequest<any[]>(`/ledger`);
+      const selectedParty = (ledgerPartyData?.find((party: any) => party.party_id === SaleBillFormInfo.values.partyId));
       const drugLicenceNo = selectedParty?.drugLicenceNo1;
       SaleBillFormInfo.setFieldValue('balance', `${selectedParty?.closingBalance} ${selectedParty?.closingBalanceType}`);
       SaleBillFormInfo.setFieldValue('gstNo', selectedParty?.gstIn || '');
@@ -222,7 +257,7 @@ const CreateSaleBill = ({ setView, data }: any) => {
       if (!!drugLicenceNo) {
         SaleBillFormInfo.setFieldValue('drugLicenceNo1', selectedParty?.drugLicenceNo1);
       }
-      else if (drugLicenceNo === '') {
+      else if (drugLicenceNo === '' || drugLicenceNo === null) {
         togglePopup(true);
       }
       getChallanItemsByPartyId();
@@ -238,18 +273,16 @@ const CreateSaleBill = ({ setView, data }: any) => {
     const {totalCredit, totalDebit} = getTotalCreditAndDebit;
 
     if(!!party.creditLimit && party.closingBalanceType === 'Dr' && party.closingBalance > party.crediLimit){
-      settingPopupState(false,'Credit limit exceeds for this party. Please choose another party');
-      setFocused('billBookSeriesId');
+      settingPopupState(false,'Credit limit exceeds for this party. Please choose another party', 'billBookSeriesId');
     }
     if(totalDebit > totalCredit){
-      settingPopupState(false,'Credit days limit exceeds');
-      setFocused('billBookSeriesId');
+      settingPopupState(false,'Credit days limit exceeds', 'billBookSeriesId');
     }
   }
 
   const getChallanItemsByPartyId = async () => {
     const partyId = SaleBillFormInfo.values.partyId;
-    const challanData = await sendAPIRequest<any[]>(`/invoiceBill/challans/${partyId}`);
+    const challanData = await sendAPIRequest<any[]>(`/invoiceBill/lineItems/${partyId}`);
 
     if (challanData.length > 0) {
       const finalChallanData = challanData.filter((data: any) => !data.isSaleBillCreated);
@@ -272,7 +305,6 @@ const CreateSaleBill = ({ setView, data }: any) => {
   };
 
   const handlePartyList = () => {
-    if (SaleBillFormInfo.values.oneStation === 'One Station' && !!SaleBillFormInfo.values.stationId) {
       setPopupList({
         isOpen: true,
         data: {
@@ -284,15 +316,13 @@ const CreateSaleBill = ({ setView, data }: any) => {
           apiRoute: '/ledger',
           ...(SaleBillFormInfo.values.oneStation === 'One Station' && { extraQueryParams: { stationId: SaleBillFormInfo.values.stationId } }),
           searchFrom: 'partyName',
-          handleSelect: (rowData: any) => { handleFieldChange({ label: rowData.partyName, value: rowData.party_id }, 'partyId'), document.getElementById('invoiceNumber')?.focus() }
+          handleSelect: (rowData: any) => { handleFieldChange({ label: rowData.partyName, value: rowData.party_id }, 'partyId'), document.getElementById('invoiceNumber')?.focus() },
+          onEsc: () => {
+            setPopupList({isOpen: false, data: {}});
+            document.getElementById('invoiceNumber')?.focus();
+          },
         }
       })
-    }
-    else {
-      settingPopupState(false, 'No party found');
-      SaleBillFormInfo.values.oneStation === 'All Stations' ? setFocused('oneStation') : setFocused('stationId');
-      return;
-    }
   }
 
   const totalChallanAmt = challanItemsByPartyId.reduce((acc: number, curr: { amt: number }) => acc + curr.amt, 0);
@@ -302,12 +332,10 @@ const CreateSaleBill = ({ setView, data }: any) => {
       const expectedValue = parseInt(invoiceNo.current?.replace(/\D/g, ''), 10);
       const actualValue = parseInt(SaleBillFormInfo.values.invoiceNumber?.replace(/\D/g, ''), 10);
       if (actualValue != expectedValue && actualValue > expectedValue) {
-        settingPopupState(false, `Pending Invoices : ${Number(actualValue) - Number(expectedValue)}`);
-        setFocused('terms');
+        settingPopupState(false, `Pending Invoices : ${Number(actualValue) - Number(expectedValue)}`, 'terms');
       } else if (actualValue != expectedValue && actualValue < expectedValue) {
-        settingPopupState(false, `Invoice No is already in use`);
-        document.getElementById('invoiceNumber')?.focus();
-        setFocused('invoiceNumber');
+        SaleBillFormInfo.setFieldValue('invoiceNumber', invoiceNo.current);
+        settingPopupState(false, `Invoice No is already in use`, 'terms');
       }
     }
   }
@@ -382,7 +410,7 @@ const CreateSaleBill = ({ setView, data }: any) => {
         { label: 'UPI', value: 'UPI' },
         { label: 'PART', value: 'Part' },
       ],
-      nextField: 'drugLicenceNo1',
+      nextField: SaleBillFormInfo.values.terms !== '' ? 'drugLicenceNo1' : 'terms',
       prevField: 'invoiceNumber',
     },
     {

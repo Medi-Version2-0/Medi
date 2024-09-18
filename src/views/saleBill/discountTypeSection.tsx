@@ -83,6 +83,17 @@ export const DiscountTypeSection = ({ setView, data }: any) => {
         setFocused('discountType');
     }, []);
 
+    const setFinalValues = (finalAmt: any, finalDiscount: any) => {
+        parseFloat(Number(finalAmt)?.toFixed(2));
+        parseFloat(Number(finalDiscount)?.toFixed(2));
+        setTotalValue({
+            ...totalValue,
+            totalAmt: finalAmt,
+            totalDiscount: finalDiscount,
+            isDefault: false
+        });
+    }
+
     const calculateTotalAmt = () => {
         const { discountType, discountAmt, discountPer, isDiscountAfterSaleTax } = discountTypeFormik.values;
         const { bills, isDiscountGiven } = data;
@@ -96,31 +107,29 @@ export const DiscountTypeSection = ({ setView, data }: any) => {
                 finalAmt = bills.reduce((acc: any, data: any) => acc + ((data.amt + ((data.amt * data.gstAmount) / 100)) - ((data.amt * data.disPer) / 100)), 0);
             } else {
                 finalAmt = bills.reduce((acc: any, data: any) => acc + ((data.amt - (data.amt * data.disPer) / 100) + ((data.amt - (data.amt * data.disPer) / 100) * data.gstAmount) / 100), 0);
-            }
+            }            
+            setFinalValues(finalAmt, finalDiscount);
         }
         else if (!isDiscountGiven && discountType != '') {
             if (discountType === 'Zero Discount') {
                 const amt = bills.reduce((acc: any, data: any) => acc + ((data.amt + ((data.amt * data.gstAmount) / 100))), 0);
-                data.total = amt;
+                data.total = parseFloat(Number(amt)?.toFixed(2));
                 finalAmt = data.total - discountAmt;
                 finalDiscount = discountAmt;
+                setFinalValues(finalAmt, finalDiscount);
             } else if (discountType === 'Percent Discount') {
                 if (isDiscountAfterSaleTax === 'Discount After Sale Tax') {
                     finalAmt = bills.reduce((acc: any, data: any) => acc + ((data.amt + ((data.amt * data.gstAmount) / 100)) - ((data.amt * discountPer) / 100)), 0);
                     finalDiscount = bills.reduce((acc: any, data: any) => acc + ((data.amt * discountPer) / 100), 0);
+                    setFinalValues(finalAmt, finalDiscount);
                 } else if (isDiscountAfterSaleTax === 'Discount Before Sale Tax') {
                     finalDiscount = bills.reduce((acc: any, data: any) => acc + (data.amt * discountPer) / 100, 0);
                     finalAmt = bills.reduce((acc: any, data: any) => acc + ((data.amt - (data.amt * discountPer) / 100) + (((data.amt - (data.amt * discountPer) / 100) * data.gstAmount) / 100)), 0);
                     data.totalDiscount = finalDiscount;
+                    setFinalValues(finalAmt, finalDiscount);
                 }
             }
         }
-        setTotalValue({
-            ...totalValue,
-            totalAmt: finalAmt,
-            totalDiscount: finalDiscount,
-            isDefault: false
-        });
     }
 
     useEffect(() => {
@@ -133,7 +142,6 @@ export const DiscountTypeSection = ({ setView, data }: any) => {
                 label: 'Discount Type',
                 id: 'discountType',
                 name: 'discountType',
-                isRequired: true,
                 type: 'select',
                 disableArrow: false,
                 isSearchable: false,
@@ -287,7 +295,7 @@ export const DiscountTypeSection = ({ setView, data }: any) => {
                             <span className='flex gap-2 text-base text-gray-900 m-2'>
                                 Total Quantity :{' '}
                                 <span className='min-w-[50px] text-gray-700'>
-                                    {data.qtyTotal >= 0 && !data.isDefault ? parseFloat(Number(data.qtyTotal)?.toFixed(2)) : (data?.qtyTotal || 0)}
+                                    {data?.qtyTotal || 0}
                                 </span>
                             </span>
                         </div>
@@ -296,7 +304,7 @@ export const DiscountTypeSection = ({ setView, data }: any) => {
                             <span className='flex gap-2 text-base text-gray-900 m-2'>
                                 Total :{' '}
                                 <span className='min-w-[50px] text-gray-700'>
-                                    {parseFloat(Number(totalValue.totalAmt)?.toFixed(2))}
+                                    {totalValue.totalAmt >= 0 && !totalValue.isDefault ? parseFloat(Number(totalValue.totalAmt)?.toFixed(2)) : (data?.total || 0)}
                                 </span>
                             </span>
                         </div>

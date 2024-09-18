@@ -106,13 +106,16 @@ export const Container = <FormValues,>({
                   setFocused('');
                 }}
                 onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-                  const dropdown = document.querySelector(
-                    '.custom-select__menu'
-                  );
-                  if (e.key === 'Enter') {
-                    !dropdown && e.preventDefault();
-                    document.getElementById(`${field.nextField}`)?.focus();
-                    setFocused(`${field.nextField}`);
+                  if (e.key === 'Enter' || (e.key === 'Tab' && !e.shiftKey)) {
+                    const dropdown = document.querySelector(
+                      '.custom-select__menu'
+                    );
+                    if (!dropdown) {
+                      e.preventDefault();
+                      document.getElementById(`${field.nextField}`)?.focus();
+                      setFocused(`${field.nextField}`);
+                    }
+
                   }
                 }}
                 autoFocus={field.autoFocus}
