@@ -165,22 +165,26 @@ export const SelectList = ({
     }, [focusedRowIndex]);
 
     useEffect(() => {
-        document.body.classList.add('!overflow-hidden');
-        const handleClickOutside = (event: Event) => {
-            const target = event.target as HTMLElement;
-            if (target.id === 'searchBar' || target.tagName === 'SELECT') return;
-            const parentElement = target.parentElement;
-            if (parentElement?.getAttribute('tabindex') !== '-1') {
-                event.preventDefault();
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-            document.body.classList.remove('!overflow-hidden');
-        };
-    }, []);
+        const selectListElement = document.getElementById('selectList');
+        const isVisible = selectListElement && selectListElement.getBoundingClientRect().height > 0;
+        if (isVisible) {
+            document.body.classList.add('!overflow-hidden');
+            const handleClickOutside = (event: Event) => {
+                const target = event.target as HTMLElement;
+                if (target.id === 'searchBar' || target.tagName === 'SELECT') return;
+                const parentElement = target.parentElement;
+                if (parentElement?.getAttribute('tabindex') !== '-1') {
+                    event.preventDefault();
+                }
+            };
+            document.addEventListener('mousedown', handleClickOutside);
+            return () => {
+                document.removeEventListener('mousedown', handleClickOutside);
+                document.body.classList.remove('!overflow-hidden');
+            };
+        }
+    }, [document.getElementById('selectList')?.getBoundingClientRect().height]);
+    
 
     useEffect(() => {
         document.getElementById('dropDownPopup')?.addEventListener('keydown', handleKeyDown);
@@ -257,7 +261,7 @@ export const SelectList = ({
             isSuggestionPopup={true}
             id='dropDownPopup'
         >
-            <div className='flex px-4 mt-4 w-full justify-between items-center'>
+            <div className='flex px-4 mt-4 w-full justify-between items-center' id='selectList'>
                 <form onSubmit={formik.handleSubmit} className='flex w-full gap-5'>
                     <div className="w-1/3 h-fit">
                         <FormikInputField
