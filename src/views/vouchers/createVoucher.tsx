@@ -84,7 +84,7 @@ const CreateVouchers = ({ setView, data }: any) => {
     { name: 'Discount (₹)', key: 'discount', width: '14vw', type: 'input', props: { inputType: 'number', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); },  parseFloat: true } },
   ];
   const commonHeaders2 = [
-    { name: 'Discount Narration', key: 'disNarration', width: '27vw', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } }
+    { name: 'Discount Narration', key: 'discNarration', width: '27vw', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } }
   ];
   const gstNatureConditionHeaders = [
     { name: 'Instrument Type', key: 'instrumentType', width: '18vw', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
@@ -553,15 +553,6 @@ const CreateVouchers = ({ setView, data }: any) => {
         return;
       }
       
-      if (!isNaN(parseFloat(value))) {
-        value = value.replace(/^0+(?!\.|$)/, '');
-        const [integerPart, decimalPart] = value.split('.');
-        if (decimalPart) {
-          value = `${integerPart}.${decimalPart.slice(0, decimalPlaces)}`;
-        } else {
-          value = integerPart;
-        }
-      }
     }
 
     if (gridData[rowIndex]?.columns.amount && (voucherType?.value === 'JOUR' || voucherType?.value === 'CP' || voucherType?.value === 'BW') && (gstNature?.value == 2 || gstNature?.value == 3 ) && (header === 'gstRate' || header === 'amount' || header === 'partyName')) {
@@ -610,10 +601,21 @@ const CreateVouchers = ({ setView, data }: any) => {
       const cgstValue = Number(data.columns.cgstValue) || 0;
       const igstValue = Number(data.columns.igstValue) || 0;
       const debitOrCredit = data.columns.debitOrCredit;
-      if (debitOrCredit?.toLowerCase() === 'dr') {
-        totalDebit += amount + sgstValue + cgstValue + igstValue;
-      } else if (debitOrCredit?.toLowerCase() === 'cr') {
-        totalCredit += amount + sgstValue + cgstValue + igstValue;
+
+      if (voucherType?.value === 'JOUR' && gstNature?.value == 3) {
+        // Only add the amount if the condition is met
+        if (debitOrCredit?.toLowerCase() === 'dr') {
+          totalDebit += amount;
+        } else if (debitOrCredit?.toLowerCase() === 'cr') {
+          totalCredit += amount;
+        }
+      } else {
+        // Original calculation including GST values
+        if (debitOrCredit?.toLowerCase() === 'dr') {
+          totalDebit += amount + sgstValue + cgstValue + igstValue;
+        } else if (debitOrCredit?.toLowerCase() === 'cr') {
+          totalCredit += amount + sgstValue + cgstValue + igstValue;
+        }
       }
     });
     setTotalValue({
@@ -771,19 +773,27 @@ const CreateVouchers = ({ setView, data }: any) => {
     const newGridData = [...gridData]
     let totalDebit = 0;
     let totalCredit = 0;
-    
-    const dataToCalculate = !data?.voucherGridData ? newGridData: data?.voucherGridData;
-
       newGridData.forEach((data: any) => {
       const amount = Number(data.columns.amount) || 0;
       const sgstValue = Number(data.columns.sgstValue) || 0;
       const cgstValue = Number(data.columns.cgstValue) || 0;
       const igstValue = Number(data.columns.igstValue) || 0;
       const debitOrCredit = data.columns.debitOrCredit;
-      if (debitOrCredit?.toLowerCase() === 'dr') {
-        totalDebit += amount + sgstValue + cgstValue + igstValue;
-      } else if (debitOrCredit?.toLowerCase() === 'cr') {
-        totalCredit += amount + sgstValue + cgstValue + igstValue;
+      
+      if (voucherType?.value === 'JOUR' && gstNature?.value == 3) {
+        // Only add the amount if the condition is met
+        if (debitOrCredit?.toLowerCase() === 'dr') {
+          totalDebit += amount;
+        } else if (debitOrCredit?.toLowerCase() === 'cr') {
+          totalCredit += amount;
+        }
+      } else {
+        // Original calculation including GST values
+        if (debitOrCredit?.toLowerCase() === 'dr') {
+          totalDebit += amount + sgstValue + cgstValue + igstValue;
+        } else if (debitOrCredit?.toLowerCase() === 'cr') {
+          totalCredit += amount + sgstValue + cgstValue + igstValue;
+        }
       }
     });
 

@@ -10,9 +10,9 @@ export const gridDataSchema = Yup.array().of(
     })
 )
 
-export const validateValue = (value: string, decimalPlaces: number, settingPopupState: (state: boolean, message: string) => void) => {
-    if (!value.startsWith('0.') && !value.includes('.')) {
-      value = value.replace(/^0+(?=\d)/, '');
+  export const validateValue = (value: string | null, decimalPlaces: number, settingPopupState: (state: boolean, message: string) => void) => {
+    if (value === null) {
+      return true;
     }
     const validAmount = new RegExp(`^[0-9]*\\.?[0-9]{0,${decimalPlaces}}$`);
   
@@ -20,6 +20,5 @@ export const validateValue = (value: string, decimalPlaces: number, settingPopup
       settingPopupState(false, `Error: Value can only contain numbers and up to ${decimalPlaces} decimal places.`);
       return false;
     }
-  
     return true;
   };
