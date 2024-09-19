@@ -184,7 +184,10 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                   }
                   if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab')) {
                     e.preventDefault();
-                    document.getElementById(`${isDelete ? 'del_button' : 'group_name'}`)?.focus();
+                    document.getElementById(`${isDelete ? 'del_button' : 'parent_code'}`)?.focus();
+                    if(!isDelete){
+                      setFocused('parent_code');
+                    }
                   }
                 }}
               >

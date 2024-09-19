@@ -250,7 +250,10 @@ export const Stations = () => {
         if (isValid) {
           await sendAPIRequest(`/station/${data.station_id}`, {
             method: 'PUT',
-            body: { [field]: newValue },
+            body: { 
+              [field]: newValue,
+              state_code: data.state_code,
+            },
           });
         }
         getAndSetStationHandler();
@@ -321,8 +324,12 @@ export const Stations = () => {
           cellEditorParams: {
             values: types,
           },
-          valueFormatter: (params: { value: string | number }) =>
-            lookupValue(typeMapping, params.value),
+          valueFormatter: (params: { value: string | number }) =>{
+            return lookupValue(typeMapping, params.value);
+          },
+          valueGetter: (params: any) => {
+            return params.node.rowIndex && lookupValue(typeMapping, params.data.igst_sale ? 'Yes':'No');
+          },
           headerClass: 'custom-header custom_header_class',
         },
       ]

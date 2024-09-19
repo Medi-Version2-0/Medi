@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FormikProps, useFormik } from 'formik';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import Button from '../../components/common/button/Button';
@@ -19,6 +19,7 @@ export const CreateCompany = ({ setView , data }: any) => {
   const [stationOptions, setStationOptions] = useState<Option[]>([]);
   const [salesOptions, setSalesOptions] = useState<Option[]>([]);
   const [purchaseOptions, setPurchaseOptions] = useState<Option[]>([]);
+  const hasSubmitClicked = useRef<boolean>(false);
   const [focused, setFocused] = useState('');
   const { stations, sales: salesList, purchase: purchaseList } = useSelector((state: any) => state.global)
   const [popupState, setPopupState] = useState({
@@ -833,7 +834,7 @@ export const CreateCompany = ({ setView , data }: any) => {
             padding='px-4 py-2'
             id='submit_company'
             btnType='submit'
-            disable={!(formik.isValid)}
+            disable={!(formik.isValid) || hasSubmitClicked.current}
             handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
               if (e.key === 'ArrowUp' || e.shiftKey && e.key === 'Tab') {
                 document.getElementById('emailId3')?.focus();
@@ -843,6 +844,10 @@ export const CreateCompany = ({ setView , data }: any) => {
               if (e.key === 'Tab') {
                 document.getElementById('companyName')?.focus();
                 e.preventDefault();
+              }
+              if(e.key === 'Enter') {
+                hasSubmitClicked.current = true;
+                formik.handleSubmit();
               }
             }}
           >

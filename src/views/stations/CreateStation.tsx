@@ -94,7 +94,7 @@ export const CreateStation = ({
         innerRef={formikRef}
         initialValues={{
           station_name: data?.station_name || '',
-          igst_sale: data?.igst_sale || '',
+          igst_sale: data?.igst_sale || 'No',
           state_code: data?.state_code || '',
           station_pinCode: data?.station_pinCode || '',
           station_headQuarter: data?.station_headQuarter || '',
@@ -187,7 +187,14 @@ export const CreateStation = ({
               nextField={`${controlRoomSettings.igstSaleFacility ? 'igst_sale' : 'submit_button'}`}
               prevField='state_code'
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>{
-                if (e.key === 'Tab' && !controlRoomSettings.igstSaleFacility) {
+                if (e.key === 'Enter' && !controlRoomSettings.igstSaleFacility) {
+                  e.preventDefault();
+                  document.getElementById('submit_button')?.focus();
+                }
+                if (e.shiftKey && e.key === 'Tab') {
+                  setFocused('state_code');
+                }
+                if (e.key === 'Tab' && !controlRoomSettings.igstSaleFacility){
                   e.preventDefault();
                   document.getElementById('cancel_button')?.focus();
                   return;
@@ -213,11 +220,14 @@ export const CreateStation = ({
                       id='igst_sale'
                       name='igst_sale'
                       value={
-                        formik.values.igst_sale === ''
-                          ? null
+                        formik.values.igst_sale === 'No'
+                          ? {
+                            label: 'No',
+                            value: 'No',
+                          }
                           : {
-                              label: formik.values.igst_sale,
-                              value: formik.values.igst_sale,
+                              label: 'Yes',
+                              value: 'Yes',
                             }
                       }
                       onChange={handleFieldChange}
@@ -274,9 +284,11 @@ export const CreateStation = ({
                   }
                   if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab')) {
                     e.preventDefault();
-                    setFocused(
-                      `${controlRoomSettings.igstSaleFacility ? 'igst_sale' : 'station_pinCode'}`
-                    );
+                    if (controlRoomSettings.igstSaleFacility){
+                      setFocused('igst_sale');
+                    }else{
+                      document.getElementById('station_pinCode')?.focus();
+                    }
                   }
                   if (e.key === 'Enter') {
                     e.preventDefault();

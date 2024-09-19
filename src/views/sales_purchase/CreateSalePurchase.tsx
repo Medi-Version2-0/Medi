@@ -68,7 +68,7 @@ export const CreateSalePurchase = ({
       shortName: data?.shortName || '',
       shortName2: data?.shortName2 || '',
       openingBal: data?.openingBal || '',
-      openingBalType: data?.openingBal || '',
+      openingBalType: data?.openingBalType || 'Dr',
     },
     validationSchema: validationSchema,
     onSubmit: handleSubmit,
@@ -222,7 +222,6 @@ export const CreateSalePurchase = ({
           sideField='openingBal'
           nextField='openingBal'
           prevField='shortName'
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(e)}
           onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
             handleKeyDown(e, formik)
           }
@@ -255,12 +254,10 @@ export const CreateSalePurchase = ({
           <CustomSelect
             isPopupOpen={false}
             value={
-              formik.values.openingBalType === ''
-                ? null
-                : {
-                    label: formik.values.openingBalType,
-                    value: formik.values.openingBalType,
-                  }
+              {
+                label: formik.values.openingBalType,
+                value: formik.values.openingBalType,
+              }
             }
             id='openingBalType'
             onChange={handleFieldChange}
