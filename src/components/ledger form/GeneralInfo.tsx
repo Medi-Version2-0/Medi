@@ -160,7 +160,7 @@ export const GeneralInfo = ({
                   );
                   if (e.key === 'Enter' && selectedGroup) {
                     !dropdown && e.preventDefault();
-                    const nextFieldId = isSUNDRY ? 'stationName' : 'stateInout';
+                    const nextFieldId = 'stationName'
                     document.getElementById(nextFieldId)?.focus();                    
                     setFocused(nextFieldId);
                   }
@@ -171,10 +171,9 @@ export const GeneralInfo = ({
               />
             )}
           </div>
-          {isSUNDRY && (
-            <div className='flex items-center w-[40%]'>
-              <CustomSelect
-                isPopupOpen={false}
+          <div className="flex items-center w-[40%] before:content-['*'] before:relative before:-right-11 before:text-red-500">
+            <CustomSelect
+              isPopupOpen={false}
                 label='Station'
                 id='stationName'
                 labelClass='items-center w-1/3'
@@ -209,15 +208,15 @@ export const GeneralInfo = ({
                     );
                     if (e.key === 'Enter') {
                       !dropdown && e.preventDefault();
-                      document.getElementById('address1')?.focus();
-                      setFocused('address1')
+                      const nextFieldId = isSUNDRY ? 'address1' : 'stateInout';
+                      document.getElementById(nextFieldId)?.focus();
+                      setFocused(nextFieldId)
                     }
                   }}
                 showErrorTooltip={true}
                 noOptionsMsg='No station found,create one...'
-              />
-            </div>
-          )}
+            />
+          </div>
         </div>
         {isSUNDRY && (
           <div className='flex items-center m-[1px]'>
@@ -312,13 +311,14 @@ export const GeneralInfo = ({
           </div>
         )}
         <div className='flex flex-row justify-between w-full items-center'>
-        {isSUNDRY && (
-            <div className='w-[50.3%]'>
+        <div className='flex gap-[9%] w-full'>
+          {isSUNDRY && (
               <FormikInputField
                 isPopupOpen={false}
                 label='Email to'
                 id='mailTo'
                 name='mailTo'
+                className='!w-[51%]'
                 isTitleCase={false}
                 formik={formik}
                 showErrorTooltip={formik.touched.mailTo && formik.errors.mailTo}
@@ -330,21 +330,18 @@ export const GeneralInfo = ({
                   handleKeyDown(e)
                 }
               />
-            </div>
         )}
-        <div className={`flex items-center ${isSUNDRY ? 'w-[40%]' : 'w-[50%]'}`}>
+          <div className={`flex items-center ${isSUNDRY ? 'w-[41%]' : 'w-[50%]'}`}>
           <CustomSelect
             isPopupOpen={false}
             label='State In Out'
             id='stateInout'
             labelClass={`${isSUNDRY ? 'items-center w-1/2 ' : 'min-w-[90px]'}`}
             value={
-              formik.values.stateInout === ''
-                ? null
-                : {
-                    label: formik.values.stateInout,
-                    value: formik.values.stateInout,
-                  }
+              {
+                label: formik.values.stateInout,
+                value: formik.values.stateInout,
+              }
             }
             onChange={handleFieldChange}
             options={[
@@ -365,12 +362,13 @@ export const GeneralInfo = ({
               const dropdown = document.querySelector('.custom-select__menu');
               if (e.key === 'Enter') {
                 !dropdown && e.preventDefault();
-                const nextFieldId = isSUNDRY &&  controlRoomSettings.multiPriceList ? 'salesPriceList' : 'openingBal';
-                document.getElementById(nextFieldId)?.focus();                    
+                const nextFieldId = isSUNDRY && controlRoomSettings.multiPriceList ? 'salesPriceList' : 'openingBal';
+                document.getElementById(nextFieldId)?.focus();
                 setFocused(nextFieldId);
               }
             }}
           />
+          </div>
         </div>
         </div>
         <div>

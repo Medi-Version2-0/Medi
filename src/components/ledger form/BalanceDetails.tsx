@@ -156,14 +156,14 @@ export const BalanceDetails = ({
                 if (!dropdown) {
                   e.preventDefault();
                 }
-                const nextFieldId = (formik.isValid && !isSpecialGroup)? 'submit_all': (!formik.isValid && !isSpecialGroup)? 'openingBalType': 'creditLimit';
+                const nextFieldId = isSpecialGroup ? 'creditLimit' : 'GST/Tax_Details';
                 document.getElementById(nextFieldId)?.focus();
                 setFocused(nextFieldId);
               } else if (e.key === 'Tab' && e.shiftKey) {
                 if (!dropdown) {
                   e.preventDefault();
                 }
-                const prevFieldId = (formik.isValid && !isSpecialGroup)? 'openingBalType': (!formik.isValid && !isSpecialGroup)? 'partyType ': 'openingBalType';
+                const prevFieldId = 'openingBalType'
                 document.getElementById(prevFieldId)?.focus();
                 setFocused(prevFieldId);
               }

@@ -32,6 +32,7 @@ export const Ledger = ({type = ''}) => {
   const editing = useRef(false);
   const { sendAPIRequest } = useApi();
   const partyId = useRef('');
+  const addLedgerButton = useRef< HTMLElement | null | any >(null);
   const [open, setOpen] = useState<boolean>(false);
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
@@ -41,7 +42,7 @@ export const Ledger = ({type = ''}) => {
   const getAndSetLedgerHandler = useGetSetData(getAndSetParty);
 
   const { controlRoomSettings } = useControls();
-  const { createAccess, updateAccess, deleteAccess } = usePermission('ledger')
+  const { createAccess, updateAccess } = usePermission('ledger')
   const initialValues = {
     multiplePriceList: controlRoomSettings.multiplePriceList || true,
     printPartyBalance: controlRoomSettings.printPartyBalance || false,
@@ -68,6 +69,10 @@ export const Ledger = ({type = ''}) => {
     };
   }, [selectedRow, popupState]);
 
+  useEffect(() => {
+    addLedgerButton.current?.focus();
+  }, [addLedgerButton.current]);
+  
   const handleKeyDown = (event: KeyboardEvent) => {
     handleKeyDownCommon(
       event,
@@ -249,7 +254,7 @@ export const Ledger = ({type = ''}) => {
       ),
     },
   ];
-  
+
   const ledger = () => {
     return (
       <>
@@ -266,7 +271,9 @@ export const Ledger = ({type = ''}) => {
             </Button>
             {createAccess && (
               <Button
+                autoFocus={true}
                 type='highlight'
+                reference={addLedgerButton}
                 handleOnClick={() => setView({ type: 'add', data: {} })}
               >
                 Add Ledger

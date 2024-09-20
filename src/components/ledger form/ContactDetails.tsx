@@ -18,7 +18,7 @@ export const ContactDetails: React.FC<personalInfoProps> = ({ formik }) => {
         id='firstName'
         name='firstName'
         formik={formik}
-        prevField='licenceExpiry'
+        prevField='Contact_Info'
         nextField='lastName'
       />
       <FormikInputField

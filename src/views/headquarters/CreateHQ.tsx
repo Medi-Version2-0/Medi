@@ -253,7 +253,10 @@ export const CreateHQ = ({
                   type='fill'
                   autoFocus={true}
                   handleOnKeyDown={(e) => {
-                    if (e.key === 'Tab' || (!formik.isValid && e.key === 'Enter')) {
+                    if (e.key === 'Tab') {
+                      e.preventDefault();
+                    }
+                    if ((!formik.isValid && e.key === 'Enter')) {
                       setFocused(`${fetchType(isDelete, station_id) === 'Update' ? 'station_headQuarter':'station_name'}`);
                       e.preventDefault();
                     }

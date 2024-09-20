@@ -7,9 +7,6 @@ interface LicenceDetailsProps {
 
 export const LicenceDetails: React.FC<LicenceDetailsProps> = ({ formik }) => {
   const [licenseId2, setLicenseId2] = useState(formik.values.drugLicenceNo2 !== '');
-  const handleClick = () => {
-    document.getElementById('Contact_Info')?.focus();
-  }
   return (
     <div className={`flex ${licenseId2 && 'flex-col'} w-full  gap-2 m-2 text-xs px-2 leading-3 text-gray-600`}>
       <FormikInputField
@@ -20,8 +17,9 @@ export const LicenceDetails: React.FC<LicenceDetailsProps> = ({ formik }) => {
         labelClassName='min-w-[90px]'
         className='!w-2/3'
         formik={formik}
-        prevField='panCard'
+        prevField='Licence_Info'
         nextField='licenceExpiry'
+        showErrorTooltip={formik.touched.drugLicenceNo1 && formik.errors.drugLicenceNo1}
       />
       <FormikInputField
       isPopupOpen={false}
@@ -30,11 +28,12 @@ export const LicenceDetails: React.FC<LicenceDetailsProps> = ({ formik }) => {
         id='licenceExpiry'
         name='licenceExpiry'
         labelClassName='min-w-[90px]'
+        placeholder='MM/YYYY'
         className='!w-2/3'
         formik={formik}
         prevField='drugLicenceNo1'
         nextField={(licenseId2 || (formik.values.drugLicenceNo2 !== '')) ? 'drugLicenceNo2' : 'Contact_Info'}
-        // onKeyDown={handleClick}
+        showErrorTooltip={formik.touched.licenceExpiry && formik.errors.licenceExpiry}
       />
       <div className='flex gap-2 '>
         {(licenseId2 || (formik.values.drugLicenceNo2 !== '')) &&
@@ -46,6 +45,7 @@ export const LicenceDetails: React.FC<LicenceDetailsProps> = ({ formik }) => {
             labelClassName='min-w-[90px]'
             className='!w-2/3'
             formik={formik}
+            showErrorTooltip={formik.touched.drugLicenceNo2 && formik.errors.drugLicenceNo2}
             onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
               if (e.key === 'ArrowDown' || e.key === 'Enter') {
                 document.getElementById('Contact_Info')?.focus();

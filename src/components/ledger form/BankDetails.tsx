@@ -36,7 +36,7 @@ export const BankDetails: React.FC<BankDetailsProps> = ({ formik }) => {
         id='bankName'
         name='bankName'
         formik={formik}
-        prevField=''
+        prevField='Bank_Details'
         nextField='accountNumber'
       />
       <FormikInputField
@@ -118,6 +118,12 @@ export const BankDetails: React.FC<BankDetailsProps> = ({ formik }) => {
         className=''
         prevField='accountType'
         nextField='accountHolderName'
+        onKeyDown={(e:any)=>{
+          if(e.key === 'Tab' && e.shiftKey){
+            e.preventDefault();
+            setFocused('accountType');
+          }
+        }}
       />
       <FormikInputField
         isPopupOpen={false}
