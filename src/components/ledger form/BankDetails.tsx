@@ -118,7 +118,7 @@ export const BankDetails: React.FC<BankDetailsProps> = ({ formik }) => {
         className=''
         prevField='accountType'
         nextField='accountHolderName'
-        onKeyDown={(e:any)=>{
+        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>)=>{
           if(e.key === 'Tab' && e.shiftKey){
             e.preventDefault();
             setFocused('accountType');

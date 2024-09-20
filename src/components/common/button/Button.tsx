@@ -10,7 +10,7 @@ export const BTN_TYPE = {
 interface ButtonProps {
   type?: string;
   id?: string;
-  handleOnClick?: (e:any) => void;
+  handleOnClick?: () => void;
   handleOnKeyDown?: (event: React.KeyboardEvent<HTMLButtonElement>) => void;
   className?: string;
   icon?: FC<React.SVGProps<SVGSVGElement>>;
@@ -20,7 +20,6 @@ interface ButtonProps {
   children: React.ReactNode;
   disable?: boolean | any;
   autoFocus?: boolean;
-  reference?: HTMLElement | null | any;
 }
 
 const Button: FC<ButtonProps> = ({
@@ -34,7 +33,6 @@ const Button: FC<ButtonProps> = ({
   padding = "px-6 py-2",
   btnType = "submit",
   children,
-  reference = null,
   disable,
   autoFocus = false,
   ...rest
@@ -58,7 +56,6 @@ const Button: FC<ButtonProps> = ({
     <button
       type={btnType}
       id={id || ""}
-      ref={reference}
       disabled={disable}
       className={classNames(
         `flex flex-row items-center text-base font-medium justify-center cursor-pointer rounded-md h-8

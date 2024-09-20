@@ -36,7 +36,6 @@ export const Groups = () => {
   const { groups: groupsData, subGroups: subGroupsData } = useSelector((state: any) => state.global);
   const [tableData, setTableData] = useState([...(createAccess ? [initialValue] :[]), ...groupsData]);
   const editing = useRef(false);
-  const addGroupButton = useRef<HTMLElement | null | any>(null);
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
@@ -56,10 +55,6 @@ export const Groups = () => {
       message: message,
     });
   };
-
-  useEffect(() => {
-    addGroupButton.current?.focus();
-  }, [addGroupButton.current]);
 
   useEffect(() => {
     setSubgroups(subGroupsData);
@@ -384,7 +379,6 @@ export const Groups = () => {
          {createAccess && <Button
             type='highlight'
             className=''
-            reference={addGroupButton}
             handleOnClick={() => togglePopup(true)}
           >
             Add Group

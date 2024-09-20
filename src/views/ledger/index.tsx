@@ -32,7 +32,6 @@ export const Ledger = ({type = ''}) => {
   const editing = useRef(false);
   const { sendAPIRequest } = useApi();
   const partyId = useRef('');
-  const addLedgerButton = useRef< HTMLElement | null | any >(null);
   const [open, setOpen] = useState<boolean>(false);
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
@@ -68,10 +67,6 @@ export const Ledger = ({type = ''}) => {
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [selectedRow, popupState]);
-
-  useEffect(() => {
-    addLedgerButton.current?.focus();
-  }, [addLedgerButton.current]);
   
   const handleKeyDown = (event: KeyboardEvent) => {
     handleKeyDownCommon(
@@ -281,7 +276,6 @@ export const Ledger = ({type = ''}) => {
               <Button
                 autoFocus={true}
                 type='highlight'
-                reference={addLedgerButton}
                 handleOnClick={() => setView({ type: 'add', data: {} })}
               >
                 Add Ledger

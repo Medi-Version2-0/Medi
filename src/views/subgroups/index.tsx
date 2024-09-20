@@ -34,7 +34,6 @@ export const SubGroups = () => {
   const [tableData, setTableData] = useState<SubGroupFormData | any>(null);
   const editing = useRef(false);
   const permissions = usePermission('subgroup')
-  const addSubGroupButton = useRef<HTMLElement | null | any>(null);
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
@@ -58,10 +57,6 @@ export const SubGroups = () => {
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
   };
-
-  useEffect(() => {
-    addSubGroupButton.current?.focus();
-  }, [addSubGroupButton.current]);
 
   const handleClosePopup = () => {
     setPopupState({ ...popupState, isModalOpen: false });
@@ -342,7 +337,6 @@ export const SubGroups = () => {
             id='account_button'
             handleOnClick={() => togglePopup(true)}
             type='highlight'
-            reference={addSubGroupButton}
           >
             Add Subgroup
           </Button>}
