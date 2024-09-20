@@ -262,6 +262,7 @@ export const CreateSaleBillTable = ({ setDataFromTable, totalValue, setTotalValu
               footers: batchFooters,
               newItem: () => openTab('Item', <Items batchData={currentSavedData.item} />),
               apiRoute: `/item/${currentSavedData.item.id}/batch`,
+              ...({ extraQueryParams: { locked: 'N' } }),
               searchFrom: 'batchNo',
               handleSelect: (rowData: any) => {
                 setCurrentSavedData({ ...currentSavedData, batch: rowData });
@@ -290,6 +291,7 @@ export const CreateSaleBillTable = ({ setDataFromTable, totalValue, setTotalValu
               footers: batchFooters,
               newItem: () => openTab('Item', <Items batchData={currentSavedData.item} />),
               apiRoute: `/item/${currentSavedData.item.id}/batch`,
+              ...({ extraQueryParams: { locked: 'N' } }),
               searchFrom: 'batchNo',
               autoClose: true,
               handleSelect: (rowData: any) => {
@@ -526,6 +528,7 @@ export const CreateSaleBillTable = ({ setDataFromTable, totalValue, setTotalValu
         searchFrom={popupList.data.searchFrom}
         autoClose={popupList.data.autoClose}
         onEsc={popupList.data.onEsc}
+        extraQueryParams={popupList.data.extraQueryParams || {}}
       />}
     </div>
   );

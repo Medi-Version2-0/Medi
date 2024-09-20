@@ -263,6 +263,7 @@ export const DiscountTypeSection = ({ setView, data }: any) => {
                     type='highlight'
                     id='saleBill_button'
                     handleOnClick={() => {
+                        data.isDLSet = true; 
                         setView({ type: 'add', data: data })
                     }}
                 >
@@ -314,7 +315,7 @@ export const DiscountTypeSection = ({ setView, data }: any) => {
                             type='fill'
                             padding='px-4 py-2'
                             id='submit_all'
-                            disable={(!discountTypeFormik.isValid)}
+                            disable={(!discountTypeFormik.isValid || discountTypeFormik.isSubmitting)}
                         >
                             Submit
                         </Button>

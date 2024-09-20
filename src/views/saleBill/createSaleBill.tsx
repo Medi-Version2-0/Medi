@@ -257,7 +257,7 @@ const CreateSaleBill = ({ setView, data }: any) => {
       if (!!drugLicenceNo) {
         SaleBillFormInfo.setFieldValue('drugLicenceNo1', selectedParty?.drugLicenceNo1);
       }
-      else if (drugLicenceNo === '' || drugLicenceNo === null) {
+      else if ((drugLicenceNo === '' || drugLicenceNo === null) && !data?.isDLSet) {
         togglePopup(true);
       }
       getChallanItemsByPartyId();

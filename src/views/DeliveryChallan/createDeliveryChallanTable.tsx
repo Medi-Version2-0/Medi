@@ -311,6 +311,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
             footers: batchFooters,
             newItem: () => openTab('Item', <Items batchData={itemValue.find((x) => x.id === gridData[rowIndex].columns.itemId?.value)} />),
             apiRoute: `/item/${gridData[rowIndex].columns.itemId?.value}/batch`,
+            ...({ extraQueryParams: { locked: 'N' } }),
             searchFrom: 'batchNo',
             autoClose: true,
             handleSelect: (rowData: any) => {
@@ -554,6 +555,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
         searchFrom={popupList.data.searchFrom}
         autoClose={popupList.data.autoClose}
         onEsc={popupList.data.onEsc}
+        extraQueryParams={popupList.data.extraQueryParams || {}}
       />}
     </div>
   );
