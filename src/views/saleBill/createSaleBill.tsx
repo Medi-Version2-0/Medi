@@ -3,7 +3,6 @@ import Button from '../../components/common/button/Button';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { useFormik } from 'formik';
-import { useSelector } from 'react-redux';
 import { Container } from '../../components/common/commonFormFields';
 import { sendAPIRequest } from '../../helper/api';
 import { useDispatch } from 'react-redux'
@@ -584,10 +583,10 @@ const CreateSaleBill = ({ setView, data }: any) => {
               totalValue={totalValue}
               billTableData={billTableData}
               setIsNetRateSymbol={setIsNetRateSymbol}
-              setBillTableData={setBillTableData}
               setIsDiscountWindowOpen={setIsDiscountWindowOpen}
               isEditing={isEditing}
               selectedParty={SaleBillFormInfo.values.partyId}
+              invoiceDate={SaleBillFormInfo.values.date}
             />
           </div>
           <div className='flex gap-12 justify-between'>
