@@ -160,7 +160,7 @@ export const GeneralInfo = ({
                   );
                   if (e.key === 'Enter' && selectedGroup) {
                     !dropdown && e.preventDefault();
-                    const nextFieldId = 'stationName'
+                    const nextFieldId = isSUNDRY ? 'stationName' : 'stateInout';
                     document.getElementById(nextFieldId)?.focus();                    
                     setFocused(nextFieldId);
                   }
@@ -171,9 +171,10 @@ export const GeneralInfo = ({
               />
             )}
           </div>
-          <div className="flex items-center w-[40%] before:content-['*'] before:relative before:-right-11 before:text-red-500">
-            <CustomSelect
-              isPopupOpen={false}
+          {isSUNDRY && (
+            <div className="flex items-center w-[40%] before:content-['*'] before:relative before:-right-11 before:text-red-500">
+              <CustomSelect
+                isPopupOpen={false}
                 label='Station'
                 id='stationName'
                 labelClass='items-center w-1/3'
@@ -181,11 +182,11 @@ export const GeneralInfo = ({
                   formik.values.station_id === ''
                     ? null
                     : {
-                        value: formik.values.station_id,
-                        label: stationOptions.find(
-                          (e) => e.value === formik.values.station_id
-                        )?.label,
-                      }
+                      value: formik.values.station_id,
+                      label: stationOptions.find(
+                        (e) => e.value === formik.values.station_id
+                      )?.label,
+                    }
                 }
                 onChange={handleFieldChange}
                 options={stationOptions}
@@ -198,25 +199,25 @@ export const GeneralInfo = ({
                 isFocused={focused === 'stationName'}
                 error={formik.errors.stationName}
                 isTouched={formik.touched.stationName}
-                  onBlur={() => {
-                    formik.setFieldTouched('stationName', true);
-                    setFocused('');
-                  }}
-                  onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-                    const dropdown = document.querySelector(
-                      '.custom-select__menu'
-                    );
-                    if (e.key === 'Enter') {
-                      !dropdown && e.preventDefault();
-                      const nextFieldId = isSUNDRY ? 'address1' : 'stateInout';
-                      document.getElementById(nextFieldId)?.focus();
-                      setFocused(nextFieldId)
-                    }
-                  }}
+                onBlur={() => {
+                  formik.setFieldTouched('stationName', true);
+                  setFocused('');
+                }}
+                onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+                  const dropdown = document.querySelector(
+                    '.custom-select__menu'
+                  );
+                  if (e.key === 'Enter') {
+                    !dropdown && e.preventDefault();
+                    const nextFieldId = 'address1';
+                    document.getElementById(nextFieldId)?.focus();
+                  }
+                }}
                 showErrorTooltip={true}
                 noOptionsMsg='No station found,create one...'
-            />
-          </div>
+              />
+            </div>
+          )}
         </div>
         {isSUNDRY && (
           <div className='flex items-center m-[1px]'>
@@ -331,7 +332,7 @@ export const GeneralInfo = ({
                 }
               />
         )}
-          <div className={`flex items-center ${isSUNDRY ? 'w-[41%]' : 'w-[50%]'}`}>
+            <div className={`flex items-center ${isSUNDRY ? 'w-[41%]' : 'w-[50%]'} before:content-['*'] before:relative before:-right-[70px] before:text-red-500`}>
           <CustomSelect
             isPopupOpen={false}
             label='State In Out'

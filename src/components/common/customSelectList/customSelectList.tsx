@@ -256,7 +256,7 @@ export const SelectList = ({
 
         <Popup
             heading={`${heading}`}
-            childClass='!h-[80vh] w-full min-w-[50vw] !max-h-full'
+            childClass='h-fit w-full min-w-[50vw] !max-h-[100vh] overflow-scroll'
             className={className}
             isSuggestionPopup={true}
             id='dropDownPopup'
@@ -301,12 +301,12 @@ export const SelectList = ({
                         <thead className='sticky top-0'>
                             <tr>
                                 {selectMultiple && (
-                                    <th className='w-fit border-[1px] border-solid bg-[#009196FF] border-gray-400 text-center text-white p-2'></th>
+                                    <th className='w-fit border-[1px] border-solid bg-[#009196FF] border-gray-400 text-left text-white p-2'></th>
                                 )}
                                 {headers.map((header: any, index: number) => (
                                     <th
                                         key={index}
-                                        className='w-fit bg-[#009196FF] text-center text-white p-2'
+                                        className='w-fit bg-[#009196FF] text-left text-white p-2'
                                     >
                                         {header.label}
                                     </th>
@@ -329,7 +329,7 @@ export const SelectList = ({
                                         </td>
                                     )}
                                     {headers.map((header: any, colIndex: number) => (
-                                        <td key={colIndex} className='border-[1px] border-gray-400 p-2'>
+                                        <td key={colIndex} className={`border-[1px] border-gray-400 p-2 w-[${header.width}]`}>
                                             {header.auto ? rowIndex + 1 : getNestedValue(row, header.key)
                                             }
                                         </td>
@@ -352,20 +352,20 @@ export const SelectList = ({
                 )}
 
                 {/* Footer */}
-                <div className={`h-[17vh] left-0 mx-4 ${footerClass}`}>
-                    <div className={`flex gap-1 h-full w-full text-[12px]`}>
+                <div className={` left-0 mx-4 ${footerClass} overflow-auto`}>
+                    <div className={`flex flex-wrap gap-1 h-full w-full text-[12px]`}>
                         {footers?.map((f: any, index: number) => (
                             <fieldset key={index} className="border flex-1 rounded-sm h-full border-gray-300 px-1 py-1">
                                 <legend className="font-semibold text-gray-700 px-2">
                                     {f.label}
                                 </legend>
-                                <ul className='px-2'>
+                                <ul className='px-2 flex flex-col gap-2'>
                                     {f.data.map((d: any, idx: number) => (
                                         focusedRowData && (
                                             <li key={idx}>
                                                 <div className="flex">
                                                     <div className="w-5/12 pr-0 relative after:content-[':'] after:absolute after:-right-1 after:text-black">
-                                                        {d.label}
+                                                        {d.label} <span>{d.key === 'openingBal' && `( ${getNestedValue(focusedRowData, 'openingBalType')} )`}{d.key === 'closingBalance' && `( ${getNestedValue(focusedRowData, 'closingBalanceType')} )`}</span>
                                                     </div>
                                                     <div className="w-7/12 text-right flex justify-end">
                                                         <span className=" whitespace-nowrap">&nbsp;{getNestedValue(focusedRowData, d.key)}</span>
@@ -379,6 +379,18 @@ export const SelectList = ({
                         ))}
                     </div>
                 </div>
+
+                <div className='flex gap-4 mt-2 px-4 flex-wrap'>
+                    {/* full forms */}
+                    {
+                        headers.map((header: any) => (
+                            header.fullForm && <div className='text-[12px]'>
+                                <span className='text-red-500'>{header.label}</span> = <span>{header.fullForm}</span>
+                            </div>
+                        ))
+                    }
+                </div>
+
             </div>
         </Popup>
     );

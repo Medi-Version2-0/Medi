@@ -1,8 +1,8 @@
 export const partyHeaders = [
-    { label: 'Name', key: 'partyName' },
-    { label: 'Station', key: 'station_name' },
-    { label: 'Closing Balance', key: 'closingBalance' },
-    { label: 'Closing Balance Type', key: 'closingBalanceType' },
+    { label: 'Name', key: 'partyName',width: '50%'},
+    { label: 'Station', key: 'station_name', width: '30%' },
+    { label: 'CB', key: 'closingBalance', width: '14%',fullForm: 'Closing Balance' },
+    { label: 'CBT', key: 'closingBalanceType', width: '6%', fullForm: 'Closing Balance Type'},
   ];
 
 export const itemHeaders = [

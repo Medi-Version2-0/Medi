@@ -109,6 +109,15 @@ export const CreateLedger = ({ setView, data }: any) => {
     validationSchema: getLedgerFormValidationSchema,
     validateOnMount: true,
     onSubmit: async (values) => {
+
+      // if(isSUNDRY && !values.station_id){
+      //   setPopupState({
+      //     ...popupState,
+      //     isAlertOpen: true,
+      //     message: `Select station`,
+      //   });
+      //   return;
+      // }
       const formattedOpeningBal = values.openingBal ? parseFloat(values.openingBal).toFixed(2) : null;
       const matchingStation = stations.find(
         (station:StationFormData) => values.station_id === station.station_id
@@ -256,49 +265,53 @@ export const CreateLedger = ({ setView, data }: any) => {
             <ContactNumbers selectedGroupName={group} formik={ledgerFormInfo} />
           </div>
         </div>
-        <div className='shadow-lg mx-8'>
-            <div className='flex flex-row my-1'>
-              {[
-                'GST/Tax Details',
-                'Licence Info',
-                'Contact Info',
-                'Bank Details',
-              ].map((label, idx) => (
-                <Button
-                  key={label}
-                  type='fog'
-                  btnType='button'
-                  id={label.replace(' ', '_')}
-                  className={`rounded-none !border-r-[1px] focus:font-black ${!!showActiveElement.btn_1 && 'border-b-blue-500 border-b-[2px]'} text-sm font-medium !py-1`}
-                  handleOnClick={() => handleClick(`btn_${idx + 1}`)}
-                  handleOnKeyDown={(e) => {
-                    if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                      handleClick(`btn_${idx + 1}`);
-                      document.getElementById(getInitialFocusFieldName(label))?.focus();
-                      e.preventDefault();
-                    } else if (e.key === 'ArrowRight') {
-                      document.getElementById('Licence_Info')?.focus();
-                      e.preventDefault();
-                    }
-                    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-                      document.getElementById('phone3')?.focus();
-                      e.preventDefault();
-                    }
-                  }}
-                >
-                  {label}
-                </Button>
-              ))}
+        {
+          isSUNDRY && (
+            <div className='shadow-lg mx-8'>
+              <div className='flex flex-row my-1'>
+                {[
+                  'GST/Tax Details',
+                  'Licence Info',
+                  'Contact Info',
+                  'Bank Details',
+                ].map((label, idx) => (
+                  <Button
+                    key={label}
+                    type='fog'
+                    btnType='button'
+                    id={label.replace(' ', '_')}
+                    className={`rounded-none !border-r-[1px] focus:font-black ${!!showActiveElement.btn_1 && 'border-b-blue-500 border-b-[2px]'} text-sm font-medium !py-1`}
+                    handleOnClick={() => handleClick(`btn_${idx + 1}`)}
+                    handleOnKeyDown={(e) => {
+                      if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                        handleClick(`btn_${idx + 1}`);
+                        document.getElementById(getInitialFocusFieldName(label))?.focus();
+                        e.preventDefault();
+                      } else if (e.key === 'ArrowRight') {
+                        document.getElementById('Licence_Info')?.focus();
+                        e.preventDefault();
+                      }
+                      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                        document.getElementById('phone3')?.focus();
+                        e.preventDefault();
+                      }
+                    }}
+                  >
+                    {label}
+                  </Button>
+                ))}
+              </div>
+              {showActiveElement.btn_1 && <TaxDetails formik={ledgerFormInfo} />}
+              {showActiveElement.btn_2 && (
+                <LicenceDetails formik={ledgerFormInfo} />
+              )}
+              {showActiveElement.btn_3 && (
+                <ContactDetails formik={ledgerFormInfo} />
+              )}
+              {showActiveElement.btn_4 && <BankDetails formik={ledgerFormInfo} />}
             </div>
-            {showActiveElement.btn_1 && <TaxDetails formik={ledgerFormInfo} />}
-            {showActiveElement.btn_2 && (
-              <LicenceDetails formik={ledgerFormInfo} />
-            )}
-            {showActiveElement.btn_3 && (
-              <ContactDetails formik={ledgerFormInfo} />
-            )}
-            {showActiveElement.btn_4 && <BankDetails formik={ledgerFormInfo} />}
-        </div>
+          )
+        }
         <div className='w-full px-8 py-2'>
           <Button
             type='fill'

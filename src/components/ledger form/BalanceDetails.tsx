@@ -152,11 +152,11 @@ export const BalanceDetails = ({
             }}
             onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
               const dropdown = document.querySelector('.custom-select__menu');
-              if (e.key === 'Enter' || (e.key === 'Tab' && !e.shiftKey)) {
+              if (e.key === 'Enter') {
                 if (!dropdown) {
                   e.preventDefault();
                 }
-                const nextFieldId = isSpecialGroup ? 'creditLimit' : 'GST/Tax_Details';
+                const nextFieldId = (formik.isValid && !isSpecialGroup) ? 'submit_all' : (!formik.isValid && !isSpecialGroup) ? 'partyName' : 'creditLimit';
                 document.getElementById(nextFieldId)?.focus();
                 setFocused(nextFieldId);
               } else if (e.key === 'Tab' && e.shiftKey) {

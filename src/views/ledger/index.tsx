@@ -193,6 +193,14 @@ export const Ledger = ({type = ''}) => {
       headerName: 'Station',
       field: 'station_id',
       cellDataType: 'text',
+      editable:(params:any) => {
+        return [
+          'SUNDRY CREDITORS',
+          'SUNDRY DEBTORS',
+          'GENERAL GROUP',
+          'DISTRIBUTORS, C & F',
+        ].includes(params.data.Group.group_name.toUpperCase());
+      },
       cellEditor: 'agSelectCellEditor',
       cellEditorParams: { values: ledgerStations },
       valueFormatter: (params: { value: string | number }) => lookupStation(Number(params.value)),

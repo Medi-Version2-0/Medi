@@ -13,7 +13,7 @@ export const getLedgerFormValidationSchema = () =>
     .required('Party Name is required')
     .matches(/^(?!\d+$).+/, 'Only Numbers not allowed')
     .max(100, 'Party Name must be 100 characters or less'),
-    station_id:Yup.number().required(),
+    station_id: Yup.number(),
     accountGroup: Yup.string().required('Account group is required'),
     address1: Yup.string().max(50, 'Address 1 must be 50 characters or less'),
     address2: Yup.string().max(50, 'Address 2 must be 50 characters or less'),
