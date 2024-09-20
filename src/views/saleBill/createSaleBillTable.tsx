@@ -7,6 +7,8 @@ import { useSelector } from 'react-redux';
 import { useTabs } from '../../TabsContext';
 import Items from '../item';
 import useApi from '../../hooks/useApi';
+import { isLessThanMonths } from '../../helper/helper';
+import { useControls } from '../../ControlRoomContext';
 
 interface RowData {
   id: number;
@@ -15,12 +17,12 @@ interface RowData {
   };
 }
 
-export const CreateSaleBillTable = ({ setDataFromTable, totalValue, setTotalValue, billTableData, setIsNetRateSymbol, setBillTableData, isEditing, selectedParty }: any) => {
+export const CreateSaleBillTable = ({ setDataFromTable, totalValue, setTotalValue, billTableData, setIsNetRateSymbol, isEditing, selectedParty, invoiceDate }: any) => {
   const headers = [
     { name: 'Item name', key: 'itemId', width: '15%', type: 'input', props: { inputType: 'text', label: true, handleFocus: (rowIndex: number, colIndex: number) => handleFocus(rowIndex, colIndex) } },
     { name: 'Batch no', key: 'batchNo', width: '15%', type: 'input', props: { inputType: 'text', label: true, handleFocus: (rowIndex: number, colIndex: number) => handleFocus(rowIndex, colIndex) } },
     { name: 'Qty', key: 'qty', width: '5%', type: 'input', props: { inputType: 'number', handleBlur: (args: any) => { handleQtyChange(args); handleTotalAmt(args) }, handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
-    { name: 'Scheme', key: 'scheme', width: '7%', type: 'input', props: { inputType: 'text', handleBlur: (args: any) => { handleQtyChange(args); handleTotalAmt(args) }, handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
+    { name: 'Scheme', key: 'scheme', width: '7%', type: 'input', props: { inputType: 'number', handleBlur: (args: any) => { handleQtyChange(args); handleTotalAmt(args) }, handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
     { name: 'Scheme type', key: 'schemeType', width: '10%', type: 'customSelect', props: { options: schemeTypeOptions, handleChange: (args: any) => { handleSelectChange(args); handleQtyChange(args); handleTotalAmt(args) } } },
     { name: 'Rate', key: 'rate', width: '5%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
     { name: 'Dis.%', key: 'disPer', width: '5%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
@@ -34,7 +36,7 @@ export const CreateSaleBillTable = ({ setDataFromTable, totalValue, setTotalValu
   const initialRows: RowData[] = Array.from({ length: 1 }, (_, rowIndex) => ({
     id: rowIndex + 1,
     columns: headers.reduce(
-      (acc, header) => ({ ...acc, [header.key]: '' }),
+      (acc, header) => ({ ...acc, [header.key]: header.props?.inputType === 'number' ? null : '' }),
       {}
     ),
   }));
@@ -47,13 +49,14 @@ export const CreateSaleBillTable = ({ setDataFromTable, totalValue, setTotalValu
   const [currentSavedData, setCurrentSavedData] = useState<{ item: any; batch: any; }>({ item: {}, batch: {} });
   const [schemeValue, setSchemeValue] = useState<any>({ scheme1: null, scheme2: null });
   const [open, setOpen] = useState<boolean>(false);
-  const [openDataPopup, setOpenDataPopup] = useState<boolean>(false);
   const { openTab } = useTabs()
   const { sendAPIRequest } = useApi();
-  const [popupState, setPopupState] = useState({
+  const { controlRoomSettings } = useControls();
+  const [popupState, setPopupState] = useState<any>({
     isModalOpen: false,
     isAlertOpen: false,
     message: '',
+    onClose: null
   });
   const [popupList, setPopupList] = useState<{ isOpen: boolean, data: any }>({ isOpen: false, data: {} })
   const focusColIndex = useRef(0);
@@ -76,7 +79,20 @@ export const CreateSaleBillTable = ({ setDataFromTable, totalValue, setTotalValu
     if (!gridData.length) {
       setGridData(initialRows);
     }
-  }, [gridData.length]);
+    return handleSave();
+  }, [gridData]);
+
+  const calculateTotals = (data?: typeof gridData) => {
+    const newGridData = [...(Array.isArray(data) ? data : gridData)];
+    const totalAmt = newGridData.reduce((acc, data) => acc + data.columns.amt, 0);
+    const totalQty = newGridData.reduce((acc, item) => acc + Number(item.columns.qty) + (item.columns.scheme !== '' && item.columns.schemeType.label === 'Pieces' ? Number(item.columns.scheme) : 0), 0);
+    setTotalValue({
+      ...totalValue,
+      totalAmt,
+      totalQty,
+      isDefault: false
+    });
+  };
 
   useEffect(() => {
     if (billTableData?.length > 0) {
@@ -116,12 +132,9 @@ export const CreateSaleBillTable = ({ setDataFromTable, totalValue, setTotalValu
           return obj;
         }
       );
-      const lastRow = {
-        id: initialRows.length + 1,
-        columns: headers.reduce((acc, header) => ({ ...acc, [header.key]: '' }), {}),
-      }
-      initialRows.push(lastRow);
       setGridData(initialRows);
+      calculateTotals(initialRows)
+      handleTotalAmt({ rowIndex: -1, data: initialRows })
     }
   }, [billTableData, itemValue]);
 
@@ -139,11 +152,12 @@ export const CreateSaleBillTable = ({ setDataFromTable, totalValue, setTotalValu
     setItemValue(allItems)
   }, [billTableData])
 
-  const settingPopupState = (isModal: boolean, message: string) => {
+  const settingPopupState = (isModal: boolean, message: string, onClose?: any) => {
     setPopupState({
       ...popupState,
       [isModal ? 'isModalOpen' : 'isAlertOpen']: true,
       message: message,
+      onClose: onClose
     });
   };
 
@@ -194,6 +208,7 @@ export const CreateSaleBillTable = ({ setDataFromTable, totalValue, setTotalValu
       };
       setGridData(newGridData);
       handleQtyInput(focusedRowIndex, newGridData[focusedRowIndex].columns['batchNo']);
+      handleTotalAmt({ rowIndex: focusedRowIndex, data: newGridData })
     }
 
     if (focusColIndex.current === 0) handleFocus(focusedRowIndex, 1);
@@ -215,13 +230,19 @@ export const CreateSaleBillTable = ({ setDataFromTable, totalValue, setTotalValu
         }
         break;
       case 'Escape':
-        if (openDataPopup) setOpenDataPopup(false);
         if (togglePopup) togglePopup(false);
         break;
       default:
         break;
     }
   };
+
+  useEffect(() => {
+    if (!popupState.isAlertOpen && popupState.onClose) {
+      popupState.onClose();
+      setPopupState({ ...popupState, isAlertOpen: false, onClose: null });
+    }
+  }, [popupState])
 
   const handleFocus = (rowIndex: number, colIndex: number) => {
     if (!!billTableData && isEditing.current === false && rowIndex < billTableData.length) return;
@@ -239,10 +260,14 @@ export const CreateSaleBillTable = ({ setDataFromTable, totalValue, setTotalValu
           apiRoute: '/item',
           searchFrom: 'name',
           handleSelect: (rowData: any) => {
+            const isItemSelected = gridData.findIndex((x) => x.columns.itemId?.value === rowData.id)
             setCurrentSavedData({ ...currentSavedData, item: rowData });
             const isItemExists = itemValue.some((item: any) => item.id === rowData.id);
-            if(!isItemExists) {
+            if (!isItemExists) {
               setItemValue([...itemValue, rowData]);
+            }
+            if (isItemSelected > -1 && isItemSelected !== rowIndex) {
+              settingPopupState(false, `Alert! You've already selected this item`, () => document.getElementById('searchBar')?.focus());
             }
           },
           autoClose: true
@@ -266,9 +291,13 @@ export const CreateSaleBillTable = ({ setDataFromTable, totalValue, setTotalValu
               searchFrom: 'batchNo',
               handleSelect: (rowData: any) => {
                 setCurrentSavedData({ ...currentSavedData, batch: rowData });
+                const nearexpiry = isLessThanMonths(invoiceDate, rowData.expiryDate, Number(controlRoomSettings.expiryWarningMonths))
                 const isBatchExists = batches.some((batch: any) => batch.id === rowData.id);
                 if (!isBatchExists) {
                   setBatches([...batches, rowData]);
+                }
+                if (nearexpiry) {
+                  settingPopupState(false, 'Item is near expiry', () => document.getElementById(`cell-${rowIndex}-${focusColIndex.current + 1}`)?.focus())
                 }
               },
               autoClose: true
@@ -296,9 +325,13 @@ export const CreateSaleBillTable = ({ setDataFromTable, totalValue, setTotalValu
               autoClose: true,
               handleSelect: (rowData: any) => {
                 setCurrentSavedData({ ...currentSavedData, batch: rowData });
+                const nearexpiry = isLessThanMonths(invoiceDate, rowData.expiryDate, Number(controlRoomSettings.expiryWarningMonths))
                 const isBatchExists = batches.some((batch: any) => batch.id === rowData.id);
                 if (!isBatchExists) {
                   setBatches([...batches, rowData]);
+                }
+                if (nearexpiry) {
+                  settingPopupState(false, 'Item is near expiry', () => document.getElementById(`cell-${rowIndex}-${focusColIndex.current + 1}`)?.focus())
                 }
               },
             }
@@ -310,7 +343,6 @@ export const CreateSaleBillTable = ({ setDataFromTable, totalValue, setTotalValu
         }
       }
     }
-    return setOpenDataPopup(true);
   }
 
   const fetchItems = async () => {
@@ -377,7 +409,7 @@ export const CreateSaleBillTable = ({ setDataFromTable, totalValue, setTotalValu
 
   const handleTotalAmt = ({ rowIndex, data }: { rowIndex: number, data?: any[] }) => {
     const newGridData = [...(data?.length ? data : gridData)];
-    if (!!newGridData[rowIndex]) {
+    if (rowIndex >= 0) {
       const { qty, schemeType, rate, disPer } = newGridData[rowIndex].columns;
       let { scheme } = newGridData[rowIndex].columns;
       let total = rate * qty;
@@ -401,35 +433,30 @@ export const CreateSaleBillTable = ({ setDataFromTable, totalValue, setTotalValu
           data.columns.sgst = Number(item.saleAccount.sgst);
         }
       })
-
-      const totalAmt = newGridData.reduce((acc, data) => acc + data.columns.amt, 0);
-      const totalQty = newGridData.reduce((acc, data) => acc + Number(data.columns.qty) + (data.columns.scheme !== '' && data.columns.schemeType.label === 'Pieces' ? Number(data.columns.scheme) : 0), 0);
       setGridData(newGridData);
-      setTotalValue({
-        ...totalValue,
-        totalAmt: totalAmt,
-        totalQty: totalQty,
-        isDefault: false
-      });
     }
   };
 
   const handleSave = () => {
-    const dataToSend = gridData.map((row) => ({
-      id: row.id,
-      ...row.columns,
-    }));
+    calculateTotals(gridData)
+    const dataToSend = gridData.map((row) => {
+      if (row.columns?.itemId?.value) {
+        return {
+          id: row.id,
+          ...row.columns,
+        };
+      }
+      return null;
+    }).filter(Boolean);
 
     if (schemeValue.scheme1 !== null) setIsNetRateSymbol('Yes');
-    const data = dataToSend.filter((data: any) => data.itemId !== '');
-    setDataFromTable(data);
-    settingPopupState(false, 'Table Data saved successfully');
+    setDataFromTable(dataToSend);
   };
 
   const handleRemainingQty = (rowIndex: number, selectedBatch: any) => {
     let remainingQty = selectedBatch?.currentStock;
     gridData.forEach((data: any, index: number) => {
-      if((data.columns['isFromChallan' as keyof any] === undefined || null) && (data.columns['isSaleBillCreated' as keyof any] === undefined || null)){
+      if ((data.columns['isFromChallan' as keyof any] === undefined || null) && (data.columns['isSaleBillCreated' as keyof any] === undefined || null)) {
         if (index < rowIndex && data.columns['batchNo']?.value === selectedBatch?.id) {
           if (data.columns['scheme'] !== '' && data.columns['schemeType'].label === 'Pieces') {
             remainingQty = remainingQty - (Number(data.columns['qty']) + Number(data.columns['scheme']));
@@ -458,41 +485,33 @@ export const CreateSaleBillTable = ({ setDataFromTable, totalValue, setTotalValu
     setGridData(updatedGridData);
   };
 
-  const handleQtyChange = ({ row }: any) => {
-    let sum = 0;
-    const selectedBatch = row.columns['batchNo'];
-    const batch = batches?.find((batch: any) => batch.id === selectedBatch?.value);
-    for (const data of gridData) {
-      if (data.columns['batchNo'].value === selectedBatch?.value) {
-        if (data.columns['scheme'] !== '' && data.columns['schemeType'].label === 'Pieces') {
-          sum = sum + Number(data.columns['qty']) + Number(data.columns['scheme']);
-          if (sum > batch?.currentStock) {
-            settingPopupState(false, 'No more available stocks. Please select a smaller quantity or scheme.');
-            break;
-          }
-        } else {
-          sum += Number(data.columns['qty']);
-          if (sum > batch?.currentStock) {
-            settingPopupState(false, 'Selected quantity exceeds the available stock. Please select a smaller quantity.');
-            break;
+  const handleQtyChange = ({ row, colIndex }: any) => {
+    if (controlRoomSettings.stockWarning) {
+      let sum = 0;
+      const selectedBatch = row.columns['batchNo'];
+      const batch = batches?.find((batch: any) => batch.id === selectedBatch?.value);
+      for (const data of gridData) {
+        if (data.columns['batchNo'].value === selectedBatch?.value) {
+          if (data.columns['scheme'] !== '' && data.columns['schemeType'].label === 'Pieces') {
+            sum = sum + Number(data.columns['qty']) + Number(data.columns['scheme']);
+            if (sum > batch?.currentStock) {
+              settingPopupState(false, 'No more available stocks. Please select a smaller quantity or scheme.', () => document.getElementById(`cell-${row.id - 1}-${colIndex === 3 ? 3 : 4}`)?.focus());
+              break;
+            }
+          } else {
+            sum += Number(data.columns['qty']);
+            if (sum > batch?.currentStock) {
+              settingPopupState(false, 'Selected quantity exceeds the available stock. Please select a smaller quantity.', () => document.getElementById(`cell-${row.id - 1}-${2}`)?.focus());
+              break;
+            }
           }
         }
       }
     }
   };
 
-  const handleDeleteRow = (rowIndex: number, data: any) => {
-    const updateItems = [...itemValue]
-    const itemIndex = updateItems?.findIndex((x: any) => x.id === data?.columns?.itemId?.value)
-    const batchIndex = updateItems[itemIndex]?.ItemBatches?.findIndex((x: any) => x.id === data.columns.batchNo?.value)
-    if (itemIndex >= 0 && batchIndex >= 0) {
-      updateItems[itemIndex].ItemBatches[batchIndex].currentStock += (Number(data.columns.qty) + (data.columns.scheme !== '' && data.columns.schemeType.label === 'Pieces' ? Number(data.columns.scheme) : 0))
-      if (billTableData?.length && billTableData.find((x: any) => x.id === data?.columns?.rowId)) {
-        setBillTableData(billTableData.filter((x: any) => x.id !== data?.columns?.rowId))
-        handleTotalAmt({ rowIndex: rowIndex - 1, data: gridData.filter((_, ind) => ind !== rowIndex) })
-      }
-      setItemValue(updateItems)
-    }
+  const handleDeleteRow = (rowIndex: number) => {
+    calculateTotals(gridData.filter((_, ind) => ind !== rowIndex))
   }
 
   return (
@@ -501,10 +520,8 @@ export const CreateSaleBillTable = ({ setDataFromTable, totalValue, setTotalValu
         headers={headers}
         gridData={gridData}
         setGridData={setGridData}
-        handleSave={handleSave}
         withAddRow={() => setCurrentSavedData({ item: {}, batch: {} })}
         rowDeleteCallback={handleDeleteRow}
-        isFromSaleBill={true}
         newRowTrigger={headers.length - 3}
       />
 
