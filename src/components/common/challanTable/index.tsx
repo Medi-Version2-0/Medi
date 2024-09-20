@@ -63,8 +63,7 @@ export const ChallanTable = ({
   newRowTrigger,
   skipIndexes,
   stikyColumn,
-  isFromSaleBill,
-  required,
+
   widthRequired = '100vw',
 }: ChallanTableProps) => {
   const [focused, setFocused] = useState('');
@@ -73,7 +72,6 @@ export const ChallanTable = ({
     isAlertOpen: false,
     message: '',
   });
-  const showPortal = isFromSaleBill ? document.getElementById('saleBillFormBtn') : document.getElementById('challanFormBtn');
   const handleKeyDown = async (
     e: React.KeyboardEvent<HTMLInputElement> | any,
     rowIndex: number,
@@ -255,15 +253,15 @@ export const ChallanTable = ({
                                   }
                             }
                             onChange={(selectedOption) => {
-                              const args = {
-                                selectedOption,
-                                row,
-                                rowIndex,
-                                colIndex,
-                                header: header.key,
-                              };
+                              const args = {selectedOption,row,rowIndex,colIndex,header: header.key,setFocused};
                               if (header.props.handleChange) {
                                 header.props.handleChange(args);
+                              }
+                            }}
+                            onBlur={() => {
+                              const args = {row,rowIndex,colIndex,setFocused};
+                              if (header.props.handleBlur) {
+                                header.props.handleBlur(args);
                               }
                             }}
                             containerClass='flex-shrink-0 h-[3em] rounded-none w-fit'
@@ -326,6 +324,7 @@ export const ChallanTable = ({
                               row,
                               rowIndex,
                               colIndex,
+                              setFocused
                             };
                             if (header.props.handleBlur) {
                               header.props.handleBlur(args);
@@ -361,29 +360,6 @@ export const ChallanTable = ({
           />
         )}
       </div>
-      {/* {handleSave && (
-        <div className='flex justify-end'>
-          <button
-            type='button'
-            className='px-4 py-2 bg-[#009196FF] hover:bg-[#009196e3] font-medium text-white rounded-md border-none focus:border-yellow-500 focus-visible:border-yellow-500'
-            onClick={handleSave}
-          >
-            Confirm
-          </button>
-        </div>
-      )} */}
-      {/* {showPortal && createPortal(
-            <div className="flex justify-end sticky left-0">
-                <button
-                    type="button"
-                    className="px-4 py-2 bg-[#009196FF] hover:bg-[#009196e3] font-medium text-white rounded-md border-none focus:border-yellow-500 focus-visible:border-yellow-500"
-                    onClick={handleSave}
-                >
-                    {isFromSaleBill ? 'Next' : 'Confirm'}
-                </button>
-            </div>,
-            showPortal
-        )} */}
     </div>
   );
 };

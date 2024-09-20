@@ -23,7 +23,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     { name: 'Batch no', key: 'batchNo', width: '15%', type: 'input', props: { inputType: 'text', label: true, handleFocus: (rowIndex: number, colIndex: number) => handleFocus(rowIndex, colIndex) } },
     { name: 'Qty', key: 'qty', width: '5%', type: 'input', props: { inputType: 'number', handleBlur: (args: any) => { handleQtyChange(args); handleTotalAmt(args) }, handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
     { name: 'Scheme', key: 'scheme', width: '7%', type: 'input', props: { inputType: 'number', handleBlur: (args: any) => { handleQtyChange(args); handleTotalAmt(args) }, handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
-    { name: 'Scheme type', key: 'schemeType', width: '10%', type: 'customSelect', props: { options: schemeTypeOptions, handleChange: (args: any) => { handleSelectChange(args); handleQtyChange(args); handleTotalAmt(args) } } },
+    { name: 'Scheme type', key: 'schemeType', width: '10%', type: 'customSelect', props: { options: schemeTypeOptions, handleChange: (args: any) => { handleSelectChange(args); handleQtyChange(args); handleTotalAmt(args)},handleBlur: (args: any) => { handleQtyChange(args); handleTotalAmt(args) } } },
     { name: 'Rate', key: 'rate', width: '5%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
     { name: 'Dis.%', key: 'disPer', width: '5%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
     { name: 'Amt', key: 'amt', width: '5%', type: 'input', props: { inputType: 'number', disable: true } },
@@ -316,7 +316,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
             autoClose: true,
             handleSelect: (rowData: any) => {
               setCurrentSavedData({ ...currentSavedData, batch: rowData });
-              const nearexpiry = isLessThanMonths(challanDate , rowData.expiryDate , Number(controlRoomSettings.expiryWarningMonths))
+              const nearexpiry = isLessThanMonths(challanDate , rowData.expiryDate , controlRoomSettings.expiryWarningMonths)
               const isBatchExists = batches.some((batch: any) => batch.id === rowData.id);
               if (!isBatchExists) {
                 setBatches([...batches, rowData]);
@@ -325,7 +325,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
                 setPopupState({
                   ...popupState,
                   isAlertOpen: true,
-                  message:'Item is near expiary',
+                  message:'Item is near Expiry',
                   onClose: ()=> {return document.getElementById(`cell-${rowIndex}-${focusColIndex.current + 1}`)?.focus();
                 }
                 });
@@ -476,7 +476,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     setGridData(updatedGridData);
   };
 
-  const handleQtyChange = ({ row , colIndex }: any) => {
+  const handleQtyChange = ({ row , colIndex , setFocused }: any) => {
     if(controlRoomSettings.stockWarning){
     let sum = 0;
     const selectedBatch = row.columns['batchNo'];
@@ -491,7 +491,11 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
               isAlertOpen: true,
               message:
                 'No more available stocks. Please select a smaller quantity or scheme.',
-              onClose: ()=> {return document.getElementById(`cell-${row.id-1}-${colIndex===3 ? 3:4}`)?.focus();}
+              onClose: ()=> {
+                setTimeout(() => {
+                  return document.getElementById(`cell-${row.id-1}-${colIndex===3 ? 3 :3}`)?.focus();
+                }, 0);
+              }
 
             });
             break;
@@ -504,7 +508,11 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
               isAlertOpen: true,
               message:
                 'Selected quantity exceeds the available stock. Please select a smaller quantity.',
-              onClose: ()=> {return document.getElementById(`cell-${row.id-1}-${2}`)?.focus();}
+                onClose: ()=> {
+                  setTimeout(() => {
+                    return document.getElementById(`cell-${row.id-1}-${2}`)?.focus();
+                  }, 0);
+                }
             });
             break;
           }
@@ -513,7 +521,6 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     }
   }
   };
-
   const handleDeleteRow = (rowIndex: number) => {
     calculateTotals(gridData.filter((_, ind) => ind !== rowIndex))
   }
