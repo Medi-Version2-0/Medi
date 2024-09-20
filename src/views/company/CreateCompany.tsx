@@ -312,7 +312,7 @@ export const CreateCompany = ({ setView , data }: any) => {
                     disableArrow={true}
                     hidePlaceholder={false}
                     className='!h-6 rounded-sm'
-                    isRequired={false}
+                    isRequired={true}
                     error={formik.errors.stationId}
                     isTouched={formik.touched.stationId}
                     showErrorTooltip={true}
@@ -685,6 +685,7 @@ export const CreateCompany = ({ setView , data }: any) => {
                       { value: 'Out Of State', label: 'Out Of State' },
                     ]}
                     isSearchable={false}
+                    isRequired={true}
                     placeholder='Select an option'
                     disableArrow={false}
                     hidePlaceholder={false}
