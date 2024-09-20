@@ -260,6 +260,7 @@ export const SelectList = ({
             className={className}
             isSuggestionPopup={true}
             id='dropDownPopup'
+            onClose={closeList}
         >
             <div className='flex px-4 mt-4 w-full justify-between items-center' id='selectList'>
                 <form onSubmit={formik.handleSubmit} className='flex w-full gap-5'>
