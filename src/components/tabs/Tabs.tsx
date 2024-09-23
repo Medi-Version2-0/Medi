@@ -10,7 +10,7 @@ export const Tabs = () => {
     tabs: [
       {
         id: 'tab-id-1',
-        title: 'tab 1',
+        title: 'tab [1]',
         panelComponent: <p>Welcome!</p>,
       },
     ],

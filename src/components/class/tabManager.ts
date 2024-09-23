@@ -73,37 +73,65 @@ export class TabManager {
             }
         }
     }
+
+
     public closeTab(tabId: string) {
-        console.log(tabId, 'tab to remove');
-    
-        let updatedTabs = [...this.tabs];
-        const tabIndex = updatedTabs.findIndex(tab => tab.tabId === tabId);
-        console.log(tabIndex, 'index of tab to remove');
-        if (tabIndex === -1) return; 
-        console.log(updatedTabs, 'tabs before removing');
-        
-        updatedTabs = updatedTabs.filter(tab => tab.tabId !== tabId);
-        console.log(updatedTabs, 'tabs after removing');
-    
-        updatedTabs.forEach((tab, index) => {
-            const newTabId = `tab-id-${index + 1}`;
-            tab.tabId = newTabId; 
-            
-            const oldTabElements = document.querySelectorAll(`[tab-id="tab-id-${index + 2}"]`);
-            console.log(oldTabElements, 'old tab elements');
-            
-            oldTabElements.forEach((element) => {
-                element.setAttribute('tab-id', newTabId);
+        console.log(`${tabId} - Tab to remove` , this.tabs);
+
+        // Find the index of the tab to remove
+        const tabIndex = this.tabs.findIndex(tab => tab.tabId === tabId);
+        if (tabIndex === -1) {
+            console.log(`Tab with ID ${tabId} not found.`);
+            return;
+        }
+
+        // Remove the tab from the tabs array
+        this.tabs.splice(tabIndex, 1);
+        console.log(`Tabs after removal:`, this.tabs);
+
+        // Reindex tabIds and update titles for subsequent tabs
+        console.log(tabIndex , this.tabs.length)
+        for (let i = tabIndex; i < this.tabs.length; i++) {
+            const tab = this.tabs[i];
+            const oldTabId = tab.tabId;
+            const newTabId = `tab-id-${i + 1}`;
+            tab.tabId = newTabId;
+
+            // Update the tab-id attribute in the DOM
+            const tabContainers = document.querySelectorAll(`div[tab-id="${oldTabId}"], li[tab-id="${oldTabId}"]`);
+            console.log('title cont' , tabContainers)
+
+            tabContainers.forEach((tabContainer, index) => {
+                // Update the tab-id
+                tabContainer.setAttribute('tab-id', newTabId);
+
+                // Update the tab title
+                const titleElement = tabContainer.querySelector('.rc-dyn-tabs-title'); // Adjust selector as needed
+                console.log('title elemnt' , titleElement?.textContent)
+                if (titleElement) {
+                    // Extract the base name before the ID
+                    const baseNameMatch = titleElement.textContent?.match(/^(.*)\[\d+\]$/);
+                    const baseName = baseNameMatch ? baseNameMatch[1] : 'Tab';
+                    titleElement.textContent = `${baseName}[${i + 1}]`; 
+                }
             });
-        });
-    
-        this.tabs = updatedTabs;
-    
+
+            console.log(`Updated ${oldTabId} to ${newTabId} with new title.`);
+        }
+
+        // Determine the new activeTabId based on the array order
         if (this.activeTabId === tabId) {
-            this.activeTabId = this.tabs.length > 0 ? this.tabs[0].tabId : null;
+            if (this.tabs.length > 0) {
+                // Set active to the previous tab if it exists, otherwise to the first tab
+                const newActiveTab = this.tabs[tabIndex - 1] || this.tabs[0];
+                this.setActiveTab(newActiveTab.tabId);
+            } else {
+                // No tabs left to set as active
+                this.activeTabId = null;
+                console.log('No active tab set.');
+            }
         }
     }
-    
     
     
 
