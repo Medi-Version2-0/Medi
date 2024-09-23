@@ -452,21 +452,24 @@ export type FieldConfig = {
   type?: string;
   isRequired?: boolean;
   disableArrow?: boolean;
+  hidePlaceholder?: boolean;
   isSearchable?: boolean;
   options?: Option[];
   nextField?: string;
   prevField?: string;
+  sideField?: string;
   disabled?: boolean;
   autoFocus?: boolean;
   labelClassName?: string;
   textFieldClassName?: string;
   isTitleCase?: boolean;
   onFocus?: () => void;
-  onChange?: () => void;
+  onChange?: (e:any) => void;
   onBlur?: () => void;
 };
 
 export type SaleBillFormInfoType = FormikProps<saleBillFormValues>;
+export type StationFormInfoType = FormikProps<FormDataProps>;
 export interface partyLockedSetup {
   partyName: string,
   partyId?: number,
