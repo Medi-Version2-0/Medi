@@ -6,6 +6,7 @@ import titleCase from '../../utilities/titleCase';
 import onKeyDown from '../../utilities/formKeyDown';
 import { useSelector } from 'react-redux';
 import { useControls } from '../../ControlRoomContext';
+import { useUser } from '../../UserContext';
 
 interface GeneralInfoProps {
   onValueChange?: any;
@@ -21,6 +22,8 @@ export const GeneralInfo = ({
   groupOptions,
 }: GeneralInfoProps) => {
   const {stations : stationData} = useSelector((state:any)=> state.global)
+  const {selectedCompany} = useUser();
+  const {organizations} = useSelector((state:any)=> state.global)
   const [stationOptions, setStationOptions] = useState<Option[]>([]);
   const isSUNDRY =
     selectedGroup.toUpperCase() === 'SUNDRY CREDITORS' ||
@@ -55,6 +58,13 @@ export const GeneralInfo = ({
     }
     if (id === 'stationName') {
       formik.setFieldValue('station_id', option?.value);
+      const currOrganization = organizations.find((o:any) => o.id === selectedCompany)
+      const selectedState = stationData.find((s:any)=> s.station_id === option?.value)
+      if (currOrganization.stateId !== selectedState.state_code){
+        formik.setFieldValue('stateInout', 'Out Of State');
+      }else{
+        formik.setFieldValue('stateInout', 'Within State');
+      }
     }
     if (id === 'salesPriceList') {
       formik.setFieldValue(id, option?.label);
@@ -71,7 +81,7 @@ export const GeneralInfo = ({
       const state = matchingStation ? matchingStation.station_state : '';
       const pinCode = matchingStation ? matchingStation.station_pinCode : ' ';
       formik.setFieldValue('state', state);
-      formik.setFieldValue('pinCode', pinCode);
+      formik.setFieldValue('pinCode', String(pinCode));
     }
   }, [formik.values.stationName]);
 
@@ -159,11 +169,12 @@ export const GeneralInfo = ({
                     '.custom-select__menu'
                   );
                   if (e.key === 'Enter' && selectedGroup) {
-                    !dropdown && e.preventDefault();
-                    const nextFieldId = isSUNDRY ? 'stationName' : 'stateInout';
-                    document.getElementById(nextFieldId)?.focus();                    
-                    setFocused(nextFieldId);
-                  }
+                    if(!dropdown){
+                      e.preventDefault();
+                      const nextFieldId = isSUNDRY ? 'stationName' : 'stateInout';
+                      document.getElementById(nextFieldId)?.focus();
+                      setFocused(nextFieldId);
+                    }}
                 }}
                 error={formik.errors.accountGroup}
                 isTouched={formik.touched.accountGroup}
@@ -351,6 +362,7 @@ export const GeneralInfo = ({
             ]}
             isSearchable={false}
             isFocused={focused === 'stateInout'}
+            isDisabled={isSUNDRY}
             placeholder='Select an option'
             disableArrow={false}
             hidePlaceholder={false}

@@ -29,12 +29,14 @@ export const BalanceDetails = ({
       } else {
         formik.setFieldValue('openingBal', filteredValue.slice(0, 12));
       }
-    } else if (id === 'creditLimit' || id === 'creditDays') {
+    } else if (id === 'creditDays') {
       if (filteredValue.length <= 3) {
         formik.setFieldValue(id, filteredValue);
       } else {
         formik.setFieldValue(id, filteredValue.slice(0, 3));
       }
+    } else if (id === 'creditLimit' ){
+      formik.setFieldValue(id, filteredValue);
     }
   };
 
@@ -183,7 +185,6 @@ export const BalanceDetails = ({
               formik={formik}
               placeholder='0'
               className=''
-              maxLength={3}
               onClick={resetField}
               prevField='partyType'
               nextField='creditDays'
