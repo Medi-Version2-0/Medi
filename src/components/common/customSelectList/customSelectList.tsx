@@ -355,11 +355,11 @@ export const SelectList = ({
                 <div className={` left-0 mx-4 ${footerClass} overflow-auto`}>
                     <div className={`flex flex-wrap gap-1 h-full w-full text-[12px]`}>
                         {footers?.map((f: any, index: number) => (
-                            <fieldset key={index} className="border flex-1 rounded-sm h-full border-gray-300 px-1 py-1">
+                            <fieldset key={index} className="border flex-1 min-w-[240px] rounded-sm h-full border-gray-300 px-1 py-1">
                                 <legend className="font-semibold text-gray-700 px-2">
                                     {f.label}
                                 </legend>
-                                <ul className='px-2 flex flex-col gap-2'>
+                                <ul className='px-2 flex flex-col gap-[2%]'>
                                     {f.data.map((d: any, idx: number) => (
                                         focusedRowData && (
                                             <li key={idx}>

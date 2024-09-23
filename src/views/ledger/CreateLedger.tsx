@@ -109,15 +109,6 @@ export const CreateLedger = ({ setView, data }: any) => {
     validationSchema: getLedgerFormValidationSchema,
     validateOnMount: true,
     onSubmit: async (values) => {
-
-      // if(isSUNDRY && !values.station_id){
-      //   setPopupState({
-      //     ...popupState,
-      //     isAlertOpen: true,
-      //     message: `Select station`,
-      //   });
-      //   return;
-      // }
       const formattedOpeningBal = values.openingBal ? parseFloat(values.openingBal).toFixed(2) : null;
       const matchingStation = stations.find(
         (station:StationFormData) => values.station_id === station.station_id
