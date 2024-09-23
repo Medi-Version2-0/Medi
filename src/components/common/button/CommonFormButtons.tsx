@@ -1,0 +1,77 @@
+import React, { useMemo, FC } from "react";
+import classNames from "classnames";
+
+interface ButtonProps {
+    variant?: "submit" | "cancel" | "delete";
+    handleOnClick?: () => void;
+    handleOnKeyDown?: (event: React.KeyboardEvent<HTMLButtonElement>) => void;
+    children?: React.ReactNode;
+    disable?: boolean;
+    component?: string;
+    setFocused: (field: string) => void;
+    focused?: string;
+    prevField: string;
+    nextField: string;
+}
+
+export const CommonBtn: FC<ButtonProps> = ({
+    variant = "submit",
+    handleOnClick = () => { },
+    handleOnKeyDown = () => { },
+    children,
+    disable,
+    component,
+    setFocused,
+    focused,
+    prevField,
+    nextField,
+    ...rest
+}) => {
+
+    const variantType = useMemo(() => {
+        switch (variant) {
+            case "cancel":
+                return "bg-white hover:bg-gray-100 font-medium text-[#171A1FFF] border-2 border-solid border-[#cbc9c9] focus:border-yellow-500 focus-visible:border-yellow-500";
+            case "delete":
+            case 'submit':
+                return "bg-[#009196FF] hover:bg-[#009196e3] font-medium text-white rounded-md border-none focus:border-yellow-500 focus-visible:border-yellow-500";
+            default:
+                return "bg-[#009196FF] hover:bg-[#009196e3] font-medium text-white rounded-md border-none focus:border-yellow-500 focus-visible:border-yellow-500";
+        }
+    }, [variant]);
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleOnClick();
+        }
+
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            document.getElementById(nextField)?.focus();
+        }
+        if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab')) {
+            e.preventDefault();
+            document.getElementById(prevField)?.focus();
+            setFocused(prevField);
+        }
+    };
+
+    return (
+        <button
+            type={variant === 'submit' ? 'submit' : 'button'}
+            id={`${component}_${variant}Btn`}
+            disabled={disable}
+            className={classNames(
+                `flex flex-row items-center text-base font-medium justify-center cursor-pointer rounded-md h-8
+                ${disable ? "opacity-60 !cursor-not-allowed" : "opacity-100"} px-6 py-2`,
+                variantType,
+            )}
+            onClick={handleOnClick}
+            onKeyDown={handleKeyDown}
+            {...rest}
+        >
+            {children}
+        </button>
+    );
+};
