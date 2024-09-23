@@ -9,7 +9,7 @@ export const Tabs = () => {
   const options = {
     tabs: [
       {
-        id: '1',
+        id: 'tab-id-1',
         title: 'tab 1',
         panelComponent: <p>Welcome!</p>,
       },

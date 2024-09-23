@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { TabManager } from '../../components/class/tabManager';
 import { CiSearch } from 'react-icons/ci';
 import { MdLibraryBooks, MdNavigateNext } from 'react-icons/md';
 import { IoChevronDownSharp } from 'react-icons/io5';
@@ -29,6 +30,7 @@ import PriceList from '../../views/partywisePriceList/PriceList';
 import CopyPratywisePriceList from '../../views/partywisePriceList/copyPartyWisePriseList';
 import { useTabs } from '../../TabsContext';
 import { useUser } from '../../UserContext';
+import { stationFocusChain } from '../../constants/stationFocusChain';
 
 interface SidebarProps {
   isGroup?: boolean;
@@ -50,6 +52,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const { controlRoomSettings } = useControls();
   const {openTab} = useTabs()
   const { user } = useUser();
+  const tabManager = TabManager.getInstance();
 
   const isNotReadAccess = (key: string) => {
     if (permissions[key]) {
@@ -94,7 +97,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     {
       url: '/stations',
       label: 'Station Setup',
-      onClick: () => openTab?.('Station Setup', <Stations />),
+      onClick: () => tabManager.openTab('Station Setup', <Stations />, stationFocusChain, openTab),
       isDisabled: isNotReadAccess('station')
     },
     {
@@ -251,7 +254,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
         {showSubElements.master && (
           <>
-            {menuItems.map((item, index) => {
+            {menuItems.map((item:any, index) => {
               return (
                 <MenuItem
                   key={index}
