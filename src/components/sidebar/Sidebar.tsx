@@ -29,6 +29,7 @@ import PriceList from '../../views/partywisePriceList/PriceList';
 import CopyPratywisePriceList from '../../views/partywisePriceList/copyPartyWisePriseList';
 import { useTabs } from '../../TabsContext';
 import { useUser } from '../../UserContext';
+import { Godown } from '../../views/godown/godown';
 
 interface SidebarProps {
   isGroup?: boolean;
@@ -186,6 +187,13 @@ const Sidebar: React.FC<SidebarProps> = ({
       icon: <FaPlus className='fill-red-900' />,
       onClick: () => openTab?.('Party Locked Setup', <PartyLockedSetup />),
       isDisabled: isNotReadAccess('party_locked_setup')
+    },
+    {
+      url: '/godown',
+      label: 'Godown Setup',
+      icon: <FaPlus className='fill-red-900' />,
+      onClick: () => openTab?.('Godown Setup', <Godown />),
+      isDisabled: isNotReadAccess('godown_setup')
     },
   ]
 

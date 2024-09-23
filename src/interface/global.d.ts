@@ -477,3 +477,18 @@ export interface partyLockedSetup {
   closingBalance: number | string,
   closingBalanceType: string,
 }
+
+export interface godownSetup{
+  godownName: string,
+}
+
+interface SelectListTableProps {
+heading?: string;
+closeList: () => void;
+className?: string;
+headers: any[];
+tableData: any[];
+dataKeys?: any;
+rightAlignCells?: any[];
+onValueChange?: (rowIndex: number, value: string) => void;
+}

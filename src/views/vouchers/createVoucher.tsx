@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, useMemo, useLayoutEffect } from 're
 import CustomSelect from '../../components/custom_select/CustomSelect';
 import { Option } from '../../interface/global';
 import Button from '../../components/common/button/Button';
-import { SelectList } from '../../components/common/selectList';
+import { SelectList } from '../../components/common/customSelectList/customSelectList';
 import { ChallanTable } from '../../components/common/challanTable';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import {validateValue} from './validation'
@@ -165,7 +165,11 @@ const CreateVouchers = ({ setView, data }: any) => {
         data: {
           heading: 'Select Party',
           headers: [...partyHeaders],
-          tableData: datas,
+          footers: partyFooterData,
+          autoClose: true,
+          apiRoute: '/ledger',
+          extraQueryParams: { accountCode : -106 },
+          searchFrom: 'partyName',
           handleSelect: (rowData: any) => {
             bankName.current = {
               partyName: rowData.partyName,
@@ -410,7 +414,7 @@ const CreateVouchers = ({ setView, data }: any) => {
 
       
       if(voucherType?.value === 'JOUR' && totalValue.totalCredit !== totalValue.totalDebit){
-        settingPopupState(false, "Error: TotalDebit and totalCredit were not Equal");
+        settingPopupState(false, "Error: Total Debit and Total Credit are not equal");
         return
       }
       const voucherTypeValue: any = voucherType?.value ?? '';
@@ -691,9 +695,11 @@ const CreateVouchers = ({ setView, data }: any) => {
         data: {
           heading: 'Select Party',
           headers: [...partyHeaders],
-          tableData: [...allParties],
+          footers: partyFooterData,
+          autoClose: true,
+          apiRoute: '/ledger',
+          searchFrom: 'partyName',
           handleSelect: (rowData: any) => {
-
             setCurrentSavedData({ ...currentSavedData, party: rowData })
           }
         }
@@ -961,13 +967,19 @@ const CreateVouchers = ({ setView, data }: any) => {
 
       {popupList.isOpen && (
         <SelectList
-          heading={popupList.data.heading}
-          closeList={() => setPopupList({ isOpen: false, data: {} })}
-          headers={popupList.data.headers}
-          footers={partyFooterData}
-          tableData={popupList.data.tableData}
-          handleSelect={(rowData) => { popupList.data.handleSelect(rowData) }}
-        />
+        tableData={[]}
+        heading={popupList.data.heading}
+        closeList={() => setPopupList({ isOpen: false, data: {} })}
+        headers={popupList.data.headers}
+        footers={popupList.data.footers}
+        apiRoute={popupList.data.apiRoute}
+        handleSelect={(rowData) => { popupList.data.handleSelect(rowData) }}
+        handleNewItem={popupList.data?.newItem}
+        searchFrom={popupList.data.searchFrom}
+        autoClose={popupList.data.autoClose}
+        onEsc={popupList.data.onEsc}
+        extraQueryParams={popupList.data.extraQueryParams || {}}
+      />
       )}
 
       {(popupState.isModalOpen || popupState.isAlertOpen) && (
