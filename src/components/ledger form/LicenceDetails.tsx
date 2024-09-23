@@ -15,6 +15,7 @@ export const LicenceDetails: React.FC<LicenceDetailsProps> = ({ formik }) => {
         id='drugLicenceNo1'
         name='drugLicenceNo1'
         labelClassName='min-w-[90px]'
+        isUpperCase={true}
         className='!w-2/3'
         formik={formik}
         prevField='Licence_Info'
@@ -40,6 +41,7 @@ export const LicenceDetails: React.FC<LicenceDetailsProps> = ({ formik }) => {
           <FormikInputField
           isPopupOpen={false}
             label='Drug Lic. No. 2'
+            isUpperCase={true}
             id='drugLicenceNo2'
             name='drugLicenceNo2'
             labelClassName='min-w-[90px]'

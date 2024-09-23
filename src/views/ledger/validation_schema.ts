@@ -4,8 +4,7 @@ export const phoneRegex = /^[6-9][0-9]{9}$/;
 export const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
 export const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}/;
 export const decimalRegex = /^\d+(\.\d{0,2})?$/;
-export const expiryDate = /^(0[1-9]|1[0-2])\/(\d{2}|\d{4})$/;
-export const drugLicenceNo = /^\d{2,5}\/\d{2,5}$/;
+// export const drugLicenceNo = /^(DL-\d{7}-[A-Z]{2}|\d{2,5}\/\d{2,5})$/;
 
 export const getLedgerFormValidationSchema = () =>
   Yup.object({
@@ -45,10 +44,10 @@ export const getLedgerFormValidationSchema = () =>
     phoneNumber: Yup.string(),
     gstIn: Yup.string().matches(gstRegex,'Invalid GST Identification Number'),
     panCard: Yup.string().matches(panRegex, 'Invalid Pan Card Number'),
-    drugLicenceNo1: Yup.string().matches(drugLicenceNo, 'Invalid Drug License Number'),
-    licenceExpiry: Yup.string().matches(expiryDate, 'Invalid Expiry Date'),
+    drugLicenceNo1: Yup.string(),
+    licenceExpiry: Yup.string(),
     emailId1: Yup.string().email('Invalid email'),
     emailId2: Yup.string().email('Invalid email'),
-    drugLicenceNo2: Yup.string().matches(drugLicenceNo, 'Invalid Drug License Number'),
+    drugLicenceNo2: Yup.string(),
     accountHolderName: Yup.string().max(50, 'Account Holder Name must be 50 characters or less'),
   });
