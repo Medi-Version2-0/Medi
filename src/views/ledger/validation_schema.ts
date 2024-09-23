@@ -13,7 +13,18 @@ export const getLedgerFormValidationSchema = () =>
     .required('Party Name is required')
     .matches(/^(?!\d+$).+/, 'Only Numbers not allowed')
     .max(100, 'Party Name must be 100 characters or less'),
-    station_id: Yup.number(),
+    station_id: Yup.number().when('accountGroup', (accountGroup, schema) => {
+      const requiredGroups = [
+        '-105',
+        '-107',
+        '-102',
+        '-119',
+      ];
+      if (requiredGroups.includes(accountGroup[0])) {
+        return schema.required('Station ID is required for this account group');
+      }
+      return schema.nullable();
+    }),
     accountGroup: Yup.string().required('Account group is required'),
     address1: Yup.string().max(50, 'Address 1 must be 50 characters or less'),
     address2: Yup.string().max(50, 'Address 2 must be 50 characters or less'),

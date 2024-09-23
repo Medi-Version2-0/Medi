@@ -147,6 +147,12 @@ export const Ledger = ({type = ''}) => {
       getAndSetLedgerHandler();
     }catch(error:any){
       if (!error?.isErrorHandled){
+        node.setDataValue(field, oldValue);
+        setPopupState({
+          ...popupState,
+          isAlertOpen: true,
+          message: error.response.data.error.message,
+        });
         console.log('Party not updated from AgGrid')
       }
     }
@@ -161,7 +167,7 @@ export const Ledger = ({type = ''}) => {
       });
       return; 
     }else{
-      setSelectedRow(selectedRow !== null ? null : params.data);
+      setSelectedRow(params.data);
     }
   }
 
@@ -218,6 +224,7 @@ export const Ledger = ({type = ''}) => {
     {
       headerName: 'Actions',
       sortable: false,
+      editable:false,  // actions are not editable
       cellStyle: {
         display: 'flex',
         justifyContent: 'center',

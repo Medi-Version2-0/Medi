@@ -71,7 +71,7 @@ export const GeneralInfo = ({
       const state = matchingStation ? matchingStation.station_state : '';
       const pinCode = matchingStation ? matchingStation.station_pinCode : ' ';
       formik.setFieldValue('state', state);
-      formik.setFieldValue('pinCode', pinCode);
+      formik.setFieldValue('pinCode', String(pinCode));
     }
   }, [formik.values.stationName]);
 
@@ -159,11 +159,12 @@ export const GeneralInfo = ({
                     '.custom-select__menu'
                   );
                   if (e.key === 'Enter' && selectedGroup) {
-                    !dropdown && e.preventDefault();
-                    const nextFieldId = isSUNDRY ? 'stationName' : 'stateInout';
-                    document.getElementById(nextFieldId)?.focus();                    
-                    setFocused(nextFieldId);
-                  }
+                    if(!dropdown){
+                      e.preventDefault();
+                      const nextFieldId = isSUNDRY ? 'stationName' : 'stateInout';
+                      document.getElementById(nextFieldId)?.focus();
+                      setFocused(nextFieldId);
+                    }}
                 }}
                 error={formik.errors.accountGroup}
                 isTouched={formik.touched.accountGroup}

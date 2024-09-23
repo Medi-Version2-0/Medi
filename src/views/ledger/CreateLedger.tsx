@@ -39,6 +39,7 @@ export const CreateLedger = ({ setView, data }: any) => {
     isModalOpen: false,
     isAlertOpen: false,
     message: '',
+    success:false,
   });
   const hasButtonClicked = useRef<boolean>(false);
   const prevClass = useRef('');
@@ -118,25 +119,32 @@ export const CreateLedger = ({ setView, data }: any) => {
         openingBal: formattedOpeningBal,
         accountCode: values.accountGroup,
         station_id: values.station_id || null,
-        state: matchingStation ? matchingStation.state_code : '',
+        state: matchingStation ? String(matchingStation.state_code) : '', // typeCasting of state to string
       };
       delete allData.accountGroup;
       delete allData.stationName;
-
+      // filtering fields from allData that are not empty string
+      const filteredData = Object.fromEntries(
+        Object.entries(allData).filter(([key, value]) => value !== '')
+      );
       const apiPath = data?.party_id
         ? `/ledger/${data?.party_id}`
         : `/ledger`;
 
       const method = data?.party_id ? 'PUT' : 'POST';
       try{
-        await sendAPIRequest(apiPath, { method, body: allData });
+        await sendAPIRequest(apiPath, { method, body: filteredData });
         setPopupState({
           ...popupState,
           isAlertOpen: true,
           message: `Ledger ${!!data?.party_id ? 'updated' : 'created'} successfully`,
+          success: true,
         });
         getAndSetLedgerHandler();
-      }catch(errr){
+      }catch(err:any){
+        hasButtonClicked.current = false;
+        if (err.response.data.messages)  setPopupState({ ...popupState, isAlertOpen: true, message: err.response.data.messages.map((e:any)=>e.message).join('\n')  });
+        else  setPopupState({...popupState, isAlertOpen: true, message: err.response.data.error.message });
         if (method === 'PUT') console.log('Party not Updated');
         if (method === 'POST') console.log('Party not Created');
       }
@@ -168,7 +176,6 @@ export const CreateLedger = ({ setView, data }: any) => {
         if (key !== 'partyName') newValues[key] = '';
       });
       newValues.stateInout = initialValues.stateInout;
-      newValues.openingBalType = initialValues.openingBalType;
       newValues.partyName = ledgerFormInfo.values.partyName;
       newValues.accountGroup = value;
       if (
@@ -201,7 +208,7 @@ export const CreateLedger = ({ setView, data }: any) => {
 
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
-    setView({ type: '', data: {} });
+    if(popupState.success) setView({ type: '', data: {} });
   };
 
   useEffect(() => {
