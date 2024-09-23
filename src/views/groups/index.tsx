@@ -25,7 +25,7 @@ export const Groups = () => {
     group_name: '',
     type: '',
     parent_code: '',
-    isPredefinedGroup: true,
+    isPredefinedGroup: false,
   };
   const { sendAPIRequest } = useApi();
   const { createAccess, updateAccess } = usePermission('group')
@@ -72,22 +72,30 @@ export const Groups = () => {
 
   const handleConfirmPopup = async (dataa?: any) => {
    const respData = dataa ? dataa : formData;
-    setPopupState({ ...popupState, isModalOpen: false });
-    if (formData.group_name) {
-      formData.group_name =
-        formData.group_name.charAt(0).toUpperCase() +
-        formData.group_name.slice(1);
+   setPopupState({ ...popupState, isModalOpen: false });
+   if (formData.group_name) {
+     formData.group_name =
+     formData.group_name.charAt(0).toUpperCase() +
+     formData.group_name.slice(1);
     }
-    const payload = {
+    let payload:any = {
       group_name: respData.group_name || formData.group_name,
       type: formData.type || respData.type
     };
+    const isPayloadGroupNameExist = tableData.find((grp:GroupFormData)=> grp.group_name.toLowerCase() === payload.group_name.toLowerCase() && grp.group_code);
+    if (isPayloadGroupNameExist && !formData.group_code && isPayloadGroupNameExist.type === payload.type) {
+      settingPopupState(false, `${payload.group_name} group already exists`);
+      return;
+    }else{
+      if (isPayloadGroupNameExist) { 
+        payload = {...isPayloadGroupNameExist, type: payload.type}
+    }}
     if (payload !== initialValue) {
       try {
-        if (formData.group_code) {
-          await sendAPIRequest(`/group/${formData.group_code}`,{
+        if (formData.group_code || (isPayloadGroupNameExist && isPayloadGroupNameExist.type !== payload.type)) {
+          await sendAPIRequest(`/group/${formData.group_code || payload.group_code}`,{
               method: 'PUT',
-              body: formData,
+              body: formData.group_name ?  formData : payload,
             }
           );
         } else {
@@ -165,7 +173,7 @@ export const Groups = () => {
   };
 
   const handelFormSubmit = (values: GroupFormData) => {
-    const mode = values.group_code ? 'update' : 'create';
+    let mode = values.group_code ? 'update' : 'create';
     const existingGroup = tableData?.find((group: GroupFormData) => {
       if (mode === 'create')
         return (
@@ -176,9 +184,19 @@ export const Groups = () => {
         group.group_code !== values.group_code
       );
     });
-    if (existingGroup) {
-      settingPopupState(false, 'Group with this name already exists!')
-      return;
+    if (mode === 'create' && existingGroup){
+      if (existingGroup.group_code && existingGroup.type !== values.type){
+        values = {...existingGroup,type: values.type};
+        mode = 'update';
+      }else{
+        settingPopupState(false, 'Group already exists!')
+        return;
+      }
+    }else{
+      if(existingGroup){
+        settingPopupState(false, 'Group already exists!')
+        return;
+      }
     }
     if (values.group_name) {
       values.group_name =
@@ -214,12 +232,25 @@ export const Groups = () => {
       node.setDataValue(field, newValue);
     } else {
       try {
-        node.setDataValue(field, e.newValue);
-        await sendAPIRequest(`/group/${data.group_code}`, {
-          method: 'PUT',
-          body: { [field]: newValue },
-        });
-        getAndSetGroupsHandler();
+        if (newValue) {
+          if (column.colId === 'group_name'){
+            const isPayloadGroupNameExist = tableData.find((grp: GroupFormData) => grp.group_name.toLowerCase() === newValue.toLowerCase() && grp.group_code && grp.group_code !== data.group_code);
+            if (isPayloadGroupNameExist) {
+              settingPopupState(false, `${newValue} group name already exists`);
+              node.setDataValue(field, oldValue);
+              return;
+            }
+          }
+          node.setDataValue(field, e.newValue);
+          await sendAPIRequest(`/group/${data.group_code}`, {
+            method: 'PUT',
+            body: { [field]: newValue },
+          });
+          getAndSetGroupsHandler();
+        }else{
+          settingPopupState(false,"Name is Required");
+          node.setDataValue(field, oldValue);
+        }
       } catch (error: any) {
         if (!error?.isErrorHandled) {
           settingPopupState(false, `${error.message}`);
@@ -320,21 +351,23 @@ export const Groups = () => {
           justifyContent: 'center',
           alignItems: 'center',
         },
-        cellRenderer: (params: { data: GroupFormData }) => (
-          <div className='table_edit_buttons'>
-            <FaEdit
-              style={{ cursor: 'pointer', fontSize: '1.1rem' }}
-              onClick={() => {
-                setSelectedRow(selectedRow !== null ? null : params.data);
-                handleUpdate(params.data);
-              }}
-            />
-            <MdDeleteForever
-              style={{ cursor: 'pointer', fontSize: '1.2rem' }}
-              onClick={() => handleDelete(params.data)}
-            />
-          </div>
-        ),
+        cellRenderer: (params: { data: GroupFormData,node:any }) => (
+          !params.data.isPredefinedGroup && <div className='table_edit_buttons'>
+              <FaEdit
+                style={{ cursor: 'pointer', fontSize: '1.1rem' }}
+                onClick={() => {
+                  setSelectedRow(selectedRow !== null ? null : params.data);
+                  handleUpdate(params.data);
+                }}
+              />
+              { params.node.rowIndex !== 0 &&
+              <MdDeleteForever
+                style={{ cursor: 'pointer', fontSize: '1.2rem' }}
+                onClick={() => handleDelete(params.data)}
+              />
+              }
+            </div>
+          )
       },
     ];
 

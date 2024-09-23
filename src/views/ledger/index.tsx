@@ -41,7 +41,7 @@ export const Ledger = ({type = ''}) => {
   const getAndSetLedgerHandler = useGetSetData(getAndSetParty);
 
   const { controlRoomSettings } = useControls();
-  const { createAccess, updateAccess, deleteAccess } = usePermission('ledger')
+  const { createAccess, updateAccess } = usePermission('ledger')
   const initialValues = {
     multiplePriceList: controlRoomSettings.multiplePriceList || true,
     printPartyBalance: controlRoomSettings.printPartyBalance || false,
@@ -67,7 +67,7 @@ export const Ledger = ({type = ''}) => {
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [selectedRow, popupState]);
-
+  
   const handleKeyDown = (event: KeyboardEvent) => {
     handleKeyDownCommon(
       event,
@@ -188,6 +188,14 @@ export const Ledger = ({type = ''}) => {
       headerName: 'Station',
       field: 'station_id',
       cellDataType: 'text',
+      editable:(params:any) => {
+        return [
+          'SUNDRY CREDITORS',
+          'SUNDRY DEBTORS',
+          'GENERAL GROUP',
+          'DISTRIBUTORS, C & F',
+        ].includes(params.data.Group.group_name.toUpperCase());
+      },
       cellEditor: 'agSelectCellEditor',
       cellEditorParams: { values: ledgerStations },
       valueFormatter: (params: { value: string | number }) => lookupStation(Number(params.value)),
@@ -249,7 +257,7 @@ export const Ledger = ({type = ''}) => {
       ),
     },
   ];
-  
+
   const ledger = () => {
     return (
       <>
@@ -266,6 +274,7 @@ export const Ledger = ({type = ''}) => {
             </Button>
             {createAccess && (
               <Button
+                autoFocus={true}
                 type='highlight'
                 handleOnClick={() => setView({ type: 'add', data: {} })}
               >

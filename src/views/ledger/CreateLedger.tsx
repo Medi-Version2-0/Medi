@@ -40,7 +40,7 @@ export const CreateLedger = ({ setView, data }: any) => {
     isAlertOpen: false,
     message: '',
   });
-
+  const hasButtonClicked = useRef<boolean>(false);
   const prevClass = useRef('');
 
   useEffect(() => {
@@ -67,7 +67,7 @@ export const CreateLedger = ({ setView, data }: any) => {
       country: data?.country || 'INDIA',
       state: data?.state || '',
       pinCode: data?.pinCode || '',
-      stateInout: data?.stateInout || '',
+      stateInout: data?.stateInout || 'Within State',
       salesPriceList: data?.salesPriceList || '',
       transport: data?.transport || '',
       creditPrivilege: data?.creditPrivilege || '',
@@ -167,6 +167,8 @@ export const CreateLedger = ({ setView, data }: any) => {
       Object.keys(ledgerFormInfo.initialValues).forEach((key) => {
         if (key !== 'partyName') newValues[key] = '';
       });
+      newValues.stateInout = initialValues.stateInout;
+      newValues.openingBalType = initialValues.openingBalType;
       newValues.partyName = ledgerFormInfo.values.partyName;
       newValues.accountGroup = value;
       if (
@@ -254,57 +256,59 @@ export const CreateLedger = ({ setView, data }: any) => {
             <ContactNumbers selectedGroupName={group} formik={ledgerFormInfo} />
           </div>
         </div>
-        {isSUNDRY && (
-          <div className='shadow-lg mx-8'>
-            <div className='flex flex-row my-1'>
-              {[
-                'GST/Tax Details',
-                'Licence Info',
-                'Contact Info',
-                'Bank Details',
-              ].map((label, idx) => (
-                <Button
-                  key={label}
-                  type='fog'
-                  btnType='button'
-                  id={label.replace(' ', '_')}
-                  className={`rounded-none !border-r-[1px] focus:font-black ${!!showActiveElement.btn_1 && 'border-b-blue-500 border-b-[2px]'} text-sm font-medium !py-1`}
-                  handleOnClick={() => handleClick(`btn_${idx + 1}`)}
-                  handleOnKeyDown={(e) => {
-                    if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                      handleClick(`btn_${idx + 1}`);
-                      document.getElementById(getInitialFocusFieldName(label))?.focus();
-                      e.preventDefault();
-                    } else if (e.key === 'ArrowRight') {
-                      document.getElementById('Licence_Info')?.focus();
-                      e.preventDefault();
-                    }
-                    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-                      document.getElementById('phone3')?.focus();
-                      e.preventDefault();
-                    }
-                  }}
-                >
-                  {label}
-                </Button>
-              ))}
+        {
+          isSUNDRY && (
+            <div className='shadow-lg mx-8'>
+              <div className='flex flex-row my-1'>
+                {[
+                  'GST/Tax Details',
+                  'Licence Info',
+                  'Contact Info',
+                  'Bank Details',
+                ].map((label, idx) => (
+                  <Button
+                    key={label}
+                    type='fog'
+                    btnType='button'
+                    id={label.replace(' ', '_')}
+                    className={`rounded-none !border-r-[1px] focus:font-black ${!!showActiveElement.btn_1 && 'border-b-blue-500 border-b-[2px]'} text-sm font-medium !py-1`}
+                    handleOnClick={() => handleClick(`btn_${idx + 1}`)}
+                    handleOnKeyDown={(e) => {
+                      if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                        handleClick(`btn_${idx + 1}`);
+                        document.getElementById(getInitialFocusFieldName(label))?.focus();
+                        e.preventDefault();
+                      } else if (e.key === 'ArrowRight') {
+                        document.getElementById('Licence_Info')?.focus();
+                        e.preventDefault();
+                      }
+                      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                        document.getElementById('phone3')?.focus();
+                        e.preventDefault();
+                      }
+                    }}
+                  >
+                    {label}
+                  </Button>
+                ))}
+              </div>
+              {showActiveElement.btn_1 && <TaxDetails formik={ledgerFormInfo} />}
+              {showActiveElement.btn_2 && (
+                <LicenceDetails formik={ledgerFormInfo} />
+              )}
+              {showActiveElement.btn_3 && (
+                <ContactDetails formik={ledgerFormInfo} />
+              )}
+              {showActiveElement.btn_4 && <BankDetails formik={ledgerFormInfo} />}
             </div>
-            {showActiveElement.btn_1 && <TaxDetails formik={ledgerFormInfo} />}
-            {showActiveElement.btn_2 && (
-              <LicenceDetails formik={ledgerFormInfo} />
-            )}
-            {showActiveElement.btn_3 && (
-              <ContactDetails formik={ledgerFormInfo} />
-            )}
-            {showActiveElement.btn_4 && <BankDetails formik={ledgerFormInfo} />}
-          </div>
-        )}
+          )
+        }
         <div className='w-full px-8 py-2'>
           <Button
             type='fill'
             padding='px-4 py-2'
             id='submit_all'
-            disable={!ledgerFormInfo.isValid}
+            disable={!ledgerFormInfo.isValid || hasButtonClicked.current}
             // handleOnClick={() => {
               
             // }}
@@ -316,6 +320,9 @@ export const CreateLedger = ({ setView, data }: any) => {
                   )
                   ?.focus();
                 e.preventDefault();
+              }
+              if (e.key === 'Enter') {
+                hasButtonClicked.current = true;
               }
             }}
           >

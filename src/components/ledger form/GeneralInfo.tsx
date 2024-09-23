@@ -172,7 +172,7 @@ export const GeneralInfo = ({
             )}
           </div>
           {isSUNDRY && (
-            <div className='flex items-center w-[40%]'>
+            <div className="flex items-center w-[40%] before:content-['*'] before:relative before:-right-11 before:text-red-500">
               <CustomSelect
                 isPopupOpen={false}
                 label='Station'
@@ -182,11 +182,11 @@ export const GeneralInfo = ({
                   formik.values.station_id === ''
                     ? null
                     : {
-                        value: formik.values.station_id,
-                        label: stationOptions.find(
-                          (e) => e.value === formik.values.station_id
-                        )?.label,
-                      }
+                      value: formik.values.station_id,
+                      label: stationOptions.find(
+                        (e) => e.value === formik.values.station_id
+                      )?.label,
+                    }
                 }
                 onChange={handleFieldChange}
                 options={stationOptions}
@@ -199,20 +199,20 @@ export const GeneralInfo = ({
                 isFocused={focused === 'stationName'}
                 error={formik.errors.stationName}
                 isTouched={formik.touched.stationName}
-                  onBlur={() => {
-                    formik.setFieldTouched('stationName', true);
-                    setFocused('');
-                  }}
-                  onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-                    const dropdown = document.querySelector(
-                      '.custom-select__menu'
-                    );
-                    if (e.key === 'Enter') {
-                      !dropdown && e.preventDefault();
-                      document.getElementById('address1')?.focus();
-                      setFocused('address1')
-                    }
-                  }}
+                onBlur={() => {
+                  formik.setFieldTouched('stationName', true);
+                  setFocused('');
+                }}
+                onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+                  const dropdown = document.querySelector(
+                    '.custom-select__menu'
+                  );
+                  if (e.key === 'Enter') {
+                    !dropdown && e.preventDefault();
+                    const nextFieldId = 'address1';
+                    document.getElementById(nextFieldId)?.focus();
+                  }
+                }}
                 showErrorTooltip={true}
                 noOptionsMsg='No station found,create one...'
               />
@@ -312,13 +312,14 @@ export const GeneralInfo = ({
           </div>
         )}
         <div className='flex flex-row justify-between w-full items-center'>
-        {isSUNDRY && (
-            <div className='w-[50.3%]'>
+        <div className='flex gap-[9%] w-full'>
+          {isSUNDRY && (
               <FormikInputField
                 isPopupOpen={false}
                 label='Email to'
                 id='mailTo'
                 name='mailTo'
+                className='!w-[51%]'
                 isTitleCase={false}
                 formik={formik}
                 showErrorTooltip={formik.touched.mailTo && formik.errors.mailTo}
@@ -330,21 +331,18 @@ export const GeneralInfo = ({
                   handleKeyDown(e)
                 }
               />
-            </div>
         )}
-        <div className={`flex items-center ${isSUNDRY ? 'w-[40%]' : 'w-[50%]'}`}>
+            <div className={`flex items-center ${isSUNDRY ? 'w-[41%]' : 'w-[50%]'} before:content-['*'] before:relative before:-right-[70px] before:text-red-500`}>
           <CustomSelect
             isPopupOpen={false}
             label='State In Out'
             id='stateInout'
             labelClass={`${isSUNDRY ? 'items-center w-1/2 ' : 'min-w-[90px]'}`}
             value={
-              formik.values.stateInout === ''
-                ? null
-                : {
-                    label: formik.values.stateInout,
-                    value: formik.values.stateInout,
-                  }
+              {
+                label: formik.values.stateInout,
+                value: formik.values.stateInout,
+              }
             }
             onChange={handleFieldChange}
             options={[
@@ -365,12 +363,13 @@ export const GeneralInfo = ({
               const dropdown = document.querySelector('.custom-select__menu');
               if (e.key === 'Enter') {
                 !dropdown && e.preventDefault();
-                const nextFieldId = isSUNDRY &&  controlRoomSettings.multiPriceList ? 'salesPriceList' : 'openingBal';
-                document.getElementById(nextFieldId)?.focus();                    
+                const nextFieldId = isSUNDRY && controlRoomSettings.multiPriceList ? 'salesPriceList' : 'openingBal';
+                document.getElementById(nextFieldId)?.focus();
                 setFocused(nextFieldId);
               }
             }}
           />
+          </div>
         </div>
         </div>
         <div>

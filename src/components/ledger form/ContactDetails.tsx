@@ -6,9 +6,6 @@ interface personalInfoProps {
 }
 
 export const ContactDetails: React.FC<personalInfoProps> = ({ formik }) => {
-  const handleClick = () => {
-    document.getElementById('Bank_Details')?.focus();
-  }
   return (
     <div className='grid grid-cols-2  gap-x-4 gap-y-2 px-2 m-2 text-xs leading-3 text-gray-600'>
       <FormikInputField
@@ -18,7 +15,7 @@ export const ContactDetails: React.FC<personalInfoProps> = ({ formik }) => {
         id='firstName'
         name='firstName'
         formik={formik}
-        prevField='licenceExpiry'
+        prevField='Contact_Info'
         nextField='lastName'
       />
       <FormikInputField
@@ -55,7 +52,6 @@ export const ContactDetails: React.FC<personalInfoProps> = ({ formik }) => {
         formik={formik}
         prevField='emailId1'
         nextField='Bank_Details'
-        // onKeyDown={handleClick}
         showErrorTooltip={formik.touched.emailId2 && formik.errors.emailId2}
       />
     </div>

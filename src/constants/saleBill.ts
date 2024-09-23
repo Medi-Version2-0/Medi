@@ -13,55 +13,34 @@ export const discoutTypeOptions: Option[] = [
   { id: 3, label: 'Percent Discount', value: 'Percent Discount' },
 ];
 
-export const partyFooterData:any[] = [
-  {
-    label: 'Address',
-    data: [
-      {
-        label: 'Party Name',
-        key: 'partyName'
-      },
-      {
-        label: 'Address 1',
-        key: 'address1'
-      },
-      {
-        label: 'Address 2',
-        key: 'address2'
-      },
-      {
-        label: 'Address 3',
-        key: 'address3'
-      },
-    ]
-  },
+export const partyFooterData: any[] = [
   {
     label: 'License Info',
     data: [
       {
-        label: 'Party Name',
-        key: 'partyName'
+        label: 'LicenceNo1',
+        key: 'drugLicenceNo1'
       },
+      {
+        label: 'LicenceNo2',
+        key: 'drugLicenceNo2'
+      },
+      {
+        label: 'licenceExpiry',
+        key: 'licenceExpiry'
+      }
     ]
   },
   {
-    label: 'OtherInfo',
+    label: 'GST Info',
     data: [
       {
-        label: 'Party Name',
-        key: 'partyName'
+        label: 'GSTIN',
+        key: 'gstIn'
       },
       {
-        label: 'Country',
-        key: 'country'
-      },
-      {
-        label: 'PinCode',
-        key: 'pinCode'
-      },
-      {
-        label: 'Station Name',
-        key: 'station_name'
+        label: 'GST Expiry',
+        key: 'gstExpiry'
       },
     ]
   },
@@ -70,19 +49,19 @@ export const partyFooterData:any[] = [
     data: [
       {
         label: 'Opening',
-        key: 'openingBalType'
+        key: 'openingBal'
       },
       {
         label: 'Credit',
-        key: 'openingBalType'
+        key: 'credit'
       },
       {
         label: 'Debit',
-        key: 'openingBalType'
+        key: 'debit'
       },
       {
-        label: 'Balance',
-        key: 'openingBalType'
+        label: 'Closing',
+        key: 'closingBalance'
       },
     ]
   },

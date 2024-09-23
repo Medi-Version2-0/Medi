@@ -178,7 +178,10 @@ export const Stations = () => {
         if (isValid) {
           await sendAPIRequest(`/station/${data.station_id}`, {
             method: 'PUT',
-            body: { [field]: newValue },
+            body: { 
+              [field]: newValue,
+              state_code: data.state_code,
+            },
           });
         }
         fetchData();
