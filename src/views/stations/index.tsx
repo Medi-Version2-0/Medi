@@ -85,7 +85,8 @@ export const Stations = () => {
       }
     } catch (error: any) {
       if (!error?.isErrorHandled) {
-        settingPopupState(false, `Error in creating stations. Please try again`);
+        const errorMessage = error?.response?.data?.error?.message || 'Error in creating stations. Please try again'
+        settingPopupState(false, `${errorMessage}`);
         console.log('Station not created or updated',error)
       }
     }
