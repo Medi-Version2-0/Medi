@@ -125,6 +125,7 @@ export const Godown = () =>{
         if (node.rowIndex === 0 && createAccess) {
           try {
             if (data.godownName) {
+              if(tableData.length >= 10 ) return settingPopupState(false, 'Reached Godown creation Limit');
               const response: any = await sendAPIRequest(`/godown/`, {
                 method: 'POST',
                 body: { [field]: newValue },
