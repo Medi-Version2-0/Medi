@@ -197,6 +197,7 @@ export interface PopupProps {
   onClose?: () => void;
   isSuggestionPopup?: boolean;
   id?: string;
+  focusChain?: string[];
 }
 
 export interface Confirm_Alert_PopupProps {

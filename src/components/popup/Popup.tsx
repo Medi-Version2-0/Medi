@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { PopupProps } from '../../interface/global';
 import { FaTimes } from 'react-icons/fa';
+import { TabManager } from '../class/tabManager';
 
 export const Popup: React.FC<PopupProps> = ({
   heading,
@@ -9,7 +11,23 @@ export const Popup: React.FC<PopupProps> = ({
   id,
   isSuggestionPopup,
   onClose,
+  focusChain =[]
 }) => {
+
+  useEffect(() => {
+    if (id) {
+      const tabManager = TabManager.getInstance();
+      tabManager.addPopupToActiveTab(id, focusChain);
+    }
+      return () => {
+      if (id) {
+        const tabManager = TabManager.getInstance();
+        tabManager.removePopupFromActiveTab(id);
+      }
+    };
+  }, []);
+  
+  
   return (
     <div className={`flex justify-center items-center fixed w-full h-full overflow-auto bg-[#00000066] z-[3] left-0 top-0 ${className}`} id={id}>
       <div className={`${isSuggestionPopup ? 'min-w-md max-w-[75%] h-fit' : ''} max-w-xs max-h-[42rem] bg-white border px-0 py-4 rounded-[0.4rem] border-solid border-[#888] ${childClass}`}>

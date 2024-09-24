@@ -14,7 +14,7 @@ export const Tabs = () => {
         panelComponent: <p>Welcome!</p>,
       },
     ],
-    selectedTabID: '1',
+    selectedTabID: 'tab-id-1',
   };
 
   const [Tablist, Panellist, ready] = useDynTabs(options);
