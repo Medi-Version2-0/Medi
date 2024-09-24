@@ -15,6 +15,7 @@ export const TabsProvider: React.FC<{ children: React.ReactNode; ready: (cb: (in
   useEffect(() => {
     const onReady = (instance: any) => {
       instanceRef.current = instance;
+      tabManager.setDynTabsInstance(instance)
       if (!listenersAddedRef.current) {
         const handleSelect = (tab: { currentSelectedTabId: string; previousSelectedTabId: string }) => {
           console.log('calling on select');
