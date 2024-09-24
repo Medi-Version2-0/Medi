@@ -118,6 +118,7 @@ const SaleBill = () => {
           <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
             onClick={() => {
+              params.data.isDLSet = true; 
               setView({ type: 'add', data: params.data });
             }}
           />

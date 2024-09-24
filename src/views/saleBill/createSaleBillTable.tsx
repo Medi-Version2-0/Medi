@@ -174,7 +174,7 @@ export const CreateSaleBillTable = ({ setDataFromTable, totalValue, setTotalValu
       const companyWiseDiscount = partyWiseDiscountForCompany.filter((party: any) => party?.discountType === 'companyWise');
       const dpcoActDiscount = partyWiseDiscountForCompany.filter((party: any) => party?.discountType === 'dpcoact');
   
-      const discountGiven = !!dpcoActDiscount.length ? dpcoActDiscount[0].discount : (!!companyWiseDiscount.length ? companyWiseDiscount[0].discount : (!!allPartyWiseDiscount.length ? allPartyWiseDiscount[0].discount : 0))
+      const discountGiven = !!dpcoActDiscount.length ? dpcoActDiscount[0].discount : (!!companyWiseDiscount.length ? companyWiseDiscount[0].discount : (!!allPartyWiseDiscount.length ? allPartyWiseDiscount[0].discount : null))
   
       newGridData[rowIndex].columns = {
         ...newGridData[rowIndex].columns,

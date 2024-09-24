@@ -5,6 +5,7 @@ import { Container } from '../../components/common/commonFormFields';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { useQueryClient } from '@tanstack/react-query';
 import useApi from '../../hooks/useApi';
+import { getTodayDate } from '../../helper/helper';
 
 export const DiscountTypeSection = ({ setView, data }: any) => {
     const [focused, setFocused] = useState('');
@@ -48,15 +49,15 @@ export const DiscountTypeSection = ({ setView, data }: any) => {
     const discountTypeFormik: any = useFormik({
         initialValues: {
             discountType: data?.discountType || '',
-            isDiscountAfterSaleTax: data?.isDiscountAfterSaleTax || '',
+            isDiscountAfterSaleTax: data?.isDiscountAfterSaleTax || 'Discount After Sale Tax',
             discountAmt: data?.discountAmt || '',
             discountPer: data?.discountPer || '',
-            transportMode: data?.transportMode || '',
+            transportMode: data?.transportMode || 'Road',
             transportDistance: data?.transportDistance || '',
             transportE: data?.transportE || '',
             transportId: data?.transportId || '',
             transportDocNo: data?.transportDocNo || '',
-            dDate: data?.dDate || '',
+            dDate: data?.dDate || getTodayDate(new Date()),
             vehicle: data?.vehicle || '',
         },
         onSubmit: async (values: any) => {
@@ -241,7 +242,7 @@ export const DiscountTypeSection = ({ setView, data }: any) => {
             label: 'D. Date',
             id: 'dDate',
             name: 'dDate',
-            type: 'text',
+            type: 'date',
             nextField: 'vehicle',
             prevField: 'transportDocNo',
         },
