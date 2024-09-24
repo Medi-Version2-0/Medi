@@ -246,8 +246,8 @@ export const Stations = () => {
 
   const gridOptions: GridOptions<any> = {
     pagination: true,
-    paginationPageSize: 18,
-    paginationPageSizeSelector: [18, 30, 40],
+    paginationPageSize: 20,
+    paginationPageSizeSelector: [20, 30, 40],
     defaultColDef: {
       editable: (params: any) => params.node.rowIndex === 0 ? createAccess : updateAccess,
       flex: 1,
