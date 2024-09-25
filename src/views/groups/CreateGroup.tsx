@@ -143,7 +143,7 @@ export const CreateGroup = ({
                       })
                     }
                   />
-                  <span>Bl. Sheet</span>
+                  <span>B/S</span>
                 </label>
                 {formik.touched.type && formik.errors.type && (
                   <>

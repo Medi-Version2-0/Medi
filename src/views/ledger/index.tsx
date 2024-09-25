@@ -114,11 +114,13 @@ export const Ledger = ({type = ''}) => {
       await getAndSetParties();
     } catch(error:any) {
       if (error?.response?.status !== 401 && error?.response?.status !== 403){
-        setPopupState({
-          ...popupState,
-          isAlertOpen: true,
-          message: 'This Party is associated',
-        });
+        if (error?.response?.status === 400){
+          setPopupState({
+            ...popupState,
+            isAlertOpen: true,
+            message: error?.response.data.error.message,
+          });
+        }
       }
     }
   };

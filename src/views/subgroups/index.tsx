@@ -62,6 +62,10 @@ export const SubGroups = () => {
     setPopupState({ ...popupState, isModalOpen: false });
   };
 
+  useEffect(() => {
+    document.getElementById('account_button')?.focus();  // when component mounted then focus will be on addGroup button
+  }, [document.getElementById('account_button')]);  
+
   const handleConfirmPopup = async (data?: any) => {
     const respData = data ? data : formData;
     setPopupState({ ...popupState, isModalOpen: false });
