@@ -66,3 +66,11 @@ export const isLessThanMonths = (date1Str:string, date2Str:string , months:numbe
   const monthDiff = (date2.getFullYear() - date1.getFullYear()) * 12 + (date2.getMonth() - date1.getMonth());
   return Math.abs(monthDiff) <= (months || 6);
 }
+
+export const getTodayDate = (date: Date): string =>  {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const formattedDate = `${year}-${month}-${day}`;
+  return formattedDate;
+}

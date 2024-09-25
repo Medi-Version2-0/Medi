@@ -19,6 +19,7 @@ import { partyHeaders } from '../partywisePriceList/partywiseHeader';
 import { partyFooterData } from '../../constants/saleBill';
 import { useTabs } from '../../TabsContext';
 import { Ledger } from '../ledger';
+import { getTodayDate } from '../../helper/helper';
 
 const CreateSaleBill = ({ setView, data }: any) => {
   const [options, setOptions] = useState<{ seriesOption: Option[]; stationOption: Option[]; partyOption: Option[]; }>({ seriesOption: [], stationOption: [], partyOption: [] });
@@ -86,10 +87,10 @@ const CreateSaleBill = ({ setView, data }: any) => {
       terms: data?.terms || '',
       invoiceNumber: data?.invoiceNumber || '',
       drugLicenceNo1: data?.drugLicenceNo1 || '',
-      date: data?.date || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }), // dd//mm//yyyy
+      date: data?.date || getTodayDate(new Date()), // dd//mm//yyyy
       gstNo: data?.gstNo || '',
       grNo: data?.grNo || '',
-      despDate: data?.despDate || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+      despDate: data?.despDate || getTodayDate(new Date()), // dd//mm//yyyy
       packingSlipNo: data?.packingSlipNo || '',
       transport: data?.transport || '',
       narration: data?.narration || '',
@@ -432,7 +433,7 @@ const CreateSaleBill = ({ setView, data }: any) => {
       label: 'Date',
       id: 'date',
       name: 'date',
-      type: 'text',
+      type: 'date',
       nextField: 'grNo',
       prevField: 'drugLicenceNo1',
     },
@@ -456,7 +457,7 @@ const CreateSaleBill = ({ setView, data }: any) => {
       label: 'Desp. Date', // dispatch date
       id: 'despDate',
       name: 'despDate',
-      type: 'text',
+      type: 'date',
       nextField: 'packingSlipNo',
       prevField: 'grNo',
     },
@@ -467,7 +468,7 @@ const CreateSaleBill = ({ setView, data }: any) => {
       isTitleCase: false,
       type: 'text',
       nextField: 'transport',
-      prevField: 'grNo',
+      prevField: 'despDate',
     },
     {
       label: 'Transport',
