@@ -312,7 +312,7 @@ export const ChallanTable = ({
                               }
                             }}
                             onKeyDown={(e) => handleKeyDown(e, rowIndex, colIndex)}
-                            className={`flex-shrink-0 text-right text-xs ${stikyColumn?.includes(colIndex) ? 'sticky left-0' : ''
+                            className={`flex-shrink-0 text-xs ${stikyColumn?.includes(colIndex) ? 'sticky left-0' : ''
                               }`}
                             inputClassName={`p-2`}
                             isDisabled={header.props.disable}
@@ -346,7 +346,7 @@ export const ChallanTable = ({
                             }
                           }}
                           onKeyDown={(e) => handleKeyDown(e, rowIndex, colIndex)}
-                          className={`flex-shrink-0 border-[1px] p-2 text-right text-xs border-solid border-gray-400 ${stikyColumn?.includes(colIndex) ? 'sticky left-0' : ''
+                          className={`flex-shrink-0 border-[1px] p-2 text-xs border-solid border-gray-400 ${stikyColumn?.includes(colIndex) ? 'sticky left-0' : ''
                             }`}
                           style={{ width: header.width }}
                           disabled={header.props.disable}
