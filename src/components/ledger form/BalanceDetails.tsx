@@ -1,7 +1,7 @@
 import React , { useState } from 'react';
-import FormikInputField from '../common/FormikInputField';
 import CustomSelect from '../custom_select/CustomSelect';
 import { Option } from '../../interface/global';
+import NumberInput from '../common/numberInput/numberInput';
 interface BalanceDetailsProps {
   selectedGroupName: string;
   formik?: any;
@@ -12,48 +12,15 @@ export const BalanceDetails = ({
   formik,
 }: BalanceDetailsProps) => {
   const [focused, setFocused] = useState('');
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const id = e.target.id;
-    const value = e.target.value;
-    let filteredValue = value.replace(/[^0-9.]/g, '');
-    const decimalIndex = filteredValue.indexOf('.');
-    if (decimalIndex !== -1) {
-      const beforeDecimal = filteredValue.slice(0, decimalIndex);
-      const afterDecimal = filteredValue.slice(decimalIndex + 1);
-  
-      filteredValue = beforeDecimal + '.' + afterDecimal.slice(0, 2);
-    }
-    if (id === 'openingBal') {
-      if (filteredValue.length <= 12) {
-        formik.setFieldValue('openingBal', filteredValue);
-      } else {
-        formik.setFieldValue('openingBal', filteredValue.slice(0, 12));
-      }
-    } else if (id === 'creditDays') {
-      if (filteredValue.length <= 3) {
-        formik.setFieldValue(id, filteredValue);
-      } else {
-        formik.setFieldValue(id, filteredValue.slice(0, 3));
-      }
-    } else if (id === 'creditLimit' ){
-      formik.setFieldValue(id, filteredValue);
-    }
-  };
 
   const handleFieldChange = (option: Option | null, id: string) => {
     formik.setFieldValue(id, option?.value);
-  };
-
-  const resetField = (e: React.MouseEvent<HTMLInputElement>) => {
-    const inputElement = e.currentTarget;
-    inputElement.setSelectionRange(0, inputElement.value.length);
   };
 
   const isSpecialGroup = selectedGroupName.toUpperCase() === 'SUNDRY CREDITORS' ||
   selectedGroupName.toUpperCase() === 'SUNDRY DEBTORS' ||
   selectedGroupName?.toUpperCase() === 'GENERAL GROUP' ||
   selectedGroupName?.toUpperCase() === 'DISTRIBUTORS, C & F';
-
   return (
     <div className='relative border border-solid border-gray-400 '>
       <div className='absolute top-[-14px] left-2 px-2 w-max bg-[#f3f3f3]'>
@@ -61,31 +28,31 @@ export const BalanceDetails = ({
       </div>
       <div className='flex flex-col gap-2 w-full p-4 text-xs text-gray-600 leading-3'>
         <div className='flex flex-row gap-2 items-center w-full'>
-          <FormikInputField
-            isPopupOpen={false}
+          <NumberInput
             label={`Opening Balance ₹`}
             id='openingBal'
             name='openingBal'
-            formik={formik}
-            onChange={handleChange}
             placeholder='0.00'
-            className='!mb-0'
-            inputClassName='h-9 text-right'
-            labelClassName='w-fit text-nowrap'
-            maxLength={12}
+            maxLength={16}
+            value={formik.values.openingBal}
+            onChange={(value) => formik.setFieldValue('openingBal', value)}
+            onBlur={() => {
+              formik.setFieldTouched('openingBal', true);
+            }}
             prevField='stateInout'
             nextField='openingBalType'
-            onKeyDown={(e: any) => {
+            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
                 setFocused('openingBalType')
 
               }
             }}
-            showErrorTooltip={
-              formik.touched.openingBal && formik.errors.openingBal
-            }
+            labelClassName='min-w-[90px] !h-[22px] w-fit text-nowrap me-2'
+            inputClassName='text-left !text-[10px] px-1 !h-[22px] !w-[70%]'
+            error={formik.touched.openingBal && formik.errors.openingBal}
           />
+
           <CustomSelect
             isPopupOpen={false}
             value={
@@ -174,42 +141,35 @@ export const BalanceDetails = ({
         </div>
         {isSpecialGroup && (
           <div className='flex flex-col gap-1'>
-            <FormikInputField
-              isPopupOpen={false}
+            <NumberInput
               label='Credit Limit'
               id='creditLimit'
               name='creditLimit'
-              labelClassName='w-[47%]'
-              onChange={handleChange}
-              inputClassName='text-right'
-              formik={formik}
-              placeholder='0'
-              className=''
-              onClick={resetField}
+              value={formik.values.creditLimit}
+              onChange={(value) => formik.setFieldValue('creditLimit', value)}
+              onBlur={() => {
+                formik.setFieldTouched('creditLimit', true);
+              }}
               prevField='partyType'
               nextField='creditDays'
-              onKeyDown={(e) => {
-                if (e.key === 'Tab' && e.shiftKey) {
-                  e.preventDefault();
-                  setFocused('partyType');
-                }
-              }}
-            
+              labelClassName='min-w-[90px] !h-[22px] w-[47%]'
+              inputClassName='text-left !text-[10px] px-1 !h-[22px]'
             />
-            <FormikInputField
-              isPopupOpen={false}
+            <NumberInput
               label='Credit Days'
               id='creditDays'
-              name='creditDays'
-              formik={formik}
               placeholder='0'
-              labelClassName='w-[47%]'
-              inputClassName='text-right'
-              onChange={handleChange}
-              onClick={resetField}
-              maxLength={3}
+              name='creditDays'
+              value={formik.values.creditDays}
+              onChange={(value) => formik.setFieldValue('creditDays', value)}
+              onBlur={() => {
+                formik.setFieldTouched('creditDays', true);
+              }}
               prevField='creditLimit'
               nextField='phoneNumber'
+              maxLength={3}
+              labelClassName='min-w-[90px] !h-[22px] w-[47%]'
+              inputClassName='text-left !text-[10px] px-1 !h-[22px]'
             />
           </div>
         )}

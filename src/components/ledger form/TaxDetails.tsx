@@ -22,8 +22,19 @@ export const TaxDetails: React.FC<TaxInfoProps> = ({
         isUpperCase={true}
         labelClassName='min-w-[90px]'
         prevField='GST/Tax_Details'
-        nextField='panCard'
+        nextField='gstExpiry'
         showErrorTooltip={formik.touched.gstIn && formik.errors.gstIn}
+      />
+      <FormikInputField
+        isPopupOpen={false}
+        type='date'
+        label='GST Expiry'
+        id='gstExpiry'
+        name='gstExpiry'
+        labelClassName='min-w-[90px]'
+        formik={formik}
+        prevField='gstIn'
+        nextField='panCard'
       />
       <FormikInputField
       isPopupOpen={false}
@@ -35,7 +46,7 @@ export const TaxDetails: React.FC<TaxInfoProps> = ({
         maxLength={10}
         formik={formik}
         labelClassName='min-w-[90px]'
-        prevField='gstIn'
+        prevField='gstExpiry'
         nextField='Licence_Info'
         showErrorTooltip={formik.touched.panCard && formik.errors.panCard}
       />

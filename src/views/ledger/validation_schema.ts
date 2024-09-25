@@ -50,4 +50,5 @@ export const getLedgerFormValidationSchema = () =>
     emailId2: Yup.string().email('Invalid email'),
     drugLicenceNo2: Yup.string(),
     accountHolderName: Yup.string().max(50, 'Account Holder Name must be 50 characters or less'),
+    fssaiNumber:Yup.number().nullable(),
   });

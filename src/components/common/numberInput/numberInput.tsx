@@ -11,7 +11,7 @@ interface NumberInputProps {
     onChange: (value: string | number | null) => void;
     onBlur?: () => void;
     onFocus?: () => void;
-    onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
+    onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
     error?: string;
     placeholder?: string;
     min?: number;
@@ -24,6 +24,7 @@ interface NumberInputProps {
     prevField?: string;
     nextField?: string;
     autoFocus?: boolean;
+    maxLength?: number;
     style?: string;
 }
 
@@ -48,6 +49,7 @@ const NumberInput: React.FC<NumberInputProps> = ({
     prevField,
     nextField,
     autoFocus = false,
+    maxLength,
     style,
 }) => {
     const inputRef = useRef<HTMLInputElement>(null);
@@ -58,6 +60,7 @@ const NumberInput: React.FC<NumberInputProps> = ({
 
     useEffect(() => {
         if (value !== null && value !== undefined) {
+            if(maxLength && String(value).length > maxLength) return;
             setInputValue(String(value));
         } else {
             setInputValue('');
@@ -82,6 +85,7 @@ const NumberInput: React.FC<NumberInputProps> = ({
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         let val = e.target.value;
+        if (maxLength && val.length > maxLength) return; // prevent to enter digits more than max length
         // Allow empty input to set value to null
         if (val === '') {
             setInputValue('');

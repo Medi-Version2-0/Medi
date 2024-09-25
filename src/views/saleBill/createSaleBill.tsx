@@ -16,9 +16,9 @@ import { SelectList } from '../../components/common/customSelectList/customSelec
 import { BillBookFormData, LedgerFormData, Option, SaleBillFormInfoType, StationFormData } from '../../interface/global';
 import { DrugLicenceSection } from './drugLicenceSection';
 import { partyHeaders } from '../partywisePriceList/partywiseHeader';
-import { partyFooterData } from '../../constants/saleBill';
 import { useTabs } from '../../TabsContext';
 import { Ledger } from '../ledger';
+import usePartyFooterData from '../../hooks/usePartyFooterData';
 import { getTodayDate } from '../../helper/helper';
 
 const CreateSaleBill = ({ setView, data }: any) => {
@@ -37,6 +37,7 @@ const CreateSaleBill = ({ setView, data }: any) => {
   const isEditing = useRef<boolean>(false);
   const invoiceNo = useRef<string>('');
   const { openTab } = useTabs();
+  const partyFooterData = usePartyFooterData();
 
   const [popupState, setPopupState] = useState<any>({
     isModalOpen: false,

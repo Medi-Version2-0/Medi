@@ -4,15 +4,16 @@ import CustomSelect from '../custom_select/CustomSelect';
 import FormikInputField from '../common/FormikInputField';
 import titleCase from '../../utilities/titleCase';
 import onKeyDown from '../../utilities/formKeyDown';
-import { useSelector } from 'react-redux';
 import { useControls } from '../../ControlRoomContext';
 import { useUser } from '../../UserContext';
+import useApi from '../../hooks/useApi';
 
 interface GeneralInfoProps {
   onValueChange?: any;
   formik?: any;
   selectedGroup: string;
   groupOptions: Option[];
+  stationData: any[];
 }
 
 export const GeneralInfo = ({
@@ -20,10 +21,10 @@ export const GeneralInfo = ({
   formik,
   selectedGroup,
   groupOptions,
+  stationData,
 }: GeneralInfoProps) => {
-  const {stations : stationData} = useSelector((state:any)=> state.global)
   const {selectedCompany} = useUser();
-  const {organizations} = useSelector((state:any)=> state.global)
+  const [organizations, setOrganizations] = useState<any[]>([]);
   const [stationOptions, setStationOptions] = useState<Option[]>([]);
   const isSUNDRY =
     selectedGroup.toUpperCase() === 'SUNDRY CREDITORS' ||
@@ -32,6 +33,8 @@ export const GeneralInfo = ({
     selectedGroup.toUpperCase() === 'DISTRIBUTORS, C & F';
   const [focused, setFocused] = useState('');
   const { controlRoomSettings } = useControls();
+  const { sendAPIRequest } = useApi();
+
 
   useEffect(() => {
     setStationOptions(
@@ -42,6 +45,18 @@ export const GeneralInfo = ({
     );
   }, [stationData])
 
+  useEffect(() => {
+    async function getAndSetOrganizations() {
+      try{
+        const allOrganizations = await sendAPIRequest('/organization');
+        setOrganizations(allOrganizations);
+      }catch(err) {
+        console.log("Organizations could not be retrieved in GeneralInfo")
+      }
+    }
+
+    getAndSetOrganizations();
+  },[]);
 
   useEffect(() => {
     document.getElementById('partyName')?.focus();
@@ -337,7 +352,7 @@ export const GeneralInfo = ({
                 labelClassName='min-w-[90px]'
                 inputClassName='w-[50%]'
                 prevField='transport'
-                nextField='stateInout'
+                nextField='openingBal'  // stateInout is disabled so nextfield is openingBal
                 onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                   handleKeyDown(e)
                 }

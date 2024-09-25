@@ -15,20 +15,17 @@ import { ControlRoomSettings } from '../../components/common/controlRoom/Control
 import { ledgerSettingFields } from '../../components/common/controlRoom/settings';
 import { CreateLedger } from './CreateLedger';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
-import { useSelector } from 'react-redux'
 import usePermission from '../../hooks/useRole';
-import { getAndSetParty } from '../../store/action/globalAction';
 import { getLedgerFormValidationSchema } from './validation_schema';
 import { validateField, decimalFormatter, createMap, extractKeys, lookupValue } from '../../helper/helper';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
-import { useGetSetData } from '../../hooks/useGetSetData';
 import useApi from '../../hooks/useApi';
 
 export const Ledger = ({type = ''}) => {
   const [view, setView] = useState<View>({ type, data: {} });
   const [selectedRow, setSelectedRow] = useState<any>(null);
-  const { stations: stationData, party: partyData } = useSelector((state: any) => state.global);
-  const [tableData, setTableData] = useState(partyData);
+  const [tableData, setTableData] = useState();
+  const [stationData, setStations] = useState<any[]>([]);
   const editing = useRef(false);
   const { sendAPIRequest } = useApi();
   const partyId = useRef('');
@@ -38,7 +35,6 @@ export const Ledger = ({type = ''}) => {
     isAlertOpen: false,
     message: '',
   });
-  const getAndSetLedgerHandler = useGetSetData(getAndSetParty);
 
   const { controlRoomSettings } = useControls();
   const { createAccess, updateAccess } = usePermission('ledger')
@@ -57,10 +53,30 @@ export const Ledger = ({type = ''}) => {
     setOpen(isOpen);
   };
 
-  useEffect(() => {
-    setTableData(partyData);
-  }, [partyData]);
+  async function getAndSetParties(){
+    try{
+      const allParties = await sendAPIRequest('/ledger');
+      allParties.sort((a: any, b: any) => b.party_id - a.party_id);  // sort all parties in descending order by party_id
+      setTableData(allParties);
+    }catch(err){
+      console.error('party data in ledger index not being fetched');
+    }
+  }
 
+  async function getAndSetStations(){
+    try{
+      const allStation = await sendAPIRequest('/station');
+      setStations(allStation);
+    }catch(err){
+      console.log('Stations not fetched in ledger index')
+    }
+  }
+  
+  useEffect(() => {
+    getAndSetParties();
+    getAndSetStations();
+  }, []);
+  
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
     return () => {
@@ -95,7 +111,7 @@ export const Ledger = ({type = ''}) => {
     setPopupState({ ...popupState, isModalOpen: false });
     try {
       await sendAPIRequest(`/ledger/${partyId.current}`, { method: 'DELETE' });
-      getAndSetLedgerHandler();
+      await getAndSetParties();
     } catch(error:any) {
       if (error?.response?.status !== 401 && error?.response?.status !== 403){
         setPopupState({
@@ -144,7 +160,7 @@ export const Ledger = ({type = ''}) => {
         method: 'PUT',
         body: { [field]: newValue },
       });
-      getAndSetLedgerHandler();
+      await getAndSetParties();
     }catch(error:any){
       if (!error?.isErrorHandled){
         node.setDataValue(field, oldValue);
@@ -327,7 +343,7 @@ export const Ledger = ({type = ''}) => {
   const renderView = () => {
     switch (view.type) {
       case 'add':
-        return <CreateLedger setView={setView} data={view.data} />;
+        return <CreateLedger setView={setView} data={view.data} getAndSetParties={getAndSetParties} stations={stationData}/>;
       default:
         return ledger();
     }
