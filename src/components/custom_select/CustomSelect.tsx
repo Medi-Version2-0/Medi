@@ -95,12 +95,12 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   }, [isFocused]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'Enter') {
+    if (!e.shiftKey && e.key === 'Enter') {
       if (nextField) {
         document.getElementById(nextField)?.focus();
       }
       isEmpty && e.preventDefault();
-    } else if ((e.key === 'Enter' && e.shiftKey) || e.key === 'ArrowUp') {
+    } else if (e.shiftKey && e.key === 'Enter' ) {
       if (prevField) {
         document.getElementById(prevField)?.focus();
       }

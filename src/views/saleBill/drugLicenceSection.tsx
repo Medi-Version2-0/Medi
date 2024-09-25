@@ -3,6 +3,7 @@ import { useRef } from "react";
 import { DrugLicenceSectionFormProps, DrugLicenceSectionProps } from "../../interface/global";
 import { Popup } from "../../components/popup/Popup";
 import FormikInputField from "../../components/common/FormikInputField";
+import { saleBillFormValidations } from "./vaildation_schema";
 
 export const DrugLicenceSection = ({ togglePopup, className, setDLNo }: DrugLicenceSectionProps) => {
   const formikRef = useRef<FormikProps<DrugLicenceSectionFormProps>>(null);
@@ -12,11 +13,12 @@ export const DrugLicenceSection = ({ togglePopup, className, setDLNo }: DrugLice
   };
 
   return (
-    <Popup heading={''} childClass='!max-h-fit flex min-w-fit max-w-fit px-6' className={className}>
-      <div className="flex gap-4">DL No. is Empty. <span>Enter DL No.</span></div>
+    <Popup childClass='!max-h-fit flex min-w-fit max-w-fit px-6' className={className}>
+      <div className="flex gap-4">Enter DL No : </div>
       <Formik
         innerRef={formikRef}
         initialValues={{ drugLicenceNo1: '' }}
+        validationSchema={saleBillFormValidations}
         onSubmit={handleSubmit}
       >
         {(formik) => (
@@ -31,9 +33,11 @@ export const DrugLicenceSection = ({ togglePopup, className, setDLNo }: DrugLice
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
-                    togglePopup(false);
-                    document.getElementById('invoiceNumber')?.focus();
-                    formik.handleSubmit();
+                    if(formik.isValid){
+                      togglePopup(false);
+                      formik.handleSubmit();
+                      document.getElementById('invoiceNumber')?.focus();
+                    }
                   }
                   if (e.key === 'Escape') {
                     togglePopup(false);

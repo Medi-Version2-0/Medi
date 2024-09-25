@@ -10,6 +10,7 @@ interface NumberInputProps {
     value: string | number | null;
     onChange: (value: string | number | null) => void;
     onBlur?: () => void;
+    onFocus?: () => void;
     onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
     error?: string;
     placeholder?: string;
@@ -24,6 +25,7 @@ interface NumberInputProps {
     nextField?: string;
     autoFocus?: boolean;
     maxLength?: number;
+    style?: string;
 }
 
 const NumberInput: React.FC<NumberInputProps> = ({
@@ -33,6 +35,7 @@ const NumberInput: React.FC<NumberInputProps> = ({
     value,
     onChange,
     onBlur,
+    onFocus,
     onKeyDown,
     error,
     placeholder,
@@ -47,6 +50,7 @@ const NumberInput: React.FC<NumberInputProps> = ({
     nextField,
     autoFocus = false,
     maxLength,
+    style,
 }) => {
     const inputRef = useRef<HTMLInputElement>(null);
     const [inputValue, setInputValue] = useState<string>('');
@@ -174,13 +178,14 @@ const NumberInput: React.FC<NumberInputProps> = ({
                     } ${inputClassName}`}
                 onChange={handleInputChange}
                 onBlur={handleBlur}
+                onFocus={onFocus}
                 placeholder={placeholder}
                 disabled={isDisabled}
                 data-next-field={nextField}
                 data-prev-field={prevField}
                 autoFocus={autoFocus}
                 inputMode='decimal'
-                onKeyDown={handleKeyDown}
+                onKeyDown={onKeyDown || handleKeyDown}
             />
             {error && (
                 <>

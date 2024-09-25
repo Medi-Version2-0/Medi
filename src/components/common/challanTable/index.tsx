@@ -3,6 +3,7 @@ import CustomSelect from '../../custom_select/CustomSelect';
 import { dateSchema } from '../../../views/DeliveryChallan/validation_schema';
 import Confirm_Alert_Popup from '../../popup/Confirm_Alert_Popup';
 import { BsTrash } from 'react-icons/bs';
+import NumberInput from '../numberInput/numberInput';
 
 interface RowData {
   id: number;
@@ -273,12 +274,14 @@ export const ChallanTable = ({
                                 const dropdown = document.querySelector(
                                   '.custom-select__menu'
                                 );
-                                if (!dropdown) e.preventDefault();
-                                document
-                                  .getElementById(
-                                    `cell-${rowIndex}-${colIndex + 1}`
-                                  )
-                                  ?.focus();
+                                if (!dropdown) {
+                                  e.preventDefault();
+                                  document
+                                    .getElementById(
+                                      `cell-${rowIndex}-${colIndex + 1}`
+                                    )
+                                    ?.focus();
+                                }
                               }
                             }}
                           />
@@ -286,46 +289,69 @@ export const ChallanTable = ({
                       );
 
                     case 'input':
-                      return (
+                      return header.props.inputType === 'number' ? (
+                        <div style={{ minWidth: header.width }}>
+                          <NumberInput
+                            name={`cell-${rowIndex}-${colIndex}`}
+                            key={colIndex}
+                            id={`cell-${rowIndex}-${colIndex}`}
+                            value={columnValue}
+                            onFocus={() => {
+                              return header.props.handleFocus
+                                ? header.props.handleFocus(rowIndex, colIndex)
+                                : () => { };
+                            }}
+                            onChange={(value) => {
+                              const args = {
+                                rowIndex,
+                                header: header.key,
+                                value: value === '' ? null : value,
+                              };
+                              if (header.props.handleChange) {
+                                header.props.handleChange(args);
+                              }
+                            }}
+                            onKeyDown={(e) => handleKeyDown(e, rowIndex, colIndex)}
+                            className={`flex-shrink-0 text-right text-xs ${stikyColumn?.includes(colIndex) ? 'sticky left-0' : ''
+                              }`}
+                            inputClassName={`p-2`}
+                            isDisabled={header.props.disable}
+                            onBlur={() => {
+                              const args = { row, rowIndex, colIndex, setFocused };
+                              if (header.props.handleBlur) {
+                                header.props.handleBlur(args);
+                              }
+                            }}
+                          />
+                        </div>
+                      ) : (
                         <input
                           key={colIndex}
                           id={`cell-${rowIndex}-${colIndex}`}
-                          type={header.props.inputType}
                           value={columnValue}
+                          type={header.props.inputType || 'text'}
                           onFocus={() => {
                             return header.props.handleFocus
                               ? header.props.handleFocus(rowIndex, colIndex)
-                              : () => {};
+                              : () => { };
                           }}
                           onChange={(e) => {
-                            const inputValue = e.target.value;
-
                             const args = {
                               rowIndex,
                               header: header.key,
-                              value:  header.props.inputType === 'number'
-                              ? inputValue === '' ? null : Number(inputValue)  // Set to null if input is empty
-                              : inputValue,
+                              value: e.target.value,
                             };
                             if (header.props.handleChange) {
                               header.props.handleChange(args);
                             }
                           }}
-                          min={header.props.inputType === 'number' ? 0 : undefined}
-                          step={header.props.inputType === 'number' ? 'any' : undefined}
-                          onKeyDown={(e) =>
-                            handleKeyDown(e, rowIndex, colIndex)
-                          }
-                          className={`flex-shrink-0 border-[1px] p-2 ${header.props.inputType === 'number' && 'text-right'} text-xs border-solid border-gray-400 ${stikyColumn?.includes(colIndex) ? 'sticky left-0' : ''}`}
+                          onKeyDown={(e) => handleKeyDown(e, rowIndex, colIndex)}
+                          className={`flex-shrink-0 border-[1px] p-2 text-right text-xs border-solid border-gray-400 ${stikyColumn?.includes(colIndex) ? 'sticky left-0' : ''
+                            }`}
                           style={{ width: header.width }}
                           disabled={header.props.disable}
                           onBlur={() => {
-                            const args = {
-                              row,
-                              rowIndex,
-                              colIndex,
-                              setFocused
-                            };
+                            const args = { row, rowIndex, colIndex, setFocused };
                             if (header.props.handleBlur) {
                               header.props.handleBlur(args);
                             }
@@ -350,6 +376,7 @@ export const ChallanTable = ({
               </div>
             ))}
         </div>
+      </div>
 
         {popupState.isAlertOpen && (
           <Confirm_Alert_Popup
@@ -360,6 +387,5 @@ export const ChallanTable = ({
           />
         )}
       </div>
-    </div>
   );
 };
