@@ -352,10 +352,10 @@ export const SelectList = ({
                 )}
 
                 {/* Footer */}
-                <div className={` left-0 mx-4 ${footerClass} overflow-auto`}>
-                    <div className={`flex flex-wrap gap-1 h-full w-full text-[12px]`}>
+                <div className={`h-[120px] left-0 mx-4 ${footerClass} overflow-auto`}>
+                    <div className={`flex flex-wrap gap-1 h-full w-full text-[.4rem] md:text-[.6rem] xxl:text-[1rem]`}>
                         {footers?.map((f: any, index: number) => (
-                            <fieldset key={index} className="border flex-1 min-w-[240px] rounded-sm h-full border-gray-300 px-1 py-1">
+                            <fieldset key={index} className="border flex-1 min-w-[240px] rounded-sm h-full border-gray-300 px-1 py-1 overflow-scroll">
                                 <legend className="font-semibold text-gray-700 px-2">
                                     {f.label}
                                 </legend>

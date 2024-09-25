@@ -13,6 +13,7 @@ export const LicenceDetails: React.FC<LicenceDetailsProps> = ({ formik }) => {
       isPopupOpen={false}
         label='Drug Lic. No.'
         id='drugLicenceNo1'
+        maxLength={15}
         name='drugLicenceNo1'
         labelClassName='min-w-[90px]'
         isUpperCase={true}
@@ -42,6 +43,7 @@ export const LicenceDetails: React.FC<LicenceDetailsProps> = ({ formik }) => {
           isPopupOpen={false}
             label='Drug Lic. No. 2'
             isUpperCase={true}
+            maxLength={15}
             id='drugLicenceNo2'
             name='drugLicenceNo2'
             labelClassName='min-w-[90px]'

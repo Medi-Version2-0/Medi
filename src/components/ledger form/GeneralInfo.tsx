@@ -337,7 +337,7 @@ export const GeneralInfo = ({
                 labelClassName='min-w-[90px]'
                 inputClassName='w-[50%]'
                 prevField='transport'
-                nextField='stateInout'
+                nextField='openingBal'  // stateInout is disabled so nextfield is openingBal
                 onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                   handleKeyDown(e)
                 }
