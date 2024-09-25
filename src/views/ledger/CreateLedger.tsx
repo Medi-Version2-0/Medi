@@ -15,7 +15,6 @@ import titleCase from '../../utilities/titleCase';
 import { Option, GroupFormData, StationFormData } from '../../interface/global';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
-import { useSelector } from 'react-redux';
 import useApi from '../../hooks/useApi';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
@@ -30,10 +29,9 @@ const initialState = {
   btn_5: false,  
 };
 
-export const CreateLedger = ({ setView, data, getAndSetParties }: any) => {
+export const CreateLedger = ({ setView, data, getAndSetParties, stations }: any) => {
   const { sendAPIRequest } = useApi();
-  const {stations} = useSelector((state:any)=> state.global)
-  const {groups : groupDataList} = useSelector((state:any)=> state.global)
+  const [groups, setGroups] = useState<any[]>([]);
   const [showActiveElement, setShowActiveElement] = useState(initialState);
   const [groupOptions, setGroupOptions] = useState<Option[]>([]);
   const [isSUNDRY, setIsSUNDRY] = useState(false);
@@ -47,13 +45,26 @@ export const CreateLedger = ({ setView, data, getAndSetParties }: any) => {
   const { controlRoomSettings } = useControls();
 
   useEffect(() => {
+    async function getAndSetGroups(){
+      try{
+        const allGroups = await sendAPIRequest('/group');
+        setGroups(allGroups);
+      }catch(error){
+        console.log("Error in Fetching groups in CreateLedger");
+      }
+    }
+
+    getAndSetGroups();
+  }, [])
+
+  useEffect(()=>{
     setGroupOptions(
-      groupDataList.map((group: GroupFormData) => ({
+      groups.map((group: GroupFormData) => ({
         value: group.group_code,
         label: titleCase(group.group_name),
       }))
     );
-  }, [groupDataList])
+  }, [groups])
 
   const initialValues = useMemo(
     () => ({
@@ -276,6 +287,7 @@ export const CreateLedger = ({ setView, data, getAndSetParties }: any) => {
             formik={ledgerFormInfo}
             selectedGroup={group}
             groupOptions={groupOptions}
+            stationData={stations}
           />
           <div className='flex flex-col gap-6 w-[40%]'>
             <BalanceDetails selectedGroupName={group} formik={ledgerFormInfo} />

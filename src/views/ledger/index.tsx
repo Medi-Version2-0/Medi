@@ -54,13 +54,22 @@ export const Ledger = ({type = ''}) => {
   };
 
   async function getAndSetParties(){
-    const allParties = await sendAPIRequest('/ledger');
-    setTableData(allParties);
+    try{
+      const allParties = await sendAPIRequest('/ledger');
+      allParties.sort((a: any, b: any) => b.party_id - a.party_id);  // sort all parties in descending order by party_id
+      setTableData(allParties);
+    }catch(err){
+      console.error('party data in ledger index not being fetched');
+    }
   }
 
   async function getAndSetStations(){
-    const allStation = await sendAPIRequest('/station');
-    setStations(allStation);
+    try{
+      const allStation = await sendAPIRequest('/station');
+      setStations(allStation);
+    }catch(err){
+      console.log('Stations not fetched in ledger index')
+    }
   }
   
   useEffect(() => {
@@ -334,7 +343,7 @@ export const Ledger = ({type = ''}) => {
   const renderView = () => {
     switch (view.type) {
       case 'add':
-        return <CreateLedger setView={setView} data={view.data} getAndSetParties={getAndSetParties}/>;
+        return <CreateLedger setView={setView} data={view.data} getAndSetParties={getAndSetParties} stations={stationData}/>;
       default:
         return ledger();
     }

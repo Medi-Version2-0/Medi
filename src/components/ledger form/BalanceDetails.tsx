@@ -33,7 +33,7 @@ export const BalanceDetails = ({
             id='openingBal'
             name='openingBal'
             placeholder='0.00'
-            maxLength={18}
+            maxLength={16}
             value={formik.values.openingBal}
             onChange={(value) => formik.setFieldValue('openingBal', value)}
             onBlur={() => {

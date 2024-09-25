@@ -154,9 +154,6 @@ const NumberInput: React.FC<NumberInputProps> = ({
             document.getElementById(prevField)?.focus();
           }
         }
-        if(onKeyDown){
-            onKeyDown(e);
-        }
       };
 
     return (
