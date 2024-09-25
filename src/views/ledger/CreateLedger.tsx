@@ -16,8 +16,6 @@ import { Option, GroupFormData, StationFormData } from '../../interface/global';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { useSelector } from 'react-redux';
-import { getAndSetParty } from '../../store/action/globalAction';
-import { useGetSetData } from '../../hooks/useGetSetData';
 import useApi from '../../hooks/useApi';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
@@ -32,8 +30,7 @@ const initialState = {
   btn_5: false,  
 };
 
-export const CreateLedger = ({ setView, data }: any) => {
-  const getAndSetLedgerHandler = useGetSetData(getAndSetParty);
+export const CreateLedger = ({ setView, data, getAndSetParties }: any) => {
   const { sendAPIRequest } = useApi();
   const {stations} = useSelector((state:any)=> state.global)
   const {groups : groupDataList} = useSelector((state:any)=> state.global)
@@ -146,7 +143,7 @@ export const CreateLedger = ({ setView, data }: any) => {
           message: `Ledger ${!!data?.party_id ? 'updated' : 'created'} successfully`,
           success: true,
         });
-        getAndSetLedgerHandler();
+        getAndSetParties();
       }catch(err:any){
         if (err.response?.data.messages)  setPopupState({ ...popupState, isAlertOpen: true, message: err.response?.data.messages.map((e:any)=>e.message).join('\n')  });
         else  setPopupState({...popupState, isAlertOpen: true, message: err.response?.data.error.message });
