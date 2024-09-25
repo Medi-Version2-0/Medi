@@ -30,7 +30,7 @@ export const PopupFormContainer = <FormValues,>({ fields, formik, setFocused, fo
     };
 
     return (
-        <div className={`flex flex-col gap-4 min-w-[18rem] items-start p-4 text-base text-gray-700`}>
+        <div className={`flex flex-col gap-3 min-w-[18rem] items-start px-4 text-base text-gray-700`}>
             {fields.map((field) =>
                 field.type === 'select' && field.options ? (
                     <div key={field.id} className={`flex flex-col w-full`}>
