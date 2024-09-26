@@ -34,6 +34,7 @@ export const BalanceDetails = ({
             name='openingBal'
             placeholder='0.00'
             maxLength={16}
+            min={0}
             value={formik.values.openingBal}
             onChange={(value) => formik.setFieldValue('openingBal', value)}
             onBlur={() => {
@@ -145,6 +146,7 @@ export const BalanceDetails = ({
               label='Credit Limit'
               id='creditLimit'
               name='creditLimit'
+              min={0}
               value={formik.values.creditLimit}
               onChange={(value) => formik.setFieldValue('creditLimit', value)}
               onBlur={() => {
@@ -159,6 +161,7 @@ export const BalanceDetails = ({
               label='Credit Days'
               id='creditDays'
               placeholder='0'
+              min={0}
               name='creditDays'
               value={formik.values.creditDays}
               onChange={(value) => formik.setFieldValue('creditDays', value)}
