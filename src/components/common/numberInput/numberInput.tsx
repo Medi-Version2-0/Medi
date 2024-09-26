@@ -171,7 +171,7 @@ const NumberInput: React.FC<NumberInputProps> = ({
                 id={id}
                 name={name}
                 value={inputValue}
-                className={`w-full border border-solid border-gray-400 text-sm text-gray-800 rounded-sm appearance-none disabled:text-gray-500 disabled:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:bg-blue-50 ${error ? 'border-red-500' : ''
+                className={`w-full border border-solid border-gray-400 text-right text-sm text-gray-800 rounded-sm appearance-none disabled:text-gray-500 disabled:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:bg-blue-50 ${error ? 'border-red-500' : ''
                     } ${inputClassName}`}
                 onChange={handleInputChange}
                 onBlur={handleBlur}
