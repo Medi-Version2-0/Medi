@@ -32,6 +32,7 @@ import { useTabs } from '../../TabsContext';
 import { useUser } from '../../UserContext';
 import { stationFocusChain } from '../../constants/stationFocusChain';
 import { Godown } from '../../views/godown/godown';
+import { saleChallanView } from '../../constants/focusChain/saleChallan';
 
 interface SidebarProps {
   isGroup?: boolean;
@@ -98,7 +99,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     {
       url: '/stations',
       label: 'Station Setup',
-      onClick: () => tabManager.openTab('Station Setup', <Stations />, stationFocusChain, openTab),
+      onClick: () => openTab?.('Station Setup', <Stations />),
       isDisabled: isNotReadAccess('station')
     },
     {
@@ -166,7 +167,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     {
       url: '/deliveryChallan',
       label: 'Sale Challan',
-      onClick: () => openTab?.('Sale Challan', <DeliveryChallan />),
+      onClick: () => tabManager.openTab('Sale Challan', <DeliveryChallan />, saleChallanView , openTab),
       isDisabled: isNotReadAccess('deliverychallan')
     },
     {

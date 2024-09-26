@@ -4,6 +4,7 @@ import { dateSchema } from '../../../views/DeliveryChallan/validation_schema';
 import Confirm_Alert_Popup from '../../popup/Confirm_Alert_Popup';
 import { BsTrash } from 'react-icons/bs';
 import NumberInput from '../numberInput/numberInput';
+import { TabManager } from '../../class/tabManager';
 
 interface RowData {
   id: number;
@@ -68,6 +69,7 @@ export const ChallanTable = ({
   widthRequired = '100vw',
 }: ChallanTableProps) => {
   const [focused, setFocused] = useState('');
+  const tabManager = TabManager.getInstance()
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
@@ -331,6 +333,8 @@ export const ChallanTable = ({
                           value={columnValue}
                           type={header.props.inputType || 'text'}
                           onFocus={() => {
+                            tabManager.setLastFocusedElementId(`cell-${rowIndex}-${colIndex}`)
+
                             return header.props.handleFocus
                               ? header.props.handleFocus(rowIndex, colIndex)
                               : () => { };

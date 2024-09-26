@@ -1,22 +1,24 @@
 export class TabManager {
     private static instance: TabManager;
-    private tabs: Array<{ 
-        tabId: string, 
-        focusChain: string[], 
-        lastFocusedElementId: string | null, 
-        popups?: Array<{ 
-            popupId: string, 
-            focusChain: string[], 
-            lastFocusedElementId: string | null 
-        }> 
+    private tabs: Array<{
+        tabId: string,
+        focusChain: string[],
+        lastFocusedElementId: string | null,
+        popups: Array<{
+            popupId: string,
+            focusChain: string[],
+            lastFocusedElementId: string | null
+        }>
     }> = [
-        {
-            tabId: `tab-id-1`,
-            focusChain: [],
-            lastFocusedElementId: null
-        }
-    ];
-    private activeTabId: string | null = null;
+            {
+                tabId: `tab-id-1`,
+                focusChain: [],
+                lastFocusedElementId: null,
+                popups: []
+            }
+        ];
+    private activeTabId: string | null = 'tab-id-1';
+    private activeTabIndex: number | null = 0;
     private dynTabsInstance: any | null = null;
 
     private constructor() {
@@ -35,41 +37,93 @@ export class TabManager {
     }
 
     private handleKeyPress(event: KeyboardEvent) {
+        const activeElement = document.activeElement as HTMLElement;
+    
+        if (this.activeTabId && this.activeTabIndex !== null) {
+            const activeTab = this.tabs[this.activeTabIndex];
+            if (activeTab && activeTab.popups.length > 0) {
+                const lastPopup = activeTab.popups[activeTab.popups.length - 1];
+    
+                if (lastPopup.popupId === 'selectList') {
+                    return;
+                }
+                    if (event.ctrlKey && event.key === 'n') {
+                    const newButton = document.querySelector(`[id="${lastPopup.popupId}"] #add`) as HTMLElement;
+                    if (newButton) {
+                        newButton.click();
+                        return;
+                    }
+                }
+    
+                if (event.ctrlKey && event.key === 's') {
+                    event.preventDefault();
+                    const saveButton = document.querySelector(`[id="${lastPopup.popupId}"] #save`) as HTMLButtonElement;
+                    if (saveButton && !saveButton.disabled) {
+                        saveButton.click();
+                        return;
+                    }
+                }
+            }
+            if (activeTab?.lastFocusedElementId?.includes('cell')){
+                return;
+            }
+    
+            if (event.ctrlKey && event.key === 'n') {
+                const newButton = document.querySelector(`div[tab-id="${this.activeTabId}"] #add`) as HTMLElement;
+                if (newButton) {
+                    newButton.click();
+                    return;
+                }
+            }
+    
+            if (event.ctrlKey && event.key === 's') {
+                event.preventDefault();
+                const saveButton = document.querySelector(`div[tab-id="${this.activeTabId}"] #save`) as HTMLButtonElement;
+                if (saveButton && !saveButton.disabled) {
+                    saveButton.click();
+                    return;
+                }
+            }
+        }
+    
         if (event.ctrlKey && event.key >= '1' && event.key <= '9') {
             const tabIndex = parseInt(event.key, 10) - 1;
             if (this.tabs.length > tabIndex) {
                 this.setSelectedTab(this.tabs[tabIndex].tabId);
             }
-        } 
-        else if (event.ctrlKey && event.key === 'w') {
+        } else if (event.ctrlKey && event.key === 'w') {
             event.preventDefault();
-            if (this.activeTabId) {
+            if (this.activeTabId && this.activeTabIndex !== null) {
                 this.closeTab(this.activeTabId);
                 if (!this.dynTabsInstance) {
                     return;
                 }
                 this.dynTabsInstance.close(this.activeTabId);
             }
-        } 
-       else if (event.shiftKey && event.key === 'Tab') {
+        } else if (event.shiftKey && event.key === 'Tab') {
             event.preventDefault();
-            this.focusManager(true); // Call with reverse set to true
-        }
-        else if (event.key === 'Tab') {
+            this.focusManager(true);
+        } else if (event.key === 'Tab') {
+            event.preventDefault();
+            this.focusManager();
+        } else if (event.key === 'Enter') {
+            if (activeElement && activeElement.tagName.toLowerCase() === 'button') {
+                return;
+            }
+            if (activeElement && activeElement.id.includes('custom_select')) {
+                return;
+            }
             event.preventDefault();
             this.focusManager();
         }
     }
     
+
     public addPopupToActiveTab(popupId: string, focusChain: string[]) {
-        if (!this.activeTabId) return;
+        if (this.activeTabIndex === null) return;
 
-        const activeTab = this.tabs.find(tab => tab.tabId === this.activeTabId);
+        const activeTab = this.tabs[this.activeTabIndex];
         if (!activeTab) return;
-
-        if (!activeTab.popups) {
-            activeTab.popups = [];
-        }
 
         activeTab.popups.push({
             popupId,
@@ -86,15 +140,11 @@ export class TabManager {
     }
 
     public removePopupFromActiveTab(popupId: string) {
-        if (!this.activeTabId) {
-            return;
-        }
+        if (this.activeTabIndex === null) return;
+        
+        const activeTab = this.tabs[this.activeTabIndex];
+        if (!activeTab || !activeTab.popups) return;
 
-        const activeTab = this.tabs.find(tab => tab.tabId === this.activeTabId);
-        if (!activeTab || !activeTab.popups) {
-            return;
-        }
-    
         const popupIndex = activeTab.popups.findIndex(popup => popup.popupId === popupId);
         if (popupIndex !== -1) {
             activeTab.popups.splice(popupIndex, 1);
@@ -112,7 +162,7 @@ export class TabManager {
                 }
             }
         }
-            if (activeTab.lastFocusedElementId) {
+        if (activeTab.lastFocusedElementId) {
             const tabContainer = document.querySelector(`div[tab-id="${this.activeTabId}"]`);
             if (tabContainer) {
                 const lastFocusedElement = tabContainer.querySelector(`#${activeTab.lastFocusedElementId}`);
@@ -122,59 +172,90 @@ export class TabManager {
             }
         }
     }
-    
+
     public setSelectedTab(tabId: string) {
-        if (!this.dynTabsInstance) {
-            return;
-        }
+        if (!this.dynTabsInstance) return;
         this.dynTabsInstance.select(tabId);
         this.setActiveTab(tabId);
     }
 
-    // Modified focus manager to handle focus when a popup is active
-    public focusManager(reverse: boolean = false) {
-        if (!this.activeTabId) return;
-        const tab = this.tabs.find(tab => tab.tabId === this.activeTabId);
-        if (!tab) return;
+    public updateFocusChainAndSetFocus(newFocusChain: string[], focusElementId: string) {
+        if (this.activeTabIndex === null) return;
+        const activeTab = this.tabs[this.activeTabIndex];
+        if (!activeTab) return;
+
+        activeTab.focusChain = newFocusChain;
+        activeTab.lastFocusedElementId = focusElementId;
+
+        const tabContainer = document.querySelector(`div[tab-id="${this.activeTabId}"]`);
+        if (!tabContainer) return;
+
+        const focusElement = tabContainer.querySelector(`#${focusElementId}`) as HTMLElement;
+        if (focusElement) {
+            focusElement.focus();
+        }
+    }
+
+    public setLastFocusedElementId(focusElementId: string) {
+        setTimeout(() => {
+            if (this.activeTabIndex === null) return;
+            const activeTab = this.tabs[this.activeTabIndex];
+            if (!activeTab) return;
     
-        // Check if a popup exists and manage focus inside it
-        if (tab.popups && tab.popups.length > 0) {
-            const popup = tab.popups[tab.popups.length - 1]; // Get the latest popup
+            let elementFound = false;
+            for (let i = activeTab.popups.length - 1; i >= 0; i--) {
+                const popup = activeTab.popups[i];
+                if (popup.focusChain.includes(focusElementId)) {
+                    popup.lastFocusedElementId = focusElementId;
+                    elementFound = true; 
+                    break; 
+                }
+            }
+
+            if (!elementFound) {
+                activeTab.lastFocusedElementId = focusElementId;
+            }
+        }, 0);
+    }
+
+    public focusManager(reverse: boolean = false) {
+        if (this.activeTabIndex === null) return;
+        const tab = this.tabs[this.activeTabIndex];
+
+        if (tab.popups.length > 0) {
+            const popup = tab.popups[tab.popups.length - 1];
             if (!popup.focusChain.length) return;
+
             const popupContainer = document.querySelector(`div[id="${popup.popupId}"]`);
             if (!popupContainer) return;
-    
+
             const currentFocusedElementIndex = popup.focusChain.indexOf(popup.lastFocusedElementId || '');
-            const nextIndex = reverse 
+            const nextIndex = reverse
                 ? (currentFocusedElementIndex - 1 + popup.focusChain.length) % popup.focusChain.length
                 : (currentFocusedElementIndex + 1) % popup.focusChain.length;
+
             const nextElementId = popup.focusChain[nextIndex];
+
             const nextElement = popupContainer.querySelector(`#${nextElementId}`) as HTMLElement;
-    
             if (nextElement) {
                 nextElement.focus();
                 popup.lastFocusedElementId = nextElementId;
             }
         } else {
-            // No popup, handle regular tab focus
-            if (tab.focusChain.length === 0) return;
-            const tabContainer = document.querySelector(`div[tab-id="${this.activeTabId}"]`);
-            if (!tabContainer) return;
-    
             const currentFocusedElementIndex = tab.focusChain.indexOf(tab.lastFocusedElementId || '');
-            const nextIndex = reverse 
+            const nextIndex = reverse
                 ? (currentFocusedElementIndex - 1 + tab.focusChain.length) % tab.focusChain.length
                 : (currentFocusedElementIndex + 1) % tab.focusChain.length;
+
             const nextElementId = tab.focusChain[nextIndex];
-            const nextElement = tabContainer.querySelector(`#${nextElementId}`) as HTMLElement;
-    
+
+            const nextElement = document.querySelector(`div[tab-id="${this.activeTabId}"] #${nextElementId}`) as HTMLElement;
             if (nextElement) {
                 nextElement.focus();
                 tab.lastFocusedElementId = nextElementId;
             }
         }
     }
-    
 
     public async openTab(
         tabName: string,
@@ -186,7 +267,8 @@ export class TabManager {
         this.tabs.push({
             tabId: `tab-id-${tabId}`,
             focusChain,
-            lastFocusedElementId: focusChain.length > 0 ? focusChain[0] : null
+            lastFocusedElementId: focusChain.length > 0 ? focusChain[0] : null,
+            popups: []
         });
         await openTabFunc(`${tabName}[${tabId}]`, component, `tab-id-${tabId}`);
         this.setActiveTab(`tab-id-${tabId}`);
@@ -194,13 +276,26 @@ export class TabManager {
 
     public setActiveTab(tabId: string) {
         this.activeTabId = tabId;
-        const tab = this.tabs.find(tab => tab.tabId === tabId);
-        if (tab && tab.lastFocusedElementId) {
-            const tabContainer = document.querySelector(`div[tab-id="${tabId}"]`);
-            if (tabContainer) {
-                const lastFocusedElement = tabContainer.querySelector(`#${tab.lastFocusedElementId}`);
-                if (lastFocusedElement) {
-                    (lastFocusedElement as HTMLElement).focus();
+        this.activeTabIndex = this.tabs.findIndex(tab => tab.tabId === tabId);
+
+        const tab = this.tabs[this.activeTabIndex];
+        if (tab) {
+            if (tab.popups.length > 0) {
+                const lastPopup = tab.popups[tab.popups.length - 1];
+                const popupContainer = document.querySelector(`[id="${lastPopup.popupId}"]`);
+                if (popupContainer) {
+                    const lastFocusedElement = popupContainer.querySelector(`#${lastPopup.lastFocusedElementId}`);
+                    if (lastFocusedElement) {
+                        (lastFocusedElement as HTMLElement).focus();
+                    }
+                }
+            } else if (tab.lastFocusedElementId) {
+                const tabContainer = document.querySelector(`div[tab-id="${tabId}"]`);
+                if (tabContainer) {
+                    const lastFocusedElement = tabContainer.querySelector(`#${tab.lastFocusedElementId}`);
+                    if (lastFocusedElement) {
+                        (lastFocusedElement as HTMLElement).focus();
+                    }
                 }
             }
         }
@@ -212,7 +307,6 @@ export class TabManager {
             return;
         }
         this.tabs.splice(tabIndex, 1);
-
         for (let i = 0; i < this.tabs.length; i++) {
             const tab = this.tabs[i];
             const tabId = tab.tabId;

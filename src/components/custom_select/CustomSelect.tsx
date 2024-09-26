@@ -5,6 +5,7 @@ import { FaExclamationCircle } from 'react-icons/fa';
 import { Option } from '../../interface/global';
 import './CustomSelect.css';
 import titleCase from '../../utilities/titleCase';
+import { TabManager } from '../class/tabManager';
 
 interface CustomSelectProps extends Omit<SelectProps<Option>, 'onChange'> {
   label?: string;
@@ -69,10 +70,15 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
     ? { DropdownIndicator: () => null, IndicatorSeparator: () => null }
     : {};
   const selectRef = useRef<any>(null);
+  const tabManager = TabManager.getInstance()
   const [inputValue, setInputValue] = useState('');
   const [active, setActive] = useState(false);
   const [isEmpty, setIsEmpty] = useState(false);
-  const handleFocus = () => {setActive(!active)
+  const handleFocus = () => {
+    setActive(!active)
+    if(id){
+      tabManager.setLastFocusedElementId(`custom_select_${id}`)
+    }
     if(onFocus){
       onFocus()
     }
@@ -128,7 +134,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
       >
         <Select
           ref={selectRef}
-          id={id || ''}
+          // id={id || ''}
           name={name || ''}
           classNamePrefix='custom-select'
           components={customComponents}
@@ -147,6 +153,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
           isDisabled={isDisabled}
           onBlur={handleBlur}
           onFocus={handleFocus}
+          inputId={id ? `custom_select_${id}` : ''}
           noOptionsMessage={() => {
             setIsEmpty(true);
             return noOptionsMsg;

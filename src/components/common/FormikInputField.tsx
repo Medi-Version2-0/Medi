@@ -5,6 +5,7 @@ import titleCase from '../../utilities/titleCase';
 import defautlKeyDown from '../../utilities/formKeyDown';
 import { FaEyeSlash } from "react-icons/fa";
 import { FaEye } from "react-icons/fa";
+import { TabManager } from '../class/tabManager';
 
 interface FormikInputFieldProps {
   label?: string;
@@ -76,6 +77,7 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
   autoFocus = false,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  const tabManager = TabManager.getInstance();
   const [visible,setVisibility] = useState(()=>{
     if(type === 'password') {
       return false;
@@ -163,6 +165,7 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
         onChange={onChange || handleChange}
         onKeyDown={handleKeyDown}
         onClick={onClick}
+        onFocus={()=> id && tabManager.setLastFocusedElementId(id)}
         placeholder={placeholder}
         disabled={isDisabled}
         data-next-field={nextField}
