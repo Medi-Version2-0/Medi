@@ -4,14 +4,16 @@ import CustomSelect from '../custom_select/CustomSelect';
 import FormikInputField from '../common/FormikInputField';
 import titleCase from '../../utilities/titleCase';
 import onKeyDown from '../../utilities/formKeyDown';
-import { useSelector } from 'react-redux';
 import { useControls } from '../../ControlRoomContext';
+import { useUser } from '../../UserContext';
+import useApi from '../../hooks/useApi';
 
 interface GeneralInfoProps {
   onValueChange?: any;
   formik?: any;
   selectedGroup: string;
   groupOptions: Option[];
+  stationData: any[];
 }
 
 export const GeneralInfo = ({
@@ -19,8 +21,10 @@ export const GeneralInfo = ({
   formik,
   selectedGroup,
   groupOptions,
+  stationData,
 }: GeneralInfoProps) => {
-  const {stations : stationData} = useSelector((state:any)=> state.global)
+  const {selectedCompany} = useUser();
+  const [organizations, setOrganizations] = useState<any[]>([]);
   const [stationOptions, setStationOptions] = useState<Option[]>([]);
   const isSUNDRY =
     selectedGroup.toUpperCase() === 'SUNDRY CREDITORS' ||
@@ -29,6 +33,8 @@ export const GeneralInfo = ({
     selectedGroup.toUpperCase() === 'DISTRIBUTORS, C & F';
   const [focused, setFocused] = useState('');
   const { controlRoomSettings } = useControls();
+  const { sendAPIRequest } = useApi();
+
 
   useEffect(() => {
     setStationOptions(
@@ -39,6 +45,18 @@ export const GeneralInfo = ({
     );
   }, [stationData])
 
+  useEffect(() => {
+    async function getAndSetOrganizations() {
+      try{
+        const allOrganizations = await sendAPIRequest('/organization');
+        setOrganizations(allOrganizations);
+      }catch(err) {
+        console.log("Organizations could not be retrieved in GeneralInfo")
+      }
+    }
+
+    getAndSetOrganizations();
+  },[]);
 
   useEffect(() => {
     document.getElementById('partyName')?.focus();
@@ -55,6 +73,13 @@ export const GeneralInfo = ({
     }
     if (id === 'stationName') {
       formik.setFieldValue('station_id', option?.value);
+      const currOrganization = organizations.find((o:any) => o.id === selectedCompany)
+      const selectedState = stationData.find((s:any)=> s.station_id === option?.value)
+      if (currOrganization.stateId !== selectedState.state_code){
+        formik.setFieldValue('stateInout', 'Out Of State');
+      }else{
+        formik.setFieldValue('stateInout', 'Within State');
+      }
     }
     if (id === 'salesPriceList') {
       formik.setFieldValue(id, option?.label);
@@ -71,7 +96,7 @@ export const GeneralInfo = ({
       const state = matchingStation ? matchingStation.station_state : '';
       const pinCode = matchingStation ? matchingStation.station_pinCode : ' ';
       formik.setFieldValue('state', state);
-      formik.setFieldValue('pinCode', pinCode);
+      formik.setFieldValue('pinCode', String(pinCode));
     }
   }, [formik.values.stationName]);
 
@@ -159,11 +184,12 @@ export const GeneralInfo = ({
                     '.custom-select__menu'
                   );
                   if (e.key === 'Enter' && selectedGroup) {
-                    !dropdown && e.preventDefault();
-                    const nextFieldId = isSUNDRY ? 'stationName' : 'stateInout';
-                    document.getElementById(nextFieldId)?.focus();                    
-                    setFocused(nextFieldId);
-                  }
+                    if(!dropdown){
+                      e.preventDefault();
+                      const nextFieldId = isSUNDRY ? 'stationName' : 'stateInout';
+                      document.getElementById(nextFieldId)?.focus();
+                      setFocused(nextFieldId);
+                    }}
                 }}
                 error={formik.errors.accountGroup}
                 isTouched={formik.touched.accountGroup}
@@ -326,7 +352,7 @@ export const GeneralInfo = ({
                 labelClassName='min-w-[90px]'
                 inputClassName='w-[50%]'
                 prevField='transport'
-                nextField='stateInout'
+                nextField='openingBal'  // stateInout is disabled so nextfield is openingBal
                 onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                   handleKeyDown(e)
                 }
@@ -351,6 +377,7 @@ export const GeneralInfo = ({
             ]}
             isSearchable={false}
             isFocused={focused === 'stateInout'}
+            isDisabled={isSUNDRY}
             placeholder='Select an option'
             disableArrow={false}
             hidePlaceholder={false}

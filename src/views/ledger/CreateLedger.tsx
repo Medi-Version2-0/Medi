@@ -15,23 +15,23 @@ import titleCase from '../../utilities/titleCase';
 import { Option, GroupFormData, StationFormData } from '../../interface/global';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
-import { useSelector } from 'react-redux';
-import { getAndSetParty } from '../../store/action/globalAction';
-import { useGetSetData } from '../../hooks/useGetSetData';
 import useApi from '../../hooks/useApi';
+import useHandleKeydown from '../../hooks/useHandleKeydown';
+import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
+import { FssaiNumber } from '../../components/ledger form/FssaiNumber.';
+import { useControls } from '../../ControlRoomContext';
 
 const initialState = {
   btn_1: false,
   btn_2: false,
   btn_3: false,
   btn_4: false,
+  btn_5: false,  
 };
 
-export const CreateLedger = ({ setView, data }: any) => {
-  const getAndSetLedgerHandler = useGetSetData(getAndSetParty);
+export const CreateLedger = ({ setView, data, getAndSetParties, stations }: any) => {
   const { sendAPIRequest } = useApi();
-  const {stations} = useSelector((state:any)=> state.global)
-  const {groups : groupDataList} = useSelector((state:any)=> state.global)
+  const [groups, setGroups] = useState<any[]>([]);
   const [showActiveElement, setShowActiveElement] = useState(initialState);
   const [groupOptions, setGroupOptions] = useState<Option[]>([]);
   const [isSUNDRY, setIsSUNDRY] = useState(false);
@@ -39,18 +39,32 @@ export const CreateLedger = ({ setView, data }: any) => {
     isModalOpen: false,
     isAlertOpen: false,
     message: '',
+    success:false,
   });
-  const hasButtonClicked = useRef<boolean>(false);
   const prevClass = useRef('');
+  const { controlRoomSettings } = useControls();
 
   useEffect(() => {
+    async function getAndSetGroups(){
+      try{
+        const allGroups = await sendAPIRequest('/group');
+        setGroups(allGroups);
+      }catch(error){
+        console.log("Error in Fetching groups in CreateLedger");
+      }
+    }
+
+    getAndSetGroups();
+  }, [])
+
+  useEffect(()=>{
     setGroupOptions(
-      groupDataList.map((group: GroupFormData) => ({
+      groups.map((group: GroupFormData) => ({
         value: group.group_code,
         label: titleCase(group.group_name),
       }))
     );
-  }, [groupDataList])
+  }, [groups])
 
   const initialValues = useMemo(
     () => ({
@@ -100,6 +114,7 @@ export const CreateLedger = ({ setView, data }: any) => {
       ifscCode: data?.ifscCode || '',
       accountType: data?.accountType || '',
       branchName: data?.branchName || '',
+      fssaiNumber: data?.fssaiNumber || '',
     }),
     [data]
   );
@@ -118,30 +133,51 @@ export const CreateLedger = ({ setView, data }: any) => {
         openingBal: formattedOpeningBal,
         accountCode: values.accountGroup,
         station_id: values.station_id || null,
-        state: matchingStation ? matchingStation.state_code : '',
+        state: matchingStation ? String(matchingStation.state_code) : '', // typeCasting of state to string
       };
       delete allData.accountGroup;
       delete allData.stationName;
-
+      // filtering fields from allData that are not empty string
+      const filteredData = Object.fromEntries(
+        Object.entries(allData).filter(([key, value]) => value !== '')
+      );
       const apiPath = data?.party_id
         ? `/ledger/${data?.party_id}`
         : `/ledger`;
 
       const method = data?.party_id ? 'PUT' : 'POST';
       try{
-        await sendAPIRequest(apiPath, { method, body: allData });
+        await sendAPIRequest(apiPath, { method, body: filteredData });
         setPopupState({
           ...popupState,
           isAlertOpen: true,
           message: `Ledger ${!!data?.party_id ? 'updated' : 'created'} successfully`,
+          success: true,
         });
-        getAndSetLedgerHandler();
-      }catch(errr){
+        getAndSetParties();
+      }catch(err:any){
+        if (err.response?.data.messages)  setPopupState({ ...popupState, isAlertOpen: true, message: err.response?.data.messages.map((e:any)=>e.message).join('\n')  });
+        else  setPopupState({...popupState, isAlertOpen: true, message: err.response?.data.error.message });
+        document.getElementById('partyName')?.focus();
         if (method === 'PUT') console.log('Party not Updated');
         if (method === 'POST') console.log('Party not Created');
       }
     },
   });
+
+  const handleKeyDown = (event: KeyboardEvent) => {  
+    handleKeyDownCommon(
+      event,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      ledgerFormInfo.submitForm,
+      ledgerFormInfo.values
+    );
+  };
+  useHandleKeydown(handleKeyDown, [])   // to implement ctrl + s 
 
   const group = useMemo(
     () =>
@@ -168,7 +204,6 @@ export const CreateLedger = ({ setView, data }: any) => {
         if (key !== 'partyName') newValues[key] = '';
       });
       newValues.stateInout = initialValues.stateInout;
-      newValues.openingBalType = initialValues.openingBalType;
       newValues.partyName = ledgerFormInfo.values.partyName;
       newValues.accountGroup = value;
       if (
@@ -201,7 +236,7 @@ export const CreateLedger = ({ setView, data }: any) => {
 
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
-    setView({ type: '', data: {} });
+    if(popupState.success) setView({ type: '', data: {} });
   };
 
   useEffect(() => {
@@ -222,6 +257,8 @@ export const CreateLedger = ({ setView, data }: any) => {
         return 'firstName'
       case 'Bank Details':
         return 'bankName'
+      case 'FSSAI Number':
+        return 'fssaiNumber'
       default:
         return "gstIn"
     }
@@ -250,6 +287,7 @@ export const CreateLedger = ({ setView, data }: any) => {
             formik={ledgerFormInfo}
             selectedGroup={group}
             groupOptions={groupOptions}
+            stationData={stations}
           />
           <div className='flex flex-col gap-6 w-[40%]'>
             <BalanceDetails selectedGroupName={group} formik={ledgerFormInfo} />
@@ -265,6 +303,7 @@ export const CreateLedger = ({ setView, data }: any) => {
                   'Licence Info',
                   'Contact Info',
                   'Bank Details',
+                  ...controlRoomSettings.fssaiNumber ? ['FSSAI Number'] : []
                 ].map((label, idx) => (
                   <Button
                     key={label}
@@ -300,6 +339,7 @@ export const CreateLedger = ({ setView, data }: any) => {
                 <ContactDetails formik={ledgerFormInfo} />
               )}
               {showActiveElement.btn_4 && <BankDetails formik={ledgerFormInfo} />}
+              {controlRoomSettings.fssaiNumber && showActiveElement.btn_5 && <FssaiNumber formik={ledgerFormInfo} />}
             </div>
           )
         }
@@ -308,26 +348,25 @@ export const CreateLedger = ({ setView, data }: any) => {
             type='fill'
             padding='px-4 py-2'
             id='submit_all'
-            disable={!ledgerFormInfo.isValid || hasButtonClicked.current}
+            disable={!ledgerFormInfo.isValid || ledgerFormInfo.isSubmitting}
             // handleOnClick={() => {
               
             // }}
             handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
               if (e.key === 'ArrowUp') {
                 document
-                  .getElementById(
-                    isSUNDRY ? 'accountHolderName' : 'openingBalType'
-                  )
+                .getElementById(
+                  isSUNDRY ? 'accountHolderName' : 'openingBalType'
+                )
                   ?.focus();
                 e.preventDefault();
               }
-              if (e.key === 'Enter') {
-                hasButtonClicked.current = true;
-              }
             }}
           >
-            {data?.party_id ? 'Update Party' : 'Create Party'}
+            {ledgerFormInfo.isSubmitting ? 'Submitting' : data?.party_id ? 'Update Party' : 'Create Party'}
           </Button>
+          {/* will show why button is disable  */}
+          {/* <p className='text-red-500 text-[14px] mt-1'>{!ledgerFormInfo.isValid && Object.values(ledgerFormInfo.errors)[0].toString()}</p> */}  
         </div>
       </form>
       {(popupState.isModalOpen || popupState.isAlertOpen) && (

@@ -154,7 +154,7 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
       {children}
       <input
         ref={inputRef}
-        type={visible ? 'text' : 'password'}
+        type={visible ? type : 'password'}
         id={id}
         name={name}
         maxLength={maxLength}

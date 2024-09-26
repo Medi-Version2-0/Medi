@@ -8,25 +8,6 @@ interface TaxInfoProps {
 export const TaxDetails: React.FC<TaxInfoProps> = ({
   formik,
 }) => {
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const id = e.target.id;
-    const value = e.target.value;
-    if(id === 'gstIn'){
-      if(value.length <= 15){
-        formik.setFieldValue('gstIn', value);
-      }else{
-        formik.setFieldValue('gstIn', value.slice(0, 15));
-      }
-    }
-    else if(id === 'panCard'){
-      if(value.length <= 10){
-        formik.setFieldValue('panCard', value);
-      }else{
-        formik.setFieldValue('panCard', value.slice(0, 10));
-      }
-    }
-  };
-
   return (
     <div className='flex flex-col  gap-x-4 gap-y-2 w-1/2 px-2 m-2 text-xs leading-3 text-gray-600'>
       <FormikInputField
@@ -38,23 +19,34 @@ export const TaxDetails: React.FC<TaxInfoProps> = ({
         isTitleCase={false}
         isRequired={false}
         formik={formik}
+        isUpperCase={true}
         labelClassName='min-w-[90px]'
-        onChange={handleChange}
         prevField='GST/Tax_Details'
-        nextField='panCard'
+        nextField='gstExpiry'
         showErrorTooltip={formik.touched.gstIn && formik.errors.gstIn}
+      />
+      <FormikInputField
+        isPopupOpen={false}
+        type='date'
+        label='GST Expiry'
+        id='gstExpiry'
+        name='gstExpiry'
+        labelClassName='min-w-[90px]'
+        formik={formik}
+        prevField='gstIn'
+        nextField='panCard'
       />
       <FormikInputField
       isPopupOpen={false}
         label='Pan No.'
         id='panCard'
         name='panCard'
-        onChange={handleChange}
         isTitleCase={false}
+        isUpperCase={true}
         maxLength={10}
         formik={formik}
         labelClassName='min-w-[90px]'
-        prevField='gstIn'
+        prevField='gstExpiry'
         nextField='Licence_Info'
         showErrorTooltip={formik.touched.panCard && formik.errors.panCard}
       />

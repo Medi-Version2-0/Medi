@@ -10,6 +10,8 @@ interface NumberInputProps {
     value: string | number | null;
     onChange: (value: string | number | null) => void;
     onBlur?: () => void;
+    onFocus?: () => void;
+    onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
     error?: string;
     placeholder?: string;
     min?: number;
@@ -22,6 +24,8 @@ interface NumberInputProps {
     prevField?: string;
     nextField?: string;
     autoFocus?: boolean;
+    maxLength?: number;
+    style?: string;
 }
 
 const NumberInput: React.FC<NumberInputProps> = ({
@@ -31,6 +35,8 @@ const NumberInput: React.FC<NumberInputProps> = ({
     value,
     onChange,
     onBlur,
+    onFocus,
+    onKeyDown,
     error,
     placeholder,
     min,
@@ -43,6 +49,8 @@ const NumberInput: React.FC<NumberInputProps> = ({
     prevField,
     nextField,
     autoFocus = false,
+    maxLength,
+    style,
 }) => {
     const inputRef = useRef<HTMLInputElement>(null);
     const [inputValue, setInputValue] = useState<string>('');
@@ -52,6 +60,7 @@ const NumberInput: React.FC<NumberInputProps> = ({
 
     useEffect(() => {
         if (value !== null && value !== undefined) {
+            if(maxLength && String(value).length > maxLength) return;
             setInputValue(String(value));
         } else {
             setInputValue('');
@@ -76,6 +85,7 @@ const NumberInput: React.FC<NumberInputProps> = ({
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         let val = e.target.value;
+        if (maxLength && val.length > maxLength) return; // prevent to enter digits more than max length
         // Allow empty input to set value to null
         if (val === '') {
             setInputValue('');
@@ -161,17 +171,18 @@ const NumberInput: React.FC<NumberInputProps> = ({
                 id={id}
                 name={name}
                 value={inputValue}
-                className={`w-full border border-solid border-gray-400 text-sm text-gray-800 rounded-sm appearance-none disabled:text-gray-500 disabled:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:bg-blue-50 ${error ? 'border-red-500' : ''
+                className={`w-full border border-solid border-gray-400 text-right text-sm text-gray-800 rounded-sm appearance-none disabled:text-gray-500 disabled:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:bg-blue-50 ${error ? 'border-red-500' : ''
                     } ${inputClassName}`}
                 onChange={handleInputChange}
                 onBlur={handleBlur}
+                onFocus={onFocus}
                 placeholder={placeholder}
                 disabled={isDisabled}
                 data-next-field={nextField}
                 data-prev-field={prevField}
                 autoFocus={autoFocus}
                 inputMode='decimal'
-                onKeyDown={handleKeyDown}
+                onKeyDown={onKeyDown || handleKeyDown}
             />
             {error && (
                 <>

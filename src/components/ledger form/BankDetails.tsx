@@ -3,6 +3,8 @@ import FormikInputField from '../common/FormikInputField';
 import CustomSelect from '../custom_select/CustomSelect';
 import { Option } from '../../interface/global';
 import onKeyDown from '../../utilities/formKeyDown';
+import { useControls } from '../../ControlRoomContext';
+import NumberInput from '../common/numberInput/numberInput';
 
 interface BankDetailsProps {
   formik?: any;
@@ -13,6 +15,7 @@ export const BankDetails: React.FC<BankDetailsProps> = ({ formik }) => {
   const handleFieldChange = (option: Option | null, id: string) => {
     formik.setFieldValue(id, option?.value);
   };
+  const { controlRoomSettings } = useControls();
 
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
@@ -39,15 +42,22 @@ export const BankDetails: React.FC<BankDetailsProps> = ({ formik }) => {
         prevField='Bank_Details'
         nextField='accountNumber'
       />
-      <FormikInputField
-        isPopupOpen={false}
-        labelClassName='min-w-[90px]'
+      <NumberInput
         label='A/C No.'
+        value={formik.values.accountNumber}
         id='accountNumber'
         name='accountNumber'
-        formik={formik}
+        maxLength={18}
+        onChange={(value) => formik.setFieldValue('accountNumber', value)}
+        onBlur={() => {
+          formik.setFieldTouched('accountNumber', true);
+        }}
+        error={formik.touched.accountNumber && formik.errors?.accountNumber}
+        isRequired={false}
+        labelClassName='min-w-[90px] !h-[22px]'
         prevField='bankName'
         nextField='branchName'
+        inputClassName='text-left !text-[10px] px-1 !h-[22px]'
       />
       <FormikInputField
         isPopupOpen={false}
@@ -114,6 +124,7 @@ export const BankDetails: React.FC<BankDetailsProps> = ({ formik }) => {
         id='ifscCode'
         name='ifscCode'
         maxLength={11}
+        isUpperCase={true}
         formik={formik}
         className=''
         prevField='accountType'
@@ -134,7 +145,7 @@ export const BankDetails: React.FC<BankDetailsProps> = ({ formik }) => {
         formik={formik}
         className=''
         prevField='ifscCode'
-        nextField= {formik.isValid ? 'submit_all' : 'partyName'}
+        nextField={controlRoomSettings.fssaiNumber ? 'FSSAI_Number' : formik.isValid ? 'submit_all' : 'partyName'}
       />
     </div>
   );

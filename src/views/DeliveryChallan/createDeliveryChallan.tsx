@@ -19,7 +19,7 @@ import { Ledger } from '../ledger';
 import { useTabs } from '../../TabsContext';
 import { pendingChallansList } from '../../constants/saleChallan';
 import useApi from '../../hooks/useApi';
-import { partyFooterData } from '../../constants/saleBill';
+import usePartyFooterData from '../../hooks/usePartyFooterData';
 
 export interface DeliveryChallanFormValues {
   oneStation: string;
@@ -152,6 +152,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
     isOpen: false,
     data: {}
   })
+  const partyFooterData = usePartyFooterData();
 
   const formik: DeliveryChallanFormInfoType = useFormik({
     initialValues: {
