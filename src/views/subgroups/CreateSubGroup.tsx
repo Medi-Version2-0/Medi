@@ -11,7 +11,8 @@ import Button from '../../components/common/button/Button';
 import onKeyDown from '../../utilities/formKeyDown';
 import FormikInputField from '../../components/common/FormikInputField';
 import { subgroupValidationSchema } from './validation_schema';
-import { useSelector } from 'react-redux';
+import useHandleKeydown from '../../hooks/useHandleKeydown';
+import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 
 export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
   togglePopup,
@@ -20,10 +21,10 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
   isDelete,
   deleteAcc,
   className,
+  groupList,
 }) => {
   const { group_code } = data;
   const formikRef = useRef<FormikProps<SubGroupFormDataProps>>(null);
-  const { groups: groupList } = useSelector((state: any) => state.global);
   const parentGrpOptions: Option[] = groupList.map((grp: any) => ({
     value: grp.group_code,
     label: grp.group_name.toUpperCase(),
@@ -49,6 +50,21 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
     !group_code && document.getElementById('account_button')?.focus();
     handelFormSubmit(formData);
   };
+
+
+  const keyDown = (event: KeyboardEvent) => {
+    handleKeyDownCommon(
+      event,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      handleSubmit,
+      formikRef.current?.values,
+    );
+  };
+  useHandleKeydown(keyDown, [])   // to implement ctrl + s 
 
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
@@ -217,6 +233,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                 <Button
                   id='submit_button'
                   type='fill'
+                  disable={formik.isSubmitting}  // disable if form is submitting i.e., prevent multiple submissions
                   autoFocus
                   handleOnKeyDown={(e) => {
                     if (e.key === 'Tab' || (!formik.isValid && e.key === 'Enter')) {

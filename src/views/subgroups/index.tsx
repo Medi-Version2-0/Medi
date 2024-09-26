@@ -13,11 +13,8 @@ import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { subgroupValidationSchema } from './validation_schema';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
 import usePermission from '../../hooks/useRole';
-import { useSelector } from 'react-redux';
-import { getAndSetSubGroups } from '../../store/action/globalAction';
 import { extractKeys, lookupValue } from '../../helper/helper';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
-import { useGetSetData } from '../../hooks/useGetSetData';
 import useApi from '../../hooks/useApi';
 
 export const SubGroups = () => {
@@ -28,7 +25,6 @@ export const SubGroups = () => {
   };
   const { sendAPIRequest } = useApi();
   const [open, setOpen] = useState<boolean>(false);
-  const { createAccess, updateAccess } = usePermission('subgroup');
   const [formData, setFormData] = useState<SubGroupFormData>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<SubGroupFormData | any>(null);
@@ -50,25 +46,57 @@ export const SubGroups = () => {
   const pinnedRow: SubGroupFormData = {
     group_name: ''
   };
-  const getAndSetSubGroupsHandler = useGetSetData(getAndSetSubGroups);
-  const { subGroups, groups: groupList } = useSelector((state: any) => state.global);
+  const [groups, setGroups] = useState<any[]>([]);
   const gridRef = useRef<any>(null);
 
+  async function getAndSetGroups() {
+    try {
+      const allGroups = await sendAPIRequest('/group');
+      setGroups(allGroups);
+    } catch (err) {
+      console.error('Group data in group index not being fetched');
+    }
+  }
+
+  async function getAndSetSubGroups() {
+    try {
+      const allSubGroups = await sendAPIRequest('/subGroup');
+      setTableData([...(permissions.createAccess ? [pinnedRow] : []), ...allSubGroups]);
+    } catch (err) {
+      console.log('Sub group not fetched in group index')
+    }
+  }
+
+  function capitalFirstLetter(str: string): string {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  useEffect(() => {
+    getAndSetGroups();
+    getAndSetSubGroups();
+  }, [permissions.createAccess]);
+  
+
   const handleAlertCloseModal = () => {
-    setPopupState({ ...popupState, isAlertOpen: false });
+    setPopupState({ ...popupState, isAlertOpen: false, isModalOpen: false });
+    setTimeout(() => {  // adding some delay to shift focus on opened form field
+      document.getElementById('group_name')?.focus();
+    }, 100);
   };
 
   const handleClosePopup = () => {
     setPopupState({ ...popupState, isModalOpen: false });
   };
 
+  useEffect(() => {
+    document.getElementById('account_button')?.focus();  // when component mounted then focus will be on addGroup button
+  }, [document.getElementById('account_button')]);  
+
   const handleConfirmPopup = async (data?: any) => {
     const respData = data ? data : formData;
     setPopupState({ ...popupState, isModalOpen: false });
     if (formData.group_name) {
-      formData.group_name =
-        formData.group_name.charAt(0).toUpperCase() +
-        formData.group_name.slice(1);
+      formData.group_name = capitalFirstLetter(formData.group_name);
     }
     const payload = {
       group_name: respData.group_name ? respData.group_name : formData.group_name,
@@ -92,10 +120,12 @@ export const SubGroups = () => {
           });
         }
         togglePopup(false);
-        getAndSetSubGroupsHandler();
+        await getAndSetSubGroups();
       }
     }catch(error:any){
       if (!error?.isErrorHandled) {
+        await getAndSetSubGroups();  // fetch latest sub groups
+        settingPopupState(false, error.response.data.error.message) // show backend api response
         console.log('Sub Group not created or updated')
       }
     }
@@ -109,9 +139,6 @@ export const SubGroups = () => {
     }
     setOpen(isOpen);
   };
-  useEffect(()=>{
-    setTableData([...(permissions.createAccess ?[pinnedRow]:[]), ...subGroups]);
-  }, [subGroups, permissions.createAccess]);
 
   const deleteAcc = async (group_code: string) => {
     try{
@@ -120,7 +147,7 @@ export const SubGroups = () => {
       await sendAPIRequest(`/subGroup/${group_code}`, {
         method: 'DELETE',
       });
-      getAndSetSubGroupsHandler();
+      await getAndSetSubGroups();
     }catch(error:any){
       if (!error?.isErrorHandled) {
         console.log('Sub Group not deleted');
@@ -145,23 +172,8 @@ export const SubGroups = () => {
 
   const handelFormSubmit = (values: SubGroupFormData) => {
     const mode = values.group_code ? 'update' : 'create';
-    const existingGroup = tableData.find((group: SubGroupFormData) => {
-      if (mode === 'create')
-        return (
-          group.group_name.toLowerCase() === values.group_name.toLowerCase()
-        );
-      return (
-        group.group_name.toLowerCase() === values.group_name.toLowerCase() &&
-        group.group_code !== values.group_code
-      );
-    });
-    if (existingGroup) {
-      settingPopupState(false, 'Sub Group with this name already exists!');
-      return;
-    }
     if (values.group_name) {
-      values.group_name =
-        values.group_name.charAt(0).toUpperCase() + values.group_name.slice(1);
+      values.group_name = capitalFirstLetter(values.group_name);
     }
     if (values !== initialValue) {
       settingPopupState(true, `Are you sure you want to ${mode} this group?`);
@@ -182,15 +194,6 @@ export const SubGroups = () => {
     let { newValue } = e;
     if (!valueChanged && node.rowIndex !== 0) return;
     const field = column.colId;
-    if (field === 'group_name'){
-      newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
-      const existingGroup = tableData.find((group: SubGroupFormData) => group.group_name.toLowerCase() === newValue.toLowerCase() && group.group_code !== data.group_code);
-      if (existingGroup) {
-        settingPopupState(false, 'Sub Group with this name already exists!');
-        node.setDataValue(field, oldValue);
-        return;
-      }
-    }
     if (node.rowIndex === 0 && permissions.createAccess) {
       if (data.group_name && data.parent_code) {
         try { 
@@ -204,23 +207,34 @@ export const SubGroups = () => {
           node.setDataValue(field, oldValue);
           return;
         }
-    }
-  }else{
-    node.setDataValue(field, newValue);
-    try{
-      await sendAPIRequest(`/subGroup/${data.group_code}`, {
-        method: 'PUT',
-        body: { [field]: newValue },
-      });
-      getAndSetSubGroupsHandler();
-    }catch(error:any){
-      if (!error?.isErrorHandled) {
-        settingPopupState(false, 'Subgroup name should not be empty');
-        node.setDataValue(field, oldValue);
-        return;
+      }
+    }else{
+      if (field === 'group_name') {
+        if (!newValue) {  // if new value is empty then show popup and setting previous value in cell
+          settingPopupState(false, 'Name is required');
+          node.setDataValue(field, oldValue);
+          return;
+        }
+        newValue = capitalFirstLetter(newValue);
+      }
+      try{
+        await sendAPIRequest(`/subGroup/${data.group_code}`, {
+          method: 'PUT',
+          body: { [field]: newValue },
+        });
+        await getAndSetSubGroups();
+      }catch(error:any){
+        if (!error?.isErrorHandled) {
+          if (error?.response?.data) {
+            settingPopupState(false, error.response.data.error.message);
+            node.setDataValue(field, oldValue);
+            return;
+          }
+          settingPopupState(false, 'Subgroup name should not be empty');
+          node.setDataValue(field, oldValue);
+        }
       }
     }
-  }
   };
 
   const onCellClicked = (params: { data: any }) => {
@@ -245,7 +259,7 @@ export const SubGroups = () => {
   useHandleKeydown(handleKeyDown,[selectedRow]);
   const parentGroupMap: { [key: number]: string } = {};
 
-  groupList.forEach((group: any) => {
+  groups.forEach((group: any) => {
     parentGroupMap[group.group_code] = group.group_name.toUpperCase();
   });
 
@@ -255,7 +269,7 @@ export const SubGroups = () => {
     floatingFilter: true,
     flex: 1,
     filter: true,
-    editable: (params: any) => params.node.rowIndex === 0 ? createAccess : updateAccess,
+    editable: (params: any) => params.node.rowIndex === 0 ? permissions.createAccess : permissions.updateAccess,
     suppressMovable: true,
     headerClass: 'custom-header',
     cellRenderer: (params: any) => (
@@ -310,8 +324,8 @@ export const SubGroups = () => {
           justifyContent: 'center',
           alignItems: 'center',
         },
-        cellRenderer: (params: { data: SubGroupFormData }) => (
-          <div className='table_edit_buttons'>
+        cellRenderer: (params: { data: SubGroupFormData, node: any }) => (
+          !!params.node.rowIndex && <div className='table_edit_buttons'>
             <FaEdit
               style={{ cursor: 'pointer', fontSize: '1.1rem' }}
               onClick={() => {
@@ -321,6 +335,10 @@ export const SubGroups = () => {
             <MdDeleteForever
               style={{ cursor: 'pointer', fontSize: '1.2rem' }}
               onClick={() => {
+                if (!params.node.rowIndex) {  // setting zero indexed row data to empty if user click on delete icon
+                  params.node.setData(initialValue);
+                  return
+                }
                 handleDelete(params.data);
               }}
             />
@@ -374,6 +392,7 @@ export const SubGroups = () => {
             isDelete={isDelete.current}
             deleteAcc={deleteAcc}
             className='absolute'
+            groupList={groups}
           />
         )}
       </div>

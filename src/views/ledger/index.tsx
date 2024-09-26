@@ -56,7 +56,6 @@ export const Ledger = ({type = ''}) => {
   async function getAndSetParties(){
     try{
       const allParties = await sendAPIRequest('/ledger');
-      allParties.sort((a: any, b: any) => b.party_id - a.party_id);  // sort all parties in descending order by party_id
       setTableData(allParties);
     }catch(err){
       console.error('party data in ledger index not being fetched');
@@ -114,11 +113,13 @@ export const Ledger = ({type = ''}) => {
       await getAndSetParties();
     } catch(error:any) {
       if (error?.response?.status !== 401 && error?.response?.status !== 403){
-        setPopupState({
-          ...popupState,
-          isAlertOpen: true,
-          message: 'This Party is associated',
-        });
+        if (error?.response?.status === 400){
+          setPopupState({
+            ...popupState,
+            isAlertOpen: true,
+            message: error?.response.data.error.message,
+          });
+        }
       }
     }
   };

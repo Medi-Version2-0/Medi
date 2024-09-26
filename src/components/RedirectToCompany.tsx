@@ -76,6 +76,7 @@ export const RedirectToCompany = () => {
           <button
             className='w-full text-center p-2 border border-gray-300 rounded bg-blue-500 text-white hover:bg-blue-600'
             onClick={handleSetupClick}
+            autoFocus
           >
             Firm setup
           </button>
