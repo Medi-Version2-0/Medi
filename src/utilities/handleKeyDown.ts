@@ -5,7 +5,7 @@ export const handleKeyDownCommon = (
   togglePopup?: (state: boolean) => void,
   selectedRow?: any,
   setView?: (view: { type: string; data: any }) => void,
-  handleSave?: (data:any) => void,
+  handleSave?: (data?:any) => void,
   dataToSave?: any,
 ) => {
   switch (event.key) {
@@ -41,9 +41,13 @@ export const handleKeyDownCommon = (
       break;
     case's':
     case 'S':
-      if (event.ctrlKey && dataToSave && handleSave) {
+      if (event.ctrlKey && handleSave) {
         event.preventDefault();
-        handleSave(dataToSave);
+        if (dataToSave){
+         handleSave(dataToSave);
+         return;
+        }
+        handleSave();
       }
       break;
     default:
