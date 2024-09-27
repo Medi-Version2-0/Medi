@@ -1,21 +1,56 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { AgGridReact } from 'ag-grid-react';
 import Button from '../../components/common/button/Button';
-import { partyHeaders } from './partywiseHeader';
-import { SelectList } from '../../components/common/selectList';
+import { partyHeaders, partyFooterData } from './partywiseHeader';
+import { SelectList } from '../../components/common/customSelectList/customSelectList';
 import useApi from '../../hooks/useApi';
+import usePermission from '../../hooks/useRole';
 
 const CopyPratywisePriceList: React.FC = () => {
+  const { createAccess } = usePermission('ledger')
   const [copyFrom, setCopyFrom] = useState<{ [key: string]: string }>({});
   const [copyTo, setCopyTo] = useState<any>(null);
   const { sendAPIRequest } = useApi();
-  const { party: partyData } = useSelector((state: any) => state.global);
+  const [partyData, setPartyData] = useState<any>()
   const [tableData, setTableData] = useState<any[]>([]);
   const [popupList, setPopupList] = useState<{ isOpen: boolean, data: any }>({
     isOpen: false,
     data: {}
   })
+  const [popupState, setPopupState] = useState({
+    isModalOpen: false,
+    isAlertOpen: false,
+    message: '',
+  });
+  const focusedEle =  useRef<HTMLElement | null>(null);
+
+  
+  useEffect(()=> {
+    setTimeout(()=>{
+      focusedEle.current = document.getElementById('copyFrom')
+      focusedEle.current?.focus();
+    },100)
+    getPartyData();
+  },[]) 
+
+  const getPartyData = async () => {
+    try {
+      const partiesData: any = await sendAPIRequest(`/ledger/`, {
+        method: 'GET'
+      })
+      const filteredParties = partiesData.filter((item: any) => item.locked === "Y");
+      setPartyData(filteredParties)
+
+    } catch (error: any) {
+      setPopupState({
+        ...popupState,
+        isAlertOpen: true,
+        message: `${error.message}`,
+      });
+    }
+  }
+  
 
   const getItemData = async (partyId?: any) => {
     try {
@@ -82,10 +117,11 @@ const CopyPratywisePriceList: React.FC = () => {
     ],
     []
   );
+  
 
   return (
     <div className='flex flex-col'>
-      <div className='flex items-end space-x-4 p-4'>
+      {createAccess && (<div className='flex items-end space-x-4 p-4'>
         <div className='flex-1'>
           <label
             htmlFor='copyFrom'
@@ -96,15 +132,22 @@ const CopyPratywisePriceList: React.FC = () => {
           <input
             id='copyFrom'
             placeholder='Select Party...'
-            onFocus={() => {
-              if (partyData.length) {
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && partyData.length) {
                 setPopupList({
                   isOpen: true,
                   data: {
                     heading: 'Select Party',
                     headers: [...partyHeaders],
-                    tableData: partyData,
-                    handleSelect: (rowData: any) => setCopyFrom(rowData)
+                    footers: partyFooterData,
+                    autoClose: true,
+                    apiRoute: '/ledger',
+                    extraQueryParams: { locked: "!Y" },
+                    searchFrom: 'partyName',
+                    handleSelect: (rowData: any) => {
+                      setCopyFrom(rowData)
+                      document.getElementById('copyTo')?.focus()
+                    }
                   }
                 })
               }
@@ -123,17 +166,24 @@ const CopyPratywisePriceList: React.FC = () => {
           <input
             id='copyTo'
             placeholder='Select Party...'
-            onFocus={() => {
-              if (partyData.length) {
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && partyData.length) {
                 setPopupList({
                   isOpen: true,
                   data: {
                     heading: 'Select Party',
                     headers: [...partyHeaders],
-                    tableData: partyData,
-                    handleSelect: (rowData: any) => setCopyTo(rowData)
+                    footers: partyFooterData,
+                    autoClose: true,
+                    apiRoute: '/ledger',
+                    extraQueryParams: { locked: "!Y" },
+                    searchFrom: 'partyName',
+                    handleSelect: (rowData: any) => {
+                      setCopyTo(rowData)
+                      document.getElementById('copyButton')?.focus()
+                    }
                   }
-                })
+                });
               }
             }}
             value={copyTo?.partyName || ''}
@@ -148,26 +198,31 @@ const CopyPratywisePriceList: React.FC = () => {
         >
           Copy
         </Button>
-      </div>
+      </div>)}
       <div className='flex w-full'>
-        <Button type='highlight' btnType='button' handleOnClick={() => {
+        {createAccess && (<Button type='highlight' btnType='button' handleOnClick={() => {
           setCopyFrom({});
           setCopyTo(null);
           setTableData([]);
         }} >
           Add More
-        </Button>
+        </Button>)}
       </div>
 
-      {popupList.isOpen && (
-        <SelectList
-          heading={popupList.data.heading}
-          closeList={() => setPopupList({ isOpen: false, data: {} })}
-          headers={popupList.data.headers}
-          tableData={popupList.data.tableData}
-          handleSelect={(rowData) => { popupList.data.handleSelect(rowData) }}
-        />
-      )}
+      {popupList.isOpen && <SelectList
+        tableData={[]}
+        heading={popupList.data.heading}
+        closeList={() => setPopupList({ isOpen: false, data: {} })}
+        headers={popupList.data.headers}
+        footers={popupList.data.footers}
+        apiRoute={popupList.data.apiRoute}
+        handleSelect={(rowData) => { popupList.data.handleSelect(rowData) }}
+        handleNewItem={popupList.data?.newItem}
+        searchFrom={popupList.data.searchFrom}
+        autoClose={popupList.data.autoClose}
+        onEsc={popupList.data.onEsc}
+        extraQueryParams={popupList.data.extraQueryParams || {}}
+      />}
 
       {!!tableData.length && (
         <div

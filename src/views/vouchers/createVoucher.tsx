@@ -168,7 +168,7 @@ const CreateVouchers = ({ setView, data }: any) => {
           footers: partyFooterData,
           autoClose: true,
           apiRoute: '/ledger',
-          extraQueryParams: { accountCode : -106 },
+          extraQueryParams: { accountCode : -106, locked: "!Y" },
           searchFrom: 'partyName',
           handleSelect: (rowData: any) => {
             bankName.current = {
@@ -581,8 +581,9 @@ const CreateVouchers = ({ setView, data }: any) => {
         newGridData[rowIndex].columns.cgstValue = 0.00;
       }else{
         newGridData[rowIndex].columns.igstValue = 0.00;
-        newGridData[rowIndex].columns.sgstValue = ((gstRate / 200) * amount).toFixed(2);
-        newGridData[rowIndex].columns.cgstValue = ((gstRate / 200) * amount).toFixed(2);
+        const halfGstRate = gstRate / 2;
+        newGridData[rowIndex].columns.sgstValue = ((halfGstRate / 100) * amount).toFixed(2);
+        newGridData[rowIndex].columns.cgstValue = ((halfGstRate / 100) * amount).toFixed(2);
       }
     }
 
@@ -698,6 +699,7 @@ const CreateVouchers = ({ setView, data }: any) => {
           footers: partyFooterData,
           autoClose: true,
           apiRoute: '/ledger',
+          extraQueryParams: { locked: "!Y" },
           searchFrom: 'partyName',
           handleSelect: (rowData: any) => {
             setCurrentSavedData({ ...currentSavedData, party: rowData })
