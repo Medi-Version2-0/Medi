@@ -109,7 +109,7 @@ export const CreateGroup = ({
             </div>
             <div className='radio_fields relative w-full rounded-sm border border-solid border-[#9ca3af] p-[3px]'>
               <span
-                className={`label_prefix bg-white px-1 absolute top-0 left-1 -translate-y-1/2 text-xs ${!!(formik.touched.type && formik.errors.type) && '!text-red-700'}`}
+                className={`label_prefix z-10 bg-white px-1 absolute top-0 left-1 -translate-y-1/2 text-xs ${!!(formik.touched.type && formik.errors.type) && '!text-red-700'}`}
               >
                 Type
               </span>

@@ -37,7 +37,7 @@ export const Ledger = ({type = ''}) => {
   });
 
   const { controlRoomSettings } = useControls();
-  const { createAccess, updateAccess } = usePermission('ledger')
+  const { createAccess, updateAccess, deleteAccess } = usePermission('ledger')
   const initialValues = {
     multiplePriceList: controlRoomSettings.multiplePriceList || true,
     printPartyBalance: controlRoomSettings.printPartyBalance || false,
@@ -198,7 +198,7 @@ export const Ledger = ({type = ''}) => {
     filter: true,
     suppressMovable: true,
     headerClass: 'custom-header',
-    editable: (params: any) => !params.data.isPredefinedLedger && params.node.rowIndex === 0 ? createAccess : updateAccess 
+    editable: (params: any) => !params.data.isPredefinedLedger ||  updateAccess // editable only in two situations one if user have update access and other is ledger must not be predefined
   }
 
   const colDefs: ColDef[]= [
@@ -249,7 +249,7 @@ export const Ledger = ({type = ''}) => {
       },
       cellRenderer: (params: { data: any }) => (
         <div className='table_edit_buttons'>
-          <FaEdit
+          {updateAccess && <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
             onClick={() => {
               if (params.data.isPredefinedLedger) {
@@ -262,8 +262,8 @@ export const Ledger = ({type = ''}) => {
                 setView({ type: 'add', data: params.data });
               }
             }}
-          />
-          <MdDeleteForever
+          />}
+          {deleteAccess && <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
             onClick={() => {
               if (params.data.isPredefinedLedger) {
@@ -276,7 +276,7 @@ export const Ledger = ({type = ''}) => {
                 handleDelete(params.data);
               }
             }}
-          />
+          />}
         </div>
       ),
     },
