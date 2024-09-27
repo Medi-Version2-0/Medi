@@ -1,283 +1,60 @@
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
-import { Formik, Form, Field, FormikProps } from 'formik';
-import {
-  CreateHeadQuarterProps,
-  Option,
-  StationFormData,
-} from '../../interface/global';
+import { useEffect, useState } from 'react';
+import { useFormik } from 'formik';
+import { CreateHeadQuarterProps, StationFormData, StationFormInfoType } from '../../interface/global';
 import { Popup } from '../../components/popup/Popup';
-import CustomSelect from '../../components/custom_select/CustomSelect';
-import Button from '../../components/common/button/Button';
 import titleCase from '../../utilities/titleCase';
 import { headQuarterValidationSchema } from './validation_schema';
+import { PopupFormContainer } from '../../components/common/commonPopupForm';
+import { CommonBtn } from '../../components/common/button/CommonFormButtons';
 
-export const CreateHQ = ({
-  togglePopup,
-  data,
-  handelFormSubmit,
-  isDelete,
-  deleteAcc,
-  className,
-  stations,
-}: CreateHeadQuarterProps) => {
-  const { station_id } = data;
-  const hqOptions = useMemo(
-    () =>
-      stations.map((station) => ({
-        value: station.station_id,
-        label: titleCase(station.station_name),
-      })),
-    [stations]
-  );
+export const CreateHQ = ({ togglePopup, data, handelFormSubmit, isDelete, deleteAcc, className, stations }: CreateHeadQuarterProps) => {
+  const [focused, setFocused] = useState('');
 
-  const stationOptions = useMemo(
-    () =>
-      stations
-        .filter((station) => station.station_headQuarter === null)
-        .map((station) => ({
-          value: titleCase(station.station_name),
-          label: titleCase(station.station_name),
-        })),
-    [stations]
-  );
-  const formikRef = useRef<FormikProps<StationFormData>>(null);
-  const [focused, setFocused] = useState('station_name');
-
-  const handleFieldChange = useCallback((option: Option | null, id: string) => {
-    formikRef.current?.setFieldValue(id, option?.value);
-  }, []);
-
-  const handleSubmit = useCallback(
-    async (values: StationFormData) => {
+  const HQFormInfo: StationFormInfoType = useFormik({
+    initialValues: {
+      station_id: data?.station_id || '',
+      station_headQuarter: data?.station_headQuarter || '',
+    },
+    validationSchema: headQuarterValidationSchema,
+    onSubmit: async (values: any) => {
       handelFormSubmit(values);
     },
-    [handelFormSubmit]
-  );
-
-  const fetchType = useCallback(
-    (isDelete: boolean, station_id?: string) => {
-      const selectedHq = stations.find(
-        (item: StationFormData) => item.station_id === station_id
-      );
-      if (!selectedHq) {
-        return isDelete ? 'Delete' : 'Create';
-      }
-      return selectedHq.station_headQuarter !== ''
-        ? isDelete
-          ? 'Delete'
-          : 'Update'
-        : 'Create';
-    },
-    [stations]
-  );
+  })
 
   useEffect(() => {
-    if (isDelete) {
-      document.getElementById('cancel_button')?.focus();
-    }
-  }, [isDelete]);
+    const focusTarget = fetchType(isDelete, data.station_id) === 'Create' ? 'station_id' : (fetchType(isDelete, data.station_id) === 'Update' ? 'station_headQuarter' : 'hq_cancelBtn');
+    document.getElementById(focusTarget)?.focus();
+    setFocused(focusTarget);
+  }, []);
+
+  const hqOptions = stations!.map((station) => ({ value: station.station_id, label: titleCase(station.station_name) }));
+
+  const stationOptions = stations!.filter((station) => station.station_headQuarter === null).map((station) => ({
+    value: station.station_id,
+    label: titleCase(station.station_name),
+  }));
+
+  const fetchType = (isDelete: boolean, station_id?: string) => {
+    const selectedHq = stations.find((station: StationFormData) => station.station_id === station_id);
+    if(!selectedHq) return isDelete ? 'Delete' : 'Create';
+    return selectedHq.station_headQuarter !== '' ? (isDelete ? 'Delete' : 'Update') : 'Create';
+  }
+
+  const headquartersFields = [
+    { id: 'station_id', name: 'station_id', label: 'Station Name', type: 'select', disabled: (fetchType(isDelete, data.station_id) === 'Delete' || fetchType(isDelete, data.station_id) === 'Update'), options: data.station_id !== '' ? hqOptions : stationOptions, isSearchable: true, disableArrow: true, hidePlaceholder: false, nextField: 'station_headQuarter', prevField: 'hq_submitBtn'},
+    { id: 'station_headQuarter', name: 'station_headQuarter', label: 'Headquarter', type: 'select', disabled: isDelete && data.station_id, options: hqOptions, isSearchable: true, disableArrow: true, hidePlaceholder: false, nextField: 'hq_submitBtn', prevField: 'station_id', sideField: 'hq_submitBtn' },
+  ]
 
   return (
-    <Popup
-      togglePopup={togglePopup}
-      heading={`${fetchType(isDelete,station_id)} Headquarter`}
-      className={className}
-    >
-      <Formik
-        innerRef={formikRef}
-        initialValues={{
-          station_name: data?.station_name || '',
-          station_headQuarter: data?.station_headQuarter || '',
-        }}
-        validationSchema={headQuarterValidationSchema}
-        onSubmit={handleSubmit}
-      >
-        {(formik) => (
-          <Form className='flex flex-col gap-3 min-w-[18rem] items-center px-4 '>
-            <div className='flex flex-col w-full '>
-              <Field name='station_name'>
-                {() => (
-                  <CustomSelect
-                    label='Station Name'
-                    id='station_name'
-                    name='station_name'
-                    value={
-                      formik.values.station_name === ''
-                        ? null
-                        : {
-                            label: formik.values.station_name,
-                            value: formik.values.station_name,
-                          }
-                    }
-                    onChange={handleFieldChange}
-                    options={stationOptions}
-                    isSearchable={true}
-                    disableArrow={true}
-                    hidePlaceholder={false}
-                    className='!h-8 rounded-sm text-xs'
-                    isFocused={focused === 'station_name'}
-                    error={formik.errors.station_name}
-                    isDisabled={
-                      fetchType(isDelete, station_id) === 'Delete' ||
-                      fetchType(isDelete, station_id) === 'Update'
-                    }
-                    isTouched={formik.touched.station_name}
-                    onBlur={() => {
-                      formik.setFieldTouched('station_name', true);
-                      setFocused('');
-                    }}
-                    noOptionsMsg='No station found, create one...'
-                    onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-                      const dropdown = document.querySelector(
-                        '.custom-select__menu'
-                      );
-                      if (e.key === 'Enter' || e.key === 'Tab') {
-                        if (!dropdown) {
-                          e.preventDefault();
-                        }
-                        setFocused('station_headQuarter');
-                      }
-                      if (e.shiftKey && e.key === 'Tab') {
-                        if (!dropdown) {
-                          e.preventDefault();
-                        }
-                        setFocused('station_name');
-                      }
-                    }}
-                    showErrorTooltip={true}
-                  />
-                )}
-              </Field>
-            </div>
-            <div className='flex flex-col w-full '>
-              <Field name='station_headQuarter'>
-                {() => (
-                  <CustomSelect
-                    label='Headquarter'
-                    id='station_headQuarter'
-                    name='station_headQuarter'
-                    value={
-                      formik.values.station_headQuarter === ''
-                        ? null
-                        : {
-                            label:
-                              hqOptions?.find(
-                                (e) =>
-                                  e.value === formik.values.station_headQuarter
-                              )?.label || '',
-                            value: formik.values.station_headQuarter,
-                          }
-                    }
-                    onChange={handleFieldChange}
-                    options={hqOptions}
-                    isSearchable={true}
-                    disableArrow={true}
-                    hidePlaceholder={false}
-                    className='!h-8 rounded-sm text-xs'
-                    isFocused={focused === 'station_headQuarter'}
-                    error={formik.errors.station_headQuarter}
-                    isDisabled={isDelete && station_id}
-                    isTouched={formik.touched.station_headQuarter}
-                    onBlur={() => {
-                      formik.setFieldTouched('station_headQuarter', true);
-                      setFocused('');
-                    }}
-                    onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-                      const dropdown = document.querySelector(
-                        '.custom-select__menu'
-                      );
-                      if (e.key === 'Enter' || e.key === 'Tab') {
-                        if (!dropdown) {
-                          document.getElementById('cancel_button')?.focus();
-                          e.preventDefault();
-                        }
-                        document
-                          .getElementById(
-                            `${e.key === 'Tab' ? 'cancel_button' : 'submit_button'}`
-                          )
-                          ?.focus();
-                      }
-                      if (e.shiftKey && e.key === 'Tab') {
-                        if (!dropdown) {
-                          e.preventDefault();
-                        }
-                        setFocused('station_name');
-                      }
-                    }}
-                    showErrorTooltip={true}
-                  />
-                )}
-              </Field>
-            </div>
-            <div className='flex justify-between my-4 w-full'>
-              <Button
-                type='fog'
-                id='cancel_button'
-                handleOnClick={() => togglePopup(false)}
-                handleOnKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    togglePopup(false);
-                  }
-                  if ((e.shiftKey && e.key === 'Tab') || e.key === 'ArrowUp') {
-                    setFocused('station_headQuarter');
-                    e.preventDefault();
-                  }
-                }}
-              >
-                Cancel
-              </Button>
-              {isDelete ? (
-                <Button
-                  id='del_button'
-                  type='fill'
-                  handleOnClick={() => station_id && deleteAcc(station_id)}
-                  handleOnKeyDown={(e) => {
-                    if (e.key === 'Tab') {
-                      document.getElementById('cancel_button')?.focus();
-                      e.preventDefault();
-                    }
-                    if (
-                      e.key === 'ArrowUp' ||
-                      (e.shiftKey && e.key === 'Tab')
-                    ) {
-                      document.getElementById('cancel_button')?.focus();
-                    }
-                  }}
-                >
-                  Delete
-                </Button>
-              ) : (
-                <Button
-                  id='submit_button'
-                  type='fill'
-                  autoFocus={true}
-                  handleOnKeyDown={(e) => {
-                    if (e.key === 'Tab') {
-                      e.preventDefault();
-                    }
-                    if ((!formik.isValid && e.key === 'Enter')) {
-                      setFocused(`${fetchType(isDelete, station_id) === 'Update' ? 'station_headQuarter':'station_name'}`);
-                      e.preventDefault();
-                    }
-                    if (
-                      e.key === 'ArrowUp' ||
-                      (e.shiftKey && e.key === 'Tab' || (!formik.isValid && e.key === 'Enter'))
-                    ) {
-                      document.getElementById('cancel_button')?.focus();
-                      e.preventDefault();
-                    }
-                  }}
-                >
-                  {fetchType(isDelete, station_id) === 'Update'
-                    ? 'Update'
-                    : 'Add'}
-                </Button>
-              )}
-            </div>
-          </Form>
-        )}
-      </Formik>
+    <Popup heading={`${fetchType(isDelete, data.station_id)} Headquarter`} className={className}>
+      <PopupFormContainer fields={headquartersFields} formik={HQFormInfo} setFocused={setFocused} focused={focused} />
+      <div className='flex justify-between p-4 w-full'>
+        <CommonBtn variant='cancel' component='hq' focused={focused} setFocused={setFocused} handleOnClick={() => togglePopup(false)} nextField={`${isDelete ? 'hq_deleteBtn' : 'hq_submitBtn'}`} prevField={'station_headQuarter'} > Cancel </CommonBtn>
+        {isDelete ?
+          <CommonBtn variant='delete' component='hq' focused={focused} setFocused={setFocused} handleOnClick={() => data.station_id && deleteAcc(data.station_id)} nextField={`hq_cancelBtn`} prevField={'hq_cancelBtn'} > Delete </CommonBtn>
+          : <CommonBtn variant='submit' component='hq' focused={focused} setFocused={setFocused} handleOnClick={() => HQFormInfo.handleSubmit()} disable={!HQFormInfo.isValid || HQFormInfo.isSubmitting} nextField={`station_id`} prevField={'hq_cancelBtn'} > {data.station_id ? 'Update' : 'Add'} </CommonBtn>
+        }
+      </div>
     </Popup>
   );
 };

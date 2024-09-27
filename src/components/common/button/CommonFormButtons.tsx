@@ -49,6 +49,7 @@ export const CommonBtn: FC<ButtonProps> = ({
         if (e.key === 'Tab') {
             e.preventDefault();
             document.getElementById(nextField)?.focus();
+            setFocused(nextField);
         }
         if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab')) {
             e.preventDefault();
