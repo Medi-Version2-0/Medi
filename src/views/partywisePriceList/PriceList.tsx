@@ -2,25 +2,60 @@ import { useEffect, useState, useMemo, useRef } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
-import { useSelector } from 'react-redux';
-import { partyHeaders } from './partywiseHeader';
+import { partyHeaders, partyFooterData} from './partywiseHeader';
 import Button from '../../components/common/button/Button';
 import { printData } from '../../components/common/ExportData';
-import { SelectList } from '../../components/common/selectList';
+import { SelectList } from '../../components/common/customSelectList/customSelectList';
 import useApi from '../../hooks/useApi';
+import usePermission from '../../hooks/useRole';
+import useHandleKeydown from '../../hooks/useHandleKeydown';
 
 const PriceList = () => {
-  const { party: partyData, item: itemData } = useSelector((state: any) => state.global);
+  const { createAccess, deleteAccess } = usePermission('ledger')
   const [selectedPartyStation, setSelectedPartyStation] = useState<string>('');
   const [currentSavedData, setCurrentSavedData] = useState<{[key: string] : string}>({});
   const [tableData, setTableData] = useState<any[]>([]);
+  const [partyData, setPartyData] = useState<any>()
+  const [itemData, setItemData] = useState<any>()
   const checkItemData = useRef(false);
   const { sendAPIRequest } = useApi();
+  const [popupState, setPopupState] = useState({
+    isModalOpen: false,
+    isAlertOpen: false,
+    message: '',
+  });
 
   const [popupList, setPopupList] = useState<{ isOpen: boolean, data: any }>({
     isOpen: false,
     data: {}
   })
+
+  const focusedEle =  useRef<HTMLElement | null>(null);
+  useEffect(()=> {
+    setTimeout(()=>{
+      focusedEle.current = document.getElementById('partySelect')
+      focusedEle.current?.focus();
+    },100)
+    getPartyData();
+    getItem();
+  },[])
+
+  const getPartyData = async () => {
+    try {
+      const partiesData: any = await sendAPIRequest(`/ledger/`, {
+        method: 'GET'
+      })
+      const filteredParties = partiesData.filter((item: any) => item.locked === "Y");
+      setPartyData(filteredParties)
+
+    } catch (error: any) {
+      setPopupState({
+        ...popupState,
+        isAlertOpen: true,
+        message: `${error.message}`,
+      });
+    }
+  }
 
   const getItemData = async (partyId?: any) => {
     try {
@@ -39,7 +74,18 @@ const PriceList = () => {
     }
   }
 
-
+  const getItem = async()=>{
+    try {
+      const itemsData: any = await sendAPIRequest(`/item/`, {
+        method: 'GET'
+      })
+      setItemData(itemsData)
+    } catch (error: any) {
+      if (!error?.isErrorHandled) {
+        console.log('Partywise price list not read');
+      }
+    }
+  }
   const defaultCols={
       filter: true,
       flex: 1,
@@ -155,6 +201,16 @@ const PriceList = () => {
     }
   };
 
+  const handleKeyDown = (event: KeyboardEvent) => {
+    if (event.ctrlKey && (event.key === 'd' || event.key === 'D')) {
+      event.preventDefault();
+      if (currentSavedData?.party_id) {
+        handleDelete(currentSavedData.party_id);
+      }
+    }
+  }
+  useHandleKeydown(handleKeyDown, [currentSavedData]);
+
   return (
     <>
       <div className='w-full relative mb-4'>
@@ -166,25 +222,32 @@ const PriceList = () => {
                 Select Party:
               </label>
               <div className='flex items-center'>
-                <input
+                {createAccess && (<input
                   id='partySelect'
                   placeholder='Select Party...'
-                  onFocus={() => {
-                    if (partyData.length) {
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && partyData.length) {
                       setPopupList({
                         isOpen: true,
                         data: {
                           heading: 'Select Party',
                           headers: [...partyHeaders],
-                          tableData: partyData,
-                          handleSelect: (rowData: any) => setCurrentSavedData(rowData)
+                          footers: partyFooterData,
+                          autoClose: true,
+                          apiRoute: '/ledger',
+                          extraQueryParams: { locked: "!Y" },
+                          searchFrom: 'partyName',
+                          handleSelect: (rowData: any) => {
+                            setCurrentSavedData(rowData)
+                            document.getElementById('partySelect')?.focus()
+                            console                     }
                         }
                       })
                     }
                   }}
                   value={currentSavedData?.partyName || ''}
                   className='p-2 border border-gray-300 rounded min-w-52'
-                />
+                />)}
               </div>
             </div>
             {selectedPartyStation && (
@@ -199,7 +262,7 @@ const PriceList = () => {
             )}
           </div>
           <div className='flex space-x-6'>
-            <Button
+            {deleteAccess && ( <Button
               id='del_button'
               type='highlight'
               padding='px-6 py-4'
@@ -209,7 +272,7 @@ const PriceList = () => {
               }}
             >
               Delete
-            </Button>
+            </Button> )}
             <Button
               id='print_button'
               type='highlight'
@@ -232,26 +295,26 @@ const PriceList = () => {
           <AgGridReact
             rowData={tableData}
             columnDefs={colDefs}
-            defaultColDef={{
-              filter: true,
-              flex: 1,
-              suppressMovable: true,
-              headerClass: 'custom-header',
-            }
-            }
+            defaultColDef={defaultCols}
             onCellEditingStopped={handleCellEditingStopped}
           />
         </div>
       )}
       {popupList.isOpen && (
         <SelectList
+        tableData={[]}
           heading={popupList.data.heading}
           closeList={() => setPopupList({ isOpen: false, data: {} })}
           headers={popupList.data.headers}
-          tableData={popupList.data.tableData}
+          footers={popupList.data.footers}
+           apiRoute={popupList.data.apiRoute}
           handleSelect={(rowData) => { popupList.data.handleSelect(rowData) }}
-        />
-      )}
+          handleNewItem={popupList.data?.newItem}
+          searchFrom={popupList.data.searchFrom}
+          autoClose={popupList.data.autoClose}
+          onEsc={popupList.data.onEsc}
+          extraQueryParams={popupList.data.extraQueryParams || {}}
+      />)}
     </>
   );
 };
