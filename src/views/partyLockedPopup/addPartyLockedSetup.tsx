@@ -35,6 +35,7 @@ export const PartyLockedSetup = () => {
     isAlertOpen: false,
     message: '',
   });
+  const focusedCells = useRef('partyName')
 
   const handleClosePopup = () => {
     setPopupState({ ...popupState, isModalOpen: false });
@@ -60,6 +61,7 @@ export const PartyLockedSetup = () => {
 
   useEffect(() => {
     getPartyData();
+    document.getElementById(focusedCells.current)?.focus();
   }, [])
 
   const getPartyData = async () => {
@@ -94,9 +96,7 @@ export const PartyLockedSetup = () => {
     }
   }
 
-
-  const onCellClicked = (params: any) => {
-    setSelectedRow(selectedRow !== null ? null : params.data);
+  const openSelectPartyList = async(params: any)=>{
     if(params.node.rowIndex === 0){
       if (params.column.colId === "partyName") {
         setPopupList({
@@ -134,6 +134,10 @@ export const PartyLockedSetup = () => {
 
       }
     }
+  }
+
+  const onCellClicked = (params: any) => {
+    setSelectedRow(selectedRow !== null ? null : params.data);
   };
 
   const updateTableData = (Party: any) => {
@@ -176,6 +180,7 @@ export const PartyLockedSetup = () => {
 
   const cellEditingStarted = (params: any) => {
     editing.current = true;
+    openSelectPartyList(params)
   };
 
   const handleCellEditingStopped = async (e: any) => {
@@ -305,6 +310,7 @@ export const PartyLockedSetup = () => {
     {
       headerName: 'Party Name',
       field: 'partyName',
+      editable: (params: any) => params.node.rowIndex === 0,
     },
     {
       headerName: 'Locked',
@@ -336,7 +342,7 @@ export const PartyLockedSetup = () => {
       },
       cellRenderer: (params: any) => (
         <div className='table_edit_buttons'>
-          {updateAccess && <MdDeleteForever
+          {updateAccess && params.node.rowIndex !== 0 && <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
             onClick={() => {
               setSelectedRow(selectedRow !== null ? null : params.data);
