@@ -27,6 +27,7 @@ export const Godown = () =>{
       const gridRef = useRef<any>(null);
       const [tableData, setTableData] = useState< godownSetup | any>([initialValue]);
       const [selectedRow, setSelectedRow] = useState<any>(null);
+      const focusedCell = useRef<{ rowIndex: number; colId: string } | null>(null);
 
       useEffect(() => {
         getGodownData();
@@ -59,12 +60,12 @@ export const Godown = () =>{
       };
 
       const handleKeyDown = (event: KeyboardEvent) => {
-        handleKeyDownCommon(
-          event,
-          () => handleDelete(selectedRow,),
-          selectedRow,
-          undefined
-        );
+        if (event.key === 'Enter' && focusedCell.current) {
+          if (focusedCell.current.colId === 'action') {
+            handleDelete(tableData[focusedCell.current.rowIndex]);
+          }
+        }
+        handleKeyDownCommon(event,() => handleDelete(selectedRow,),selectedRow,undefined);
       };
     
       useEffect(() => {
@@ -81,24 +82,33 @@ export const Godown = () =>{
               rowData[key] = null;
             });
           }
-
           await sendAPIRequest(`/godown/${rowData.godownCode}`, {
             method: 'DELETE',
           });
           
           getGodownData();
           settingPopupState(false,"Godown Deleted Successfully")
+          focusedCell.current = null;
           
         } catch (error: any) {
           if (error?.response?.status!== 401 && error.response?.status!== 403) {
             console.error('Godown cannot be deleted');
+            if (error?.response?.status=== 409) {
+              settingPopupState(false,`${error.response.data.error.message}`)
+              focusedCell.current = null;
+            } 
           }
         }
     
       };
 
-      const onCellClicked = (params: { data: any }) => {
-        setSelectedRow(selectedRow !== null ? null : params.data);
+      const onCellFocused = (params: any) => {
+        focusedCell.current = { rowIndex: params.rowIndex, colId: params.column?.colId };
+      };
+
+      const onCellClicked = (params: any ) => {
+        // setSelectedRow(selectedRow !== null ? null : params.data);
+        setSelectedRow(params.data);
       };
 
       const cellEditingStarted = (params: any) => {
@@ -111,11 +121,16 @@ export const Godown = () =>{
         const { data, column, oldValue, valueChanged, node } = e;
         const { newValue } = e;
         const field = column.colId;
+
+        const toTitleCase = (str: string) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
         
         if (field === 'godownName') {
-          const isDuplicate = tableData.some((item: any) => item.godownName === newValue && item.godownCode !== data.godownCode);
+          const titleCasedNewValue = toTitleCase(newValue);
+          const isDuplicate = tableData.some((item: any) =>
+            item.godownName.toLowerCase() === titleCasedNewValue.toLowerCase() && item.godownCode !== data.godownCode
+          );    
           if (isDuplicate) {
-            settingPopupState(false, 'Duplicate Godown Name found');
+            settingPopupState(false, 'Godown with this name already exist');
             node.setDataValue(field, oldValue);
             return;
           }
@@ -125,10 +140,12 @@ export const Godown = () =>{
         if (node.rowIndex === 0 && createAccess) {
           try {
             if (data.godownName) {
-              if(tableData.length >= 10 ) return settingPopupState(false, 'Reached Godown creation Limit');
+              if(tableData.length >= 10 ) return settingPopupState(false, 'Godown creation Limit Reached');
+
+              data.godownName = toTitleCase(data.godownName);
               const response: any = await sendAPIRequest(`/godown/`, {
                 method: 'POST',
-                body: { [field]: newValue },
+                body: { [field]: data.godownName },
               });
               if (data.godownName && !response.error) {
                 settingPopupState(false, 'Godown created successfully');
@@ -141,9 +158,10 @@ export const Godown = () =>{
         } else if(updateAccess) {
             try {
               node.setDataValue(field, e.newValue);
+              const titleCasedValue = toTitleCase(newValue);
               await sendAPIRequest(`/godown/${data.godownCode}`, {
                 method: 'PUT',
-                body: { [field]: newValue },
+                body: { [field]: titleCasedValue },
               });
               getGodownData();
             } catch (error: any) {
@@ -192,6 +210,7 @@ export const Godown = () =>{
         },
         {
             headerName: 'Actions',
+            field: 'action',
             headerClass: 'custom-header-class custom-header',
             flex: 1,
             sortable: false,
@@ -230,6 +249,7 @@ export const Godown = () =>{
                 onCellClicked={onCellClicked}
                 onCellEditingStarted={cellEditingStarted}
                 onCellEditingStopped={handleCellEditingStopped}
+                onCellFocused={onCellFocused}
               />
             }
           </div>
