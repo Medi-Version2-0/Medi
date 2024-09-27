@@ -4,7 +4,6 @@ import CustomSelect from '../custom_select/CustomSelect';
 import { Option } from '../../interface/global';
 import onKeyDown from '../../utilities/formKeyDown';
 import { useControls } from '../../ControlRoomContext';
-import NumberInput from '../common/numberInput/numberInput';
 
 interface BankDetailsProps {
   formik?: any;
@@ -16,6 +15,12 @@ export const BankDetails: React.FC<BankDetailsProps> = ({ formik }) => {
     formik.setFieldValue(id, option?.value);
   };
   const { controlRoomSettings } = useControls();
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const validValue = e.target.value.replace(/[^0-9]/g, '');
+    e.target.value = validValue;
+    formik.setFieldValue(e.target.name, validValue);
+  }
 
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
@@ -42,22 +47,17 @@ export const BankDetails: React.FC<BankDetailsProps> = ({ formik }) => {
         prevField='Bank_Details'
         nextField='accountNumber'
       />
-      <NumberInput
+      <FormikInputField
+        isPopupOpen={false}
+        labelClassName='min-w-[90px]'
         label='A/C No.'
-        value={formik.values.accountNumber}
         id='accountNumber'
         name='accountNumber'
+        onChange={handleChange}
         maxLength={18}
-        onChange={(value) => formik.setFieldValue('accountNumber', value)}
-        onBlur={() => {
-          formik.setFieldTouched('accountNumber', true);
-        }}
-        error={formik.touched.accountNumber && formik.errors?.accountNumber}
-        isRequired={false}
-        labelClassName='min-w-[90px] !h-[22px]'
+        formik={formik}
         prevField='bankName'
         nextField='branchName'
-        inputClassName='text-left !text-[10px] px-1 !h-[22px]'
       />
       <FormikInputField
         isPopupOpen={false}

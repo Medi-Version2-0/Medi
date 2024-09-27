@@ -186,6 +186,7 @@ export interface CreateSubGroupProps {
   isDelete: any;
   deleteAcc: (group_code: string) => void;
   className?: string;
+  groupList: any[];
 }
 
 export interface PopupProps {

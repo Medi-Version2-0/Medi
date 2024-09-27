@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useEffect } from 'react';
 import { Formik, Form, Field, FormikProps } from 'formik';
 import { CreateGroupProps, GroupFormDataProps } from '../../interface/global';
@@ -9,6 +9,8 @@ import FormikInputField from '../../components/common/FormikInputField';
 import { FaExclamationCircle } from 'react-icons/fa';
 import { Tooltip as ReactTooltip } from 'react-tooltip';
 import { groupValidationSchema } from './validation_schema';
+import useHandleKeydown from '../../hooks/useHandleKeydown';
+import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 
 export const CreateGroup = ({
   togglePopup,
@@ -18,6 +20,7 @@ export const CreateGroup = ({
   deleteAcc,
   className
 }:CreateGroupProps) => {
+  const formikRef = useRef<any>(null);
   const { group_code } = data;
 
   useEffect(() => {
@@ -35,6 +38,20 @@ export const CreateGroup = ({
     !group_code && document.getElementById('account_button')?.focus();
     handelFormSubmit(formData);
   };
+
+  const keyDown = (event: KeyboardEvent) => {
+    handleKeyDownCommon(
+      event,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      handleSubmit,
+      formikRef.current?.values,
+    );
+  };
+  useHandleKeydown(keyDown, [])   // to implement ctrl + s 
 
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
@@ -61,6 +78,7 @@ export const CreateGroup = ({
       }
     >
       <Formik
+        innerRef={formikRef}
         initialValues={{
           group_name: data?.group_name || '',
         type: data?.type || '',
@@ -143,7 +161,7 @@ export const CreateGroup = ({
                       })
                     }
                   />
-                  <span>Bl. Sheet</span>
+                  <span>B/S</span>
                 </label>
                 {formik.touched.type && formik.errors.type && (
                   <>
@@ -218,6 +236,7 @@ export const CreateGroup = ({
                   id='submit_button'
                   type='fill'
                   autoFocus
+                  disable={formik.isSubmitting}  // disable if form is submitting i.e., prevent multiple submissions
                   handleOnKeyDown={(e) => {
                     if (e.key === 'Tab' || (!formik.isValid && e.key === 'Enter')) {
                       document.getElementById('group_name')?.focus();
