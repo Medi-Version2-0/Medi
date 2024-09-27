@@ -12,11 +12,10 @@ import Button from '../../components/common/button/Button';
 import { groupValidationSchema } from './validation_schema';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
 import usePermission from '../../hooks/useRole';
-import { lookupValue } from '../../helper/helper';
+import { capitalFirstLetter, lookupValue } from '../../helper/helper';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import useApi from '../../hooks/useApi';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
-import { capitalFirstLetter } from '../../utilities/capitalFirstLetter';
 
 export const Groups = () => {
   const initialValue = {
