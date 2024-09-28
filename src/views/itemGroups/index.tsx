@@ -12,50 +12,46 @@ import Button from '../../components/common/button/Button';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { itemGroupValidationSchema } from './validation_schema';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
-import { getAndSetItemGroups } from '../../store/action/globalAction';
-import { useSelector } from 'react-redux'
 import usePermission from '../../hooks/useRole';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
 import { lookupValue } from '../../helper/helper';
-import { useGetSetData } from '../../hooks/useGetSetData';
 import useApi from '../../hooks/useApi';
 
 export const ItemGroups = () => {
-  const initialData = {
-    group_code: '',
-    group_name: '',
-    type: '',
-  };
-  const { sendAPIRequest } = useApi();
+  const initialData = { group_code: '', group_name: '', type: '' };
   const [open, setOpen] = useState<boolean>(false);
-  const [formData, setFormData] = useState<ItemGroupFormData>({
-    group_name: '',
-    group_code: '',
-    type: '',
-  });
   const [selectedRow, setSelectedRow] = useState<any>(null);
+  const [tableData, setTableData] = useState<ItemGroupFormData | any>(null);
+  const [formData, setFormData] = useState<ItemGroupFormData>(initialData);
+  const [popupState, setPopupState] = useState({ isModalOpen: false, isAlertOpen: false, message: '' });
+  const { createAccess, updateAccess, deleteAccess } = usePermission('itemgroup')
   const editing = useRef(false);
-  const getAndSetItemGroupHandler = useGetSetData(getAndSetItemGroups);
-  const {createAccess , updateAccess , deleteAccess} = usePermission('itemgroup')
-  const [popupState, setPopupState] = useState({
-    isModalOpen: false,
-    isAlertOpen: false,
-    message: '',
-  });
   const gridRef = useRef<any>(null);
-  const { itemGroups: itemGroups } = useSelector((state: any) => state.global);
-  const [tableData, setTableData] = useState([...(createAccess ? [initialData] :[]), ...itemGroups]);
   const isDelete = useRef(false);
+  const { sendAPIRequest } = useApi();
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    const itemGroups = await sendAPIRequest<ItemGroupFormData[]>('/itemGroup');
+    setTableData([...(createAccess ? [initialData] : []), ...itemGroups])
+  }
 
   const settingPopupState = (isModal: boolean, message: string) => {
-    setPopupState({
-      ...popupState,
-      [isModal ? 'isModalOpen' : 'isAlertOpen']: true,
-      message: message,
-    });
+    setPopupState({ ...popupState, [isModal ? 'isModalOpen' : 'isAlertOpen']: true, message: message });
   };
 
-  const typeMapping = useMemo(() => ({p_and_l: 'P&L', balance_sheet: 'Balance Sheet'}), []);
+  const togglePopup = (isOpen: boolean) => {
+    if (!isOpen) {
+      setFormData(initialData);
+      isDelete.current = false;
+    }
+    setOpen(isOpen);
+  };
+
+  const typeMapping = useMemo(() => ({ p_and_l: 'P&L', balance_sheet: 'Balance Sheet' }), []);
 
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
@@ -68,73 +64,61 @@ export const ItemGroups = () => {
   const handleConfirmPopup = async (data?: any) => {
     const respData = data ? data : formData;
     setPopupState({ ...popupState, isModalOpen: false });
-    if (formData.group_name) {
-      formData.group_name =
-        formData.group_name.charAt(0).toUpperCase() +
-        formData.group_name.slice(1);
-    }
+    if (formData.group_name) formData.group_name = formData.group_name.charAt(0).toUpperCase() + formData.group_name.slice(1);
+
     const payload = {
       group_name: respData.group_name ? respData.group_name : formData.group_name,
       type: respData.group_name ? respData.type : formData.type,
     };
 
-    try{
+    try {
       if (payload !== initialData) {
         if (formData.group_code) {
-          await sendAPIRequest(
-            `/itemGroup/${formData.group_code}`,
-            {
-              method: 'PUT',
-              body: formData,
-            }
-          );
+          await sendAPIRequest(`/itemGroup/${formData.group_code}`, { method: 'PUT', body: formData });
         } else {
-          const response: any = await sendAPIRequest(`/itemGroup`, {
-            method: 'POST',
-            body: payload,
-          });
+          const response: any = await sendAPIRequest(`/itemGroup`, { method: 'POST', body: payload });
           if (respData.group_name && !response.error) {
             settingPopupState(false, 'Item Group saved successfully');
           }
         }
-        getAndSetItemGroupHandler();
         togglePopup(false);
       }
-    }catch (error:any){
+    } catch (error: any) {
       if (!error?.isErrorHandled) {
-        console.log('Item Group not created or updated');
+        const errorMessage = error?.response?.data?.error?.message || 'Error in creating item groups. Please try again'
+        settingPopupState(false, `${errorMessage}`);
+        console.log('Item Group not created or updated', error)
       }
     }
+    fetchData();
   };
 
-  const togglePopup = (isOpen: boolean) => {
-    if (!isOpen) {
-      setFormData(initialData);
-      isDelete.current = false;
+  const handelFormSubmit = (values: ItemGroupFormData) => {
+    const mode = values.group_code ? 'update' : 'create';
+    const existingGroup = (tableData || []).find((group: ItemGroupFormData) => {
+      if (mode === 'create')
+        return (group.group_name.toLowerCase() === values.group_name.toLowerCase());
+      return (group.group_name.toLowerCase() === values.group_name.toLowerCase() && group.group_code !== values.group_code);
+    });
+
+    if (existingGroup) settingPopupState(false, 'Item Group with this name already exists!');
+
+    if (values !== initialData) {
+      settingPopupState(true, `Are you sure you want to ${mode} this group?`);
+      setFormData(values);
     }
-    setOpen(isOpen);
   };
 
-  const getGroups = async () => {
-    if (Array.isArray(itemGroups)) {
-      setTableData([...(createAccess ? [initialData] : []), ...itemGroups]);
-    }
-    return itemGroups;
-  };
+
 
   const deleteAcc = async (group_code: string) => {
     togglePopup(false);
     isDelete.current = false;
-
-    try{
-      await sendAPIRequest(`/itemGroup/${group_code}`, {
-        method: 'DELETE',
-      });
-      getAndSetItemGroupHandler();
-    }catch(error:any){
-      if (!error?.isErrorHandled) {
-        console.log('Item Group not deleted');
-      }
+    try {
+      await sendAPIRequest(`/itemGroup/${group_code}`, { method: 'DELETE' });
+      fetchData();
+    } catch (error: any) {
+      if (!error?.isErrorHandled) settingPopupState(false, 'This Item Group is associated');
     }
   };
 
@@ -153,45 +137,24 @@ export const ItemGroups = () => {
     setSelectedRow(null);
   };
 
-  const handelFormSubmit = (values: ItemGroupFormData) => {
-    const mode = values.group_code ? 'update' : 'create';
-    const existingGroup = (tableData || []).find((group: ItemGroupFormData) => {
-      if (mode === 'create')
-        return (
-          group.group_name.toLowerCase() === values.group_name.toLowerCase()
-        );
-      return (
-        group.group_name.toLowerCase() === values.group_name.toLowerCase() &&
-        group.group_code !== values.group_code
-      );
-    });
-    if (existingGroup) {
-      settingPopupState(false, 'Item Group with this name already exists!')
-      return;
-    }
-    if (values.group_name) {
-      values.group_name =
-        values.group_name.charAt(0).toUpperCase() + values.group_name.slice(1);
-    }
-    if (values !== initialData) {
-      settingPopupState(true, `Are you sure you want to ${mode} this group?`);
-      setFormData(values);
-    }
-  };
 
-  const handleCellEditingStopped = async (e: {
-    data?: any;
-    column?: any;
-    oldValue?: any;
-    valueChanged?: any;
-    node?: any;
-    newValue?: any;
-  }) => {
+
+  const handleCellEditingStopped = async (e: any) => {
     editing.current = false;
     const { data, column, oldValue, valueChanged, node } = e;
     let { newValue } = e;
     if (!valueChanged && node.rowIndex !== 0) return;
     const field = column.colId;
+    if (field === 'group_name' && !!newValue) {
+      newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
+      const dataToCompare = tableData.filter((d: any) => data.group_code !== d.group_code);
+      const existingItemGroup = dataToCompare?.find((group: ItemGroupFormData) => group.group_name.toLowerCase() === newValue.toLowerCase());
+      if (existingItemGroup) {
+        settingPopupState(false, 'Item Group with this name already exists!');
+        node.setDataValue(field, oldValue);
+        return;
+      }
+    }
     if (node.rowIndex === 0 && createAccess) {
       if (data.group_name && data.type) {
         try {
@@ -199,39 +162,39 @@ export const ItemGroups = () => {
 
           if (field === 'group_name') {
             newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
-          } else if (field === 'igst_sale' && newValue) {
-            newValue = newValue.toLowerCase();
           }
           handleConfirmPopup(data);
+          return;
         } catch (error: any) {
-          settingPopupState(false, `${error.message}`);
+          settingPopupState(false, error.message);
+          node.setDataValue(field, oldValue);
+          return;
         }
       }
-
-      node.setDataValue(field, newValue);
     } else {
       try {
-        await itemGroupValidationSchema.validateAt(field, { [field]: newValue, });
-        await sendAPIRequest(
-          `/itemGroup/${data.group_code}`,
-          {
-            method: 'PUT',
-            body: { [field]: newValue },
-          }
-        );
-        getAndSetItemGroupHandler();
+        if (!data.group_name || !data.type) {
+          data[field] = oldValue;
+          settingPopupState(false, 'Group name, P&L/Bl Sheet cannot be left empty.');
+          return;
+        }
+        const isValid = await itemGroupValidationSchema.validateAt(field, { [field]: newValue });
+        if (isValid) {
+          await sendAPIRequest(`/itemGroup/${data.group_code}`, { method: 'PUT', body: { [field]: newValue } });
+        }
+        fetchData();
       } catch (error: any) {
         if (!error?.isErrorHandled) {
-          settingPopupState(false, `${error.message}`);
-          node.setDataValue(field, oldValue);
+          data[field] = oldValue;
+          settingPopupState(false, error.message);
+          return;
         }
       }
     }
   };
 
-
   const onCellClicked = (params: { data: any }) => {
-    setSelectedRow(params.data);
+    setSelectedRow(selectedRow !== null ? null : params.data);
   };
 
   const cellEditingStarted = () => {
@@ -239,48 +202,34 @@ export const ItemGroups = () => {
   };
 
   const handleKeyDown = (event: KeyboardEvent) => {
-    handleKeyDownCommon(
-      event,
-      handleDelete,
-      handleUpdate,
-      togglePopup,
-      selectedRow,
-      undefined
-    );
+    handleKeyDownCommon(event, handleDelete, handleUpdate, togglePopup, selectedRow, undefined);
   };
 
   useHandleKeydown(handleKeyDown, [selectedRow, popupState])
 
-  useEffect(() => {
-    getGroups();
-  }, [itemGroups,createAccess]);
-
   const defaultCols = {
-      flex: 1,
-      filter: true,
-      headerClass: 'custom-header',
-      suppressMovable: true,
-      floatingFilter: true,
-      editable: (params: any) => params.node.rowIndex === 0 ? createAccess : updateAccess,
-      cellRenderer: (params: any) => (
-        <PlaceholderCellRenderer
-          value={params.value}
-          rowIndex={params.node.rowIndex}
-          column={params.colDef}
-          startEditingCell={(editParams: any) => {
-            gridRef.current?.api?.startEditingCell(editParams);
-          }}
-          placeholderText={params.colDef.headerName}
-        />
-      )
+    flex: 1,
+    filter: true,
+    headerClass: 'custom-header',
+    suppressMovable: true,
+    floatingFilter: true,
+    editable: (params: any) => params.node.rowIndex === 0 ? createAccess : updateAccess,
+    cellRenderer: (params: any) => (
+      <PlaceholderCellRenderer
+        value={params.value}
+        rowIndex={params.node.rowIndex}
+        column={params.colDef}
+        startEditingCell={(editParams: any) => {
+          gridRef.current?.api?.startEditingCell(editParams);
+        }}
+        placeholderText={params.colDef.headerName}
+      />
+    )
   }
 
   const colDefs: (ColDef<any, any> | ColGroupDef<any>)[] | null | undefined[] =
     [
-      {
-        headerName: 'Group Name',
-        field: 'group_name',
-      },
+      { headerName: 'Group Name', field: 'group_name' },
       {
         headerName: 'P&L / BL. Sheet',
         field: 'type',
@@ -292,80 +241,35 @@ export const ItemGroups = () => {
         headerName: 'Actions',
         headerClass: 'custom-header-class custom-header',
         sortable: false,
-        editable :false,
+        editable: false,
         suppressMovable: true,
         flex: 1,
-        cellStyle: {
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-        },
-        cellRenderer: (params: { data: ItemGroupFormData }) => (
+        cellStyle: { display: 'flex', justifyContent: 'center', alignItems: 'center' },
+        cellRenderer: (params: { data: ItemGroupFormData, node: any }) => (
           <div className='table_edit_buttons'>
-            <FaEdit
-              style={{ cursor: 'pointer', fontSize: '1.1rem' }}
-              onClick={() => {
-                handleUpdate(params.data);
-              }}
-            />
-            <MdDeleteForever
-              style={{ cursor: 'pointer', fontSize: '1.2rem' }}
-              onClick={() => {
-                handleDelete(params.data);
-              }}
-            />
+            {params.node.rowIndex !== 0 && (
+              <>
+                <FaEdit style={{ cursor: 'pointer', fontSize: '1.1rem' }} onClick={() => handleUpdate(params.data)} />
+                <MdDeleteForever style={{ cursor: 'pointer', fontSize: '1.2rem' }} onClick={() => handleDelete(params.data)} />
+              </>
+            )}
           </div>
         ),
       },
     ];
+
   return (
     <>
       <div className='w-full relative'>
         <div className='flex w-full items-center justify-between px-8 py-1'>
           <h1 className='font-bold'>Item Groups</h1>
-          {createAccess && <Button
-            type='highlight'
-            className=''
-            handleOnClick={() => togglePopup(true)}
-          >
-            Add Group
-          </Button>}
+          {createAccess && <Button type='highlight' handleOnClick={() => togglePopup(true)} > Add Group </Button>}
         </div>
         <div id='account_table' className='ag-theme-quartz'>
-          {
-            <AgGridReact
-              rowData={tableData}
-              columnDefs={colDefs}
-              defaultColDef={defaultCols}
-              onCellClicked={onCellClicked}
-              onCellEditingStarted={cellEditingStarted}
-              onCellEditingStopped={handleCellEditingStopped}
-            />
-          }
+          <AgGridReact rowData={tableData} columnDefs={colDefs} defaultColDef={defaultCols} onCellClicked={onCellClicked} onCellEditingStarted={cellEditingStarted} onCellEditingStopped={handleCellEditingStopped} />
         </div>
-        {(popupState.isModalOpen || popupState.isAlertOpen) && (
-          <Confirm_Alert_Popup
-            onClose={handleClosePopup}
-            onConfirm={
-              popupState.isAlertOpen
-                ? handleAlertCloseModal
-                : handleConfirmPopup
-            }
-            message={popupState.message}
-            isAlert={popupState.isAlertOpen}
-            className='absolute'
-          />
-        )}
-        {open && (
-          <CreateItemGroup
-            togglePopup={togglePopup}
-            data={formData}
-            handelFormSubmit={handelFormSubmit}
-            isDelete={isDelete.current}
-            deleteAcc={deleteAcc}
-            className='absolute'
-          />
-        )}
+        {(popupState.isModalOpen || popupState.isAlertOpen) && (<Confirm_Alert_Popup onClose={handleClosePopup} onConfirm={popupState.isAlertOpen ? handleAlertCloseModal : handleConfirmPopup} message={popupState.message} isAlert={popupState.isAlertOpen} className='absolute' />)}
+        {open && (<CreateItemGroup togglePopup={togglePopup} data={formData} handelFormSubmit={handelFormSubmit} isDelete={isDelete.current} deleteAcc={deleteAcc} className='absolute' />)}
       </div>
     </>
   );
