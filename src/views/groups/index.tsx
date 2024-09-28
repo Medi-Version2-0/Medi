@@ -6,7 +6,7 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { GroupFormData } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
-import { ColDef, ColGroupDef, ValueFormatterParams } from 'ag-grid-community';
+import { ColDef, ColGroupDef, GridOptions, ValueFormatterParams } from 'ag-grid-community';
 import { CreateGroup } from './CreateGroup';
 import Button from '../../components/common/button/Button';
 import { groupValidationSchema } from './validation_schema';
@@ -265,7 +265,7 @@ export const Groups = () => {
     onGridReady();
   }, [tableData]);
 
-  const defaultCols = {
+  const defaultColDef: ColDef = {
     floatingFilter: true,
     flex: 1,
     filter: true,
@@ -325,6 +325,12 @@ export const Groups = () => {
       },
     ];
 
+  const gridOptions: GridOptions<any> = {
+    pagination: true,
+    paginationPageSize: 20,
+    paginationPageSizeSelector: [20, 30, 40],
+    defaultColDef,
+  };
   return (
     <>
       <div className='w-full relative'>
@@ -344,7 +350,7 @@ export const Groups = () => {
             <AgGridReact
               rowData={tableData}
               columnDefs={colDefs}
-              defaultColDef={defaultCols}
+              gridOptions={gridOptions}
               onCellClicked={onCellClicked}
               onCellEditingStarted={cellEditingStarted}
               onCellEditingStopped={handleCellEditingStopped}

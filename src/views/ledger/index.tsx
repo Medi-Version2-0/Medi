@@ -7,7 +7,7 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { View } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
-import { ColDef, ValueFormatterParams } from 'ag-grid-community';
+import { ColDef, GridOptions, ValueFormatterParams } from 'ag-grid-community';
 import Button from '../../components/common/button/Button';
 import { IoSettingsOutline } from 'react-icons/io5';
 import { useControls } from '../../ControlRoomContext';
@@ -192,7 +192,7 @@ export const Ledger = ({type = ''}) => {
       editing.current = true
   };
 
-  const defaultCols = {
+  const defaultColDef: ColDef = {
     floatingFilter: true,
     flex: 1,
     filter: true,
@@ -282,6 +282,13 @@ export const Ledger = ({type = ''}) => {
     },
   ];
 
+  const gridOptions: GridOptions<any> = {
+    pagination: true,
+    paginationPageSize: 20,
+    paginationPageSizeSelector: [20, 30, 40],
+    defaultColDef,
+  };
+  
   const ledger = () => {
     return (
       <>
@@ -311,7 +318,7 @@ export const Ledger = ({type = ''}) => {
           <AgGridReact
             rowData={tableData}
             columnDefs={colDefs}
-            defaultColDef={defaultCols}
+            gridOptions={gridOptions}
             onCellClicked={onCellClicked}
             onCellEditingStarted={cellEditingStarted}
             onCellEditingStopped={handleCellEditingStopped}

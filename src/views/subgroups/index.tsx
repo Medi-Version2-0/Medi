@@ -6,7 +6,7 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { SubGroupFormData } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
-import { ColDef, ColGroupDef } from 'ag-grid-community';
+import { ColDef, ColGroupDef, GridOptions } from 'ag-grid-community';
 import { CreateSubGroup } from './CreateSubGroup';
 import Button from '../../components/common/button/Button';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
@@ -261,7 +261,7 @@ export const SubGroups = () => {
 
   const parentGroup = extractKeys(parentGroupMap);
 
-  const defaultCol = {
+  const defaultColDef: ColDef = {
     floatingFilter: true,
     flex: 1,
     filter: true,
@@ -342,6 +342,13 @@ export const SubGroups = () => {
         ),
       },
     ];
+
+  const gridOptions: GridOptions<any> = {
+    pagination: true,
+    paginationPageSize: 20,
+    paginationPageSizeSelector: [20, 30, 40],
+    defaultColDef,
+  };
   return (
     <>
       <div className='w-full relative'>
@@ -360,7 +367,7 @@ export const SubGroups = () => {
             <AgGridReact
               rowData={tableData}
               columnDefs={colDefs}
-              defaultColDef={defaultCol}
+              gridOptions={gridOptions}
               onCellClicked={onCellClicked}
               onCellEditingStarted={cellEditingStarted}
               onCellEditingStopped={handleCellEditingStopped}
