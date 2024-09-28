@@ -13,7 +13,7 @@ import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { subgroupValidationSchema } from './validation_schema';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
 import usePermission from '../../hooks/useRole';
-import { capitalFirstLetter, extractKeys, lookupValue, stringValueParser } from '../../helper/helper';
+import { extractKeys, lookupValue, stringValueParser } from '../../helper/helper';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
 import useApi from '../../hooks/useApi';
 
@@ -89,32 +89,24 @@ export const SubGroups = () => {
   }, [document.getElementById('account_button')]);  
 
   const handleConfirmPopup = async (data?: any) => {
-    const respData = data ? data : formData;
     setPopupState({ ...popupState, isModalOpen: false });
-    if (formData.group_name) {
-      formData.group_name = capitalFirstLetter(formData.group_name);
-    }
-    const payload = {
-      group_name: respData.group_name ? respData.group_name : formData.group_name,
-      parent_code: respData.group_name ? respData.parent_code : formData.parent_code,
-    };
-
     try{
-      if (payload !== initialValue) {
-        if (formData.group_code) {
+      if (data !== initialValue) {
+        if (data.group_code) {
           await sendAPIRequest(
             `/subGroup/${formData.group_code}`,
             {
               method: 'PUT',
-              body: formData,
+              body: data,
             }
           );
         } else {
           await sendAPIRequest(`/subGroup`, {
             method: 'POST',
-            body: payload,
+            body: data,
           });
         }
+        settingPopupState(false, `Sub group ${data.group_code ? 'updated' : 'created'} successfully`);
         togglePopup(false);
         await getAndSetSubGroups();
       }
@@ -136,11 +128,12 @@ export const SubGroups = () => {
     setOpen(isOpen);
   };
 
-  const deleteAcc = async (group_code: string) => {
+  const deleteAcc = async () => {
     try{
+      settingPopupState(false,'Sub Group deleted')
       isDelete.current = false;
       togglePopup(false);
-      await sendAPIRequest(`/subGroup/${group_code}`, {
+      await sendAPIRequest(`/subGroup/${selectedRow.group_code}`, {
         method: 'DELETE',
       });
       await getAndSetSubGroups();
@@ -155,7 +148,6 @@ export const SubGroups = () => {
     isDelete.current = true;
     setFormData(oldData);
     togglePopup(true);
-    setSelectedRow(null);
   };
 
   const handleUpdate = (oldData: SubGroupFormData) => {
@@ -166,15 +158,8 @@ export const SubGroups = () => {
     setSelectedRow(null);
   };
 
-  const handelFormSubmit = (values: SubGroupFormData) => {
-    const mode = values.group_code ? 'update' : 'create';
-    if (values.group_name) {
-      values.group_name = capitalFirstLetter(values.group_name);
-    }
-    if (values !== initialValue) {
-      settingPopupState(true, `Are you sure you want to ${mode} this group?`);
-      setFormData(values);
-    }
+  const handleDeleteFromForm = () => {
+    settingPopupState(true,'Are you sure you want to delete the subgroup')
   };
 
   const handleCellEditingStopped = async (e: {
@@ -186,18 +171,14 @@ export const SubGroups = () => {
     newValue?: any;
   }) => {
     editing.current = false;
-    const { data, column, oldValue, valueChanged, node } = e;
-    let { newValue } = e;
+    const { data, column, newValue, oldValue, valueChanged, node } = e;
     if (!valueChanged && node.rowIndex !== 0) return;
     const field = column.colId;
     if (node.rowIndex === 0 && permissions.createAccess) {
       if (data.group_name && data.parent_code) {
         try { 
           await subgroupValidationSchema.validate(data);
-            handleConfirmPopup(data)
-          if (field === 'igst_sale' && newValue) {
-            newValue = newValue.toLowerCase();
-          }
+          handleConfirmPopup(data)
         } catch (error: any) {
           settingPopupState(false, error.message);
           node.setDataValue(field, oldValue);
@@ -211,7 +192,6 @@ export const SubGroups = () => {
           node.setDataValue(field, oldValue);
           return;
         }
-        newValue = capitalFirstLetter(newValue);
       }
       try{
         await sendAPIRequest(`/subGroup/${data.group_code}`, {
@@ -381,7 +361,7 @@ export const SubGroups = () => {
             onConfirm={
               popupState.isAlertOpen
                 ? handleAlertCloseModal
-                : handleConfirmPopup
+                : deleteAcc
             }
             message={popupState.message}
             isAlert={popupState.isAlertOpen}
@@ -392,9 +372,9 @@ export const SubGroups = () => {
           <CreateSubGroup
             togglePopup={togglePopup}
             data={formData}
-            handelFormSubmit={handelFormSubmit}
+            handleConfirmPopup={handleConfirmPopup}
             isDelete={isDelete.current}
-            deleteAcc={deleteAcc}
+            handleDeleteFromForm={handleDeleteFromForm}
             className='absolute'
             groupList={groups}
           />

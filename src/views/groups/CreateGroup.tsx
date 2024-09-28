@@ -13,16 +13,15 @@ import CustomSelect from '../../components/custom_select/CustomSelect';
 export const CreateGroup = ({
   togglePopup,
   data,
-  handelFormSubmit,
+  handleConfirmPopup,
   isDelete,
-  deleteAcc,
+  handleDeleteFromForm,
   className
 }:CreateGroupProps) => {
   const formikRef = useRef<any>(null);
   const [focused, setFocused] = useState<string>('');
   const { group_code } = data;
 
-  console.log('hello')
   useEffect(() => {
     const focusTarget = !isDelete
       ? document.getElementById('group_name')
@@ -35,7 +34,7 @@ export const CreateGroup = ({
       ? { ...values, group_code: group_code }
       : values;
     !group_code && document.getElementById('account_button')?.focus();
-    handelFormSubmit(formData);
+    handleConfirmPopup(formData);
   };
 
   const handleFieldChange = (option:any) => {
@@ -185,7 +184,8 @@ export const CreateGroup = ({
                 <Button
                   id='del_button'
                   type='fill'
-                  handleOnClick={() => group_code && deleteAcc(group_code)}
+                  btnType='button'
+                  handleOnClick={handleDeleteFromForm}
                   handleOnKeyDown={(e) => {
                     if (e.key === 'Tab') {
                       document.getElementById('cancel_button')?.focus();

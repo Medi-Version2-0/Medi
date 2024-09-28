@@ -17,9 +17,9 @@ import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
   togglePopup,
   data,
-  handelFormSubmit,
+  handleConfirmPopup,
   isDelete,
-  deleteAcc,
+  handleDeleteFromForm,
   className,
   groupList,
 }) => {
@@ -48,7 +48,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
       ...(group_code && { group_code }),
     };
     !group_code && document.getElementById('account_button')?.focus();
-    handelFormSubmit(formData);
+    handleConfirmPopup(formData);
   };
 
 
@@ -212,7 +212,8 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                 <Button
                   id='del_button'
                   type='fill'
-                  handleOnClick={() => group_code && deleteAcc(group_code)}
+                  btnType='button'
+                  handleOnClick={handleDeleteFromForm}
                   handleOnKeyDown={(e) => {
                     if (e.key === 'Tab') {
                       document.getElementById('cancel_button')?.focus();
