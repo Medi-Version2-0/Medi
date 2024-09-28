@@ -1,16 +1,14 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { useEffect } from 'react';
-import { Formik, Form, Field, FormikProps } from 'formik';
-import { CreateGroupProps, GroupFormDataProps } from '../../interface/global';
+import { Formik, Form } from 'formik';
+import { CreateGroupProps } from '../../interface/global';
 import { Popup } from '../../components/popup/Popup';
 import Button from '../../components/common/button/Button';
-import onKeyDown from '../../utilities/formKeyDown';
 import FormikInputField from '../../components/common/FormikInputField';
-import { FaExclamationCircle } from 'react-icons/fa';
-import { Tooltip as ReactTooltip } from 'react-tooltip';
 import { groupValidationSchema } from './validation_schema';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
+import CustomSelect from '../../components/custom_select/CustomSelect';
 
 export const CreateGroup = ({
   togglePopup,
@@ -21,8 +19,10 @@ export const CreateGroup = ({
   className
 }:CreateGroupProps) => {
   const formikRef = useRef<any>(null);
+  const [focused, setFocused] = useState<string>('');
   const { group_code } = data;
 
+  console.log('hello')
   useEffect(() => {
     const focusTarget = !isDelete
       ? document.getElementById('group_name')
@@ -30,13 +30,18 @@ export const CreateGroup = ({
     focusTarget?.focus();
   }, []);
 
-
   const handleSubmit = async (values: object) => {
     const formData = group_code
       ? { ...values, group_code: group_code }
       : values;
     !group_code && document.getElementById('account_button')?.focus();
     handelFormSubmit(formData);
+  };
+
+  const handleFieldChange = (option:any) => {
+    if(formikRef.current){
+      formikRef.current.setFieldValue('type', option.value);
+    }
   };
 
   const keyDown = (event: KeyboardEvent) => {
@@ -52,18 +57,6 @@ export const CreateGroup = ({
     );
   };
   useHandleKeydown(keyDown, [])   // to implement ctrl + s 
-
-  const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>,
-    formik?: FormikProps<GroupFormDataProps>,
-    radioField?: any
-  ) => {
-    onKeyDown({
-      e,
-      formik: formik,
-      radioField: radioField,
-    });
-  };
 
   return (
     <Popup
@@ -81,7 +74,7 @@ export const CreateGroup = ({
         innerRef={formikRef}
         initialValues={{
           group_name: data?.group_name || '',
-        type: data?.type || '',
+          type: data?.type || 'Balance Sheet',
         }}
         validationSchema={groupValidationSchema}
         onSubmit={handleSubmit}
@@ -93,93 +86,73 @@ export const CreateGroup = ({
                 label='Group Name'
                 id='group_name'
                 name='group_name'
+                isUpperCase={true}
                 formik={formik}
                 className='!gap-0'
                 isDisabled={isDelete && group_code}
                 prevField='group_name'
                 sideField='p_and_l'
                 nextField='p_and_l'
-                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                  handleKeyDown(e)
-                }
+                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>{
+                  const key = e.key;
+                  const shiftPressed = e.shiftKey;
+                  if(key === 'ArrowDown' || key === 'Enter'){
+                    e.preventDefault();
+                    setFocused('Type');
+                  }
+                  if(shiftPressed && key === 'Tab'){
+                    e.preventDefault();
+                  }
+                }}
                 showErrorTooltip={
                   !!(formik.touched.group_name && formik.errors.group_name)
                 }
               />
             </div>
-            <div className='radio_fields relative w-full rounded-sm border border-solid border-[#9ca3af] p-[3px]'>
-              <span
-                className={`label_prefix z-10 bg-white px-1 absolute top-0 left-1 -translate-y-1/2 text-xs ${!!(formik.touched.type && formik.errors.type) && '!text-red-700'}`}
-              >
-                Type
-              </span>
-              <div
-                className={`relative flex items-center justify-evenly w-full p-[3px] ${group_code && isDelete && 'bg-[#f5f5f5]'} ${!!(formik.touched.type && formik.errors.type) && '!border-red-500'}`}
-              >
-                <label
-                  className={`flex items-center justify-center text-xs cursor-pointer text-center font-medium ${group_code && isDelete ? 'disabled' : ''}`}
-                >
-                  <Field
-                    type='radio'
-                    name='type'
-                    value='P&L'
-                    id='p_and_l'
-                    className='text-xs mr-1'
-                    required={true}
-                    checked={formik.values.type === 'P&L'}
-                    disabled={group_code && isDelete}
-                    data-prev-field='group_name'
-                    data-next-field='submit_button'
-                    data-side-field='balance_sheet'
-                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                      handleKeyDown(e, formik, {
-                        typeField: 'type',
-                        sideField: 'balance_sheet',
-                      })
-                    }
-                  />
-                  <span>P & L</span>
-                </label>
-                <label
-                  className={`flex items-center justify-center text-xs cursor-pointer text-center font-medium ${group_code && isDelete ? 'disabled' : ''}`}
-                >
-                  <Field
-                    type='radio'
-                    name='type'
-                    value='Balance Sheet'
-                    id='balance_sheet'
-                    className='text-xs mr-1'
-                    checked={formik.values.type === 'Balance Sheet'}
-                    disabled={group_code && isDelete}
-                    data-prev-field='group_name'
-                    data-next-field='submit_button'
-                    data-side-field='p_and_l'
-                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                      handleKeyDown(e, formik, {
-                        typeField: 'type',
-                        sideField: 'p_and_l',
-                      })
-                    }
-                  />
-                  <span>B/S</span>
-                </label>
-                {formik.touched.type && formik.errors.type && (
-                  <>
-                    <FaExclamationCircle
-                      data-tooltip-id='typeError'
-                      className='absolute -translate-y-2/4 top-2/4 right-1 text-xs text-red-600'
-                    />
-                    <ReactTooltip
-                      id='typeError'
-                      place='bottom'
-                      className=' text-[white] border rounded !text-xs z-10 p-2 border-solid border-[#d8000c] !bg-red-600'
-                    >
-                      {formik.errors.type}
-                    </ReactTooltip>
-                  </>
-                )}
-              </div>
-            </div>
+            <CustomSelect
+              isPopupOpen={false}
+              label='Type'
+              value={
+                {
+                  label: formik.values.type,
+                  value: formik.values.type,
+                }
+              }
+              id='Type'
+              isDisabled={isDelete && group_code}
+              error={formik.errors.type}
+              onChange={handleFieldChange}
+              options={[
+                { value: 'Balance Sheet', label: 'Balance Sheet' },
+                { value: 'P&L', label: 'P&L' },
+              ]}
+              labelClass='absolute whitespace-nowrap z-10 -top-3 !bg-white h-[17px] px-1 left-[6px]'
+              isSearchable={false}
+              isFocused={focused === 'Type'}
+              disableArrow={false}
+              containerClass='gap-[3.28rem] !w-114% !justify-between relative mt-2 h-8 !text-[12px]'
+              className='!rounded-[2px] !h-7  w-full width: fit-content !important text-wrap: nowrap'
+              onBlur={() => {
+                formik.setFieldTouched('Type', true);
+                setFocused('')
+              }}
+              onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+                const dropdown = document.querySelector('.custom-select__menu');
+                if (e.key === 'Enter') {
+                  if (!dropdown) {
+                    e.preventDefault();
+                  }
+                  document.getElementById('submit_button')?.focus();
+                } else if (e.key === 'Tab' && e.shiftKey) {
+                  e.preventDefault();
+                  if (dropdown) {
+                    return
+                  }
+                  document.getElementById('group_name')?.focus();
+                }
+              }}
+            />
+
             <div className='flex justify-between my-4 w-full'>
               <Button
                 autoFocus={true}
@@ -201,11 +174,8 @@ export const CreateGroup = ({
                     togglePopup(false);
                   }
                   if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab')) {
-                    document
-                      .getElementById(
-                        `${isDelete ? 'cancel_button' : 'balance_sheet'}`
-                      )
-                      ?.focus();
+                    e.preventDefault();
+                    setFocused('Type');
                   }
                 }}
               >

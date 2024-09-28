@@ -108,6 +108,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
               label='Sub Group Name'
               id='group_name'
               name='group_name'
+              isUpperCase={true}
               formik={formik}
               className='!gap-0'
               isDisabled={isDelete && group_code}
@@ -174,9 +175,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                           document.getElementById('submit_button')?.focus();
                         }
                         if (e.shiftKey && e.key === 'Tab') {
-                          if (!dropdown) {
-                            e.preventDefault();
-                          }
+                          e.preventDefault();
                           document.getElementById('group_name')?.focus();
                         }
                       }}
