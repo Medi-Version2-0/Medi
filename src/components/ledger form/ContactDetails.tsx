@@ -12,6 +12,7 @@ export const ContactDetails: React.FC<personalInfoProps> = ({ formik }) => {
         isPopupOpen={false}
         labelClassName='min-w-[90px] text-nowrap'
         label='First Name'
+        isUpperCase={true}
         id='firstName'
         name='firstName'
         formik={formik}
@@ -22,6 +23,7 @@ export const ContactDetails: React.FC<personalInfoProps> = ({ formik }) => {
         isPopupOpen={false}
         labelClassName='min-w-[90px] text-nowrap'
         label='Last Name'
+        isUpperCase={true}
         id='lastName'
         name='lastName'
         formik={formik}
@@ -32,6 +34,7 @@ export const ContactDetails: React.FC<personalInfoProps> = ({ formik }) => {
         isPopupOpen={false}
         labelClassName='min-w-[90px] text-nowrap'
         label='Email ID'
+        isUpperCase={true}
         id='emailId1'
         name='emailId1'
         isTitleCase={false}
@@ -45,6 +48,7 @@ export const ContactDetails: React.FC<personalInfoProps> = ({ formik }) => {
         isPopupOpen={false}
         labelClassName='min-w-[90px] text-nowrap'
         label='Email ID 2'
+        isUpperCase={true}
         id='emailId2'
         name='emailId2'
         isTitleCase={false}

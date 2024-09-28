@@ -43,6 +43,7 @@ export const BankDetails: React.FC<BankDetailsProps> = ({ formik }) => {
         label='Bank Name'
         id='bankName'
         name='bankName'
+        isUpperCase={true}
         formik={formik}
         prevField='Bank_Details'
         nextField='accountNumber'
@@ -65,6 +66,7 @@ export const BankDetails: React.FC<BankDetailsProps> = ({ formik }) => {
         label='Branch'
         id='branchName'
         name='branchName'
+        isUpperCase={true}
         formik={formik}
         prevField='accountNumber'
         nextField='accountType'
@@ -141,6 +143,7 @@ export const BankDetails: React.FC<BankDetailsProps> = ({ formik }) => {
         labelClassName='min-w-[90px]'
         label='A/C Holder Name'
         id='accountHolderName'
+        isUpperCase={true}
         name='accountHolderName'
         formik={formik}
         className=''
