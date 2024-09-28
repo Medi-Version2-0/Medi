@@ -471,6 +471,8 @@ export type FieldConfig = {
 
 export type SaleBillFormInfoType = FormikProps<saleBillFormValues>;
 export type StationFormInfoType = FormikProps<FormDataProps>;
+export type ItemGroupFormInfoType = FormikProps<ItemGroupFormDataProps>;
+export type ItemFormInfoType = FormikProps<ItemFormValues>;
 export interface partyLockedSetup {
   partyName: string,
   partyId?: number,
