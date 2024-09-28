@@ -69,9 +69,9 @@ export interface CreateSalePurchaseProps {
   type?: string;
   togglePopup: Function;
   data: SalesPurchaseFormData;
-  handelFormSubmit: any;
+  handleConfirmPopup: any;
   isDelete: any;
-  deleteAcc: (sp_id: string) => void;
+  handleDeleteFromForm: () => void;
   className?: string;
   formik?: any;
 }

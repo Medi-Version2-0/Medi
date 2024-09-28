@@ -1,8 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useFormik, FormikProps } from 'formik';
 import {
   CreateSalePurchaseProps,
-  SalesPurchaseFormProps,
   SalesPurchaseFormData,
 } from '../../interface/global';
 import { Popup } from '../../components/popup/Popup';
@@ -12,31 +11,30 @@ import onKeyDown from '../../utilities/formKeyDown';
 import FormikInputField from '../../components/common/FormikInputField';
 import CustomSelect from '../../components/custom_select/CustomSelect';
 import { Option } from '../../interface/global';
+import useHandleKeydown from '../../hooks/useHandleKeydown';
+import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
+import NumberInput from '../../components/common/numberInput/numberInput';
 
 export const CreateSalePurchase = ({
   togglePopup,
   data,
-  handelFormSubmit,
+  handleConfirmPopup,
   isDelete,
-  deleteAcc,
+  handleDeleteFromForm,
   type,
   className,
 }: CreateSalePurchaseProps) => {
   const { sp_id } = data;
-  const formikRef = useRef<FormikProps<SalesPurchaseFormProps>>(null);
   const [focused, setFocused] = useState('');
 
   const validationSchema = Yup.object({
     sptype: Yup.string()
       .max(100, `${type} account name must be 100 characters or less`)
+      .matches(/^(?!\d+$).+/, 'Only Numbers not allowed')
       .required(`${type} account name is required`),
-    igst: Yup.number()
-      .min(1, 'IGST must be greater than 0')
-      .required('IGST is required'),
-    surCharge: Yup.number().required('Cess% is required'),
+    surCharge: Yup.number(),
     shortName: Yup.string()
-      .max(20, `Short name must be 20 characters or less`)
-      .required(`Short name is required`),
+      .max(20, `Short name must be 20 characters or less`),
   });
 
   useEffect(() => {
@@ -47,20 +45,15 @@ export const CreateSalePurchase = ({
   }, []);
 
   const handleSubmit = async (values: any) => {
-    const formattedigst = parseFloat(values.igst).toFixed(2);
-    const formattedsurcharge = parseFloat(values.surCharge).toFixed(2);
     const formData = {
       ...values,
-      igst: formattedigst,
-      surCharge: formattedsurcharge,
       ...(sp_id && { sp_id }),
     };
     !sp_id && document.getElementById('account_button')?.focus();
-    handelFormSubmit(formData);
+    handleConfirmPopup(formData);
+    return formData;
   };
-
   const formik = useFormik<SalesPurchaseFormData>({
-    innerRef: formikRef,
     initialValues: {
       sptype: data?.sptype || '',
       igst: data?.igst || '',
@@ -73,6 +66,20 @@ export const CreateSalePurchase = ({
     validationSchema: validationSchema,
     onSubmit: handleSubmit,
   });
+
+  const keyDown = (event: KeyboardEvent) => {
+    handleKeyDownCommon(
+      event,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      formik.submitForm,
+    );
+  };
+  useHandleKeydown(keyDown, [])
+
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
     formik?: FormikProps<SalesPurchaseFormData>,
@@ -89,44 +96,8 @@ export const CreateSalePurchase = ({
 
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
-    const decimalRegex = /^\d*\.?\d{0,2}$/;
-  
-    if (decimalRegex.test(value)) {
-      formik.setFieldValue(id, value);
-    }
-  
-    if (id === 'openingBal') {
-      if (value === '') {
-        formik.setFieldValue('openingBal', null);
-      } else {
-        let filteredValue = value.replace(/[^0-9.]/g, '');
-  
-        const decimalIndex = filteredValue.indexOf('.');
-        if (decimalIndex !== -1) {
-          const beforeDecimal = filteredValue.slice(0, decimalIndex);
-          const afterDecimal = filteredValue.slice(decimalIndex + 1, decimalIndex + 3); // Up to 2 decimal places
-  
-          filteredValue = `${beforeDecimal}.${afterDecimal}`;
-        }
-  
-        if (filteredValue.length <= 12) {
-          formik.setFieldValue('openingBal', filteredValue);
-        } else {
-          formik.setFieldValue('openingBal', filteredValue.slice(0, 12));
-        }
-      }
-    }
-  };
-
   const handleFieldChange = (option: Option | null) => {
-    formik.setFieldValue('openingBalType', option?.value);
-  };
-
-  const resetField = (e: React.MouseEvent<HTMLInputElement>) => {
-    const inputElement = e.currentTarget;
-    inputElement.setSelectionRange(0, inputElement.value.length);
+    formik.setFieldValue('openingBalType', option?.value);  
   };
 
   return (
@@ -146,8 +117,9 @@ export const CreateSalePurchase = ({
         className='flex flex-col gap-3 min-w-[18rem] items-start px-4'
       >
         <FormikInputField
-          label='Sp Type'
+          label='Name'
           id='sptype'
+          isUpperCase={true}
           name='sptype'
           formik={formik}
           className='!gap-0'
@@ -160,44 +132,47 @@ export const CreateSalePurchase = ({
           }
           showErrorTooltip={!!(formik.touched.sptype && formik.errors.sptype)}
         />
-        <FormikInputField
+
+        <NumberInput
           label='IGST %'
           id='igst'
           name='igst'
-          formik={formik}
-          className='!gap-0'
           isDisabled={isDelete && sp_id}
+          min={0}
+          // max={10000}
+          value={formik.values.igst || '' }
+          onChange={(value) => formik.setFieldValue('igst', value)}
+          onBlur={() => {
+            formik.setFieldTouched('igst', true);
+          }}
           nextField='surCharge'
           prevField='sptype'
-          sideField='surCharge'
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(e)}
-          onClick={resetField}
-          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-            handleKeyDown(e, formik)
-          }
-          showErrorTooltip={!!(formik.touched.igst && formik.errors.igst)}
+          labelClassName='absolute text-[11px] w-fit text-nowrap -top-2 left-1'
+          inputClassName='!text-left !text-[10px] px-1 !h-[25px] w-fit'
         />
-        <FormikInputField
+
+        <NumberInput
           label='Cess %'
           id='surCharge'
           name='surCharge'
-          formik={formik}
-          className='!gap-0'
           isDisabled={isDelete && sp_id}
+          min={0}
+          // max={10000}
+          value={formik.values.surCharge || ''}
+          onChange={(value) => formik.setFieldValue('surCharge', value)}
+          onBlur={() => {
+            formik.setFieldTouched('surCharge', true);
+          }}
           nextField='shortName'
           prevField='igst'
-          sideField='shortName'
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(e)}
-          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-            handleKeyDown(e, formik)
-          }
-          showErrorTooltip={
-            !!(formik.touched.surCharge && formik.errors.surCharge)
-          }
+          labelClassName='absolute text-[11px] w-fit text-nowrap -top-2 left-1'
+          inputClassName='!text-left !text-[10px] px-1 !h-[25px] w-fit'
         />
+
         <FormikInputField
           label='ShortName'
           id='shortName'
+          isUpperCase={true}
           name='shortName'
           formik={formik}
           className='!gap-0'
@@ -217,6 +192,7 @@ export const CreateSalePurchase = ({
           id='shortName2'
           name='shortName2'
           formik={formik}
+          isUpperCase={true}
           className='!gap-0'
           isDisabled={isDelete && sp_id}
           sideField='openingBal'
@@ -227,30 +203,37 @@ export const CreateSalePurchase = ({
           }
           showErrorTooltip={
             !!(formik.touched.shortName2 && formik.errors.shortName2)
-          }
+          } 
         />
         <div className='flex flex-row gap-2 items-center w-full'>
-          <FormikInputField
+          <NumberInput
             label={`Opening Balance ₹`}
             id='openingBal'
             name='openingBal'
-            formik={formik}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(e)}
-            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-              handleKeyDown(e, formik)
-            }
-            className='!mb-0'
-            inputClassName='h-9 text-right'
-            labelClassName='w-fit text-nowrap'
-            sideField='openingBalType'
+            placeholder='0.00'
+            maxLength={16}
+            min={0}
+            isDisabled={isDelete && sp_id}
+            value={formik.values.openingBal || ''}
+            onChange={(value) => formik.setFieldValue('openingBal', value)} 
+            onBlur={() => {
+              formik.setFieldTouched('openingBal', true);
+            }}
             prevField='shortName2'
             nextField='openingBalType'
-            maxLength={12}
-            placeholder='0.00'
-            showErrorTooltip={
-              !!(formik.touched.openingBal && formik.errors.openingBal)
-            }
+            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                setFocused('openingBalType')
+
+              }
+            }}
+            labelClassName='absolute w-fit text-nowrap -top-2 left-1'
+            inputClassName='text-left !text-[10px] px-1 !h-[25px] w-fit'
+            error={formik.touched.openingBal && formik.errors.openingBal || ''}
           />
+
+
           <CustomSelect
             isPopupOpen={false}
             value={
@@ -260,6 +243,7 @@ export const CreateSalePurchase = ({
               }
             }
             id='openingBalType'
+            isDisabled={isDelete && sp_id}
             onChange={handleFieldChange}
             isFocused={focused === 'openingBalType'}
             options={[
@@ -303,9 +287,12 @@ export const CreateSalePurchase = ({
                   ?.focus();
                 e.preventDefault();
               }
-              if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab')) {
+              if (e.key === 'ArrowUp') {
                 e.preventDefault();
               document.getElementById(`${isDelete ? 'del_button' : 'sptype'}`)?.focus();
+              }
+              if (e.shiftKey && e.key === 'Tab') {
+                setFocused('openingBalType');
               }
               if (e.key === 'Enter') {
                 e.preventDefault();
@@ -320,7 +307,8 @@ export const CreateSalePurchase = ({
               id='del_button'
               type='fill'
               padding='px-4 py-2'
-              handleOnClick={() => sp_id && deleteAcc(sp_id)}
+              btnType='button'
+              handleOnClick={handleDeleteFromForm}
               handleOnKeyDown={(e) => {
                 if (e.key === 'Tab') {
                   e.preventDefault();
