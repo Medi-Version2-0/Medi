@@ -17,7 +17,7 @@ import { CreateLedger } from './CreateLedger';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import usePermission from '../../hooks/useRole';
 import { getLedgerFormValidationSchema } from './validation_schema';
-import { validateField, decimalFormatter, createMap, extractKeys, lookupValue, capitalFirstLetter } from '../../helper/helper';
+import { validateField, decimalFormatter, createMap, extractKeys, lookupValue, capitalFirstLetter, valueParser } from '../../helper/helper';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
 import useApi from '../../hooks/useApi';
 
@@ -207,6 +207,7 @@ export const Ledger = ({type = ''}) => {
       headerName: 'Ledger Name',
       field: 'partyName',
       flex: 2,
+      valueParser,
     },
     {
       headerName: 'Station',

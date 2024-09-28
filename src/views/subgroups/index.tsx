@@ -13,7 +13,7 @@ import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { subgroupValidationSchema } from './validation_schema';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
 import usePermission from '../../hooks/useRole';
-import { capitalFirstLetter, extractKeys, lookupValue } from '../../helper/helper';
+import { capitalFirstLetter, extractKeys, lookupValue, valueParser } from '../../helper/helper';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
 import useApi from '../../hooks/useApi';
 
@@ -286,6 +286,7 @@ export const SubGroups = () => {
       {
         headerName: 'Sub Group Name',
         field: 'group_name',
+        valueParser,
       },
       {
         headerName: 'Parent Group',
