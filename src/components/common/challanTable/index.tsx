@@ -25,6 +25,7 @@ interface HeaderConfig {
     required?: boolean;
     options?: { label: string; value: string | number; [key: string]: any }[];
     handleFocus?: (rowIndex: number, colIndex: number) => void;
+    handleClick?: (args: {rowIndex: number, colIndex: number}) => void;
     handleBlur?: (args: {
       rowIndex: number;
       row: any;
@@ -92,6 +93,11 @@ export const ChallanTable = ({
     if (e.key === 'Enter' || (e.key === 'Tab' && !e.shiftKey)) {
       if(e.key === 'Enter'){
         e.preventDefault()
+        const header = headers[colIndex];
+        const handelClick = header?.props?.handleClick;
+        if (typeof handelClick === 'function') {
+            return handelClick({ rowIndex, colIndex });
+        }
       }
       const shouldAddRow = colIndex === newRowTrigger;
       const isLastRow = rowIndex === gridData.length - 1;
@@ -358,6 +364,11 @@ export const ChallanTable = ({
                             const args = { row, rowIndex, colIndex, setFocused };
                             if (header.props.handleBlur) {
                               header.props.handleBlur(args);
+                            }
+                          }}
+                          onClick={()=>{
+                            if(header.props.handleClick){
+                              header.props.handleClick({rowIndex , colIndex})
                             }
                           }}
                         />

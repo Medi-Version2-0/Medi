@@ -30,9 +30,9 @@ import PriceList from '../../views/partywisePriceList/PriceList';
 import CopyPratywisePriceList from '../../views/partywisePriceList/copyPartyWisePriseList';
 import { useTabs } from '../../TabsContext';
 import { useUser } from '../../UserContext';
-import { stationFocusChain } from '../../constants/stationFocusChain';
 import { Godown } from '../../views/godown/godown';
 import { saleChallanView } from '../../constants/focusChain/saleChallan';
+import { stationFocusChain } from '../../constants/focusChain/stationFocusChain';
 
 interface SidebarProps {
   isGroup?: boolean;
@@ -99,7 +99,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     {
       url: '/stations',
       label: 'Station Setup',
-      onClick: () => openTab?.('Station Setup', <Stations />),
+      onClick: () => tabManager.openTab('Station Setup', <Stations /> , stationFocusChain , openTab),
       isDisabled: isNotReadAccess('station')
     },
     {

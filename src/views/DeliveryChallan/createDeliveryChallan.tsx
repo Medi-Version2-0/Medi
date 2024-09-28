@@ -20,6 +20,8 @@ import { useTabs } from '../../TabsContext';
 import { pendingChallansList } from '../../constants/saleChallan';
 import useApi from '../../hooks/useApi';
 import usePartyFooterData from '../../hooks/usePartyFooterData';
+import { TabManager } from '../../components/class/tabManager';
+import { createSaleChallanAllStation, createSaleChallanOneStation } from '../../constants/focusChain/saleChallan';
 
 export interface DeliveryChallanFormValues {
   oneStation: string;
@@ -132,6 +134,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
     pendingChallansAmount: 0,
     totalPendingItems: 0
   })
+  const tabManager = TabManager.getInstance();
   const [totalValue, setTotalValue] = useState({
     totalAmt: 0.0,
     totalQty: 0.0,
@@ -277,15 +280,24 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
   };
 
   useEffect(() => {
-    fetchAllData();
-  }, [formik.values.stationId, formik.values.oneStation]);
+    if(formik.values.oneStation === 'oneStation'){
+      tabManager.updateFocusChainAndSetFocus(createSaleChallanOneStation, 'custom_select_oneStation')
+    }
+    else {
+          tabManager.updateFocusChainAndSetFocus(createSaleChallanAllStation, 'custom_select_oneStation')
+    }
+
+  }, [formik.values.oneStation]);
 
   useEffect(() => {
-    setFocused('oneStation');
+    // setFocused('oneStation');
+    fetchAllData();
     if (data) {
       fetchPartyById(data.partyId)
       setChallanTableData(data.challans);
     }
+    tabManager.updateFocusChainAndSetFocus(createSaleChallanOneStation, 'custom_select_oneStation')
+
   }, []);
 
   const fetchPartyById = async (id: string) => {
@@ -379,10 +391,10 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault(); 
-        document.getElementById('submit_all')?.click();
-      }
+      // if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      //   e.preventDefault(); 
+      //   document.getElementById('submit_all')?.click();
+      // }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => {
@@ -398,7 +410,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
         </h1>
         <Button
           type='highlight'
-          id='challan_button'
+          id='back'
           handleOnClick={() => {
             setView({ type: '', data: {} });
           }}
@@ -435,19 +447,24 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
                 hidePlaceholder={false}
                 className='!h-6 rounded-sm'
                 isTouched={formik.touched.oneStation}
-                isFocused={focused === 'oneStation'}
                 error={formik.errors.oneStation}
                 onBlur={() => {
                   formik.setFieldTouched('oneStation', true);
                   setFocused('');
                 }}
                 onKeyDown={(e: any) => {
-                  if (e.key === 'Enter' || e.key === 'Tab') {
+                  if (e.key === 'Enter') {
                     const dropdown = document.querySelector('.custom-select__menu');
                     if (!dropdown) {
                       e.preventDefault();
-                      if (formik.values.oneStation === 'One Station') setFocused('stationId');
-                      else if (formik.values.oneStation === 'All Stations') setFocused('partyId');
+                      e.stopPropagation()
+                      if (formik.values.oneStation === 'One Station'){
+                        document.getElementById('custom_select_stationId')?.focus()
+                      }
+                      else if (formik.values.oneStation === 'All Stations'){
+                        tabManager.setLastFocusedElementId('custom_select_partyId')
+                        document.getElementById('custom_select_partyId')?.focus()
+                      }
                     }
                   }
                 }}
@@ -462,7 +479,6 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
                     label='Station Name'
                     id='stationId'
                     labelClass='min-w-[140px] mr-[3em] text-gray-700'
-                    isFocused={focused === 'stationId'}
                     value={
                       formik.values.stationId === ''
                         ? null
@@ -483,17 +499,16 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
                     showErrorTooltip={true}
                     onBlur={() => {
                       formik.setFieldTouched('stationId', true);
-                      setFocused('');
                     }}
                     onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-                      if (e.key === 'Enter' || e.key === 'Tab') {
+                      if (e.key === 'Enter') {
                         const dropdown = document.querySelector('.custom-select__menu');
                         if (!dropdown) {
                           e.preventDefault();
-                          setFocused('partyId');
+                          e.stopPropagation()
+                          document.getElementById('custom_select_partyId')?.focus()
                         }
                       }
-                      if (e.shiftKey && e.key === 'Tab') setFocused('oneStation');
                     }}
                   />
                 )}
@@ -506,7 +521,6 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
                 label='Party Name'
                 id='partyId'
                 labelClass='min-w-[140px] text-gray-700'
-                isFocused={focused === 'partyId'}
                 onFocus={handlePartyList}
                 value={
                   formik.values.partyId === '' || !selectedParty
@@ -537,17 +551,17 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
                   formik.setFieldTouched('partyId', true);
                   setFocused('');
                 }}
-                onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-                  if (e.key === 'Enter' || e.key === 'Tab') {
-                    const dropdown = document.querySelector('.custom-select__menu');
-                    if (!dropdown) e.preventDefault();
-                    document.getElementById('personName')?.focus();
-                  }
-                  if (e.shiftKey && e.key === 'Tab') {
-                    if (formik.values.oneStation === 'One Station') setFocused('stationId');
-                    else if (formik.values.oneStation === 'All Stations') setFocused('oneStation');
-                  }
-                }}
+                // onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+                //   if (e.key === 'Enter' || e.key === 'Tab') {
+                //     const dropdown = document.querySelector('.custom-select__menu');
+                //     if (!dropdown) e.preventDefault();
+                //     document.getElementById('personName')?.focus();
+                //   }
+                //   if (e.shiftKey && e.key === 'Tab') {
+                //     if (formik.values.oneStation === 'One Station') setFocused('stationId');
+                //     else if (formik.values.oneStation === 'All Stations') setFocused('oneStation');
+                //   }
+                // }}
               />
             </div>
             {/* Running balance is calculated and shown automatically so it must be disabled */}
@@ -587,8 +601,8 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
                 name='personName'
                 formik={formik}
                 className='!mb-0'
-                prevField='partyId'
-                nextField='cell-0-0'
+                // prevField='partyId'
+                // nextField='cell-0-0'
                 labelClassName='min-w-[140px] text-base text-gray-700'
                 isRequired={false}
                 onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => handleKeyDown(e)}

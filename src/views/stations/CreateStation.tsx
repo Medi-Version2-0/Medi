@@ -7,7 +7,7 @@ import { stationValidationSchema } from './validation_schema';
 import { PopupFormContainer } from '../../components/common/commonPopupForm';
 import { CommonBtn } from '../../components/common/button/CommonFormButtons';
 
-export const CreateStation = ({ togglePopup, data, handelFormSubmit, isDelete, deleteAcc, className, states }: CreateStationProps) => {
+export const CreateStation = ({ togglePopup, data, handelFormSubmit, isDelete, deleteAcc, className, states , focusChain=[] }: CreateStationProps) => {
   const { station_id } = data;
   const [focused, setFocused] = useState('');
 
@@ -30,10 +30,10 @@ export const CreateStation = ({ togglePopup, data, handelFormSubmit, isDelete, d
     label: titleCase(state.state_name),
   }))
 
-  useEffect(() => {
-    const focusTarget = !isDelete ? document.getElementById('station_name') : document.getElementById('station_cancelBtn');
-    focusTarget?.focus();
-  }, []);
+  // useEffect(() => {
+  //   const focusTarget = !isDelete ? document.getElementById('station_name') : document.getElementById('station_cancelBtn');
+  //   focusTarget?.focus();
+  // }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -52,13 +52,13 @@ export const CreateStation = ({ togglePopup, data, handelFormSubmit, isDelete, d
   ];
 
   return (
-    <Popup heading={station_id && isDelete ? 'Delete Station' : station_id ? 'Update Station' : 'Create Station'} className={className}>
+    <Popup id='create_station' focusChain={focusChain} heading={station_id && isDelete ? 'Delete Station' : station_id ? 'Update Station' : 'Create Station'} className={className}>
       <PopupFormContainer fields={stationFormFields} formik={StationFormInfo} setFocused={setFocused} focused={focused} />
       <div className='flex justify-between p-4 w-full'>
-        <CommonBtn variant='cancel' component='station' focused={focused} setFocused={setFocused} handleOnClick={() => togglePopup(false)} nextField={`${isDelete ? 'station_deleteBtn' : 'station_submitBtn'}`} prevField={'station_pinCode'} > Cancel </CommonBtn>
+        <CommonBtn variant='cancel' component='station' focused={focused} setFocused={setFocused} handleOnClick={() => togglePopup(false)} > Cancel </CommonBtn>
         {isDelete ?
-          <CommonBtn variant='delete' component='station' focused={focused} setFocused={setFocused} handleOnClick={() => station_id && deleteAcc(station_id)} nextField={`station_cancelBtn`} prevField={'station_cancelBtn'} > Delete </CommonBtn>
-          : <CommonBtn variant='submit' component='station' focused={focused} setFocused={setFocused} handleOnClick={() => StationFormInfo.handleSubmit()} disable={!StationFormInfo.isValid || StationFormInfo.isSubmitting} nextField={`station_name`} prevField={'station_cancelBtn'} > {station_id ? 'Update' : 'Add'} </CommonBtn>
+          <CommonBtn id='delete' variant='delete' component='station' focused={focused} setFocused={setFocused} handleOnClick={() => station_id && deleteAcc(station_id)} > Delete </CommonBtn>
+          : <CommonBtn id='save' variant='submit' component='station' focused={focused} setFocused={setFocused} handleOnClick={() => StationFormInfo.handleSubmit()} disable={!StationFormInfo.isValid || StationFormInfo.isSubmitting} > {station_id ? 'Update' : 'Add'} </CommonBtn>
         }
       </div>
     </Popup>

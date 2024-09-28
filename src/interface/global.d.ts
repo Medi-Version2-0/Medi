@@ -49,6 +49,7 @@ export interface CreateStationProps {
   deleteAcc: (station_id: string) => void;
   className?: string;
   states?: any[];
+  focusChain?: string[]
 }
 
 export interface CreateHeadQuarterProps extends CreateStationProps {

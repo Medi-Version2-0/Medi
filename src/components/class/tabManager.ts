@@ -17,12 +17,19 @@ export class TabManager {
                 popups: []
             }
         ];
-    private activeTabId: string | null = 'tab-id-1';
+    public activeTabId: string | null = 'tab-id-1';
     private activeTabIndex: number | null = 0;
     private dynTabsInstance: any | null = null;
 
     private constructor() {
         document.addEventListener('keydown', this.handleKeyPress.bind(this));
+    }
+
+    private emitFocusChange(tabId: string, focusedElementId: string | null) {
+        const event = new CustomEvent('tabFocusChange', {
+            detail: { tabId, focusedElementId }
+        });
+        window.dispatchEvent(event);
     }
 
     public setDynTabsInstance(dynTabsInstance: any) {
@@ -38,13 +45,29 @@ export class TabManager {
 
     private handleKeyPress(event: KeyboardEvent) {
         const activeElement = document.activeElement as HTMLElement;
+
+        if (event.ctrlKey && event.key >= '1' && event.key <= '9') {
+            const tabIndex = parseInt(event.key, 10) - 1;
+            if (this.tabs.length > tabIndex) {
+                this.setSelectedTab(this.tabs[tabIndex].tabId);
+            }
+        } else if (event.ctrlKey && event.key === 'w') {
+            event.preventDefault();
+            if (this.activeTabId && this.activeTabIndex !== null) {
+                this.closeTab(this.activeTabId);
+                if (!this.dynTabsInstance) {
+                    return;
+                }
+                this.dynTabsInstance.close(this.activeTabId);
+            }
+        } 
     
-        if (this.activeTabId && this.activeTabIndex !== null) {
+        else if (this.activeTabId && this.activeTabIndex !== null && event.ctrlKey && (event.key === 'n' || event.key === 's') ) {
             const activeTab = this.tabs[this.activeTabIndex];
             if (activeTab && activeTab.popups.length > 0) {
                 const lastPopup = activeTab.popups[activeTab.popups.length - 1];
     
-                if (lastPopup.popupId === 'selectList') {
+                if (lastPopup.popupId.includes('selectList')) {
                     return;
                 }
                     if (event.ctrlKey && event.key === 'n') {
@@ -86,21 +109,7 @@ export class TabManager {
             }
         }
     
-        if (event.ctrlKey && event.key >= '1' && event.key <= '9') {
-            const tabIndex = parseInt(event.key, 10) - 1;
-            if (this.tabs.length > tabIndex) {
-                this.setSelectedTab(this.tabs[tabIndex].tabId);
-            }
-        } else if (event.ctrlKey && event.key === 'w') {
-            event.preventDefault();
-            if (this.activeTabId && this.activeTabIndex !== null) {
-                this.closeTab(this.activeTabId);
-                if (!this.dynTabsInstance) {
-                    return;
-                }
-                this.dynTabsInstance.close(this.activeTabId);
-            }
-        } else if (event.shiftKey && event.key === 'Tab') {
+      if (event.shiftKey && event.key === 'Tab') {
             event.preventDefault();
             this.focusManager(true);
         } else if (event.key === 'Tab') {
@@ -126,13 +135,13 @@ export class TabManager {
         if (!activeTab) return;
 
         activeTab.popups.push({
-            popupId,
+            popupId : `${activeTab.tabId}-${popupId}`,
             focusChain,
             lastFocusedElementId: focusChain.length > 0 ? focusChain[0] : null
         });
 
         if (focusChain.length > 0) {
-            const firstElement = document.querySelector(`[id="${popupId}"] #${focusChain[0]}`) as HTMLElement;
+            const firstElement = document.querySelector(`[id="${activeTab.tabId}-${popupId}"] #${focusChain[0]}`) as HTMLElement;
             if (firstElement) {
                 firstElement.focus();
             }
@@ -145,7 +154,7 @@ export class TabManager {
         const activeTab = this.tabs[this.activeTabIndex];
         if (!activeTab || !activeTab.popups) return;
 
-        const popupIndex = activeTab.popups.findIndex(popup => popup.popupId === popupId);
+        const popupIndex = activeTab.popups.findIndex(popup => popup.popupId === `${activeTab.tabId}-${popupId}`);
         if (popupIndex !== -1) {
             activeTab.popups.splice(popupIndex, 1);
         }
@@ -215,20 +224,20 @@ export class TabManager {
             if (!elementFound) {
                 activeTab.lastFocusedElementId = focusElementId;
             }
+            this.emitFocusChange(this.activeTabId!, focusElementId);
         }, 0);
     }
 
     public focusManager(reverse: boolean = false) {
         if (this.activeTabIndex === null) return;
         const tab = this.tabs[this.activeTabIndex];
-
-        if (tab.popups.length > 0) {
+        if (tab?.popups.length > 0) {
             const popup = tab.popups[tab.popups.length - 1];
             if (!popup.focusChain.length) return;
 
             const popupContainer = document.querySelector(`div[id="${popup.popupId}"]`);
             if (!popupContainer) return;
-
+            console.log(popup)
             const currentFocusedElementIndex = popup.focusChain.indexOf(popup.lastFocusedElementId || '');
             const nextIndex = reverse
                 ? (currentFocusedElementIndex - 1 + popup.focusChain.length) % popup.focusChain.length
@@ -242,6 +251,7 @@ export class TabManager {
                 popup.lastFocusedElementId = nextElementId;
             }
         } else {
+            if(!tab?.focusChain) return;
             const currentFocusedElementIndex = tab.focusChain.indexOf(tab.lastFocusedElementId || '');
             const nextIndex = reverse
                 ? (currentFocusedElementIndex - 1 + tab.focusChain.length) % tab.focusChain.length
@@ -297,6 +307,7 @@ export class TabManager {
                         (lastFocusedElement as HTMLElement).focus();
                     }
                 }
+                this.emitFocusChange(tabId , tab.lastFocusedElementId)
             }
         }
     }
