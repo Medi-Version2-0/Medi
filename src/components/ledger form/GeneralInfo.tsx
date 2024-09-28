@@ -171,7 +171,7 @@ export const GeneralInfo = ({
                 placeholder='Account Group'
                 isRequired={true}
                 isFocused={focused === 'accountGroup'}
-                disableArrow={true}
+                disableArrow={false}
                 hidePlaceholder={false}
                 className='!h-6 rounded-sm'
                 prevField='partyName'
@@ -218,7 +218,7 @@ export const GeneralInfo = ({
                 options={stationOptions}
                 isSearchable={true}
                 placeholder='Station Name'
-                disableArrow={true}
+                disableArrow={false}
                 hidePlaceholder={false}
                 className='!h-6 rounded-sm'
                 isRequired={false}

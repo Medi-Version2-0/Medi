@@ -34,7 +34,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
   useEffect(() => {
     const focusTarget = !isDelete
       ? document.getElementById('group_name')
-      : document.getElementById('del_button');
+      : document.getElementById('cancel_button');
     focusTarget?.focus();
   }, []);
 
@@ -130,6 +130,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                       label='Parent Group'
                       id='parent_code'
                       name='parent_code'
+                      disableArrow={false}
                       value={
                         formik.values.parent_code === ''
                           ? null
@@ -145,7 +146,6 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                       options={parentGrpOptions}
                       isSearchable={true}
                       isDisabled={isDelete && group_code}
-                      disableArrow={true}
                       hidePlaceholder={false}
                       className='!h-8 rounded-sm text-xs'
                       isFocused={focused === 'parent_code'}
