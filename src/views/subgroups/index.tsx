@@ -13,7 +13,7 @@ import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { subgroupValidationSchema } from './validation_schema';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
 import usePermission from '../../hooks/useRole';
-import { extractKeys, lookupValue } from '../../helper/helper';
+import { capitalFirstLetter, extractKeys, lookupValue } from '../../helper/helper';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
 import useApi from '../../hooks/useApi';
 
@@ -65,10 +65,6 @@ export const SubGroups = () => {
     } catch (err) {
       console.log('Sub group not fetched in group index')
     }
-  }
-
-  function capitalFirstLetter(str: string): string {
-    return str.charAt(0).toUpperCase() + str.slice(1);
   }
 
   useEffect(() => {
@@ -326,13 +322,13 @@ export const SubGroups = () => {
         },
         cellRenderer: (params: { data: SubGroupFormData, node: any }) => (
           !!params.node.rowIndex && <div className='table_edit_buttons'>
-            <FaEdit
+            {permissions.updateAccess && <FaEdit
               style={{ cursor: 'pointer', fontSize: '1.1rem' }}
               onClick={() => {
                 handleUpdate(params.data);
               }}
-            />
-            <MdDeleteForever
+            />}
+            {permissions.deleteAccess && <MdDeleteForever
               style={{ cursor: 'pointer', fontSize: '1.2rem' }}
               onClick={() => {
                 if (!params.node.rowIndex) {  // setting zero indexed row data to empty if user click on delete icon
@@ -341,7 +337,7 @@ export const SubGroups = () => {
                 }
                 handleDelete(params.data);
               }}
-            />
+            />}
           </div>
         ),
       },

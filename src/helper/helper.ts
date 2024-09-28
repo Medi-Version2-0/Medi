@@ -74,3 +74,7 @@ export const getTodayDate = (date: Date): string =>  {
   const formattedDate = `${year}-${month}-${day}`;
   return formattedDate;
 }
+
+export function capitalFirstLetter(str: string): string {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}

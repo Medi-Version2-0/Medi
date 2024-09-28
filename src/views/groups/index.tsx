@@ -12,7 +12,7 @@ import Button from '../../components/common/button/Button';
 import { groupValidationSchema } from './validation_schema';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
 import usePermission from '../../hooks/useRole';
-import { lookupValue } from '../../helper/helper';
+import { capitalFirstLetter, lookupValue } from '../../helper/helper';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import useApi from '../../hooks/useApi';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
@@ -26,7 +26,7 @@ export const Groups = () => {
     isPredefinedGroup: false,
   };
   const { sendAPIRequest } = useApi();
-  const { createAccess, updateAccess } = usePermission('group')
+  const { createAccess, updateAccess, deleteAccess } = usePermission('group')
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<GroupFormData>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
@@ -41,7 +41,6 @@ export const Groups = () => {
     group_name: '',
     type: '',
   };
-  const [subgroups, setSubgroups] = useState<GroupFormData[]>([]);
   const gridRef = useRef<any>(null);
 
   const settingPopupState = (isModal: boolean, message: string) => {
@@ -61,18 +60,8 @@ export const Groups = () => {
     }
   }
 
-  async function getAndSetSubGroups() {
-    try {
-      const allSubGroups = await sendAPIRequest('/subGroup');
-      setSubgroups(allSubGroups);
-    } catch (err) {
-      console.log('sub group not fetched in group index')
-    }
-  }
-
   useEffect(() => {
     getAndSetGroups();
-    getAndSetSubGroups();
   }, [createAccess]);
 
   useEffect(() => {
@@ -87,10 +76,6 @@ export const Groups = () => {
       document.getElementById('group_name')?.focus();
     }, 100);
   };
-
-  function capitalFirstLetter(str: string):string {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-  }
 
   const handleClosePopup = () => {
     setPopupState({ ...popupState, isModalOpen: false });
@@ -324,17 +309,17 @@ export const Groups = () => {
         },
         cellRenderer: (params: { data: GroupFormData,node:any }) => (
           !params.data.isPredefinedGroup && !!params.node.rowIndex && <div className='table_edit_buttons'>
-              <FaEdit
+              {updateAccess && <FaEdit
                 style={{ cursor: 'pointer', fontSize: '1.1rem' }}
                 onClick={() => {
                   setSelectedRow(selectedRow !== null ? null : params.data);
                   handleUpdate(params.data);
                 }}
-              />
-              <MdDeleteForever
+              />}
+              {deleteAccess && <MdDeleteForever
                 style={{ cursor: 'pointer', fontSize: '1.2rem' }}
                 onClick={() => handleDelete(params.data)}
-              />
+              />}
             </div>
           )
       },
