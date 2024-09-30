@@ -46,6 +46,8 @@ interface FormikInputFieldProps {
   isPopupOpen?: boolean;
   allowNegative?: boolean;
   autoFocus?: boolean;
+  value?:string | number;
+  onFocus?: ()=>void
 }
 
 const FormikInputField: React.FC<FormikInputFieldProps> = ({
@@ -75,6 +77,8 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
   isPopupOpen = true,
   allowNegative = false,
   autoFocus = false,
+  value,
+  onFocus,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const tabManager = TabManager.getInstance();
@@ -165,13 +169,14 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
         onChange={onChange || handleChange}
         onKeyDown={handleKeyDown}
         onClick={onClick}
-        onFocus={()=> id && tabManager.setLastFocusedElementId(id)}
+        onFocus={()=> {id && tabManager.setLastFocusedElementId(id); onFocus?.()}}
         placeholder={placeholder}
         disabled={isDisabled}
         data-next-field={nextField}
         data-prev-field={prevField}
         data-side-field={sideField}
-        {...(type !== 'file' && { value: formik.values[id] })}
+        {...(value && { value: value })}
+        {...(type !== 'file' && !value && { value: formik.values[id] })}
         {...(type === 'file' && { accept: "image/*" })}
         autoFocus={autoFocus}
       />

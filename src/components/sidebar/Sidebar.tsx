@@ -33,6 +33,7 @@ import { useUser } from '../../UserContext';
 import { Godown } from '../../views/godown/godown';
 import { saleChallanView } from '../../constants/focusChain/saleChallan';
 import { stationFocusChain } from '../../constants/focusChain/stationFocusChain';
+import { ledgerViewChain } from '../../constants/focusChain/ledgerFocusChain';
 
 interface SidebarProps {
   isGroup?: boolean;
@@ -69,7 +70,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       url: '/ledger_table',
       label: 'Ledger',
       icon: <FaPlus className='fill-red-900' />,
-      onClick: () => openTab?.('Ledger', <Ledger />),
+      onClick: () => tabManager.openTab('Ledger', <Ledger /> , ledgerViewChain , openTab),
       isDisabled: isNotReadAccess('ledger')
     },
     {

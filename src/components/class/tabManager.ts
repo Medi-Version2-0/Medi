@@ -45,7 +45,8 @@ export class TabManager {
 
     private handleKeyPress(event: KeyboardEvent) {
         const activeElement = document.activeElement as HTMLElement;
-
+        const isInAgGrid = activeElement && (activeElement.classList.contains('ag-root-wrapper') || activeElement.closest('.ag-root-wrapper'));
+        const isInSelectList = activeElement && (activeElement.classList.contains('selectList') || activeElement.closest('selectList')); 
         if (event.ctrlKey && event.key >= '1' && event.key <= '9') {
             const tabIndex = parseInt(event.key, 10) - 1;
             if (this.tabs.length > tabIndex) {
@@ -62,11 +63,12 @@ export class TabManager {
             }
         } 
     
-        else if (this.activeTabId && this.activeTabIndex !== null && event.ctrlKey && (event.key === 'n' || event.key === 's') ) {
+        if(isInAgGrid || isInSelectList) return;
+        else if (this.activeTabId && this.activeTabIndex !== null) {
             const activeTab = this.tabs[this.activeTabIndex];
             if (activeTab && activeTab.popups.length > 0) {
                 const lastPopup = activeTab.popups[activeTab.popups.length - 1];
-    
+                console.log(lastPopup , 'last poipuops')
                 if (lastPopup.popupId.includes('selectList')) {
                     return;
                 }
@@ -133,7 +135,8 @@ export class TabManager {
 
         const activeTab = this.tabs[this.activeTabIndex];
         if (!activeTab) return;
-
+        const isAlready = activeTab.popups.some((x)=> x.popupId === `${activeTab.tabId}-${popupId}`)
+        if(isAlready) return;
         activeTab.popups.push({
             popupId : `${activeTab.tabId}-${popupId}`,
             focusChain,
@@ -228,6 +231,14 @@ export class TabManager {
         }, 0);
     }
 
+    public setTabLastFocusedElementId(focusElementId: string) {
+            if (this.activeTabIndex === null) return;
+            const activeTab = this.tabs[this.activeTabIndex];
+            if (!activeTab) return;
+                activeTab.lastFocusedElementId = focusElementId;
+            this.emitFocusChange(this.activeTabId!, focusElementId);
+    }
+
     public focusManager(reverse: boolean = false) {
         if (this.activeTabIndex === null) return;
         const tab = this.tabs[this.activeTabIndex];
@@ -237,7 +248,6 @@ export class TabManager {
 
             const popupContainer = document.querySelector(`div[id="${popup.popupId}"]`);
             if (!popupContainer) return;
-            console.log(popup)
             const currentFocusedElementIndex = popup.focusChain.indexOf(popup.lastFocusedElementId || '');
             const nextIndex = reverse
                 ? (currentFocusedElementIndex - 1 + popup.focusChain.length) % popup.focusChain.length

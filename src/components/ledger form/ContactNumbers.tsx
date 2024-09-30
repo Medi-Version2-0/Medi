@@ -43,15 +43,6 @@ export const ContactNumbers: React.FC<ContactNumbersProps> = ({
                 +91
               </span>
             }
-            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-              if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                document.getElementById('GST/Tax_Details')?.focus();
-                e.preventDefault();
-              } else if (e.key === 'ArrowUp') {
-                document.getElementById('creditDays')?.focus();
-                e.preventDefault();
-              }
-            }}
             showErrorTooltip={
               formik.touched.phoneNumber && formik.errors.phoneNumber
             }

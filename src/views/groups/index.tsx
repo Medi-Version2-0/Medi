@@ -6,13 +6,13 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { GroupFormData } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
-import { ColDef, ColGroupDef, ValueFormatterParams } from 'ag-grid-community';
+import { ColDef, ColGroupDef, GridOptions, ValueFormatterParams } from 'ag-grid-community';
 import { CreateGroup } from './CreateGroup';
 import Button from '../../components/common/button/Button';
 import { groupValidationSchema } from './validation_schema';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
 import usePermission from '../../hooks/useRole';
-import { lookupValue } from '../../helper/helper';
+import { lookupValue, stringValueParser } from '../../helper/helper';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import useApi from '../../hooks/useApi';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
@@ -26,7 +26,7 @@ export const Groups = () => {
     isPredefinedGroup: false,
   };
   const { sendAPIRequest } = useApi();
-  const { createAccess, updateAccess } = usePermission('group')
+  const { createAccess, updateAccess, deleteAccess } = usePermission('group')
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<GroupFormData>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
@@ -41,7 +41,6 @@ export const Groups = () => {
     group_name: '',
     type: '',
   };
-  const [subgroups, setSubgroups] = useState<GroupFormData[]>([]);
   const gridRef = useRef<any>(null);
 
   const settingPopupState = (isModal: boolean, message: string) => {
@@ -61,18 +60,8 @@ export const Groups = () => {
     }
   }
 
-  async function getAndSetSubGroups() {
-    try {
-      const allSubGroups = await sendAPIRequest('/subGroup');
-      setSubgroups(allSubGroups);
-    } catch (err) {
-      console.log('sub group not fetched in group index')
-    }
-  }
-
   useEffect(() => {
     getAndSetGroups();
-    getAndSetSubGroups();
   }, [createAccess]);
 
   useEffect(() => {
@@ -82,47 +71,30 @@ export const Groups = () => {
   const typeMapping = useMemo(() => ({p_and_l: 'P&L', "B/S": 'Balance Sheet'}), []);
 
   const handleAlertCloseModal = () => {
-    setPopupState({ ...popupState, isAlertOpen: false, isModalOpen: false });
-    setTimeout(() => {   // adding some delay to shift focus on opened form field
-      document.getElementById('group_name')?.focus();
-    }, 100);
+    setPopupState({ isAlertOpen: false, isModalOpen: false, message: ''});
   };
-
-  function capitalFirstLetter(str: string):string {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-  }
 
   const handleClosePopup = () => {
     setPopupState({ ...popupState, isModalOpen: false });
   };
 
-  const handleConfirmPopup = async (dataa?: any) => {
-   const respData = dataa ? dataa : formData;
+  const handleConfirmPopup = async (data?: any) => {
    setPopupState({ ...popupState, isModalOpen: false });
-   if (formData.group_name) {
-     formData.group_name = capitalFirstLetter(formData.group_name);
-    }
-    const payload = {
-      group_name: respData.group_name || formData.group_name,
-      type: formData.type || respData.type
-    };
-    if (payload !== initialValue) {
+    if (data !== initialValue) {
       try {
-        if (formData.group_code) {
+        if (data.group_code) {
           await sendAPIRequest(`/group/${formData.group_code}`, {
             method: 'PUT',
-            body: formData,
+            body: data,
           }
           );
         } else {
-          const response: any = await sendAPIRequest(`/group`, {
+          await sendAPIRequest(`/group`, {
             method: 'POST',
-            body: payload,
+            body: data,
           });
-          if (respData.group_name && !response.error) {
-            settingPopupState(false, 'Group saved successfully');
-          }
         }
+        settingPopupState(false, `Group ${data.group_code? 'updated' : 'created'} successfully`);
         await getAndSetGroups();
         togglePopup(false);
         setFormData(pinnedRow)
@@ -130,7 +102,6 @@ export const Groups = () => {
         if (!error?.isErrorHandled && error.response.data) {
           await getAndSetGroups();   // fetch latest groups
           settingPopupState(false, error.response.data.error.message) 
-          console.error('Group either not created or updated');
         }
       }
     }
@@ -145,11 +116,12 @@ export const Groups = () => {
     setOpen(isOpen);
   };
 
-  const deleteAcc = async (group_code: string) => {
+  const deleteAcc = async () => {
+    settingPopupState(false,'Group Deleted')
     isDelete.current = false;
     togglePopup(false);
     try{
-      await sendAPIRequest(`/group/${group_code}`, {
+      await sendAPIRequest(`/group/${selectedRow.group_code}`, {
         method: 'DELETE',
       });
       await getAndSetGroups();
@@ -168,7 +140,6 @@ export const Groups = () => {
     isDelete.current = true;
     setFormData(rowData);
     togglePopup(true);
-    setSelectedRow(null);
   };
 
   const handleUpdate = (rowData: GroupFormData) => {
@@ -184,16 +155,9 @@ export const Groups = () => {
     }
   };
 
-  const handelFormSubmit = (values: GroupFormData) => {
-    const mode = values.group_code ? 'update' : 'create';
-    if (values.group_name) {
-      values.group_name = capitalFirstLetter(values.group_name);
-    }
-    if (values !== initialValue) {
-      settingPopupState(true, `Are you sure you want to ${mode} this group?`);
-      setFormData(values);
-    }
-  };
+  function handleDeleteFromForm() {
+    settingPopupState(true, 'Are you sure you want to delete the group');
+  }
 
   const handleCellEditingStopped = async (e: {
     data?: any;
@@ -203,8 +167,7 @@ export const Groups = () => {
     node?: any;
     newValue?: any;
   }) => {
-    const { data, column, oldValue, valueChanged, node } = e;
-    let { newValue } = e;
+    const { data, column, newValue, oldValue, valueChanged, node } = e;
     const field = column.colId;
     if (!valueChanged && node.rowIndex !== 0) return;
     if (node.rowIndex === 0 && createAccess) {  
@@ -221,9 +184,6 @@ export const Groups = () => {
     } else {
       try {
         if (newValue) {
-          if (column.colId === 'group_name'){
-            newValue = capitalFirstLetter(newValue);
-          }
           await sendAPIRequest(`/group/${data.group_code}`, {
             method: 'PUT',
             body: { [field]: newValue },
@@ -280,7 +240,7 @@ export const Groups = () => {
     onGridReady();
   }, [tableData]);
 
-  const defaultCols = {
+  const defaultColDef: ColDef = {
     floatingFilter: true,
     flex: 1,
     filter: true,
@@ -305,6 +265,7 @@ export const Groups = () => {
       {
         headerName: 'Group Name',
         field: 'group_name',
+        valueParser: stringValueParser,
       },
       {
         headerName: 'P&L / BL. Sheet',
@@ -324,22 +285,28 @@ export const Groups = () => {
         },
         cellRenderer: (params: { data: GroupFormData,node:any }) => (
           !params.data.isPredefinedGroup && !!params.node.rowIndex && <div className='table_edit_buttons'>
-              <FaEdit
+              {updateAccess && <FaEdit
                 style={{ cursor: 'pointer', fontSize: '1.1rem' }}
                 onClick={() => {
                   setSelectedRow(selectedRow !== null ? null : params.data);
                   handleUpdate(params.data);
                 }}
-              />
-              <MdDeleteForever
+              />}
+              {deleteAccess && <MdDeleteForever
                 style={{ cursor: 'pointer', fontSize: '1.2rem' }}
                 onClick={() => handleDelete(params.data)}
-              />
+              />}
             </div>
           )
       },
     ];
 
+  const gridOptions: GridOptions<any> = {
+    pagination: true,
+    paginationPageSize: 20,
+    paginationPageSizeSelector: [20, 30, 40],
+    defaultColDef,
+  };
   return (
     <>
       <div className='w-full relative'>
@@ -359,7 +326,7 @@ export const Groups = () => {
             <AgGridReact
               rowData={tableData}
               columnDefs={colDefs}
-              defaultColDef={defaultCols}
+              gridOptions={gridOptions}
               onCellClicked={onCellClicked}
               onCellEditingStarted={cellEditingStarted}
               onCellEditingStopped={handleCellEditingStopped}
@@ -372,7 +339,7 @@ export const Groups = () => {
             onConfirm={
               popupState.isAlertOpen
                 ? handleAlertCloseModal
-                : handleConfirmPopup
+                : deleteAcc
             }
             message={popupState.message}
             isAlert={popupState.isAlertOpen}
@@ -383,9 +350,9 @@ export const Groups = () => {
           <CreateGroup
             togglePopup={togglePopup}
             data={formData}
-            handelFormSubmit={handelFormSubmit}
+            handleConfirmPopup={handleConfirmPopup}
             isDelete={isDelete.current}
-            deleteAcc={deleteAcc}
+            handleDeleteFromForm={handleDeleteFromForm}
             className='absolute'
           />
         )}

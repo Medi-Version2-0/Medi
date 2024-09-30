@@ -12,46 +12,42 @@ export const ContactDetails: React.FC<personalInfoProps> = ({ formik }) => {
         isPopupOpen={false}
         labelClassName='min-w-[90px] text-nowrap'
         label='First Name'
+        isUpperCase={true}
         id='firstName'
         name='firstName'
         formik={formik}
-        prevField='Contact_Info'
-        nextField='lastName'
       />
       <FormikInputField
         isPopupOpen={false}
         labelClassName='min-w-[90px] text-nowrap'
         label='Last Name'
+        isUpperCase={true}
         id='lastName'
         name='lastName'
         formik={formik}
-        prevField='firstName'
-        nextField='emailId1'
       />
       <FormikInputField
         isPopupOpen={false}
         labelClassName='min-w-[90px] text-nowrap'
         label='Email ID'
+        isUpperCase={true}
         id='emailId1'
         name='emailId1'
         isTitleCase={false}
         placeholder='abc@example.com'
         formik={formik}
-        prevField='lastName'
-        nextField='emailId2'
         showErrorTooltip={formik.touched.emailId1 && formik.errors.emailId1}
       />
       <FormikInputField
         isPopupOpen={false}
         labelClassName='min-w-[90px] text-nowrap'
         label='Email ID 2'
+        isUpperCase={true}
         id='emailId2'
         name='emailId2'
         isTitleCase={false}
         placeholder='abc@example.com'
         formik={formik}
-        prevField='emailId1'
-        nextField='Bank_Details'
         showErrorTooltip={formik.touched.emailId2 && formik.errors.emailId2}
       />
     </div>

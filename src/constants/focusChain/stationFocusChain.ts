@@ -1,5 +1,5 @@
 export const stationFocusChain = [
-'add' , 'settings'
+'add'
 ]
 export const createStationFieldsChain = [
     'station_name' , 'custom_select_state_code' , 'station_pinCode' ,'save' ,'station_cancelBtn'

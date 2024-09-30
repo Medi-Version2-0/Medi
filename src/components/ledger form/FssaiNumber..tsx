@@ -23,8 +23,6 @@ export const FssaiNumber: React.FC<FssaiNumberProps> = ({
         onChange={handleChange}
         maxLength={14}
         formik={formik}
-        prevField='FSSAI_Number'
-        nextField={formik.isValid ? "submit_all" : "partyName"}
       />
     </div>
   );

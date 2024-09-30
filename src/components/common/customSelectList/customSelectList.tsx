@@ -7,6 +7,7 @@ import { MdAddCircleOutline } from "react-icons/md";
 import useDebounce from '../../../hooks/useDebounce';
 import Button from '../button/Button';
 import useApi from '../../../hooks/useApi';
+import { TabManager } from '../../class/tabManager';
 
 interface DropDownPopupProps extends selectListProps {
     dataKeys?: {
@@ -49,6 +50,7 @@ export const SelectList = ({
     const pageReset = useRef(false);
     const selectedMultipleRowData = useRef<any[]>([]);
     const { sendAPIRequest } = useApi();
+    const tabManager = TabManager.getInstance();
 
     const formik = useFormik({
         initialValues: {
@@ -185,9 +187,11 @@ export const SelectList = ({
 
 
     useEffect(() => {
-        document.getElementById('selectList')?.addEventListener('keydown', handleKeyDown);
+        const currentTabId = tabManager.activeTabId;
+
+        document.getElementById(`${currentTabId}-selectList`)?.addEventListener('keydown', handleKeyDown);
         return () => {
-            document.getElementById('selectList')?.removeEventListener('keydown', handleKeyDown);
+            document.getElementById(`${currentTabId}-selectList`)?.removeEventListener('keydown', handleKeyDown);
         };
     }, [focusedRowData, heading, tableData.length]);
 
@@ -204,6 +208,7 @@ export const SelectList = ({
             event.preventDefault();
             if (!selectMultiple) {
                 if (!tableData.length) return;
+                event.stopPropagation()
                 handleSelect(focusedRowData);
                 if (autoClose) {
                     closeList();
@@ -262,7 +267,7 @@ export const SelectList = ({
             focusChain={[]}
         >
             <div className='flex px-4 mt-4 w-full justify-between items-center' id='selectListData'>
-                <form onSubmit={formik.handleSubmit} className='flex w-full gap-5'>
+                <form className='flex w-full gap-5'>
                     <div className="w-1/3 h-fit">
                         <div className={`flex items-center w-full h-8 text-xs ${!searchFrom && 'hidden'}`}>
                             <input
@@ -271,13 +276,6 @@ export const SelectList = ({
                                 name={`${searchFrom && 'searchBar'}`}
                                 className={`w-full border border-solid border-[#9ca3af] text-[10px] text-gray-800 h-full rounded-sm p-1 appearance-none disabled:text-[#4c4c4c] disabled:bg-[#f5f5f5] focus:rounded-none focus:!outline-yellow-500 focus:bg-[#EAFBFCFF]`}
                                 onChange={(e) => formik.setFieldValue('searchBar', e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.ctrlKey && e.key.toLocaleLowerCase() === 'n' && handleNewItem) {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        handleNewItem()
-                                    }
-                                }}
                                 placeholder='Search...'
                                 // autoFocus={true}
                             />

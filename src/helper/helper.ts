@@ -1,6 +1,6 @@
 import { APIURL } from './api';
 import { Mapping } from '../interface/global';
-import { ValueFormatterParams } from "ag-grid-community";
+import { ValueFormatterParams, ValueParserParams } from "ag-grid-community";
 
 export const sendEmail = async ({
   email,
@@ -44,7 +44,14 @@ export const lookupValue = (mappings: Mapping, key: string | number): string | a
 };
 
 // value formatter
-export const decimalFormatter = (params: ValueFormatterParams): any => (params.value === 0 || params.value) ?  parseFloat(params.value).toFixed(2) : ''
+export const decimalFormatter = (params: ValueFormatterParams): any => (params.value === 0 || params.value) ?  parseFloat(params.value).toFixed(2) : null
+
+//
+export const stringValueParser = (params: ValueParserParams): string => {
+  const { newValue } = params;
+  // Ensure newValue is a string and convert to uppercase
+  return typeof newValue === 'string' ? newValue.toUpperCase() : newValue;
+}
 
 // cell editing validation
 export const validateField = async (schema: any, field: string, value: any) => {
@@ -73,6 +80,16 @@ export const getTodayDate = (date: Date): string =>  {
   const day = String(date.getDate()).padStart(2, '0');
   const formattedDate = `${year}-${month}-${day}`;
   return formattedDate;
+}
+
+export function capitalFirstLetter(str: string): string {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+export function removeNullUndefinedEmptyString(data:any) {
+  return Object.fromEntries(           
+    Object.entries(data).filter(([key, value]) => value !== '' && value !== undefined && value !== null)
+  );
 }
 
 export const splitCellId = (cellId: string): { col: string; row: string } => {
