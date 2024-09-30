@@ -99,3 +99,4 @@ export const splitCellId = (cellId: string): { col: string; row: string } => {
 
   return { col, row };
 };
+
