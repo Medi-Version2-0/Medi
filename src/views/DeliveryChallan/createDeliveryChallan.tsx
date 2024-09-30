@@ -148,7 +148,6 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
     isAlertOpen: false,
     message: '',
     shouldBack: true,
-    onClose : null
   });
   const [popupList, setPopupList] = useState<{ isOpen: boolean, data: any }>({
     isOpen: false,
@@ -228,12 +227,6 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
   });
 
 
-  useEffect(() => {
-    if (!popupState.isAlertOpen && popupState.onClose) {
-          popupState.onClose();
-          setPopupState({ ...popupState, isAlertOpen: false , onClose:null});
-        }
-  }, [popupState])
 
   const fetchAllData = async () => {
 
@@ -273,6 +266,12 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
     }
 
   }, [formik.values.oneStation]);
+
+  useEffect(() => {
+      formik.setFieldValue('partyId' , '')
+      setSelectedParty(null)
+  }, [formik.values.oneStation , formik.values.stationId])
+  
 
   useEffect(() => {
     fetchAllData();
@@ -722,6 +721,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
           onConfirm={handleAlertCloseModal}
           message={popupState.message}
           isAlert={popupState.isAlertOpen}
+          id='alertViewChallan'
         />
       )}
       {/* {popupList.isOpen &&  <SelectList

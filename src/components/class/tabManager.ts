@@ -63,12 +63,11 @@ export class TabManager {
             }
         } 
     
-        if(isInAgGrid || isInSelectList) return;
         else if (this.activeTabId && this.activeTabIndex !== null) {
             const activeTab = this.tabs[this.activeTabIndex];
             if (activeTab && activeTab.popups.length > 0) {
                 const lastPopup = activeTab.popups[activeTab.popups.length - 1];
-                console.log(lastPopup , 'last poipuops')
+                console.log(lastPopup)
                 if (lastPopup.popupId.includes('selectList')) {
                     return;
                 }
@@ -110,6 +109,7 @@ export class TabManager {
                 }
             }
         }
+        if(isInAgGrid || isInSelectList) return;
     
       if (event.shiftKey && event.key === 'Tab') {
             event.preventDefault();

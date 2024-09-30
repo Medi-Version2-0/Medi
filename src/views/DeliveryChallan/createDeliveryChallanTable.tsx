@@ -60,7 +60,6 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     isModalOpen: false,
     isAlertOpen: false,
     message: '',
-    onClose: null
   });
   const [popupList, setPopupList] = useState<{ isOpen: boolean, data: any }>({
     isOpen: false,
@@ -273,12 +272,6 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     return handleSave();
   }, [gridData])
 
-  useEffect(() => {
-    if (!popupState.isAlertOpen && popupState.onClose) {
-      popupState.onClose();
-      setPopupState({ ...popupState, isAlertOpen: false, onClose: null });
-    }
-  }, [popupState])
 
 
   const handleFocus = (rowIndex: number, colIndex: number) => {
@@ -436,11 +429,6 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
                 isAlertOpen: true,
                 message:
                   'No more available stocks. Please select a smaller quantity or scheme.',
-                onClose: () => {
-                  setTimeout(() => {
-                    return document.getElementById(`cell-${row.id - 1}-${colIndex === 3 ? 3 : 3}`)?.focus();
-                  }, 0);
-                }
 
               });
               break;
@@ -448,16 +436,12 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
           } else {
             sum += Number(data.columns['qty']);
             if (sum > batch?.currentStock + (batch?.additionalStockQty || 0)) {
+              tabManager.setTabLastFocusedElementId(`cell-${row.id - 1}-${2}`)
               setPopupState({
                 ...popupState,
                 isAlertOpen: true,
                 message:
                   'Selected quantity exceeds the available stock. Please select a smaller quantity.',
-                onClose: () => {
-                  setTimeout(() => {
-                    return document.getElementById(`cell-${row.id - 1}-${2}`)?.focus();
-                  }, 0);
-                }
               });
               break;
             }
@@ -479,7 +463,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
             setItemValue([...itemValue, rowData]);
           }
           if (isItemSelected > -1 && isItemSelected !== rowIndex) {
-            setPopupState({ ...popupState, isAlertOpen: true, message: "Alert! , You've already selected this item", onClose: () => document.getElementById('searchBar')?.focus() });
+            setPopupState({ ...popupState, isAlertOpen: true, message: "Alert! , You've already selected this item"});
           }
         },
         autoClose: true
@@ -510,9 +494,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
             }
             if (nearexpiry) {
               setPopupState({
-                ...popupState, isAlertOpen: true, message: 'Item is near Expiry', onClose: () => {
-                  return document.getElementById(`cell-${rowIndex}-${focusColIndex.current + 1}`)?.focus();
-                }
+                ...popupState, isAlertOpen: true, message: 'Item is near Expiry'
               });
             }
           },
@@ -547,6 +529,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
           onConfirm={handleAlertCloseModal}
           message={popupState.message}
           isAlert={popupState.isAlertOpen}
+          id='alertChallan'
         />
       )}
       {open && (
