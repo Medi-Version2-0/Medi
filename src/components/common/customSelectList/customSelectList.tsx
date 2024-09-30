@@ -266,7 +266,7 @@ export const SelectList = ({
             onClose={closeList}
             focusChain={[]}
         >
-            <div className='flex px-4 mt-4 w-full justify-between items-center' id='selectListData'>
+            <div className='flex px-4 mt-4 w-full justify-between items-center'>
                 <form className='flex w-full gap-5'>
                     <div className="w-1/3 h-fit">
                         <div className={`flex items-center w-full h-8 text-xs ${!searchFrom && 'hidden'}`}>
