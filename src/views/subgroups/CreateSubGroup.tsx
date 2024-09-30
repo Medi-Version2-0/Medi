@@ -17,9 +17,9 @@ import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
   togglePopup,
   data,
-  handelFormSubmit,
+  handleConfirmPopup,
   isDelete,
-  deleteAcc,
+  handleDeleteFromForm,
   className,
   groupList,
 }) => {
@@ -34,7 +34,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
   useEffect(() => {
     const focusTarget = !isDelete
       ? document.getElementById('group_name')
-      : document.getElementById('del_button');
+      : document.getElementById('cancel_button');
     focusTarget?.focus();
   }, []);
 
@@ -48,7 +48,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
       ...(group_code && { group_code }),
     };
     !group_code && document.getElementById('account_button')?.focus();
-    handelFormSubmit(formData);
+    handleConfirmPopup(formData);
   };
 
 
@@ -108,6 +108,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
               label='Sub Group Name'
               id='group_name'
               name='group_name'
+              isUpperCase={true}
               formik={formik}
               className='!gap-0'
               isDisabled={isDelete && group_code}
@@ -130,6 +131,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                       label='Parent Group'
                       id='parent_code'
                       name='parent_code'
+                      disableArrow={false}
                       value={
                         formik.values.parent_code === ''
                           ? null
@@ -145,7 +147,6 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                       options={parentGrpOptions}
                       isSearchable={true}
                       isDisabled={isDelete && group_code}
-                      disableArrow={true}
                       hidePlaceholder={false}
                       className='!h-8 rounded-sm text-xs'
                       isFocused={focused === 'parent_code'}
@@ -174,9 +175,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                           document.getElementById('submit_button')?.focus();
                         }
                         if (e.shiftKey && e.key === 'Tab') {
-                          if (!dropdown) {
-                            e.preventDefault();
-                          }
+                          e.preventDefault();
                           document.getElementById('group_name')?.focus();
                         }
                       }}
@@ -213,7 +212,8 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                 <Button
                   id='del_button'
                   type='fill'
-                  handleOnClick={() => group_code && deleteAcc(group_code)}
+                  btnType='button'
+                  handleOnClick={handleDeleteFromForm}
                   handleOnKeyDown={(e) => {
                     if (e.key === 'Tab') {
                       document.getElementById('cancel_button')?.focus();

@@ -69,9 +69,9 @@ export interface CreateSalePurchaseProps {
   type?: string;
   togglePopup: Function;
   data: SalesPurchaseFormData;
-  handelFormSubmit: any;
+  handleConfirmPopup: any;
   isDelete: any;
-  deleteAcc: (sp_id: string) => void;
+  handleDeleteFromForm: () => void;
   className?: string;
   formik?: any;
 }
@@ -165,9 +165,9 @@ export interface SubGroupFormDataProps {
 export interface CreateGroupProps {
   togglePopup: Function;
   data: GroupFormData;
-  handelFormSubmit: any;
+  handleConfirmPopup: any;
   isDelete: any;
-  deleteAcc: (group_code: string) => void;
+  handleDeleteFromForm: () => void;
   className?: string;
 }
 
@@ -182,9 +182,9 @@ export interface ItemSettingProps {
 export interface CreateSubGroupProps {
   togglePopup: Function;
   data: SubGroupFormData;
-  handelFormSubmit: any;
+  handleConfirmPopup: any;
   isDelete: any;
-  deleteAcc: (group_code: string) => void;
+  handleDeleteFromForm: () => void;
   className?: string;
   groupList: any[];
 }
@@ -226,16 +226,16 @@ export interface SalesPurchaseFormData {
   sp_id?: string;
   sptype?: string;
   salesPurchaseType?: string;
-  igst?: Number | null | string;
+  igst?: string | number;
   cgst?: Number;
   sgst?: Number;
   stper?: Number;
-  surCharge?: Number | string;
+  surCharge?: number | string;
   spNo?: Number;
   column?: Number;
   shortName?: string;
   shortName2?: string;
-  openingBal?: string;
+  openingBal?: string | number;
   openingBalType?: string;
 }
 

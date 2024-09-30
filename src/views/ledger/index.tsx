@@ -7,7 +7,7 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { View } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
-import { ColDef, ValueFormatterParams } from 'ag-grid-community';
+import { ColDef, GridOptions, ValueFormatterParams } from 'ag-grid-community';
 import Button from '../../components/common/button/Button';
 import { IoSettingsOutline } from 'react-icons/io5';
 import { useControls } from '../../ControlRoomContext';
@@ -17,7 +17,7 @@ import { CreateLedger } from './CreateLedger';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import usePermission from '../../hooks/useRole';
 import { getLedgerFormValidationSchema } from './validation_schema';
-import { validateField, decimalFormatter, createMap, extractKeys, lookupValue } from '../../helper/helper';
+import { validateField, decimalFormatter, createMap, extractKeys, lookupValue, capitalFirstLetter, stringValueParser } from '../../helper/helper';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
 import useApi from '../../hooks/useApi';
 
@@ -153,8 +153,9 @@ export const Ledger = ({type = ''}) => {
       return;
     }
 
-    if (field === 'partyName')
-      newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
+    if (field === 'partyName'){
+      newValue = capitalFirstLetter(newValue);
+    }
     node.setDataValue(field, newValue);
     try{
       await sendAPIRequest(`/ledger/${data.party_id}`, {
@@ -192,7 +193,7 @@ export const Ledger = ({type = ''}) => {
       editing.current = true
   };
 
-  const defaultCols = {
+  const defaultColDef: ColDef = {
     floatingFilter: true,
     flex: 1,
     filter: true,
@@ -206,6 +207,7 @@ export const Ledger = ({type = ''}) => {
       headerName: 'Ledger Name',
       field: 'partyName',
       flex: 2,
+      valueParser: stringValueParser,
     },
     {
       headerName: 'Station',
@@ -282,6 +284,13 @@ export const Ledger = ({type = ''}) => {
     },
   ];
 
+  const gridOptions: GridOptions<any> = {
+    pagination: true,
+    paginationPageSize: 20,
+    paginationPageSizeSelector: [20, 30, 40],
+    defaultColDef,
+  };
+  
   const ledger = () => {
     return (
       <>
@@ -311,7 +320,7 @@ export const Ledger = ({type = ''}) => {
           <AgGridReact
             rowData={tableData}
             columnDefs={colDefs}
-            defaultColDef={defaultCols}
+            gridOptions={gridOptions}
             onCellClicked={onCellClicked}
             onCellEditingStarted={cellEditingStarted}
             onCellEditingStopped={handleCellEditingStopped}
