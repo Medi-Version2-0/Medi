@@ -49,6 +49,7 @@ export interface CreateStationProps {
   deleteAcc: (station_id: string) => void;
   className?: string;
   states?: any[];
+  focusChain?: string[]
 }
 
 export interface CreateHeadQuarterProps extends CreateStationProps {
@@ -198,6 +199,7 @@ export interface PopupProps {
   onClose?: () => void;
   isSuggestionPopup?: boolean;
   id?: string;
+  focusChain?: string[];
 }
 
 export interface Confirm_Alert_PopupProps {

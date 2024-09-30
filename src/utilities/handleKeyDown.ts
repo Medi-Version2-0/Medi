@@ -12,16 +12,16 @@ export const handleKeyDownCommon = (
     case 'Escape':
       if (togglePopup) togglePopup(false);
       break;
-    case 'n':
-    case 'N':
-      if (event.ctrlKey) {
-        if (togglePopup) {
-          togglePopup(true);  
-        } else if (setView) {
-          setView({ type: 'add', data: {} });
-        }
-      }
-      break;
+    // case 'n':
+    // case 'N':
+    //   if (event.ctrlKey) {
+    //     if (togglePopup) {
+    //       togglePopup(true);  
+    //     } else if (setView) {
+    //       setView({ type: 'add', data: {} });
+    //     }
+    //   }
+    //   break;
     case 'd':
     case 'D':
       if (event.ctrlKey && selectedRow && handleDelete) {

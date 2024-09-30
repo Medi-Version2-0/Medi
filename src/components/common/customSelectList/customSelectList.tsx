@@ -2,12 +2,12 @@ import { useEffect, useRef, useState, useMemo } from 'react';
 import { Popup } from '../../popup/Popup';
 import { selectListProps } from '../../../interface/global';
 import { useFormik } from 'formik';
-import FormikInputField from './../FormikInputField';
 import { getNestedValue } from '../../../helper/helper';
 import { MdAddCircleOutline } from "react-icons/md";
 import useDebounce from '../../../hooks/useDebounce';
 import Button from '../button/Button';
 import useApi from '../../../hooks/useApi';
+import { TabManager } from '../../class/tabManager';
 
 interface DropDownPopupProps extends selectListProps {
     dataKeys?: {
@@ -21,7 +21,6 @@ interface DropDownPopupProps extends selectListProps {
     extraQueryParams?: {
         [key: string]: string | number;
     };
-
 }
 
 export const SelectList = ({
@@ -51,6 +50,7 @@ export const SelectList = ({
     const pageReset = useRef(false);
     const selectedMultipleRowData = useRef<any[]>([]);
     const { sendAPIRequest } = useApi();
+    const tabManager = TabManager.getInstance();
 
     const formik = useFormik({
         initialValues: {
@@ -165,7 +165,7 @@ export const SelectList = ({
     }, [focusedRowIndex]);
 
     useEffect(() => {
-        const selectListElement = document.getElementById('selectList');
+        const selectListElement = document.getElementById('selectListData');
         const isVisible = selectListElement && selectListElement.getBoundingClientRect().height > 0;
         if (isVisible) {
             document.body.classList.add('!overflow-hidden');
@@ -183,13 +183,15 @@ export const SelectList = ({
                 document.body.classList.remove('!overflow-hidden');
             };
         }
-    }, [document.getElementById('selectList')?.getBoundingClientRect().height]);
-    
+    }, [document.getElementById('selectListData')?.getBoundingClientRect().height]);
+
 
     useEffect(() => {
-        document.getElementById('dropDownPopup')?.addEventListener('keydown', handleKeyDown);
+        const currentTabId = tabManager.activeTabId;
+
+        document.getElementById(`${currentTabId}-selectList`)?.addEventListener('keydown', handleKeyDown);
         return () => {
-            document.getElementById('dropDownPopup')?.removeEventListener('keydown', handleKeyDown);
+            document.getElementById(`${currentTabId}-selectList`)?.removeEventListener('keydown', handleKeyDown);
         };
     }, [focusedRowData, heading, tableData.length]);
 
@@ -206,6 +208,7 @@ export const SelectList = ({
             event.preventDefault();
             if (!selectMultiple) {
                 if (!tableData.length) return;
+                event.stopPropagation()
                 handleSelect(focusedRowData);
                 if (autoClose) {
                     closeList();
@@ -259,28 +262,26 @@ export const SelectList = ({
             childClass='h-fit w-full min-w-[50vw] !max-h-[100vh] overflow-scroll'
             className={className}
             isSuggestionPopup={true}
-            id='dropDownPopup'
+            id='selectList'
             onClose={closeList}
+            focusChain={[]}
         >
-            <div className='flex px-4 mt-4 w-full justify-between items-center' id='selectList'>
-                <form onSubmit={formik.handleSubmit} className='flex w-full gap-5'>
+            <div className='flex px-4 mt-4 w-full justify-between items-center' id='selectListData'>
+                <form className='flex w-full gap-5'>
                     <div className="w-1/3 h-fit">
-                        <FormikInputField
-                            id='searchBar'
-                            name={`${searchFrom && 'searchBar'}`}
-                            formik={formik}
-                            placeholder='Search...'
-                            autoFocus
-                            className={`h-fit ${!searchFrom && 'hidden'}`}
-                            inputClassName='px-2 py-[12px] text-[12px] font-medium rounded-sm'
-                            onKeyDown={(e) => {
-                                if (e.ctrlKey && e.key.toLocaleLowerCase() === 'n' && handleNewItem) {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    handleNewItem()
-                                }
-                            }}
-                        />
+                        <div className={`flex items-center w-full h-8 text-xs ${!searchFrom && 'hidden'}`}>
+                            <input
+                                type={'text'}
+                                id='searchBar'
+                                name={`${searchFrom && 'searchBar'}`}
+                                className={`w-full border border-solid border-[#9ca3af] text-[10px] text-gray-800 h-full rounded-sm p-1 appearance-none disabled:text-[#4c4c4c] disabled:bg-[#f5f5f5] focus:rounded-none focus:!outline-yellow-500 focus:bg-[#EAFBFCFF]`}
+                                onChange={(e) => formik.setFieldValue('searchBar', e.target.value)}
+                                placeholder='Search...'
+                                // autoFocus={true}
+                            />
+
+                        </div>
+
                     </div>
                 </form>
                 {handleNewItem && <div className='flex flex-col cursor-pointer items-center' onClick={handleNewItem}>

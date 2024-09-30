@@ -2,6 +2,7 @@ import React, { useMemo, FC } from "react";
 import classNames from "classnames";
 
 interface ButtonProps {
+    id? : string,
     variant?: "submit" | "cancel" | "delete";
     handleOnClick?: () => void;
     handleOnKeyDown?: (event: React.KeyboardEvent<HTMLButtonElement>) => void;
@@ -10,12 +11,13 @@ interface ButtonProps {
     component?: string;
     setFocused: (field: string) => void;
     focused?: string;
-    prevField: string;
-    nextField: string;
+    prevField?: string;
+    nextField?: string;
     autoFocus?: boolean;
 }
 
 export const CommonBtn: FC<ButtonProps> = ({
+    id,
     variant = "submit",
     handleOnClick = () => { },
     handleOnKeyDown = () => { },
@@ -24,8 +26,6 @@ export const CommonBtn: FC<ButtonProps> = ({
     component,
     setFocused,
     focused,
-    prevField,
-    nextField,
     autoFocus=false,
     ...rest
 }) => {
@@ -42,28 +42,11 @@ export const CommonBtn: FC<ButtonProps> = ({
         }
     }, [variant]);
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            handleOnClick();
-        }
-
-        if (e.key === 'Tab') {
-            e.preventDefault();
-            document.getElementById(nextField)?.focus();
-            setFocused(nextField);
-        }
-        if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab')) {
-            e.preventDefault();
-            document.getElementById(prevField)?.focus();
-            setFocused(prevField);
-        }
-    };
 
     return (
         <button
             type={variant === 'submit' ? 'submit' : 'button'}
-            id={`${component}_${variant}Btn`}
+            id={id ? id : `${component}_${variant}Btn`}
             disabled={disable}
             className={classNames(
                 `flex flex-row items-center text-base font-medium justify-center cursor-pointer rounded-md h-8
@@ -71,7 +54,7 @@ export const CommonBtn: FC<ButtonProps> = ({
                 variantType,
             )}
             onClick={handleOnClick}
-            onKeyDown={handleKeyDown}
+            // onKeyDown={handleKeyDown}
             autoFocus={autoFocus}
             {...rest}
         >

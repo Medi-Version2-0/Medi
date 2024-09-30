@@ -2,6 +2,7 @@ import React , { useState } from 'react';
 import CustomSelect from '../custom_select/CustomSelect';
 import { Option } from '../../interface/global';
 import NumberInput from '../common/numberInput/numberInput';
+import { TabManager } from '../class/tabManager';
 interface BalanceDetailsProps {
   selectedGroupName: string;
   formik?: any;
@@ -11,8 +12,7 @@ export const BalanceDetails = ({
   selectedGroupName,
   formik,
 }: BalanceDetailsProps) => {
-  const [focused, setFocused] = useState('');
-
+  const tabManager = TabManager.getInstance()
   const handleFieldChange = (option: Option | null, id: string) => {
     formik.setFieldValue(id, option?.value);
   };
@@ -39,15 +39,6 @@ export const BalanceDetails = ({
             onChange={(value) => formik.setFieldValue('openingBal', value)}
             onBlur={() => {
               formik.setFieldTouched('openingBal', true);
-            }}
-            prevField='stateInout'
-            nextField='openingBalType'
-            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                setFocused('openingBalType')
-
-              }
             }}
             labelClassName='min-w-[90px] !h-[22px] w-fit text-nowrap me-2'
             inputClassName='text-left !text-[10px] px-1 !h-[22px] !w-[70%]'
@@ -76,16 +67,17 @@ export const BalanceDetails = ({
             hidePlaceholder={false}
             containerClass='!w-[25%]'
             className='!rounded-none !h-6'
-            isFocused={focused === 'openingBalType'}
             onBlur={() => {
               formik.setFieldTouched('openingBalType', true);
-              setFocused('')
             }}
             onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
               const dropdown = document.querySelector('.custom-select__menu');
               if (e.key === 'Enter') {
-                !dropdown && e.preventDefault();
-                setFocused('partyType');
+                if(!dropdown){
+                  e.preventDefault()
+                  e.stopPropagation()
+                  tabManager.focusManager()
+                }
               }
             }}
           />
@@ -110,7 +102,6 @@ export const BalanceDetails = ({
               { value: 'Balance Sheet', label: 'Balance Sheet' },
             ]}
             isSearchable={false}
-            isFocused={focused === 'partyType'}
             placeholder='Type'
             disableArrow={false}
             hidePlaceholder={false}
@@ -118,24 +109,15 @@ export const BalanceDetails = ({
             className='!rounded-none !h-6 w-full width: fit-content !important text-wrap: nowrap'
             onBlur={() => {
               formik.setFieldTouched('partyType', true);
-              setFocused('')
             }}
             onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
               const dropdown = document.querySelector('.custom-select__menu');
               if (e.key === 'Enter') {
                 if (!dropdown) {
                   e.preventDefault();
+                  e.stopPropagation()
+                  tabManager.focusManager()
                 }
-                const nextFieldId = (formik.isValid && !isSpecialGroup) ? 'submit_all' : (!formik.isValid && !isSpecialGroup) ? 'partyName' : 'creditLimit';
-                document.getElementById(nextFieldId)?.focus();
-                setFocused(nextFieldId);
-              } else if (e.key === 'Tab' && e.shiftKey) {
-                if (!dropdown) {
-                  e.preventDefault();
-                }
-                const prevFieldId = 'openingBalType'
-                document.getElementById(prevFieldId)?.focus();
-                setFocused(prevFieldId);
               }
             }}
           />
@@ -168,8 +150,6 @@ export const BalanceDetails = ({
               onBlur={() => {
                 formik.setFieldTouched('creditDays', true);
               }}
-              prevField='creditLimit'
-              nextField='phoneNumber'
               maxLength={3}
               labelClassName='min-w-[90px] !h-[22px] w-[47%]'
               inputClassName='text-left !text-[10px] px-1 !h-[22px]'

@@ -16,8 +16,6 @@ export const ContactDetails: React.FC<personalInfoProps> = ({ formik }) => {
         id='firstName'
         name='firstName'
         formik={formik}
-        prevField='Contact_Info'
-        nextField='lastName'
       />
       <FormikInputField
         isPopupOpen={false}
@@ -27,8 +25,6 @@ export const ContactDetails: React.FC<personalInfoProps> = ({ formik }) => {
         id='lastName'
         name='lastName'
         formik={formik}
-        prevField='firstName'
-        nextField='emailId1'
       />
       <FormikInputField
         isPopupOpen={false}
@@ -40,8 +36,6 @@ export const ContactDetails: React.FC<personalInfoProps> = ({ formik }) => {
         isTitleCase={false}
         placeholder='abc@example.com'
         formik={formik}
-        prevField='lastName'
-        nextField='emailId2'
         showErrorTooltip={formik.touched.emailId1 && formik.errors.emailId1}
       />
       <FormikInputField
@@ -54,8 +48,6 @@ export const ContactDetails: React.FC<personalInfoProps> = ({ formik }) => {
         isTitleCase={false}
         placeholder='abc@example.com'
         formik={formik}
-        prevField='emailId1'
-        nextField='Bank_Details'
         showErrorTooltip={formik.touched.emailId2 && formik.errors.emailId2}
       />
     </div>

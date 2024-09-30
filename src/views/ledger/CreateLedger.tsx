@@ -16,10 +16,10 @@ import { Option, GroupFormData, StationFormData } from '../../interface/global';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import useApi from '../../hooks/useApi';
-import useHandleKeydown from '../../hooks/useHandleKeydown';
-import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import { FssaiNumber } from '../../components/ledger form/FssaiNumber.';
 import { useControls } from '../../ControlRoomContext';
+import { TabManager } from '../../components/class/tabManager';
+import { BalanceChain, BalanceChainIsSUNDRY, bankChain, contactChain, FassiChain, GeneralInfoChainIsSUNDRY, GernalInfoChain, GstChain, ledgerViewChain, Licence2Chain, LicenceChain, TaxChain } from '../../constants/focusChain/ledgerFocusChain';
 
 const initialState = {
   btn_1: false,
@@ -35,6 +35,7 @@ export const CreateLedger = ({ setView, data, getAndSetParties, stations }: any)
   const [showActiveElement, setShowActiveElement] = useState(initialState);
   const [groupOptions, setGroupOptions] = useState<Option[]>([]);
   const [isSUNDRY, setIsSUNDRY] = useState(false);
+  const tabManager = TabManager.getInstance()
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
@@ -45,6 +46,7 @@ export const CreateLedger = ({ setView, data, getAndSetParties, stations }: any)
   const { controlRoomSettings } = useControls();
 
   useEffect(() => {
+    tabManager.updateFocusChainAndSetFocus([...GernalInfoChain , ...BalanceChain] , 'partyName')
     async function getAndSetGroups(){
       try{
         const allGroups = await sendAPIRequest('/group');
@@ -165,19 +167,15 @@ export const CreateLedger = ({ setView, data, getAndSetParties, stations }: any)
     },
   });
 
-  const handleKeyDown = (event: KeyboardEvent) => {  
-    handleKeyDownCommon(
-      event,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      ledgerFormInfo.submitForm,
-      ledgerFormInfo.values
-    );
-  };
-  useHandleKeydown(handleKeyDown, [])   // to implement ctrl + s 
+
+  useEffect(() => {
+    if(isSUNDRY){
+      handleTaxChain('GST_Tax_Details' , 'custom_select_accountGroup')
+    }
+    else {
+     tabManager.updateFocusChainAndSetFocus([...GernalInfoChain , ...BalanceChain] , 'custom_select_accountGroup')
+    }
+   }, [isSUNDRY])
 
   const group = useMemo(
     () =>
@@ -240,7 +238,7 @@ export const CreateLedger = ({ setView, data, getAndSetParties, stations }: any)
   };
 
   useEffect(() => {
-    handleClick('btn_1');
+      handleClick('btn_1');
   }, []);
 
   const handleClosePopup = () => {
@@ -260,9 +258,50 @@ export const CreateLedger = ({ setView, data, getAndSetParties, stations }: any)
       case 'FSSAI Number':
         return 'fssaiNumber'
       default:
-        return "gstIn"
+        return label
     }
   }
+
+  const handleTaxChain = (id: string ,label :string) => {
+    let updatedTaxChain = [...TaxChain ,...controlRoomSettings.fssaiNumber ? ['FSSAI_Number'] : []];
+    const idMapping: Record<string, string[]> = {
+      'GST_Tax_Details': GstChain,
+      'Licence_Info': ledgerFormInfo.values.drugLicenceNo2 !== '' ? Licence2Chain : LicenceChain,
+      'Contact_Info': contactChain,
+      'Bank_Details' : bankChain,
+      ...controlRoomSettings.fssaiNumber ? {'FSSAI_Number': FassiChain} : {}
+
+    };
+    const index = updatedTaxChain.indexOf(id);
+        if (index !== -1 && idMapping[id]) {
+      updatedTaxChain = [
+        ...updatedTaxChain.slice(0, index + 1),
+        ...idMapping[id],                      
+        ...updatedTaxChain.slice(index + 1)    
+      ];
+    }
+    if(isSUNDRY){
+      tabManager.updateFocusChainAndSetFocus([...GeneralInfoChainIsSUNDRY , ...BalanceChainIsSUNDRY , ...updatedTaxChain , 'save'] , getInitialFocusFieldName(label))
+  }
+  };
+
+  const addLicence2DetailsToTaxChain = () => {
+    let updatedTaxChain = [...TaxChain ,...controlRoomSettings.fssaiNumber ? ['FSSAI_Number'] : []];
+  
+    const licenceDetails =  Licence2Chain;
+        const index = updatedTaxChain.indexOf('Licence_Info');
+    if (index !== -1) {
+      updatedTaxChain = [
+        ...updatedTaxChain.slice(0, index + 1),
+        ...licenceDetails,                 
+        ...updatedTaxChain.slice(index + 1)
+      ];
+    }
+    if(isSUNDRY){
+      tabManager.updateFocusChainAndSetFocus([...GeneralInfoChainIsSUNDRY , ...BalanceChainIsSUNDRY , ...updatedTaxChain , 'save'] , 'drugLicenceNo2')
+    }
+  };
+  
   return (
     <div className='w-full'>
       <div className='flex w-full items-center justify-between px-8 py-1'>
@@ -271,8 +310,11 @@ export const CreateLedger = ({ setView, data, getAndSetParties, stations }: any)
         </h1>
         <Button
           type='highlight'
-          id='ledger_button'
-          handleOnClick={() => setView({ type: '', data: {} })}
+          id='back'
+          handleOnClick={() => {
+            setView({ type: '', data: {} });
+            tabManager.updateFocusChainAndSetFocus(ledgerViewChain, 'add')
+          }}
         >
           Back
         </Button>
@@ -309,23 +351,11 @@ export const CreateLedger = ({ setView, data, getAndSetParties, stations }: any)
                     key={label}
                     type='fog'
                     btnType='button'
-                    id={label.replace(' ', '_')}
+                    id={label.replace(/[\s/]/g, '_')}
                     className={`rounded-none !border-r-[1px] focus:font-black ${!!showActiveElement.btn_1 && 'border-b-blue-500 border-b-[2px]'} text-sm font-medium !py-1`}
-                    handleOnClick={() => handleClick(`btn_${idx + 1}`)}
-                    handleOnKeyDown={(e) => {
-                      if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                        handleClick(`btn_${idx + 1}`);
-                        document.getElementById(getInitialFocusFieldName(label))?.focus();
-                        e.preventDefault();
-                      } else if (e.key === 'ArrowRight') {
-                        document.getElementById('Licence_Info')?.focus();
-                        e.preventDefault();
-                      }
-                      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-                        document.getElementById('phone3')?.focus();
-                        e.preventDefault();
-                      }
-                    }}
+                    handleOnClick={() => {handleClick(`btn_${idx + 1}`) ; setTimeout(() => {
+                      handleTaxChain(label.replace(/[\s/]/g, '_') , label)
+                    }, 0);}}
                   >
                     {label}
                   </Button>
@@ -333,7 +363,7 @@ export const CreateLedger = ({ setView, data, getAndSetParties, stations }: any)
               </div>
               {showActiveElement.btn_1 && <TaxDetails formik={ledgerFormInfo} />}
               {showActiveElement.btn_2 && (
-                <LicenceDetails formik={ledgerFormInfo} />
+                <LicenceDetails formik={ledgerFormInfo} addDl2 = {addLicence2DetailsToTaxChain} />
               )}
               {showActiveElement.btn_3 && (
                 <ContactDetails formik={ledgerFormInfo} />
@@ -347,21 +377,8 @@ export const CreateLedger = ({ setView, data, getAndSetParties, stations }: any)
           <Button
             type='fill'
             padding='px-4 py-2'
-            id='submit_all'
-            disable={!ledgerFormInfo.isValid || ledgerFormInfo.isSubmitting}
-            // handleOnClick={() => {
-              
-            // }}
-            handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
-              if (e.key === 'ArrowUp') {
-                document
-                .getElementById(
-                  isSUNDRY ? 'accountHolderName' : 'openingBalType'
-                )
-                  ?.focus();
-                e.preventDefault();
-              }
-            }}
+            id='save'
+            disable={!ledgerFormInfo.isValid || ledgerFormInfo.isSubmitting}              
           >
             {ledgerFormInfo.isSubmitting ? 'Submitting' : data?.party_id ? 'Update Party' : 'Create Party'}
           </Button>

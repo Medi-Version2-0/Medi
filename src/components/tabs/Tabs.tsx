@@ -9,12 +9,12 @@ export const Tabs = () => {
   const options = {
     tabs: [
       {
-        id: '1',
-        title: 'tab 1',
+        id: 'tab-id-1',
+        title: 'tab [1]',
         panelComponent: <p>Welcome!</p>,
       },
     ],
-    selectedTabID: '1',
+    selectedTabID: 'tab-id-1',
   };
 
   const [Tablist, Panellist, ready] = useDynTabs(options);

@@ -14,6 +14,8 @@ import usePermission from '../../hooks/useRole';
 import useToastManager from '../../helper/toastManager';
 import useApi from '../../hooks/useApi';
 import { useSelector } from 'react-redux';
+import { TabManager } from '../../components/class/tabManager';
+import { saleChallanView } from '../../constants/focusChain/saleChallan';
 
 const DeliveryChallan = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
@@ -24,6 +26,7 @@ const DeliveryChallan = () => {
   const { successToast } = useToastManager();
   const { sendAPIRequest } = useApi();
   const {billBookSeries} = useSelector((state:any)=> state.global)
+  const tabManager = TabManager.getInstance()
 
   const id = useRef('');
   const queryClient = useQueryClient();
@@ -54,6 +57,12 @@ const DeliveryChallan = () => {
   useEffect(() => {
     getDeliveryChallanData();
   }, [data]);
+
+    useEffect(() => {
+      if(view.type !== 'add'){
+        tabManager.updateFocusChainAndSetFocus(saleChallanView, 'add')
+      }
+    }, [view])
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
@@ -109,14 +118,14 @@ const DeliveryChallan = () => {
   };
 
   const handleKeyDown = (event: KeyboardEvent) => {
-    handleKeyDownCommon(
-      event,
-      handleDelete,
-      undefined,
-      undefined,
-      selectedRow,
-      setView
-    );
+    // handleKeyDownCommon(
+    //   event,
+    //   handleDelete,
+    //   undefined,
+    //   undefined,
+    //   selectedRow,
+    //   setView
+    // );
   };
 
   const colDefs: any[] = [
@@ -175,6 +184,7 @@ const DeliveryChallan = () => {
             <h1 className='font-bold'>Delivery Challan</h1>
             {createAccess && <Button
               type='highlight'
+              id='add'
               handleOnClick={async () => {
                 if(!billBookSeries.length){
                   return  setPopupState({

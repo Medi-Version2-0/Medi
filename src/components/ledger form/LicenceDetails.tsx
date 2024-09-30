@@ -3,9 +3,10 @@ import FormikInputField from '../common/FormikInputField';
 
 interface LicenceDetailsProps {
   formik?: any;
+  addDl2 : ()=> void
 }
 
-export const LicenceDetails: React.FC<LicenceDetailsProps> = ({ formik }) => {
+export const LicenceDetails: React.FC<LicenceDetailsProps> = ({ formik  , addDl2}) => {
   const [licenseId2, setLicenseId2] = useState(formik.values.drugLicenceNo2 !== '');
   return (
     <div className={`flex ${licenseId2 && 'flex-col'} w-full  gap-2 m-2 text-xs px-2 leading-3 text-gray-600`}>
@@ -19,8 +20,6 @@ export const LicenceDetails: React.FC<LicenceDetailsProps> = ({ formik }) => {
         isUpperCase={true}
         className='!w-2/3'
         formik={formik}
-        prevField='Licence_Info'
-        nextField='licenceExpiry'
         showErrorTooltip={formik.touched.drugLicenceNo1 && formik.errors.drugLicenceNo1}
       />
       <FormikInputField
@@ -33,8 +32,6 @@ export const LicenceDetails: React.FC<LicenceDetailsProps> = ({ formik }) => {
         placeholder='MM/YYYY'
         className='!w-2/3'
         formik={formik}
-        prevField='drugLicenceNo1'
-        nextField={(licenseId2 || (formik.values.drugLicenceNo2 !== '')) ? 'drugLicenceNo2' : 'Contact_Info'}
         showErrorTooltip={formik.touched.licenceExpiry && formik.errors.licenceExpiry}
       />
       <div className='flex gap-2 '>
@@ -50,19 +47,14 @@ export const LicenceDetails: React.FC<LicenceDetailsProps> = ({ formik }) => {
             className='!w-2/3'
             formik={formik}
             showErrorTooltip={formik.touched.drugLicenceNo2 && formik.errors.drugLicenceNo2}
-            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-              if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                document.getElementById('Contact_Info')?.focus();
-                e.preventDefault();
-              } else if (e.key === 'ArrowUp') {
-                document.getElementById('drugLicenceNo1')?.focus();
-              }
-            }}
           />}
-        <button type='button' className=' text-[12px] leading-3 w-4'
+        <button type='button' id='dl2' className=' text-[12px] leading-3 w-4'
           onClick={() => {
             setLicenseId2(!licenseId2)
             formik?.setFieldValue('drugLicenceNo2', '');
+            setTimeout(() => {
+              addDl2()
+            }, 0);
           }
           }
         >

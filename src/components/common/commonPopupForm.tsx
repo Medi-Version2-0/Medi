@@ -1,8 +1,8 @@
 import { FormikProps } from 'formik';
 import { FieldConfig, Option } from '../../interface/global';
-import onKeyDown from '../../utilities/formKeyDown';
 import CustomSelect from '../custom_select/CustomSelect';
 import FormikInputField from './FormikInputField';
+import { TabManager } from '../class/tabManager';
 
 interface PopupFormProps {
     fields: Array<FieldConfig>;
@@ -21,10 +21,10 @@ interface PopupFormProps {
 
 export const PopupFormContainer = <FormValues,>({ fields, formik, setFocused, focused }: PopupFormProps) => {
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, formik?: FormikProps<FormValues>, radioField?: any) => {
-        onKeyDown({ e, formik: formik, radioField: radioField, focusedSetter: (field: string) => setFocused(field) });
-    };
-
+    // const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, formik?: FormikProps<FormValues>, radioField?: any) => {
+    //     onKeyDown({ e, formik: formik, radioField: radioField, focusedSetter: (field: string) => setFocused(field) });
+    // };
+    const tabManager = TabManager.getInstance()
     const handleOptionSelections = (field: FieldConfig, option: Option | null) => {
         formik.setFieldValue(field.name, option ? option.value : null);
     };
@@ -52,8 +52,6 @@ export const PopupFormContainer = <FormValues,>({ fields, formik, setFocused, fo
                             isDisabled={field?.disabled || false}
                             isTouched={formik.touched[field.name as keyof typeof formik.touched]}
                             error={formik.errors[field.name as keyof typeof formik.errors]}
-                            nextField={field.nextField}
-                            prevField={field.prevField}
                             onFocus={() => field.onFocus && field.onFocus()}
                             placeholder='Select...'
                             showErrorTooltip={!!(formik.touched[field.name as keyof typeof formik.touched] && formik.errors[field.name as keyof typeof formik.errors])}
@@ -62,18 +60,13 @@ export const PopupFormContainer = <FormValues,>({ fields, formik, setFocused, fo
                                 setFocused('');
                             }}
                             onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-                                if (e.key === 'Enter' || (e.key === 'Tab' && !e.shiftKey)) {
+                                if (e.key === 'Enter') {
                                     const dropdown = document.querySelector('.custom-select__menu');
                                     if (!dropdown) {
                                         e.preventDefault();
-                                        document.getElementById(`${field.nextField}`)?.focus();
-                                        setFocused(`${field.nextField}`);
+                                        e.stopPropagation();
+                                        tabManager.focusManager()
                                     }
-                                }
-                                if (e.shiftKey && e.key === 'Tab') {
-                                    e.preventDefault();
-                                    document.getElementById(`${field.prevField}`)?.focus();
-                                    setFocused(`${field.prevField}`);
                                 }
                             }}
                         />
@@ -94,7 +87,7 @@ export const PopupFormContainer = <FormValues,>({ fields, formik, setFocused, fo
                         prevField={field.prevField}
                         sideField={field.sideField}
                         type={field.type}
-                        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => handleKeyDown(e)}
+                        // onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => handleKeyDown(e)}
                         showErrorTooltip={!!(formik.touched[field.name as keyof typeof formik.touched] && formik.errors[field.name as keyof typeof formik.errors])}
                         isDisabled={field?.disabled || false}
                         autoFocus={field.autoFocus}

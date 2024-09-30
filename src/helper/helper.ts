@@ -91,3 +91,12 @@ export function removeNullUndefinedEmptyString(data:any) {
     Object.entries(data).filter(([key, value]) => value !== '' && value !== undefined && value !== null)
   );
 }
+
+export const splitCellId = (cellId: string): { col: string; row: string } => {
+  const parts = cellId.split('-');
+  const col = parts[parts.length - 1];
+  const row = parts[parts.length - 2];
+
+  return { col, row };
+};
+

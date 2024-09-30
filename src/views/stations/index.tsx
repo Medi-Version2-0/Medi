@@ -16,6 +16,7 @@ import useHandleKeydown from '../../hooks/useHandleKeydown';
 import { extractKeys, lookupValue } from '../../helper/helper';
 import useApi from '../../hooks/useApi';
 import { ColDef, GridOptions } from 'ag-grid-community';
+import { createStationFieldsChain, deleteStationChain } from '../../constants/focusChain/stationFocusChain';
 
 export const Stations = () => {
   const initialValue = { station_id: '', station_name: '', state_code: '', station_pinCode: '' };
@@ -272,7 +273,7 @@ export const Stations = () => {
       <div className='w-full relative'>
         <div className='flex w-full items-center justify-between px-8 py-1'>
           <h1 className='font-bold'>Stations</h1>
-          {createAccess && <Button type='highlight' handleOnClick={() => {
+          {createAccess && <Button type='highlight' id='add' handleOnClick={() => {
             setFormData(initialValue);
             togglePopup(true)
           }}>
@@ -283,7 +284,7 @@ export const Stations = () => {
           <AgGridReact rowData={tableData} columnDefs={columnDefs} gridOptions={gridOptions} onCellClicked={onCellClicked} onCellEditingStarted={cellEditingStarted} onCellEditingStopped={handleCellEditingStopped}/>
         </div>
         {(popupState.isModalOpen || popupState.isAlertOpen) && (<Confirm_Alert_Popup onClose={handleClosePopup} onConfirm={popupState.isAlertOpen ? handleAlertCloseModal : handleConfirmPopup} message={popupState.message} isAlert={popupState.isAlertOpen} className='absolute' />)}
-        {open && (<CreateStation togglePopup={togglePopup} data={formData} handelFormSubmit={handelFormSubmit} isDelete={isDelete.current} deleteAcc={deleteAcc} className='absolute' states={stateData} />)}
+        {open && (<CreateStation togglePopup={togglePopup} focusChain={isDelete.current ? deleteStationChain : createStationFieldsChain} data={formData} handelFormSubmit={handelFormSubmit} isDelete={isDelete.current} deleteAcc={deleteAcc} className='absolute' states={stateData} />)}
       </div>
     </>
   );

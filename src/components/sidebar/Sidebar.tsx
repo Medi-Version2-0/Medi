@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { TabManager } from '../../components/class/tabManager';
 import { CiSearch } from 'react-icons/ci';
 import { MdLibraryBooks, MdNavigateNext } from 'react-icons/md';
 import { IoChevronDownSharp } from 'react-icons/io5';
@@ -30,6 +31,9 @@ import CopyPratywisePriceList from '../../views/partywisePriceList/copyPartyWise
 import { useTabs } from '../../TabsContext';
 import { useUser } from '../../UserContext';
 import { Godown } from '../../views/godown/godown';
+import { saleChallanView } from '../../constants/focusChain/saleChallan';
+import { stationFocusChain } from '../../constants/focusChain/stationFocusChain';
+import { ledgerViewChain } from '../../constants/focusChain/ledgerFocusChain';
 
 interface SidebarProps {
   isGroup?: boolean;
@@ -51,6 +55,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const { controlRoomSettings } = useControls();
   const {openTab} = useTabs()
   const { user } = useUser();
+  const tabManager = TabManager.getInstance();
 
   const isNotReadAccess = (key: string) => {
     if (permissions[key]) {
@@ -65,7 +70,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       url: '/ledger_table',
       label: 'Ledger',
       icon: <FaPlus className='fill-red-900' />,
-      onClick: () => openTab?.('Ledger', <Ledger />),
+      onClick: () => tabManager.openTab('Ledger', <Ledger /> , ledgerViewChain , openTab),
       isDisabled: isNotReadAccess('ledger')
     },
     {
@@ -95,7 +100,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     {
       url: '/stations',
       label: 'Station Setup',
-      onClick: () => openTab?.('Station Setup', <Stations />),
+      onClick: () => tabManager.openTab('Station Setup', <Stations /> , stationFocusChain , openTab),
       isDisabled: isNotReadAccess('station')
     },
     {
@@ -163,7 +168,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     {
       url: '/deliveryChallan',
       label: 'Sale Challan',
-      onClick: () => openTab?.('Sale Challan', <DeliveryChallan />),
+      onClick: () => tabManager.openTab('Sale Challan', <DeliveryChallan />, saleChallanView , openTab),
       isDisabled: isNotReadAccess('deliverychallan')
     },
     {
@@ -259,7 +264,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
         {showSubElements.master && (
           <>
-            {menuItems.map((item, index) => {
+            {menuItems.map((item:any, index) => {
               return (
                 <MenuItem
                   key={index}

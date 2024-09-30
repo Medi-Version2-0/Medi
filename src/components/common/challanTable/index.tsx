@@ -4,6 +4,7 @@ import { dateSchema } from '../../../views/DeliveryChallan/validation_schema';
 import Confirm_Alert_Popup from '../../popup/Confirm_Alert_Popup';
 import { BsTrash } from 'react-icons/bs';
 import NumberInput from '../numberInput/numberInput';
+import { TabManager } from '../../class/tabManager';
 
 interface RowData {
   id: number;
@@ -24,6 +25,7 @@ interface HeaderConfig {
     required?: boolean;
     options?: { label: string; value: string | number; [key: string]: any }[];
     handleFocus?: (rowIndex: number, colIndex: number) => void;
+    handleClick?: (args: {rowIndex: number, colIndex: number}) => void;
     handleBlur?: (args: {
       rowIndex: number;
       row: any;
@@ -68,6 +70,7 @@ export const ChallanTable = ({
   widthRequired = '100vw',
 }: ChallanTableProps) => {
   const [focused, setFocused] = useState('');
+  const tabManager = TabManager.getInstance()
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
@@ -90,6 +93,11 @@ export const ChallanTable = ({
     if (e.key === 'Enter' || (e.key === 'Tab' && !e.shiftKey)) {
       if(e.key === 'Enter'){
         e.preventDefault()
+        const header = headers[colIndex];
+        const handelClick = header?.props?.handleClick;
+        if (typeof handelClick === 'function') {
+            return handelClick({ rowIndex, colIndex });
+        }
       }
       const shouldAddRow = colIndex === newRowTrigger;
       const isLastRow = rowIndex === gridData.length - 1;
@@ -331,6 +339,8 @@ export const ChallanTable = ({
                           value={columnValue}
                           type={header.props.inputType || 'text'}
                           onFocus={() => {
+                            tabManager.setLastFocusedElementId(`cell-${rowIndex}-${colIndex}`)
+
                             return header.props.handleFocus
                               ? header.props.handleFocus(rowIndex, colIndex)
                               : () => { };
@@ -354,6 +364,11 @@ export const ChallanTable = ({
                             const args = { row, rowIndex, colIndex, setFocused };
                             if (header.props.handleBlur) {
                               header.props.handleBlur(args);
+                            }
+                          }}
+                          onClick={()=>{
+                            if(header.props.handleClick){
+                              header.props.handleClick({rowIndex , colIndex})
                             }
                           }}
                         />

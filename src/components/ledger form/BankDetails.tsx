@@ -2,38 +2,23 @@ import React, { useState } from 'react';
 import FormikInputField from '../common/FormikInputField';
 import CustomSelect from '../custom_select/CustomSelect';
 import { Option } from '../../interface/global';
-import onKeyDown from '../../utilities/formKeyDown';
-import { useControls } from '../../ControlRoomContext';
+import { TabManager } from '../class/tabManager';
 
 interface BankDetailsProps {
   formik?: any;
 }
 
 export const BankDetails: React.FC<BankDetailsProps> = ({ formik }) => {
-  const [focused, setFocused] = useState('');
+  const {focusManager} = TabManager.getInstance()
   const handleFieldChange = (option: Option | null, id: string) => {
     formik.setFieldValue(id, option?.value);
   };
-  const { controlRoomSettings } = useControls();
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const validValue = e.target.value.replace(/[^0-9]/g, '');
     e.target.value = validValue;
     formik.setFieldValue(e.target.name, validValue);
   }
-
-  const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>,
-    radioField?: any
-  ) => {
-    onKeyDown({
-      e,
-      radioField: radioField,
-      focusedSetter: (field: string) => {
-        setFocused(field);
-      },
-    });
-  };
 
   return (
     <div className='grid grid-cols-2 gap-x-4 gap-y-2 m-2 px-2 text-xs leading-3 text-gray-600'>
@@ -45,8 +30,6 @@ export const BankDetails: React.FC<BankDetailsProps> = ({ formik }) => {
         name='bankName'
         isUpperCase={true}
         formik={formik}
-        prevField='Bank_Details'
-        nextField='accountNumber'
       />
       <FormikInputField
         isPopupOpen={false}
@@ -57,8 +40,6 @@ export const BankDetails: React.FC<BankDetailsProps> = ({ formik }) => {
         onChange={handleChange}
         maxLength={18}
         formik={formik}
-        prevField='bankName'
-        nextField='branchName'
       />
       <FormikInputField
         isPopupOpen={false}
@@ -68,11 +49,6 @@ export const BankDetails: React.FC<BankDetailsProps> = ({ formik }) => {
         name='branchName'
         isUpperCase={true}
         formik={formik}
-        prevField='accountNumber'
-        nextField='accountType'
-        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-          handleKeyDown(e)
-        }
       />
       <CustomSelect
         isPopupOpen={false}
@@ -102,10 +78,8 @@ export const BankDetails: React.FC<BankDetailsProps> = ({ formik }) => {
         placeholder='Select an option'
         disableArrow={false}
         hidePlaceholder={false}
-        isFocused={focused === 'accountType'}
         onBlur={() => {
           formik.setFieldTouched('accountType', true);
-          setFocused('');
         }}
         className='!rounded-none'
         onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
@@ -113,9 +87,11 @@ export const BankDetails: React.FC<BankDetailsProps> = ({ formik }) => {
             '.custom-select__menu'
           );
           if (e.key === 'Enter') {
-            !dropdown && e.preventDefault();
-            document.getElementById('ifscCode')?.focus();
-            setFocused('ifscCode');
+           if(!dropdown){
+            e.preventDefault();
+            e.stopPropagation()
+            focusManager()
+           }
           }
         }}
       />
@@ -129,14 +105,6 @@ export const BankDetails: React.FC<BankDetailsProps> = ({ formik }) => {
         isUpperCase={true}
         formik={formik}
         className=''
-        prevField='accountType'
-        nextField='accountHolderName'
-        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>)=>{
-          if(e.key === 'Tab' && e.shiftKey){
-            e.preventDefault();
-            setFocused('accountType');
-          }
-        }}
       />
       <FormikInputField
         isPopupOpen={false}
@@ -147,8 +115,6 @@ export const BankDetails: React.FC<BankDetailsProps> = ({ formik }) => {
         name='accountHolderName'
         formik={formik}
         className=''
-        prevField='ifscCode'
-        nextField={controlRoomSettings.fssaiNumber ? 'FSSAI_Number' : formik.isValid ? 'submit_all' : 'partyName'}
       />
     </div>
   );

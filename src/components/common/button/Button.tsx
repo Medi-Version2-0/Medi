@@ -1,5 +1,6 @@
 import React, { useMemo, FC } from "react";
 import classNames from "classnames";
+import { TabManager } from "../../class/tabManager";
 
 export const BTN_TYPE = {
   primary: "primary",
@@ -37,6 +38,8 @@ const Button: FC<ButtonProps> = ({
   autoFocus = false,
   ...rest
 }) => {
+  const tabManager = TabManager.getInstance();
+
   const styleType = useMemo(() => {
     switch (type) {
       case "ghost":
@@ -65,6 +68,7 @@ const Button: FC<ButtonProps> = ({
         className
       )}
       onClick={handleOnClick}
+      onFocus={()=> id && tabManager.setLastFocusedElementId(id)}
       onKeyDown={handleOnKeyDown}
       autoFocus={autoFocus}
       {...rest}

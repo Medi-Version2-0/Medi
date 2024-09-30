@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Tooltip as ReactTooltip } from 'react-tooltip';
 import { FaExclamationCircle } from 'react-icons/fa';
 import { useSelector } from 'react-redux';
+import { TabManager } from '../../class/tabManager';
 
 interface NumberInputProps {
     label?: string;
@@ -54,7 +55,7 @@ const NumberInput: React.FC<NumberInputProps> = ({
 }) => {
     const inputRef = useRef<HTMLInputElement>(null);
     const [inputValue, setInputValue] = useState<string>('');
-
+    const tabManager = TabManager.getInstance()
     const { controlRoomSettings } = useSelector((state: any) => state.global);
     const decimalPlaces = controlRoomSettings?.decimalValueCount || 2;
 
@@ -175,7 +176,10 @@ const NumberInput: React.FC<NumberInputProps> = ({
                     } ${inputClassName}`}
                 onChange={handleInputChange}
                 onBlur={handleBlur}
-                onFocus={onFocus}
+                onFocus={()=> {
+                   tabManager.setLastFocusedElementId(id)
+                    onFocus?.()
+                }}
                 placeholder={placeholder}
                 disabled={isDisabled}
                 data-next-field={nextField}

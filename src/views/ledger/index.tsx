@@ -20,6 +20,7 @@ import { getLedgerFormValidationSchema } from './validation_schema';
 import { validateField, decimalFormatter, createMap, extractKeys, lookupValue, capitalFirstLetter, stringValueParser } from '../../helper/helper';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
 import useApi from '../../hooks/useApi';
+import { TabManager } from '../../components/class/tabManager';
 
 export const Ledger = ({type = ''}) => {
   const [view, setView] = useState<View>({ type, data: {} });
@@ -30,6 +31,7 @@ export const Ledger = ({type = ''}) => {
   const { sendAPIRequest } = useApi();
   const partyId = useRef('');
   const [open, setOpen] = useState<boolean>(false);
+  const tabManager = TabManager.getInstance()
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
@@ -93,7 +95,6 @@ export const Ledger = ({type = ''}) => {
       setView
     );
   };
-  useHandleKeydown(handleKeyDown, [selectedRow, popupState])
 
   const typeMapping = useMemo(() => ({ Dr: 'DR', Cr: 'CR' }), []);
   const ledgerStationsMap = createMap( stationData, (item) => item.station_id, (item) => item.station_name);
@@ -299,6 +300,7 @@ export const Ledger = ({type = ''}) => {
           <div className='flex gap-5'>
             <Button
               type='highlight'
+              id='settings'
               handleOnClick={() => {
                 togglePopup(true);
               }}
@@ -308,6 +310,7 @@ export const Ledger = ({type = ''}) => {
             {createAccess && (
               <Button
                 autoFocus={true}
+                id='add'
                 type='highlight'
                 handleOnClick={() => setView({ type: 'add', data: {} })}
               >
