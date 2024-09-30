@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { SchemeSection } from './createDeliveryChallan';
-import { schemeTypeOptions, itemHeader, batchHeader, itemFooters, batchFooters, previousItemsList, pendingChallansList } from '../../constants/saleChallan';
+import { schemeTypeOptions, itemHeader, batchHeader, itemFooters, batchFooters } from '../../constants/saleChallan';
 import { ChallanTable } from '../../components/common/challanTable';
 import { SelectList } from '../../components/common/customSelectList/customSelectList';
 import Items from '../item';
@@ -99,7 +99,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     return () => {
         window.removeEventListener('tabFocusChange', handleFocusChange as EventListener);
     };
-}, []);
+}, [itemValue , batches]);
 
 
   useEffect(() => {
