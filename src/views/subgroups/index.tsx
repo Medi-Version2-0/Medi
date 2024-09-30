@@ -106,7 +106,7 @@ export const SubGroups = () => {
             body: data,
           });
         }
-        settingPopupState(false, `Sub group ${data.group_code ? 'updated' : 'created'} successfully`);
+        // settingPopupState(false, `Sub group ${data.group_code ? 'updated' : 'created'} successfully`);
         togglePopup(false);
         await getAndSetSubGroups();
       }

@@ -107,7 +107,7 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
       filteredData.surCharge = parseFloat(filteredData.surCharge)
       try {
         await sendAPIRequest(endpoint, { method, body: filteredData });
-        settingPopupState(false,`${type}Account ${method === 'POST' ? 'created' : 'updated'}`);
+        // settingPopupState(false,`${type}Account ${method === 'POST' ? 'created' : 'updated'}`);
         await getAndSetTableData();
         togglePopup(false);
       } catch (error: any) {

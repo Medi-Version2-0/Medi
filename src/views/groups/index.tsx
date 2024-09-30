@@ -94,7 +94,7 @@ export const Groups = () => {
             body: data,
           });
         }
-        settingPopupState(false, `Group ${data.group_code? 'updated' : 'created'} successfully`);
+        // settingPopupState(false, `Group ${data.group_code? 'updated' : 'created'} successfully`);
         await getAndSetGroups();
         togglePopup(false);
         setFormData(pinnedRow)
