@@ -9,7 +9,7 @@ interface BankDetailsProps {
 }
 
 export const BankDetails: React.FC<BankDetailsProps> = ({ formik }) => {
-  const {focusManager} = TabManager.getInstance()
+  const tabManager = TabManager.getInstance()
   const handleFieldChange = (option: Option | null, id: string) => {
     formik.setFieldValue(id, option?.value);
   };
@@ -90,7 +90,7 @@ export const BankDetails: React.FC<BankDetailsProps> = ({ formik }) => {
            if(!dropdown){
             e.preventDefault();
             e.stopPropagation()
-            focusManager()
+            tabManager.focusManager()
            }
           }
         }}
