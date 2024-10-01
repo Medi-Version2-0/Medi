@@ -22,10 +22,12 @@ import { lookupValue } from '../../helper/helper';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
 import { useGetSetData } from '../../hooks/useGetSetData';
 import useApi from '../../hooks/useApi';
+import CustomSelect from '../../components/custom_select/CustomSelect';
+import { TabManager } from '../../components/class/tabManager';
 
 type SeriesOption = {
-  id: number;
-  name: string;
+  value: number;
+  label: string;
 };
 
 const initialValue: BillBookForm = {
@@ -39,19 +41,19 @@ const initialValue: BillBookForm = {
 };
 
 const seriesOptions: SeriesOption[] = [
-  { id: 1, name: 'Sale Challan' },
-  { id: 2, name: 'Sale Bill' },
-  { id: 3, name: 'Sale Order' },
-  { id: 4, name: 'Purchase Order' },
-  { id: 5, name: 'Breakage Expiry Receive' },
-  { id: 6, name: 'Stock Issue' },
-  { id: 7, name: 'Sale Return Credit Note' },
-  { id: 8, name: 'Purchase Return Debit Note' },
-  { id: 9, name: 'Breakage Expiry Receive Challan' },
-  { id: 10, name: 'Sale Return Challan' },
-  { id: 11, name: 'Purchase Return Challan' },
-  { id: 12, name: 'Breakage Expiry Issue' },
-  { id: 13, name: 'Breakage Expiry Issue Challan' },
+  { value: 1, label: 'Sale Challan' },
+  { value: 2, label: 'Sale Bill' },
+  { value: 3, label: 'Sale Order' },
+  { value: 4, label: 'Purchase Order' },
+  { value: 5, label: 'Breakage Expiry Receive' },
+  { value: 6, label: 'Stock Issue' },
+  { value: 7, label: 'Sale Return Credit Note' },
+  { value: 8, label: 'Purchase Return Debit Note' },
+  { value: 9, label: 'Breakage Expiry Receive Challan' },
+  { value: 10, label: 'Sale Return Challan' },
+  { value: 11, label: 'Purchase Return Challan' },
+  { value: 12, label: 'Breakage Expiry Issue' },
+  { value: 13, label: 'Breakage Expiry Issue Challan' },
 ];
 
 export const BillBook = () => {
@@ -67,6 +69,7 @@ export const BillBook = () => {
   const editing = useRef(false);
   let currTable: any[] = [];
   const { controlRoomSettings } = useControls();
+  const tabManager = TabManager.getInstance()
   const { createAccess, updateAccess, deleteAccess } = usePermission('invoicebill')
 
   const initialValues = {
@@ -214,8 +217,8 @@ export const BillBook = () => {
     setSelectedRow(null);
   };
 
-  const handleSeriesChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedSeries(event.target.value);
+  const handleSeriesChange = (series: any) => {
+    setSelectedSeries(series.value);
   };
 
   const companyMapping = useMemo(() => ({ 'All Companies': 'All Companies', 'One Company': 'One Company' }), []);
@@ -375,31 +378,44 @@ export const BillBook = () => {
           <div className='flex w-full items-center justify-between px-8 py-1'>
             <h1 className='font-bold'>Bill Book Setup</h1>
             <div className='flex gap-5'>
-              <Button type='highlight' handleOnClick={() => toggleSettingPopup(true)}>
+              <Button type='highlight' id='billBookSetupSettings' handleOnClick={() => toggleSettingPopup(true)}>
                 <IoSettingsOutline />
               </Button>
-              {createAccess && <Button type='highlight' handleOnClick={() => togglePopup(true)}>
+              {createAccess && <Button type='highlight' id='add' handleOnClick={() => togglePopup(true)}>
                 Add Series
               </Button>}
             </div>
           </div>
 
-          <div className='seriesSelection flex px-8 py-1 my-2 items-center gap-10'>
-            <label htmlFor='series-select'>
-              Select Series:
-            </label>
-            <select
-              id='series-select'
-              value={selectedSeries}
+          <div className='seriesSelection !w-1/3 px-8 py-1 my-2'>
+            <CustomSelect
+              isPopupOpen={false}
+              label='Select Series :'
+              labelClass='whitespace-nowrap text-base font-medium'
+              value={
+                {
+                  label: seriesOptions.find((s:any)=> s.value === selectedSeries)?.label,
+                  value: selectedSeries,
+                }
+              }
+              id='series_select'
               onChange={handleSeriesChange}
-              className='p-2 border border-gray-300 rounded min-w-52'
-            >
-              {seriesOptions.map((option) => (
-                <option key={option.id} value={option.id}>
-                  {option.name}
-                </option>
-              ))}
-            </select>
+              options={seriesOptions}
+              isSearchable={false}
+              disableArrow={false}
+              containerClass='gap-4 !w-114% !justify-between relative mb-2 h-8 !text-[12px]'
+              className='!rounded-[2px] !h-8 items-center  w-full width: fit-content !important text-wrap: nowrap'
+              onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+                const dropdown = document.querySelector('.custom-select__menu');
+                if (e.key === 'Enter') {
+                  if (!dropdown) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    tabManager.focusManager()
+                  }
+                }
+              }}
+            />
           </div>
           <div id='account_table' className='ag-theme-quartz'>
             {
