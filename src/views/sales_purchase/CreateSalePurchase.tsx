@@ -11,8 +11,7 @@ import CustomSelect from '../../components/custom_select/CustomSelect';
 import { Option } from '../../interface/global';
 import NumberInput from '../../components/common/numberInput/numberInput';
 import { TabManager } from '../../components/class/tabManager';
-import { createSaleAccountFieldsChain, deleteSaleAccountFieldsChain } from '../../constants/focusChain/saleAccountFocusChain';
-import { createPurchaseAccountFieldsChain, deletePurchaseAccountFieldsChain } from '../../constants/focusChain/purchseAccountFocusChain';
+import { createSalePurchaseAccountFieldsChain, deleteSalePurchaseAccountFieldsChain } from '../../constants/focusChain/salePurchaseAccountFocusChain';
 
 export const CreateSalePurchase = ({
   togglePopup,
@@ -63,19 +62,11 @@ export const CreateSalePurchase = ({
     formik.setFieldValue('openingBalType', option?.value);  
   };
 
-  function getFocusChain():string[]{
-    if ( type === 'Sales') {
-      return isDelete ? deleteSaleAccountFieldsChain : createSaleAccountFieldsChain
-    }else{
-      return isDelete ? deletePurchaseAccountFieldsChain : createPurchaseAccountFieldsChain
-    }
-  }
-
   return (
     <Popup
       togglePopup={togglePopup}
-      id='createSalePurchasesPopup'
-      focusChain={getFocusChain()}
+      id={type === 'Sales' ? 'createSaleAccountPopup' : 'createPurchaseAccountPopup'}
+      focusChain={isDelete ? deleteSalePurchaseAccountFieldsChain : createSalePurchaseAccountFieldsChain}
       heading={
         sp_id && isDelete
           ? `Delete ${type} Account`
