@@ -38,6 +38,7 @@ import { groupViewChain } from '../../constants/focusChain/groupsFocusChain';
 import { subGroupViewChain } from '../../constants/focusChain/subGroupFocusChain';
 import { salePurchaseAccountViewChain } from '../../constants/focusChain/salePurchaseAccountFocusChain';
 import { storeViewChain } from '../../constants/focusChain/storeFocusChain';
+import { companyViewChain } from '../../constants/focusChain/companyFocusChain';
 
 interface SidebarProps {
   isGroup?: boolean;
@@ -135,7 +136,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       url: '/company',
       label: 'Company',
       icon: <FaPlus className='fill-yellow-900' />,
-      onClick: () => openTab?.('Company', <Company />),
+      onClick: () => tabManager.openTab('Company', <Company /> , companyViewChain , openTab),
       isDisabled: isNotReadAccess('company')
     },
     {
