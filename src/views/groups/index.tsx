@@ -12,7 +12,7 @@ import Button from '../../components/common/button/Button';
 import { groupValidationSchema } from './validation_schema';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
 import usePermission from '../../hooks/useRole';
-import { lookupValue, stringValueParser } from '../../helper/helper';
+import { lookupValue, removeNullUndefinedEmptyString, stringValueParser } from '../../helper/helper';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import useApi from '../../hooks/useApi';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
@@ -32,11 +32,10 @@ export const Groups = () => {
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<any[]>([]);
   const editing = useRef(false);
-  const [popupState, setPopupState] = useState({
-    isModalOpen: false,
-    isAlertOpen: false,
-    message: '',
-  });
+  const popupInitialState = useMemo(() => {
+    return { isModalOpen: false, isAlertOpen: false, message: '' };
+  }, []);
+  const [popupState, setPopupState] = useState(popupInitialState);
   const pinnedRow: GroupFormData = {
     group_name: '',
     type: '',
@@ -64,14 +63,10 @@ export const Groups = () => {
     getAndSetGroups();
   }, [createAccess]);
 
-  useEffect(() => {
-    document.getElementById('addGroupButton')?.focus();  // when component mounted then focus will be on addGroup button
-  }, [document.getElementById('addGroupButton')]);  
-
   const typeMapping = useMemo(() => ({p_and_l: 'P&L', "B/S": 'Balance Sheet'}), []);
 
   const handleAlertCloseModal = () => {
-    setPopupState({ isAlertOpen: false, isModalOpen: false, message: ''});
+    setPopupState(popupInitialState);
   };
 
   const handleClosePopup = () => {
@@ -79,7 +74,8 @@ export const Groups = () => {
   };
 
   const handleConfirmPopup = async (data?: any) => {
-   setPopupState({ ...popupState, isModalOpen: false });
+    setPopupState({ ...popupState, isModalOpen: false });
+    data = removeNullUndefinedEmptyString(data);
     if (data !== initialValue) {
       try {
         if (data.group_code) {
@@ -94,7 +90,7 @@ export const Groups = () => {
             body: data,
           });
         }
-        settingPopupState(false, `Group ${data.group_code? 'updated' : 'created'} successfully`);
+        // settingPopupState(false, `Group ${data.group_code? 'updated' : 'created'} successfully`);
         await getAndSetGroups();
         togglePopup(false);
         setFormData(pinnedRow)
@@ -117,7 +113,6 @@ export const Groups = () => {
   };
 
   const deleteAcc = async () => {
-    settingPopupState(false,'Group Deleted')
     isDelete.current = false;
     togglePopup(false);
     try{
@@ -125,10 +120,14 @@ export const Groups = () => {
         method: 'DELETE',
       });
       await getAndSetGroups();
+      // settingPopupState(false,'Group Deleted')
+      setPopupState(popupInitialState);
     }catch(error:any) {
       if (!error?.isErrorHandled) {
         if(error?.response?.data) settingPopupState(false,error.response.data.error.message);
       }
+    }finally{
+      setSelectedRow(null); // so that when we press ctrl + d then form previous values will clear
     }
   };
 
@@ -220,7 +219,8 @@ export const Groups = () => {
       event,
       ()=> handleDelete(selectedRow),
       ()=>handleUpdate(selectedRow),
-      togglePopup,
+      togglePopup, // will be removed 
+      // undefined,
       selectedRow,
       undefined
     );
@@ -315,7 +315,7 @@ export const Groups = () => {
          {createAccess && <Button
             type='highlight'
             className=''
-            id='addGroupButton'
+            id='add'
             handleOnClick={() => togglePopup(true)}
           >
             Add Group

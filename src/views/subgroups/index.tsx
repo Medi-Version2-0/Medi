@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { FaEdit } from 'react-icons/fa';
 import { MdDeleteForever } from 'react-icons/md';
@@ -25,16 +25,15 @@ export const SubGroups = () => {
   };
   const { sendAPIRequest } = useApi();
   const [open, setOpen] = useState<boolean>(false);
-  const [formData, setFormData] = useState<SubGroupFormData>(initialValue);
+  const [formData, setFormData] = useState<any>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [tableData, setTableData] = useState<SubGroupFormData | any>(null);
   const editing = useRef(false);
   const permissions = usePermission('subgroup')
-  const [popupState, setPopupState] = useState({
-    isModalOpen: false,
-    isAlertOpen: false,
-    message: '',
-  });
+  const popupInitialState = useMemo(()=>{
+    return { isModalOpen: false, isAlertOpen: false, message: '' };
+  },[]);
+  const [popupState, setPopupState] = useState(popupInitialState);
   const settingPopupState = (isModal: boolean, message: string) => {
     setPopupState({
       ...popupState,
@@ -42,7 +41,6 @@ export const SubGroups = () => {
       message: message,
     });
   };
-
   const pinnedRow: SubGroupFormData = {
     group_name: ''
   };
@@ -74,19 +72,12 @@ export const SubGroups = () => {
   
 
   const handleAlertCloseModal = () => {
-    setPopupState({ ...popupState, isAlertOpen: false, isModalOpen: false });
-    setTimeout(() => {  // adding some delay to shift focus on opened form field
-      document.getElementById('group_name')?.focus();
-    }, 100);
+    setPopupState(popupInitialState);
   };
 
   const handleClosePopup = () => {
     setPopupState({ ...popupState, isModalOpen: false });
   };
-
-  useEffect(() => {
-    document.getElementById('account_button')?.focus();  // when component mounted then focus will be on addGroup button
-  }, [document.getElementById('account_button')]);  
 
   const handleConfirmPopup = async (data?: any) => {
     setPopupState({ ...popupState, isModalOpen: false });
@@ -106,7 +97,7 @@ export const SubGroups = () => {
             body: data,
           });
         }
-        settingPopupState(false, `Sub group ${data.group_code ? 'updated' : 'created'} successfully`);
+        // settingPopupState(false, `Sub group ${data.group_code ? 'updated' : 'created'} successfully`);
         togglePopup(false);
         await getAndSetSubGroups();
       }
@@ -130,17 +121,20 @@ export const SubGroups = () => {
 
   const deleteAcc = async () => {
     try{
-      settingPopupState(false,'Sub Group deleted')
+      // settingPopupState(false,'Sub Group deleted')
       isDelete.current = false;
       togglePopup(false);
       await sendAPIRequest(`/subGroup/${selectedRow.group_code}`, {
         method: 'DELETE',
       });
       await getAndSetSubGroups();
+      setPopupState(popupInitialState);
     }catch(error:any){
       if (!error?.isErrorHandled) {
         console.log('Sub Group not deleted');
       }
+    }finally{
+      setSelectedRow(null);
     }
   };
 
@@ -222,11 +216,17 @@ export const SubGroups = () => {
   };
 
   const handleKeyDown = (event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      togglePopup(false);
+      return;
+    }
     handleKeyDownCommon(
       event,
       handleDelete,
       handleUpdate,
-      togglePopup,
+      togglePopup,  // will be removed
+      // undefined,
       selectedRow,
       undefined
     );
@@ -336,7 +336,7 @@ export const SubGroups = () => {
         <div className='flex w-full items-center justify-between px-8 py-1'>
           <h1 className='font-bold'>Sub Groups</h1>
           {permissions.createAccess && <Button
-            id='account_button'
+            id='add'
             handleOnClick={() => togglePopup(true)}
             type='highlight'
           >

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef } from 'react';
 import { Formik, Form, Field, FormikProps } from 'formik';
 import {
   CreateSubGroupProps,
@@ -8,11 +8,10 @@ import {
 import { Popup } from '../../components/popup/Popup';
 import CustomSelect from '../../components/custom_select/CustomSelect';
 import Button from '../../components/common/button/Button';
-import onKeyDown from '../../utilities/formKeyDown';
 import FormikInputField from '../../components/common/FormikInputField';
 import { subgroupValidationSchema } from './validation_schema';
-import useHandleKeydown from '../../hooks/useHandleKeydown';
-import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
+import { TabManager } from '../../components/class/tabManager';
+import { createSubGroupFieldsChain, deleteSubGroupFieldsChain } from '../../constants/focusChain/subGroupFocusChain';
 
 export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
   togglePopup,
@@ -29,14 +28,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
     value: grp.group_code,
     label: grp.group_name.toUpperCase(),
   }))
-  const [focused, setFocused] = useState('');
-
-  useEffect(() => {
-    const focusTarget = !isDelete
-      ? document.getElementById('group_name')
-      : document.getElementById('cancel_button');
-    focusTarget?.focus();
-  }, []);
+  const tabManager = TabManager.getInstance()
 
   const handleParentChange = (option: Option | null) => {
     formikRef.current?.setFieldValue('parent_code', option?.value);
@@ -47,43 +39,14 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
       ...values,
       ...(group_code && { group_code }),
     };
-    !group_code && document.getElementById('account_button')?.focus();
     handleConfirmPopup(formData);
-  };
-
-
-  const keyDown = (event: KeyboardEvent) => {
-    handleKeyDownCommon(
-      event,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      handleSubmit,
-      formikRef.current?.values,
-    );
-  };
-  useHandleKeydown(keyDown, [])   // to implement ctrl + s 
-
-  const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>,
-    formik?: FormikProps<SubGroupFormDataProps>,
-    radioField?: any
-  ) => {
-    onKeyDown({
-      e,
-      formik: formik,
-      radioField: radioField,
-      focusedSetter: (field: string) => {
-        setFocused(field);
-      },
-    });
   };
 
   return (
     <Popup
       togglePopup={togglePopup}
+      id='createSubGroupPopup'
+      focusChain={isDelete ? deleteSubGroupFieldsChain : createSubGroupFieldsChain}
       heading={
         group_code && isDelete
           ? 'Delete Sub-Group'
@@ -112,12 +75,6 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
               formik={formik}
               className='!gap-0'
               isDisabled={isDelete && group_code}
-              nextField='parent_code'
-              prevField='group_name'
-              sideField='parent_code'
-              onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                handleKeyDown(e)
-              }
               showErrorTooltip={
                 !!(formik.touched.group_name && formik.errors.group_name)
               }
@@ -148,13 +105,12 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                       isSearchable={true}
                       isDisabled={isDelete && group_code}
                       hidePlaceholder={false}
+                      labelClass='absolute !max-h-4 whitespace-nowrap z-10 top-0 !bg-white h-[17px] px-1 left-[6px]'
                       className='!h-8 rounded-sm text-xs'
-                      isFocused={focused === 'parent_code'}
                       error={formik.errors.parent_code}
                       isTouched={formik.touched.parent_code}
                       onBlur={() => {
                         formik.setFieldTouched('parent_code', true);
-                        setFocused('');
                       }}
                       onKeyDown={(
                         e: React.KeyboardEvent<HTMLSelectElement>
@@ -162,21 +118,12 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                         const dropdown = document.querySelector(
                           '.custom-select__menu'
                         );
-                        if(e.key === 'Tab'){
-                          if (!dropdown) {
-                            e.preventDefault();
-                          }
-                          document.getElementById('cancel_button')?.focus();
-                        }
                         if (e.key === 'Enter') {
                           if (!dropdown) {
                             e.preventDefault();
+                            e.stopPropagation();
+                            tabManager.focusManager()
                           }
-                          document.getElementById('submit_button')?.focus();
-                        }
-                        if (e.shiftKey && e.key === 'Tab') {
-                          e.preventDefault();
-                          document.getElementById('group_name')?.focus();
                         }
                       }}
                       showErrorTooltip={true}
@@ -192,19 +139,6 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                 type='fog'
                 id='cancel_button'
                 handleOnClick={() => togglePopup(false)}
-                handleOnKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    togglePopup(false);
-                  }
-                  if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab')) {
-                    e.preventDefault();
-                    document.getElementById(`${isDelete ? 'del_button' : 'parent_code'}`)?.focus();
-                    if(!isDelete){
-                      setFocused('parent_code');
-                    }
-                  }
-                }}
               >
                 Cancel
               </Button>
@@ -214,36 +148,15 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
                   type='fill'
                   btnType='button'
                   handleOnClick={handleDeleteFromForm}
-                  handleOnKeyDown={(e) => {
-                    if (e.key === 'Tab') {
-                      document.getElementById('cancel_button')?.focus();
-                      e.preventDefault();
-                    }
-                    if (
-                      e.key === 'ArrowUp' ||
-                      (e.shiftKey && e.key === 'Tab')
-                    ) {
-                      document.getElementById('cancel_button')?.focus();
-                    }                   
-                  }}
                 >
                   Delete
                 </Button>
               ) : (
                 <Button
-                  id='submit_button'
+                  id='save'
                   type='fill'
-                  disable={formik.isSubmitting}  // disable if form is submitting i.e., prevent multiple submissions
+                  disable={!formik.isValid || formik.isSubmitting}  // disable if form is submitting i.e., prevent multiple submissions
                   autoFocus
-                  handleOnKeyDown={(e) => {
-                    if (e.key === 'Tab' || (!formik.isValid && e.key === 'Enter')) {
-                      document.getElementById('group_name')?.focus();
-                      e.preventDefault();
-                    }
-                    if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab')) {
-                      document.getElementById('cancel_button')?.focus();
-                    }
-                  }}
                 >
                   {group_code ? 'Update' : 'Add'}
                 </Button>
