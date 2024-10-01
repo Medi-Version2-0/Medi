@@ -1,11 +1,11 @@
-export const saleAccountViewChain = [
+export const salePurchaseAccountViewChain = [
   'add'
 ]
 
-export const createSaleAccountFieldsChain = [
+export const createSalePurchaseAccountFieldsChain = [
   'sptype', 'igst', 'surCharge', 'shortName', 'shortName2', 'openingBal', 'custom_select_openingBalType', 'save', 'cancel_button'
 ]
 
-export const deleteSaleAccountFieldsChain = [
+export const deleteSalePurchaseAccountFieldsChain = [
   'del_button', 'cancel_button'
 ]

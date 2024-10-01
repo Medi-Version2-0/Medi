@@ -36,8 +36,7 @@ import { stationFocusChain } from '../../constants/focusChain/stationFocusChain'
 import { ledgerViewChain } from '../../constants/focusChain/ledgerFocusChain';
 import { groupViewChain } from '../../constants/focusChain/groupsFocusChain';
 import { subGroupViewChain } from '../../constants/focusChain/subGroupFocusChain';
-import { saleAccountViewChain } from '../../constants/focusChain/saleAccountFocusChain';
-import { purchaseAccountViewChain } from '../../constants/focusChain/purchseAccountFocusChain';
+import { salePurchaseAccountViewChain } from '../../constants/focusChain/salePurchaseAccountFocusChain';
 
 interface SidebarProps {
   isGroup?: boolean;
@@ -116,13 +115,13 @@ const Sidebar: React.FC<SidebarProps> = ({
     {
       url: '/sales_purchase_table',
       label: 'Sales Account',
-      onClick: () => tabManager.openTab('Sales Account', <Sales_Table type={'Sales'} />, saleAccountViewChain, openTab),
+      onClick: () => tabManager.openTab('Sales Account', <Sales_Table type={'Sales'} />, salePurchaseAccountViewChain, openTab),
       isDisabled: isNotReadAccess('saleaccount')
     },
     {
       url: '/sales_purchase_table',
       label: 'Purchase Account',
-      onClick: () => tabManager.openTab('Purchase Account', <Sales_Table type='Purchase' />, purchaseAccountViewChain, openTab),
+      onClick: () => tabManager.openTab('Purchase Account', <Sales_Table type='Purchase' />, salePurchaseAccountViewChain, openTab),
       isDisabled: isNotReadAccess('purchaseaccount')
     },
     {
