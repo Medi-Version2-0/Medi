@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useMemo } from 'react';
+import { useEffect, useState, useRef, useMemo, useContext } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { FaEdit } from 'react-icons/fa';
 import { MdDeleteForever } from 'react-icons/md';
@@ -19,16 +19,15 @@ import { createMap, extractKeys, lookupValue, decimalFormatter } from '../../hel
 import { useGetSetData } from '../../hooks/useGetSetData';
 import useApi from '../../hooks/useApi';
 
-export const Company = () => {
+export const Company = ({type = ''}) => {
   const [view, setView] = useState<View>({ type: '', data: {} });
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const { sendAPIRequest } = useApi();
   const [tableData, setTableData] = useState<CompanyFormData | any>(null);
-  const { stations: stationData, company: companiesData } = useSelector((state: any) => state.global)
-
+  const [stationData, setStationData] = useState<any[]>([]);
+  const decimalPlaces = useSelector((state: any) => state.global.controlRoomSettings.decimalValueCount || 2);
   const editing = useRef(false);
   const companyId = useRef<string>('');
-  const getAndSetCompanyHandler = useGetSetData(getAndSetCompany);
   let currTable: any[] = [];
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
@@ -49,9 +48,29 @@ export const Company = () => {
   const companyStations = extractKeys(companyStationsMap);
   const lookupStation = (key: number) =>lookupValue(companyStationsMap, key);
 
+
+  async function getAndSetTableData() {
+    try {
+      const allCompanies = await sendAPIRequest('/company');
+      setTableData(allCompanies);
+    } catch (err) {
+      console.error('Company data in company index not being fetched');
+    }
+  }
+
+  async function getAndSetStations() {
+    try {
+      const allStation = await sendAPIRequest('/station');
+      setStationData(allStation);
+    } catch (err) {
+      console.log('Stations not fetched in ledger index')
+    }
+  }
+
   useEffect(() => {
-    setTableData(companiesData);
-  }, [companiesData]);
+    getAndSetTableData();
+    getAndSetStations();
+  }, []);
 
   const typeMapping = useMemo(() => ({ Dr: 'Dr', Cr: 'Cr',}), []);
 
@@ -69,7 +88,7 @@ export const Company = () => {
       await sendAPIRequest(`/company/${companyId.current}`, {
         method: 'DELETE',
       });
-      getAndSetCompanyHandler();
+      getAndSetTableData();
     } catch (error: any) {
       if (!error?.isErrorHandled) {
         console.log('Company not deleted');
@@ -123,7 +142,7 @@ export const Company = () => {
         method: 'PUT',
         body: { [field]: newValue },
       });
-      getAndSetCompanyHandler();
+      getAndSetTableData();
     } catch (error: any) {
       if (!error?.isErrorHandled) {
         console.log('Company not updated');
@@ -158,7 +177,7 @@ export const Company = () => {
     suppressMovable: true,
     headerClass: 'custom-header',
     floatingFilter: true,
-    editable: (params: any) => params.node.rowIndex === 0 ? createAccess : updateAccess,
+    editable: updateAccess,
   }
 
   const colDefs: any[] = [
@@ -192,7 +211,10 @@ export const Company = () => {
       headerName: 'Balance( ₹ )',
       field: 'openingBal',
       type: 'rightAligned',
-      valueFormatter: decimalFormatter,
+      cellEditor: 'numericEditor',
+      cellEditorParams: {
+        decimalPlaces: decimalPlaces,
+      },
       headerClass: 'custom-header custom_header_class ag-right-aligned-header',
     },
     {
@@ -217,16 +239,16 @@ export const Company = () => {
       },
       cellRenderer: (params: { data: any }) => (
         <div className='table_edit_buttons'>
-          <FaEdit
+          {updateAccess && <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
             onClick={() => {
               setView({ type: 'add', data: params.data });
             }}
-          />
-          <MdDeleteForever
+          />}
+          {deleteAccess && <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
             onClick={() => handleDelete(params.data)}
-          />
+          />}
         </div>
       ),
     },
@@ -237,6 +259,7 @@ export const Company = () => {
         <div className='flex w-full items-center justify-between px-8 py-1'>
           <h1 className='font-bold'>Company Master</h1>
          {createAccess && <Button
+            id = 'addBtn'
             type='highlight'
             handleOnClick={() => {
               setView({ type: 'add', data: {} });
@@ -276,7 +299,7 @@ export const Company = () => {
   const renderView = () => {
     switch (view.type) {
       case 'add':
-        return <CreateCompany setView={setView} data={view.data} />;
+        return <CreateCompany setView={setView} data={view.data} stations={stationData} getAndSetTableData= {getAndSetTableData} />;
       default:
         return company();
     }
