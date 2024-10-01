@@ -259,8 +259,8 @@ export const Company = ({type = ''}) => {
         <div className='flex w-full items-center justify-between px-8 py-1'>
           <h1 className='font-bold'>Company Master</h1>
          {createAccess && <Button
-            id = 'addBtn'
             type='highlight'
+            id='add'
             handleOnClick={() => {
               setView({ type: 'add', data: {} });
             }}

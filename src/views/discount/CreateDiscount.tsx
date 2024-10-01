@@ -7,14 +7,20 @@ import 'ag-grid-community/styles/ag-theme-quartz.css';
 import FormikInputField from '../../components/common/FormikInputField';
 import { Option } from '../../interface/global';
 import CustomSelect from '../../components/custom_select/CustomSelect';
-import titleCase from '../../utilities/titleCase';
 import './discount.css';
-import { useSelector } from 'react-redux'
 import { discountValidationSchema } from './validation_schema';
 import { useGetSetData } from '../../hooks/useGetSetData';
 import { getAndSetPartywiseDiscount } from '../../store/action/globalAction';
-import { useControls } from '../../ControlRoomContext';
 import useApi from '../../hooks/useApi';
+import usePartyFooterData from '../../hooks/usePartyFooterData';
+import { partyHeaders, companyHeader, companyFooterData} from './partyHeaders'
+import { useTabs } from '../../TabsContext';
+import { Ledger } from '../ledger';
+import { Company } from '../company'
+import { SelectList } from '../../components/common/customSelectList/customSelectList';
+import NumberInput from '../../components/common/numberInput/numberInput'
+import { TabManager } from '../../components/class/tabManager';
+import { partywiseDiscountViewChain, createPartywiseDiscountChain, createPartywiseDiscountChainWithAllCompanies } from '../../constants/focusChain/partywiseDiscount';
 
 export const CreateDiscount = ({
   setView,
@@ -22,16 +28,14 @@ export const CreateDiscount = ({
   discountTypeOptions,
 }: any) => {
   const { sendAPIRequest } = useApi();
-  const [companyOptions, setCompanyOptions] = useState<Option[]>([]);
-  const [partyOptions, setPartyOptions] = useState<Option[]>([]);
   const [focused, setFocused] = useState('');
-  const { controlRoomSettings } = useControls();
-  const { company: companiesData, party: parties } = useSelector((state: any) => state.global)
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
     message: '',
   });
+  const { openTab } = useTabs()
+  const partyFooterData = usePartyFooterData();
   const getAndSetPartywiseDiscountHandler = useGetSetData(getAndSetPartywiseDiscount);
   const settingPopupState = (isModal: boolean, message: string) => {
     setPopupState({
@@ -40,34 +44,46 @@ export const CreateDiscount = ({
       message: message,
     });
   };
-  useEffect(() => {
-    setCompanyOptions(
-      companiesData.map((company: any) => ({
-        value: company.company_id,
-        label: titleCase(company.companyName),
-      }))
-    );
+  const [popupList, setPopupList] = useState<{ isOpen: boolean, data: any }>({
+    isOpen: false,
+    data: {}
+  })
+  const [selectedParty, setSelectedParty] = useState<any>(null);
+  const [selectedCompany, setSelectedCompany] = useState<any>();
+  const tabManager = TabManager.getInstance()
 
-    setPartyOptions(
-      parties.map((party: any) => ({
-      value: party.party_id,
-      label: titleCase(party.partyName),
-      }))
-    );
-    setFocused('partyId');
-  }, [companiesData, parties]);
+  useEffect(()=>{
+    fecthData();
+    tabManager.updateFocusChainAndSetFocus([...createPartywiseDiscountChain ] , 'partyId')    
+  },[])
+
+  const fecthData = async()=>{
+      try {
+        const allCompanies = await sendAPIRequest('/company');
+        const matchedCompanies = allCompanies.find((company: any) => company.company_id === formik.values.companyId);
+        setSelectedCompany(matchedCompanies)
+
+        const allParties = await sendAPIRequest('/ledger');
+        const matchedParties = allParties.find((party: any) => party.party_id === formik.values.partyId);
+        setSelectedParty(matchedParties)    
+      } catch (err) {
+        console.error('data is not being fetched');
+      }
+    }
+
 
   const formik: any = useFormik({
     initialValues: {
-      companyId: data?.companyId || '',
+      companyId: data?.companyId || selectedCompany,
       discountType: data?.discountType || '',
-      partyId: data?.partyId || '',
+      partyId: data?.partyId || selectedParty ,
       discount: data?.discount || 0,
     },
     validationSchema: discountValidationSchema,
     onSubmit: async (values) => {
       try{
-
+      values.partyId = selectedParty?.party_id
+      values.companyId = selectedCompany?.company_id
       const allData = { ...values, discount: Number(values.discount) };
 
       if (data.discount_id) {
@@ -88,8 +104,7 @@ export const CreateDiscount = ({
             body: allData,
           });
         }
-
-        settingPopupState(false, `Partywise discount ${!!data.discount_id ? 'updated' : 'created'} successfully`)
+        // settingPopupState(false, `Partywise discount ${!!data.discount_id ? 'updated' : 'created'} successfully`)
         getAndSetPartywiseDiscountHandler();
       }catch(error: any){
         if (!error?.isErrorHandled && error.response.status === 409) {
@@ -98,6 +113,58 @@ export const CreateDiscount = ({
       }
     },
   });
+
+  useEffect(() => {
+      const focusChain = formik.values.discountType === 'allCompanies' ? createPartywiseDiscountChainWithAllCompanies : createPartywiseDiscountChain;
+      const focusedCol = formik.values.discountType === 'allCompanies' ? 'custom_select_discountType' : 'partyId'
+      tabManager.updateFocusChainAndSetFocus([...focusChain], focusedCol);
+  }, [formik.values.discountType])
+
+  const handlePartyList = () => {
+      setPopupList({
+        isOpen: true,
+        data: {
+          heading: 'Party',
+          headers: [...partyHeaders],
+          footers: partyFooterData,
+          newItem: () => openTab('Ledger', <Ledger type='add' />),
+          autoClose: true,
+          apiRoute: '/ledger',
+          extraQueryParams: { locked: "!Y" },
+          searchFrom: 'partyName',
+          handleSelect: (rowData: any) => {
+            formik.setFieldValue('partyId', rowData.partyName);
+            handleFieldChange({ label: rowData.partyName, value: rowData.party_id }, 'partyId');
+            setSelectedParty(rowData);
+            tabManager.setTabLastFocusedElementId('custom_select_discountType')
+           }
+        }
+      })
+  }
+
+  useEffect(() => {
+    if(!!formik.values.discountType && formik.values.discountType === 'allCompanies'){
+      formik.setFieldValue('companyId', null)
+    }
+  }, [formik.values.discountType])
+
+  const handleCompanyList = () => {
+    setPopupList({
+      isOpen: true,
+      data: {
+        heading: 'Company',
+        headers: [...companyHeader],
+        footers: companyFooterData,
+        newItem: () => openTab('Company', <Company type='add' />),
+        autoClose: true,
+        apiRoute: '/company',
+        searchFrom: 'companyName',
+        handleSelect: (rowData: any) => { handleFieldChange({ label: rowData.companyName, value: rowData.company_id }, 'companyId'),
+        tabManager.focusManager();
+         setSelectedCompany(rowData) }
+      }
+    })
+}
 
 
   const handleAlertCloseModal = () => {
@@ -110,33 +177,11 @@ export const CreateDiscount = ({
   };
 
   const handleFieldChange = (option: Option | null, id: string) => {
-    formik.setFieldValue(id, option?.value);
+    formik.setFieldValue(id, option?.label);
   };
 
-  const handleDiscountTypeChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const value = event.target.value;
-    if (value === 'dpcoact' && controlRoomSettings.dpcoAct){
-      formik.setValues({
-        ...formik.values,
-        discountType: value,
-        discount: controlRoomSettings.dpcoDiscount
-      });
-      setFocused('companyId')
-      return
-    }
-    if (value === 'allCompanies'){
-      formik.setValues({
-        ...formik.values,
-        discountType: value,
-        companyId: null
-      });
-      setFocused('discount')
-      return
-    }
-    formik.setFieldValue('discountType', value);
-    setFocused('companyId');
+  const handleCustomFieldChange = (option: Option | null, id: string) => {
+    formik.setFieldValue(id, option?.value);    
   };
 
   return (
@@ -149,9 +194,10 @@ export const CreateDiscount = ({
         </h1>
         <Button
           type='highlight'
-          id='company_button'
+          id='back'
           handleOnClick={() => {
             setView({ type: '', data: {} });
+            tabManager.updateFocusChainAndSetFocus(partywiseDiscountViewChain, 'add')
           }}
         >
           Back
@@ -163,195 +209,122 @@ export const CreateDiscount = ({
             <div className='absolute top-[-14px] left-2  px-2 w-max bg-[#f3f3f3]'>
               Party-wise discount
             </div>
-            <div className='flex flex-col gap-2 w-full px-4 py-2 text-xs leading-3 text-gray-600'>
-              <div className='flex items-center m-[1px] gap-11 w-full'>
-                <div className='flex flex-col gap-3'>
-                  <CustomSelect
-                    isPopupOpen={false}
-                    label='Party'
-                    id='partyId'
-                    name='partyId'
-                    labelClass='min-w-[110px]'
-                    isFocused={focused === 'partyId'}
-                    value={
-                      formik.values.partyId === ''
-                        ? null
-                        : {
-                            label: partyOptions.find(
-                              (e) => e.value === formik.values.partyId
-                            )?.label,
-                            value: formik.values.partyId,
-                          }
-                    }
-                    onChange={handleFieldChange}
-                    options={partyOptions}
-                    isSearchable={true}
-                    placeholder='Party Name'
-                    disableArrow={true}
-                    hidePlaceholder={false}
-                    className='!h-6 rounded-sm'
-                    isRequired={true}
-                    error={formik.errors.partyId}
-                    isTouched={formik.touched.partyId}
-                    showErrorTooltip={true}
-                    onBlur={() => {
-                      formik.setFieldTouched('partyId', true);
-                      setFocused('');
-                    }}
-                    onKeyDown={(e: any) => {
-                      if (e.key === 'Enter' || e.key === 'Tab') {
-                        const dropdown = document.querySelector(
-                          '.custom-select__menu'
-                        );
-                        if (!dropdown) {
-                          e.preventDefault();
+            <div className='flex flex-col gap-2 w-full px-4 py-2 text-xs leading-3 text-gray-600 h-full'>
+              <div className='flex items-center m-[1px] gap-11 w-full h-full'>
+                <div className='flex flex-col items-start gap-5 w-[40%] h-full'>
+                  <FormikInputField
+                      inputClassName ="!text-base !w-[70%]"
+                      isPopupOpen={false}
+                      label="Party Name"
+                      id="partyId"
+                      readOnly={true}
+                      name="partyId"
+                      type="text"
+                      formik={formik}
+                      value={                        
+                        formik.values.partyId === '' || !selectedParty
+                          ? null : selectedParty?.partyName
+                      }
+                      className="!h-7 rounded-sm justify-between"
+                      onChange={() => handleFieldChange}
+                      labelClassName="min-w-[110px] text-base"
+                      isRequired={true}
+                      onClick={() => { handlePartyList() }}
+                      showErrorTooltip={
+                        formik.touched.partyId && !!formik.errors.partyId
+                      }
+                      onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                        if (e.key === 'Enter' ) {
+                          handlePartyList();
+                          tabManager.focusManager();
                         }
-                        document.getElementById('1')?.focus();
-                      }
-                      if (e.shiftKey && e.key === 'Tab') {
-                        document.getElementById('partyId')?.focus();
-                        e.preventDefault();
-                      }
-                    }}
-                  />
+                        
+                      }}
+                    />
 
-                  <div className='flex flex-row gap-2 w-full text-xs leading-3 text-gray-600 items-start justify-between'>
-                    <label className='text-gray-600 '>
-                      Discount Type <span className='text-[#FF1008]'>*</span>
-                    </label>
-                    <div className='ms-7 flex flex-col gap-3'>
-                      {discountTypeOptions.map((option: any) => (
-                        <label key={option.value} className='flex items-center'>
-                          <input
-                            type='radio'
-                            name='discountType'
-                            id={option.id}
-                            value={option.value}
-                            checked={
-                              formik.values.discountType === option.value
-                            }
-                            onChange={handleDiscountTypeChange}
-                            className='mr-2'
-                            onKeyDown={(
-                              e: React.KeyboardEvent<HTMLInputElement>
-                            ) => {
-                              const shiftPressed = e.shiftKey;
+
+                  <div className='flex flex-row gap-5 w-full text-xs leading-3 text-gray-600 items-start justify-between whitespace-nowrap'>
+                          <CustomSelect
+                            labelClass = '!text-base '
+                            isPopupOpen={false}
+                            id= 'discountType'
+                            name= "discountType"
+                            label= "Discount Type"
+                            value={discountTypeOptions.find((option: any) => option.value === formik.values['discountType']) || null}
+                            onChange={handleCustomFieldChange}
+                            options={discountTypeOptions}
+                            isSearchable={true}
+                            placeholder='Discount Type'
+                            disableArrow={false}
+                            hidePlaceholder={false}
+                            containerClass='justify-between !w-[100%]'
+                            className='!rounded-none !h-7 !w-[70%]'
+                            isFocused={focused === 'discountType'}
+                            onBlur={() => {
+                              formik.setFieldTouched('discountType', true);
+                            }}
+                            onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+                              const dropdown = document.querySelector('.custom-select__menu');
                               if (e.key === 'Enter') {
-                                const value = e.currentTarget.value;
-                                formik.setFieldValue('discountType', value);
-                                if (option.id === 1) {
-                                  document.getElementById('discount')?.focus();
-                                } else {
-                                  document.getElementById('companyId')?.focus();
-                                }
-                              } else if (e.key === 'Tab' && !shiftPressed) {
-                                if (option.id < 3) {
-                                  const value = (
-                                    document.getElementById(
-                                      option.id
-                                    ) as HTMLInputElement
-                                  )?.value;
-                                  formik &&
-                                    formik.setFieldValue(option.id, value);
-                                  document
-                                    .getElementById(`${option.id + 1}`)
-                                    ?.focus();
-                                } else {
-                                  document.getElementById('companyId')?.focus();
-                                }
-                              } else if (e.key === 'Tab' && shiftPressed) {
-                                if (option.id > 0) {
-                                  document
-                                    .getElementById(`${option.id - 1}`)
-                                    ?.focus();
-                                } else {
-                                  document.getElementById('partyId')?.focus();
+                                if(!dropdown){
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  tabManager.focusManager();
                                 }
                               }
                             }}
                           />
-                          {option.label}
-                        </label>
-                      ))}
-                    </div>
                   </div>
 
                   {formik.values.discountType && (
-                    <CustomSelect
-                      isPopupOpen={false}
-                      label='Company'
-                      id='companyId'
-                      name='companyId'
-                      labelClass='min-w-[110px]'
-                      isFocused={focused === 'companyId'}
-                      value={
-                        formik.values.companyId === ''
-                          ? null
-                          : {
-                              label:
-                                formik.values.discountType === 'allCompanies'
-                                  ? 'All'
-                                  : companyOptions.find(
-                                      (e) => e.value === formik.values.companyId
-                                    )?.label,
-                              value: formik.values.companyId,
-                            }
-                      }
-                      onChange={handleFieldChange}
-                      options={
-                        formik.values.discountType === 'allCompanies'
-                          ? [{ value: 0, label: 'All' }]
-                          : companyOptions
-                      }
-                      isSearchable={true}
-                      placeholder='Company Name'
-                      disableArrow={true}
-                      hidePlaceholder={false}
-                      className='!h-6 rounded-sm'
-                      isRequired={true}
-                      error={formik.errors.companyId}
-                      isTouched={formik.touched.companyId}
-                      onBlur={() => {
-                        formik.setFieldTouched('companyId', true);
-                        setFocused('');
-                      }}
-                      isDisabled={formik.values.discountType === 'allCompanies'}
-                      onKeyDown={(e: any) => {
-                        if (e.key === 'Enter' || e.key === 'Tab') {
-                          const dropdown = document.querySelector(
-                            '.custom-select__menu'
-                          );
-                          if (!dropdown) {
-                            e.preventDefault();
-                          }
-                          document.getElementById('discount')?.focus();
-                        }
-                        if (e.shiftKey && e.key === 'Tab') {
-                          document.getElementById('discountType2')?.focus();
-                          e.preventDefault();
-                        }
-                      }}
-                      showErrorTooltip={true}
-                    />
-                  )}
-
                   <FormikInputField
+                    inputClassName ="!text-base !w-[70%]"
                     isPopupOpen={false}
-                    label='Discount'
-                    id='discount'
-                    type='number'
-                    name='discount'
+                    label='Company'
+                    id='companyId'
+                    name= 'companyId'
+                    type='text'
+                    readOnly ={true}
                     formik={formik}
-                    className='!mb-0'
-                    labelClassName='min-w-[110px]'
-                    isRequired={true}
-                    sideField='discount'
-                    nextField='submit_discount'
-                    prevField='companyId'
-                    showErrorTooltip={
-                      formik.touched.discount && !!formik.errors.discount
+                    value={  
+                      formik.values.discountType === 'allCompanies'? formik.values.companyId = '' : 
+                      formik.values.companyId === '' || !selectedCompany
+                        ? null : selectedCompany?.companyName
                     }
+                    className='!mb-0 h-7 justify-between'
+                    onChange={() => handleFieldChange}
+                    labelClassName='min-w-[110px] text-base'
+                    isRequired={true}
+                    placeholder={formik.values.discountType === 'allCompanies' ? 'All' : ''}
+                    isDisabled = {formik.values.discountType === 'allCompanies'}
+                    showErrorTooltip={
+                      formik.touched.companyId && !!formik.errors.companyId
+                    }
+                    onClick={() => { handleCompanyList() }}
+                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                      if (e.key === 'Enter' ) {
+                        handleCompanyList();
+                      }
+                    }}
                   />
+                  )}
+                      <NumberInput
+                        label={'Discount'}
+                        id='discount'
+                        name='Discount'
+                        placeholder='0.00'
+                        maxLength={16}
+                        min={0}
+                        value={formik.values.discount}
+                        onChange={(value) => formik.setFieldValue('discount', value)}
+                        onBlur={() => {
+                          formik.setFieldTouched('discount', true);
+                        }}
+                        className = '!mb-0 h-'
+                        labelClassName='min-w-[90px] !h-[22px] w-fit text-nowrap me-2 !text-base !gap-6'
+                        inputClassName='text-left  px-1 !h-[28px] !w-[70%] !text-base'
+                        error={formik.touched.discount && formik.errors.discount}
+                      />
                 </div>
               </div>
             </div>
@@ -361,13 +334,13 @@ export const CreateDiscount = ({
           <Button
             type='fill'
             padding='px-4 py-2'
-            id='submit_discount'
+            id='save'
             btnType='submit'
             disable={!(formik.isValid && formik.dirty)}
             handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
               if (e.key === 'ArrowUp') {
                 e.preventDefault();
-                document.getElementById('discount')?.focus();
+                tabManager.focusManager();
               }
             }}
           >
@@ -383,6 +356,20 @@ export const CreateDiscount = ({
           isAlert={popupState.isAlertOpen}
         />
       )}
+      {popupList.isOpen && <SelectList
+        tableData={[]}
+        heading={popupList.data.heading}
+        closeList={() => setPopupList({ isOpen: false, data: {} })}
+        headers={popupList.data.headers}
+        footers={popupList.data.footers}
+        apiRoute={popupList.data.apiRoute}
+        handleSelect={(rowData) => { popupList.data.handleSelect(rowData) }}
+        handleNewItem={popupList.data?.newItem}
+        searchFrom={popupList.data.searchFrom}
+        autoClose={popupList.data.autoClose}
+        onEsc={popupList.data.onEsc}
+        extraQueryParams={popupList.data.extraQueryParams || {}}
+      />}
     </div>
   );
 };

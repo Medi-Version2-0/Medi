@@ -47,6 +47,7 @@ interface FormikInputFieldProps {
   allowNegative?: boolean;
   autoFocus?: boolean;
   value?:string | number;
+  readOnly?: boolean;
   onFocus?: ()=>void
 }
 
@@ -78,6 +79,7 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
   allowNegative = false,
   autoFocus = false,
   value,
+  readOnly = false,
   onFocus,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -172,6 +174,7 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
         onFocus={()=> {id && tabManager.setLastFocusedElementId(id); onFocus?.()}}
         placeholder={placeholder}
         disabled={isDisabled}
+        readOnly={readOnly}
         data-next-field={nextField}
         data-prev-field={prevField}
         data-side-field={sideField}

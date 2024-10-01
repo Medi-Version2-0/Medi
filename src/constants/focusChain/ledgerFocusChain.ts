@@ -11,11 +11,15 @@ export const GeneralInfoChainIsSUNDRY = [
     'transport' , 'mailTo'
 ]
 export const BalanceChain = [
-    'openingBal' , 'custom_select_openingBalType' , 'custom_select_partyType' , 'save'
+    'openingBal' , 'custom_select_openingBalType' , 'custom_select_partyType'
 ]
 
 export const BalanceChainIsSUNDRY = [
     'openingBal' , 'custom_select_openingBalType' , 'custom_select_partyType' , 'creditLimit' , 'creditDays' , 'phoneNumber'
+]
+
+export const NrxH1ItemChain = [
+    'custom_select_stopNrx', 'custom_select_stopH1'
 ]
 
 export const TaxChain = [
@@ -27,8 +31,9 @@ export const GstChain = [
 ]
 
 export const LicenceChain = [
-    'drugLicenceNo1' , 'licenceExpiry' , 'dl2'
+    'drugLicenceNo1', 'drugLicenceNo2', 'licenceExpiry'
 ]
+
 export const Licence2Chain = [
     'drugLicenceNo1' , 'licenceExpiry' , 'drugLicenceNo2' , 'dl2'
 ]

@@ -23,6 +23,7 @@ import { useGetSetData } from '../../hooks/useGetSetData';
 import { getAndSetPartywiseDiscount } from '../../store/action/globalAction';
 import { useControls } from '../../ControlRoomContext';
 import useApi from '../../hooks/useApi';
+import { getDiscountFormSchema } from './validation_schema'
 
 export const PartyWiseDiscount = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
@@ -125,6 +126,7 @@ export const PartyWiseDiscount = () => {
     if (!valueChanged) return;
     const field = column.colId;
     try{
+      await getDiscountFormSchema.validateAt(field, { [field]: newValue });
       if (!newValue) {
         const capitalizedFieldName = field.charAt(0).toUpperCase() + field.slice(1);
         throw new Error(`${capitalizedFieldName} is required`);
@@ -313,6 +315,7 @@ export const PartyWiseDiscount = () => {
         <div className='flex w-full items-center justify-between px-8 py-1'>
           <h1 className='font-bold'>Partywise discount</h1>
           {createAccess &&<Button
+            id = 'add'
             type='highlight'
             handleOnClick={() => {
               setView({ type: 'add', data: {} });
