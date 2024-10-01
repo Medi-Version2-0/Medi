@@ -279,7 +279,8 @@ export const DiscountTypeSection = ({ setView, data }: any) => {
                             formik={discountTypeFormik}
                             focused={focused}
                             setFocused={setFocused}
-                            isDiscountType={true}
+                            className={'!grid-cols-2 !gap-6'}
+                            labelClassName={'!min-w-[220px]'}
                         />
                     </div>
                     <div className='flex gap-12 justify-between'>

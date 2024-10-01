@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
-import { BatchForm } from '../../interface/global';
+import { BatchForm, ItemFormData } from '../../interface/global';
 import { numberedStringLowerCase } from '../../utilities/numberedStringLowercase';
 import Button from '../../components/common/button/Button';
 import { ColDef } from 'ag-grid-community';
@@ -10,20 +10,9 @@ import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { useControls } from '../../ControlRoomContext';
 import { batchSchema, validatePrices } from './validation_schema';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
-import { useDispatch } from 'react-redux';
-import { AppDispatch } from '../../store/types/globalTypes';
-import { getAndSetItem } from '../../store/action/globalAction';
-import { useSelector } from 'react-redux';
 import useApi from '../../hooks/useApi';
 
-export const Batch = ({
-  params,
-}: {
-  params: {
-    showBatch: any;
-    setShowBatch: React.Dispatch<React.SetStateAction<any>>;
-  };
-}) => {
+export const Batch = ({ params }: { params: { showBatch: any; setShowBatch: React.Dispatch<React.SetStateAction<any>>; };}) => {
   const { id } = params.showBatch;
   const { sendAPIRequest } = useApi();
 
@@ -42,70 +31,50 @@ export const Batch = ({
     locked: 'N',
     ...(controlRoomSettings.batchWiseManufacturingCode ? { mfgCode: '', } : {}),
   };
+  const [item, setItem] = useState<any>(null);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [inputRow, setInputRow] = useState<BatchForm | any>(pinnedRow);
   const [tableData, setTableData] = useState<BatchForm | any>(null);
-  const [item, setItems] = useState<any>(null);
+  const [popupState, setPopupState] = useState({ isModalOpen: false, isAlertOpen: false, message: '' });
   const editing = useRef(false);
   const gridRef = useRef<any>(null);
-  const [popupState, setPopupState] = useState({
-    isModalOpen: false,
-    isAlertOpen: false,
-    message: '',
-  });
-  const dispatch = useDispatch<AppDispatch>()
-  const {item: itemsData} = useSelector((state: any) => state.global);
-  const itemData = itemsData.find((item: any) => item.id === id);
-  const settingPopupState = (isModal: boolean, message: string) => {
-    setPopupState({
-      ...popupState,
-      [isModal ? 'isModalOpen' : 'isAlertOpen']: true,
-      message: message,
-    });
-  };
-
-
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  const getBatch = (async () => {
+  
+  const fetchItems = async() => {
+    const items = await sendAPIRequest<ItemFormData[] | any>('/item');
+    const itemData = items.find((item: any) => item.id === id);
     setInputRow(pinnedRow);
-    setItems(itemData);
-    let newRow = { ...pinnedRow, itemId: 0 };
-    if (controlRoomSettings.batchWiseManufacturingCode) {
-      newRow = { ...newRow, mfgCode: itemData?.shortName || '' };
-    }
+    setItem(itemData);
+    let newRow = { ...pinnedRow, itemId: 0 }; 
+    if (controlRoomSettings.batchWiseManufacturingCode) newRow = { ...newRow, mfgCode: itemData?.shortName || '' };
     setTableData([newRow, ...itemData.ItemBatches]);
-  });
-
-  const onGridReady = () => {
-    if (gridRef.current) {
-      gridRef.current.api?.getDisplayedRowAtIndex(0)?.setSelected(true);
-      gridRef.current.api?.startEditingCell({
-        rowIndex: 0,
-        colKey: colDefs[0].field,
-      });
-    }
-  };
+  }
 
   useEffect(() => {
-    getBatch();
-  }, [itemsData])
+    fetchItems();
+    onGridReady();
+  }, []);
 
   useEffect(() => {
     onGridReady();
   }, [tableData])
 
-  useEffect(() => {
-    onGridReady();
-  }, []);
+  const settingPopupState = (isModal: boolean, message: string) => {
+    setPopupState({ ...popupState, [isModal ? 'isModalOpen' : 'isAlertOpen']: true, message: message });
+  };
+
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const onGridReady = () => {
+    if (gridRef.current) {
+      gridRef.current.api?.getDisplayedRowAtIndex(0)?.setSelected(true);
+      gridRef.current.api?.startEditingCell({ rowIndex: 0, colKey: colDefs[0].field });
+    }
+  };  
 
   const handleBatchAdd = async () => {
     try {
       await batchSchema.validate(inputRow);
-      const existingBatch = item.ItemBatches.find(
-        (tableBatch: BatchForm) =>
-          numberedStringLowerCase(tableBatch?.batchNo) === numberedStringLowerCase(inputRow.batchNo)
-      );
+      const existingBatch = item.ItemBatches.find((tableBatch: BatchForm) => numberedStringLowerCase(tableBatch?.batchNo) === numberedStringLowerCase(inputRow.batchNo));
       if (existingBatch) {
         settingPopupState(false, 'Batch with this id already exists!');
         return;
@@ -115,14 +84,11 @@ export const Batch = ({
         currentStock: inputRow.opBalance,
         batchNo: inputRow.batchNo.toUpperCase(),
         locked: inputRow.locked.toUpperCase(),
-        mfgCode: itemData?.shortName,
+        mfgCode: item?.shortName,
       };
-      await sendAPIRequest(`/item/${id}/batch`, {
-        method: 'POST',
-        body: formattedInputRow,
-      });
+      await sendAPIRequest(`/item/${id}/batch`, { method: 'POST', body: formattedInputRow });
       setInputRow(pinnedRow);
-      dispatch(getAndSetItem())
+      fetchItems();
     } catch (err: any) {
       if (err.message) {
         settingPopupState(false, `${err.message}`);
@@ -147,10 +113,7 @@ export const Batch = ({
       const lastEditedColKey = focusedCell.column.colId;
       setTimeout(async () => {
         api.setFocusedCell(lastEditedRowIndex, lastEditedColKey);
-        await api.startEditingCell({
-          rowIndex: lastEditedRowIndex,
-          colKey: lastEditedColKey,
-        });
+        await api.startEditingCell({ rowIndex: lastEditedRowIndex, colKey: lastEditedColKey });
       }, 100);
     }
   };
@@ -160,11 +123,8 @@ export const Batch = ({
   };
 
   const handleRowSelected = useCallback((event: any) => {
-    if (event.node.isSelected()) {
-      setSelectedRow(event.data);
-    }
+    if (event.node.isSelected()) setSelectedRow(event.data);
   }, []);
-
 
   const onCellKeyDown = () => {
     const api = gridRef?.current?.api;
@@ -183,15 +143,7 @@ export const Batch = ({
     }
   }
 
-  const handleCellEditingStopped = useCallback(
-    async (e: {
-      data?: any;
-      column?: any;
-      oldValue?: any;
-      valueChanged?: any;
-      node?: any;
-      newValue?: any;
-    }) => {
+  const handleCellEditingStopped = useCallback( async (e: any) => {
       editing.current = false;
       const { data, column, oldValue, newValue, node } = e;
       const batchId = data.id;
@@ -207,10 +159,7 @@ export const Batch = ({
             setInputRow(newBatch);
           } catch (err: any) {
             if (err.message) {
-              await gridRef.current?.api?.startEditingCell({
-                rowIndex: node.rowIndex,
-                colKey: field,
-              });
+              await gridRef.current?.api?.startEditingCell({ rowIndex: node.rowIndex, colKey: field });
               node.setDataValue(field, oldValue);
               settingPopupState(false, `${err.message}`);
             }
@@ -219,17 +168,11 @@ export const Batch = ({
           try {
             await batchSchema.validate({ ...data, [field]: finalValue });
             validatePrices({ ...data, [field]: finalValue });    
-            await sendAPIRequest(`/item/${id}/batch/${batchId}`, {
-              method: 'PUT',
-              body: { ...data, [field]: finalValue },
-            });
-            dispatch(getAndSetItem())          
+            await sendAPIRequest(`/item/${id}/batch/${batchId}`, { method: 'PUT', body: { ...data, [field]: finalValue }});
+            fetchItems();
           } catch (err: any) {
             if (err.message) {
-              await gridRef.current?.api?.startEditingCell({
-                rowIndex: node.rowIndex,
-                colKey: field,
-              });
+              await gridRef.current?.api?.startEditingCell({ rowIndex: node.rowIndex, colKey: field });
               node.setDataValue(field, oldValue);
               settingPopupState(false, `${err.message}`);
             }
@@ -242,14 +185,9 @@ export const Batch = ({
           console.error('Error:-', err);
         }
         node.setDataValue(field, oldValue);
-        gridRef.current?.api?.startEditingCell({
-          rowIndex: node.rowIndex,
-          colKey: field,
-        });
+        gridRef.current?.api?.startEditingCell({ rowIndex: node.rowIndex, colKey: field });
       }
-    },
-    [[tableData, inputRow]]
-  );
+    },[[tableData, inputRow]]);
 
 
   const onCellClicked = (params: { data: any }) => {
@@ -276,12 +214,9 @@ export const Batch = ({
       if (focusedCell && lastEditedRowIndex === 0 && !isAnyFilterActive()) {
         const validationStatus = await isPinnedRowDataCompleted();
         if (validationStatus.completed) {
-          if (!editing.current) {
-            handleBatchAdd();
-          }
+          if (!editing.current) handleBatchAdd();
         } else {
-          !editing.current &&
-            settingPopupState(false, `${validationStatus.error}`);
+          !editing.current && settingPopupState(false, `${validationStatus.error}`);
         }
 
       }
@@ -297,13 +232,7 @@ export const Batch = ({
     };
   }, [selectedRow, inputRow]);
 
-  const getRowStyle = useCallback<any>(
-    ({ node }: any) =>
-      node.rowPinned
-        ? { fontWeight: 'light', fontStyle: 'italic', color: 'gray' }
-        : {},
-    []
-  );
+  const getRowStyle = useCallback<any>(({ node }: any) => node.rowPinned ? { fontWeight: 'light', fontStyle: 'italic', color: 'gray' } : {}, []);
 
   const isAnyFilterActive = () => {
     const filterModel = gridRef?.current?.api.getFilterModel();
@@ -321,106 +250,41 @@ export const Batch = ({
     flex: 1,
     headerClass: 'custom-header',
     suppressMovable: true,
-    cellStyle: {
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
+    cellStyle: { display: 'flex', justifyContent: 'center', alignItems: 'center' },
     cellEditor: 'agTextCellEditor',
     cellRenderer: (params: any) => (
       <PlaceholderCellRenderer
         value={params.value}
         rowIndex={params.node.rowIndex}
         column={params.colDef}
-        startEditingCell={(editParams) => {
-          gridRef.current?.api?.startEditingCell(editParams);
-        }}
+        startEditingCell={(editParams) => gridRef.current?.api?.startEditingCell(editParams)}
         placeholderText={params.colDef.headerName}
       />
     ),
   };
 
-
   const salePriceColumns: ColDef[] = [];
 
   if (controlRoomSettings.multiPriceList && controlRoomSettings.salesPriceLimit > 1) {
-    salePriceColumns.push({
-      headerName: 'Sale Price 1',
-      field: 'salePrice',
-      cellDataType: 'number',
-      headerClass: 'custom-header-class custom-header',
-    });
+    salePriceColumns.push({ headerName: 'Sale Price 1', field: 'salePrice', cellDataType: 'number', headerClass: 'custom-header-class custom-header' });
     for (let i = 2; i <= controlRoomSettings.salesPriceLimit; i++) {
-      salePriceColumns.push({
-        headerName: `Sale Price ${i}`,
-        field: `salePrice${i}`,
-        cellDataType: 'number',
-        headerClass: 'custom-header-class custom-header',
-      });
+      salePriceColumns.push({ headerName: `Sale Price ${i}`, field: `salePrice${i}`, cellDataType: 'number', headerClass: 'custom-header-class custom-header' });
     }
   } else {
-    salePriceColumns.push({
-      headerName: 'Sale Price',
-      field: 'salePrice',
-      cellDataType: 'number',
-      headerClass: 'custom-header-class custom-header',
-    });
+    salePriceColumns.push({ headerName: 'Sale Price', field: 'salePrice', cellDataType: 'number', headerClass: 'custom-header-class custom-header' });
   }
 
     const colDefs: ColDef[] = [
-      {
-        headerName: 'Batch No',
-        field: 'batchNo',
-        cellDataType: 'text',
-      },
-      {
-        headerName: 'Expiry Date',
-        field: 'expiryDate',
-      },
-      {
-        headerName: 'Opening Stock',
-        field: 'opBalance',
-        cellDataType: 'number',
-      },
-      {
-        headerName: 'Scheme Stock',
-        field: 'opFree',
-        cellDataType: 'number',
-      },
-      {
-        headerName: 'Purchase Price',
-        field: 'purPrice',
-        cellDataType: 'number',
-        headerClass: 'custom-header-class custom-header',
-        cellStyle: {
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-        },
-      },
+      { headerName: 'Batch No', field: 'batchNo', cellDataType: 'text' },
+      { headerName: 'Expiry Date', field: 'expiryDate' },
+      { headerName: 'Opening Stock', field: 'opBalance', cellDataType: 'number' },
+      { headerName: 'Scheme Stock', field: 'opFree', cellDataType: 'number' },
+      { headerName: 'Purchase Price', field: 'purPrice', cellDataType: 'number', headerClass: 'custom-header-class custom-header', cellStyle: { display: 'flex', justifyContent: 'center', alignItems: 'center' }},
       ...salePriceColumns,
-      {
-        headerName: 'MRP',
-        field: 'mrp',
-        cellDataType: 'number',
-      },
-      {
-        headerName: 'Current Stock',
-        field: 'currentStock',
-        editable: false
-      },
-      {
-        headerName: 'Lock Batch',
-        field: 'locked',
-      },
-      ...(controlRoomSettings.batchWiseManufacturingCode
-        ? [
-          {
-            headerName: 'MFG Code',
-            field: 'mfgCode',
-          },
-        ]
-        : []),
+      { headerName: 'MRP', field: 'mrp', cellDataType: 'number' },
+      { headerName: 'Current Stock', field: 'currentStock', editable: false },
+      { headerName: 'Lock Batch', field: 'locked' },
+      ...(controlRoomSettings.batchWiseManufacturingCode ? [{ headerName: 'MFG Code', field: 'mfgCode' }] : []),
     ];
 
   return (
@@ -428,9 +292,7 @@ export const Batch = ({
       <div className="w-full">
         <div className="flex w-full items-center justify-between px-8 py-1">
           <h1 className="font-bold">{item && item.name}</h1>
-          <Button type="highlight" handleOnClick={() => params.setShowBatch(null)}>
-            Back
-          </Button>
+          <Button type="highlight" handleOnClick={() => params.setShowBatch(null)}> Back </Button>
         </div>
         <div id="account_table" className="ag-theme-quartz">
           {tableData &&
@@ -440,9 +302,7 @@ export const Batch = ({
               columnDefs={colDefs}
               defaultColDef={defaultColDef}
               rowSelection="single"
-              onSelectionChanged={(event) => {
-                setSelectedRow(event.api.getSelectedNodes()[0]);
-              }}
+              onSelectionChanged={(event) => setSelectedRow(event.api.getSelectedNodes()[0])}
               getRowStyle={getRowStyle}
               onCellClicked={onCellClicked}
               onGridReady={onGridReady}
@@ -456,11 +316,7 @@ export const Batch = ({
         {(popupState.isModalOpen || popupState.isAlertOpen) && (
           <Confirm_Alert_Popup
             onClose={handleClosePopup}
-            onConfirm={
-              popupState.isAlertOpen
-                ? handleAlertCloseModal
-                : handleConfirmPopup
-            }
+            onConfirm={popupState.isAlertOpen ? handleAlertCloseModal : handleConfirmPopup}
             message={popupState.message}
             isAlert={popupState.isAlertOpen}
           />

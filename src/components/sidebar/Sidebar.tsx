@@ -34,6 +34,7 @@ import { Godown } from '../../views/godown/godown';
 import { saleChallanView } from '../../constants/focusChain/saleChallan';
 import { stationFocusChain } from '../../constants/focusChain/stationFocusChain';
 import { ledgerViewChain } from '../../constants/focusChain/ledgerFocusChain';
+import { itemFocusChain } from '../../constants/focusChain/itemsFocusChain';
 
 interface SidebarProps {
   isGroup?: boolean;
@@ -94,7 +95,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     {
       url: '/items',
       label: 'Items',
-      onClick: () => openTab?.('Items', <Items />),
+      onClick: () => tabManager.openTab('Items', <Items /> , itemFocusChain ,  openTab),
       isDisabled: isNotReadAccess('item')
     },
     {

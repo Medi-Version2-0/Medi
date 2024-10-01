@@ -467,10 +467,14 @@ export type FieldConfig = {
   autoFocus?: boolean;
   labelClassName?: string;
   textFieldClassName?: string;
+  minLength?: number; 
+  maxLength?: number;
   isTitleCase?: boolean;
+  value? : string;
   onFocus?: () => void;
   onChange?: (e:any) => void;
   onBlur?: () => void;
+  onClick? : ()=> void;
 };
 
 export type SaleBillFormInfoType = FormikProps<saleBillFormValues>;
