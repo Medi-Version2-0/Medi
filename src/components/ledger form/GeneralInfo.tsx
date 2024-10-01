@@ -7,6 +7,7 @@ import onKeyDown from '../../utilities/formKeyDown';
 import { useControls } from '../../ControlRoomContext';
 import { useUser } from '../../UserContext';
 import useApi from '../../hooks/useApi';
+import NumberInput from '../common/numberInput/numberInput';
 
 interface GeneralInfoProps {
   onValueChange?: any;
@@ -350,7 +351,7 @@ export const GeneralInfo = ({
                 label='Email to'
                 id='mailTo'
                 name='mailTo'
-                isUpperCase={true}
+                isUpperCase={false}
                 className='!w-[51%]'
                 formik={formik}
                 showErrorTooltip={formik.touched.mailTo && formik.errors.mailTo}
@@ -404,7 +405,7 @@ export const GeneralInfo = ({
           </div>
         </div>
         </div>
-        <div>
+        <div className='flex justify-between'>
           {isSUNDRY &&  controlRoomSettings.multiPriceList && (
               <div className='w-[50.3%]'>
                 <CustomSelect
@@ -457,6 +458,22 @@ export const GeneralInfo = ({
                 />
               </div>
           )}
+          {isSUNDRY && <NumberInput
+            label={`Excess Rate %`}
+            id='excessRate'
+            name='excessRate'
+            max={1000}
+            min={0}
+            value={formik.values.excessRate}
+            onChange={(value) => formik.setFieldValue('excessRate', value)}
+            onBlur={() => {
+              formik.setFieldTouched('excessRate', true);
+            }}
+            className='!w-2/5'
+            labelClassName='min-w-[90px] !h-[22px] w-fit text-nowrap me-2'
+            inputClassName='text-left !text-[10px] px-1 !h-[22px] !w-[70%]'
+            error={formik.touched.excessRate && formik.errors.excessRate}
+          />}
         </div>
       </div>
     </div>

@@ -98,7 +98,7 @@ export const BalanceDetails = ({
             id='partyType'
             onChange={handleFieldChange}
             options={[
-              { value: 'P & L', label: 'P & L' },
+              { value: 'P&L', label: 'P&L' },
               { value: 'Balance Sheet', label: 'Balance Sheet' },
             ]}
             isSearchable={false}
