@@ -322,6 +322,7 @@ export const Store = () => {
           <h1 className='font-bold'>Store List</h1>
          {createAccess && <Button
             type='highlight'
+            id='add'
             className=''
             handleOnClick={() => togglePopup(true)}
           >
