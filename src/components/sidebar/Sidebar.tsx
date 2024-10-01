@@ -37,6 +37,7 @@ import { ledgerViewChain } from '../../constants/focusChain/ledgerFocusChain';
 import { groupViewChain } from '../../constants/focusChain/groupsFocusChain';
 import { subGroupViewChain } from '../../constants/focusChain/subGroupFocusChain';
 import { salePurchaseAccountViewChain } from '../../constants/focusChain/salePurchaseAccountFocusChain';
+import { storeViewChain } from '../../constants/focusChain/storeFocusChain';
 
 interface SidebarProps {
   isGroup?: boolean;
@@ -127,7 +128,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     {
       url: '/stores',
       label: 'Store',
-      onClick: () => openTab?.('Store', <Store />),
+      onClick: () => tabManager.openTab('Store', <Store />, storeViewChain, openTab),
       isDisabled: isNotReadAccess('store')
     },
     {
