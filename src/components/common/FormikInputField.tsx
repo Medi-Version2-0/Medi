@@ -146,11 +146,7 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
       }
     };
   }, []);
-  
-  useEffect(() => {
-    console.log('value ===> ', value, typeof value)
 
-  }, [value])
   return (
     <div
       className={`${isPopupOpen ? `flex flex-col relative w-full h-7 text-xs ${isRequired && 'starlabel'} ${className}` : `flex flex-row gap-2 items-center relative w-full h-6 text-xs ${isRequired && 'starlabel'} ${className}`}`}
