@@ -13,6 +13,7 @@ import useApi from '../../hooks/useApi';
 import NumberInput from '../../components/common/numberInput/numberInput'
 import { companyViewChain, createCompanyChain } from '../../constants/focusChain/companyFocusChain';
 import { TabManager } from '../../components/class/tabManager';
+import { useUser } from '../../UserContext';
 
 export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: any) => {
   const [stationOptions, setStationOptions] = useState<Option[]>([]);
@@ -27,6 +28,9 @@ export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: a
   const { sendAPIRequest } = useApi();
   const [salesList, setSalesList] = useState<any[]>([]);
   const [purchaseList, setPurchaseList] = useState<any[]>([]);
+  const [organizations, setOrganizations] = useState<any[]>([]);
+  const {selectedCompany} = useUser();
+  const [stationData, setStations] = useState<any[]>([]);
 
   const formik: any = useFormik({
     initialValues: {
@@ -49,7 +53,7 @@ export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: a
       gstIn: data?.gstIn || '',
       drugLicenceNo1: data?.drugLicenceNo1 || '',
 
-      stateInOut: data?.stateInOut || '',
+      stateInOut: data?.stateInOut || 'Within State',
       //personal
       phoneNumber: data?.phoneNumber || '',
       mobileNumber: data?.mobileNumber || '',
@@ -98,8 +102,12 @@ export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: a
       try {
         const allSalesAccounts = await sendAPIRequest('/saleAccount');
         const allPurchaseAccounts = await sendAPIRequest('/purchaseAccount');
+        const allOrganizations = await sendAPIRequest('/organization');
+        const allStation = await sendAPIRequest('/station');
         setSalesList(allSalesAccounts);
         setPurchaseList(allPurchaseAccounts);
+        setOrganizations(allOrganizations);
+        setStations(allStation);
       } catch (err) {
         console.error('SaleAccounts or PuchaseAccounts data in createCompany not being fetched');
       }
@@ -152,6 +160,17 @@ export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: a
 
   const handleFieldChange = (option: Option | null, id: string) => {
     formik.setFieldValue(id, option?.value);
+
+    if (id === 'stationId') {
+      formik.setFieldValue('stationId', option?.value);
+      const currOrganization = organizations.find((o:any) => o.id === selectedCompany)
+      const selectedState = stationData.find((s:any)=> s.station_id === option?.value)
+      if (currOrganization.stateId !== selectedState.state_code){
+        formik.setFieldValue('stateInOut', 'Out Of State');
+      }else{
+        formik.setFieldValue('stateInOut', 'Within State');
+      }
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -332,7 +351,7 @@ export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: a
                         onBlur={() => {
                           formik.setFieldTouched('openingBal', true);
                         }}
-                        prevField='stateInout'
+                        prevField='stateInOut'
                         nextField='openingBalType'
                         labelClassName='min-w-[90px] !h-[22px] w-fit text-nowrap me-2'
                         inputClassName='text-left !text-[10px] px-1 !h-[22px] !w-[70%]'
@@ -591,9 +610,7 @@ export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: a
                     id='stateInOut'
                     labelClass='starlabel min-w-[110px]'
                     value={
-                      formik.values.stateInOut === ''
-                        ? null
-                        : {
+                      {
                           label: formik.values.stateInOut,
                           value: formik.values.stateInOut,
                         }
@@ -607,6 +624,7 @@ export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: a
                     isRequired={true}
                     placeholder='Select an option'
                     disableArrow={false}
+                    isDisabled= {true}
                     hidePlaceholder={false}
                     className='!h-6 rounded-sm'
                     onBlur={() => {
