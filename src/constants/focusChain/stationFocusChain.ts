@@ -6,5 +6,5 @@ export const createStationFieldsChain = [
 ]
 
 export const deleteStationChain = [
-    'delete' , 'station_cancelBtn'
+    'station_cancelBtn', 'delete'
 ]

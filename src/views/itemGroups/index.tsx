@@ -16,6 +16,7 @@ import usePermission from '../../hooks/useRole';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
 import { lookupValue } from '../../helper/helper';
 import useApi from '../../hooks/useApi';
+import { createItemGroupFieldsChain, deleteItemGroupChain } from '../../constants/focusChain/temGroupFocusChain';
 
 export const ItemGroups = () => {
   const initialData = { group_code: '', group_name: '', type: '' };
@@ -62,24 +63,16 @@ export const ItemGroups = () => {
   };
 
   const handleConfirmPopup = async (data?: any) => {
-    const respData = data ? data : formData;
     setPopupState({ ...popupState, isModalOpen: false });
-    if (formData.group_name) formData.group_name = formData.group_name.charAt(0).toUpperCase() + formData.group_name.slice(1);
-
-    const payload = {
-      group_name: respData.group_name ? respData.group_name : formData.group_name,
-      type: respData.group_name ? respData.type : formData.type,
-    };
-
     try {
-      if (payload !== initialData) {
-        if (formData.group_code) {
-          await sendAPIRequest(`/itemGroup/${formData.group_code}`, { method: 'PUT', body: formData });
+      if (data !== initialData) {
+        if (data.group_code) {
+          await sendAPIRequest(`/itemGroup/${formData.group_code}`, { method: 'PUT', body: data });
         } else {
-          const response: any = await sendAPIRequest(`/itemGroup`, { method: 'POST', body: payload });
-          if (respData.group_name && !response.error) {
-            settingPopupState(false, 'Item Group saved successfully');
+          if(data.group_code === ''){
+            delete data.group_code;
           }
+          await sendAPIRequest(`/itemGroup`, { method: 'POST', body: data });
         }
         togglePopup(false);
       }
@@ -93,32 +86,24 @@ export const ItemGroups = () => {
     fetchData();
   };
 
-  const handelFormSubmit = (values: ItemGroupFormData) => {
-    const mode = values.group_code ? 'update' : 'create';
-    const existingGroup = (tableData || []).find((group: ItemGroupFormData) => {
-      if (mode === 'create')
-        return (group.group_name.toLowerCase() === values.group_name.toLowerCase());
-      return (group.group_name.toLowerCase() === values.group_name.toLowerCase() && group.group_code !== values.group_code);
-    });
+  function handleDeleteFromForm() {
+    settingPopupState(true, 'Are you sure you want to delete');
+  }
 
-    if (existingGroup) settingPopupState(false, 'Item Group with this name already exists!');
-
-    if (values !== initialData) {
-      settingPopupState(true, `Are you sure you want to ${mode} this group?`);
-      setFormData(values);
-    }
-  };
-
-
-
-  const deleteAcc = async (group_code: string) => {
+  const deleteAcc = async (group_code?: string) => {
     togglePopup(false);
     isDelete.current = false;
     try {
-      await sendAPIRequest(`/itemGroup/${group_code}`, { method: 'DELETE' });
+      await sendAPIRequest(`/itemGroup/${selectedRow.group_code}`, { method: 'DELETE' });
+      setPopupState({ ...popupState, isAlertOpen: false, isModalOpen: false });
       fetchData();
     } catch (error: any) {
-      if (!error?.isErrorHandled) settingPopupState(false, 'This Item Group is associated');
+      if (!error?.isErrorHandled) {
+        if(error?.response?.data) settingPopupState(false,error.response.data.error.message);
+      }
+    }
+    finally{
+      setSelectedRow(null);
     }
   };
 
@@ -126,7 +111,6 @@ export const ItemGroups = () => {
     isDelete.current = true;
     setFormData(oldData);
     togglePopup(true);
-    setSelectedRow(null);
   };
 
   const handleUpdate = (oldData: ItemGroupFormData) => {
@@ -263,13 +247,13 @@ export const ItemGroups = () => {
       <div className='w-full relative'>
         <div className='flex w-full items-center justify-between px-8 py-1'>
           <h1 className='font-bold'>Item Groups</h1>
-          {createAccess && <Button type='highlight' handleOnClick={() => togglePopup(true)} > Add Group </Button>}
+          {createAccess && <Button id='add' type='highlight' handleOnClick={() => togglePopup(true)} > Add Group </Button>}
         </div>
         <div id='account_table' className='ag-theme-quartz'>
           <AgGridReact rowData={tableData} columnDefs={colDefs} defaultColDef={defaultCols} onCellClicked={onCellClicked} onCellEditingStarted={cellEditingStarted} onCellEditingStopped={handleCellEditingStopped} />
         </div>
-        {(popupState.isModalOpen || popupState.isAlertOpen) && (<Confirm_Alert_Popup onClose={handleClosePopup} onConfirm={popupState.isAlertOpen ? handleAlertCloseModal : handleConfirmPopup} message={popupState.message} isAlert={popupState.isAlertOpen} className='absolute' />)}
-        {open && (<CreateItemGroup togglePopup={togglePopup} data={formData} handelFormSubmit={handelFormSubmit} isDelete={isDelete.current} deleteAcc={deleteAcc} className='absolute' />)}
+        {(popupState.isModalOpen || popupState.isAlertOpen) && (<Confirm_Alert_Popup onClose={handleClosePopup} onConfirm={popupState.isAlertOpen ? handleAlertCloseModal : deleteAcc} message={popupState.message} isAlert={popupState.isAlertOpen} className='absolute' />)}
+        {open && (<CreateItemGroup togglePopup={togglePopup} focusChain={isDelete.current ? deleteItemGroupChain : createItemGroupFieldsChain} data={formData} handleConfirmPopup={handleConfirmPopup} isDelete={isDelete.current} handleDeleteFromForm={handleDeleteFromForm} className='absolute' />)}
       </div>
     </>
   );
