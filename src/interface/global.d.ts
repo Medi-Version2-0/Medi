@@ -222,7 +222,7 @@ export interface State {
 
 interface Option {
   id?: number;
-  value: string | undefined | number;
+  value: string | undefined | number | boolean;
   label: string | undefined;
 }
 

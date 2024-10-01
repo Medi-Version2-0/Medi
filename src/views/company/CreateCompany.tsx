@@ -10,24 +10,22 @@ import { CompanyFormData, Option, StationFormData, SalesPurchaseFormData } from 
 import CustomSelect from '../../components/custom_select/CustomSelect';
 import onKeyDown from '../../utilities/formKeyDown';
 import titleCase from '../../utilities/titleCase';
-import { useSelector } from 'react-redux'
-import { getAndSetCompany } from '../../store/action/globalAction';
-import { useGetSetData } from '../../hooks/useGetSetData';
 import useApi from '../../hooks/useApi';
+import NumberInput from '../../components/common/numberInput/numberInput'
 
-export const CreateCompany = ({ setView , data }: any) => {
+export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: any) => {
   const [stationOptions, setStationOptions] = useState<Option[]>([]);
   const [salesOptions, setSalesOptions] = useState<Option[]>([]);
   const [purchaseOptions, setPurchaseOptions] = useState<Option[]>([]);
   const [focused, setFocused] = useState('');
-  const { stations, sales: salesList, purchase: purchaseList } = useSelector((state: any) => state.global)
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
     message: '',
   });
-  const getAndSetCompanyHandler = useGetSetData(getAndSetCompany);
   const { sendAPIRequest } = useApi();
+  const [salesList, setSalesList] = useState<any[]>([]);
+  const [purchaseList, setPurchaseList] = useState<any[]>([]);
 
   const formik: any = useFormik({
     initialValues: {
@@ -40,12 +38,12 @@ export const CreateCompany = ({ setView , data }: any) => {
       address3: data?.address3 || '',
       stationId: data?.stationId || null,
       //balance
-      openingBal: data?.openingBal || '',
+      openingBal: data?.openingBal || 0,
       openingBalType: data?.openingBalType || 'Dr',
       salesId: data?.salesId || '',
       purchaseId: data?.purchaseId || '',
-      discPercent: data?.discPercent ,
-      isDiscountPercent: data?.isDiscountPercent || '',
+      discPercent: data?.discPercent || 0,
+      isDiscountPercent: data?.isDiscountPercent || false,
       //tax
       gstIn: data?.gstIn || '',
       drugLicenceNo1: data?.drugLicenceNo1 || '',
@@ -59,11 +57,14 @@ export const CreateCompany = ({ setView , data }: any) => {
       emailId2: data?.emailId2 || '',
       emailId3: data?.emailId3 || '',
 
-      purSaleAc: data?.purSaleAc || '',
+      purSaleAc: data?.purSaleAc || false,
     },
     validationSchema: getCompanyFormSchema,
     onSubmit: async (values) => {
       const allData = { ...values };
+      const filteredData = Object.fromEntries(
+        Object.entries(allData).filter(([_, value]) => value !== null && value !== '')
+      );
       try {
         if (data.company_id) {
           await sendAPIRequest(`/company/${data.company_id}`, {
@@ -73,15 +74,16 @@ export const CreateCompany = ({ setView , data }: any) => {
         } else {
           await sendAPIRequest(`/company`, {
             method: 'POST',
-            body: allData,
+            body: filteredData,
           });
         }
-        setPopupState({
-          ...popupState,
-          isAlertOpen: true,
-          message: `Company ${!!data.company_id ? 'updated' : 'created'} successfully`,
-        });
-        getAndSetCompanyHandler();
+        getAndSetTableData();
+        // setPopupState({
+        //   ...popupState,
+        //   isAlertOpen: true,
+        //   message: `Company ${!!data.company_id ? 'updated' : 'created'} successfully`,
+        // });
+        setView({type : '' , data : {}});
       } catch (error: any) {
         if (!error?.isErrorHandled) {
           console.log(`Company not ${!!data.company_id ? 'updated' : 'created'}`);
@@ -90,6 +92,20 @@ export const CreateCompany = ({ setView , data }: any) => {
     },
   });
 
+  useEffect(() => {
+    async function initSalesAndPurchase() {
+      try {
+        const allSalesAccounts = await sendAPIRequest('/saleAccount');
+        const allPurchaseAccounts = await sendAPIRequest('/purchaseAccount');
+        setSalesList(allSalesAccounts);
+        setPurchaseList(allPurchaseAccounts);
+      } catch (err) {
+        console.error('SaleAccounts or PuchaseAccounts data in createCompany not being fetched');
+      }
+    }
+
+    initSalesAndPurchase();
+  }, []);
 
   useEffect(() => {
     setStationOptions(
@@ -98,6 +114,7 @@ export const CreateCompany = ({ setView , data }: any) => {
         label: titleCase(station.station_name),
       }))
     );
+    document.getElementById('companyName')?.focus();
   }, [stations])
 
   useEffect(() => {
@@ -118,9 +135,6 @@ export const CreateCompany = ({ setView , data }: any) => {
     );
   }, [purchaseList])
 
-  useEffect(() => {
-    document.getElementById('companyName')?.focus();
-  }, [stations]);
 
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
@@ -332,28 +346,31 @@ export const CreateCompany = ({ setView , data }: any) => {
                     }}
                   />
                   <div className='flex gap-2'>
-                    <FormikInputField
-                      isPopupOpen={false}
-                      label={`Opening Balance ₹`}
-                      id='openingBal'
-                      name='openingBal'
-                      formik={formik}
-                      onChange={handleChange}
-                      placeholder='0.00'
-                      maxLength={12}
-                      className='!mb-0 w-[100%]'
-                      isRequired={false}
-                      inputClassName='w-full'
-                      labelClassName='min-w-[110px]'
-                      prevField='stationId'
-                      nextField='openingBalType'
-                      onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                        handleKeyDown(e)
-                      }
-                      showErrorTooltip={
-                        formik.touched.openingBal && !!formik.errors.openingBal
-                      }
-                    />
+                     <NumberInput
+                        label={`Opening Balance ₹`}
+                        id='openingBal'
+                        name='openingBal'
+                        placeholder='0.00'
+                        maxLength={16}
+                        min={0}
+                        value={formik.values.openingBal}
+                        onChange={(value) => formik.setFieldValue('openingBal', value)}
+                        onBlur={() => {
+                          formik.setFieldTouched('openingBal', true);
+                        }}
+                        prevField='stateInout'
+                        nextField='openingBalType'
+                        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            setFocused('openingBalType')
+
+                          }
+                        }}
+                        labelClassName='min-w-[90px] !h-[22px] w-fit text-nowrap me-2'
+                        inputClassName='text-left !text-[10px] px-1 !h-[22px] !w-[70%]'
+                        error={formik.touched.openingBal && formik.errors.openingBal}
+                      />
                     <CustomSelect
                       isPopupOpen={false}
                       value={
@@ -491,18 +508,22 @@ export const CreateCompany = ({ setView , data }: any) => {
                       id='purSaleAc'
                       label='Sale/Purchase Account Same for Every Item'
                       // labelClass='min-w-[110px] mr-3'
-                      value={
-                        formik.values.purSaleAc === ''
-                          ? null
-                          : {
-                              label: formik.values.purSaleAc,
-                              value: formik.values.purSaleAc,
-                            }
-                      }
+                      // value={
+                      //   formik.values.purSaleAc === ''
+                      //     ? null
+                      //     : {
+                      //         label: formik.values.purSaleAc,
+                      //         value: formik.values.purSaleAc,
+                      //       }
+                      // }
+                      value={[
+                        { value: false, label: 'No' },
+                        { value: true, label: 'Yes' },
+                      ].find((option) => option.value === formik.values['purSaleAc']) || null}
                       onChange={handleFieldChange}
                       options={[
-                        { value: 'No', label: 'No' },
-                        { value: 'Yes', label: 'Yes' },
+                        { value: false, label: 'No' },
+                        { value: true, label: 'Yes' },
                       ]}
                       isSearchable={false}
                       placeholder=''
@@ -602,25 +623,28 @@ export const CreateCompany = ({ setView , data }: any) => {
                   </div>
               <div className='flex gap-[3rem] m-[1px] w-full'>
                 <div className='w-[50%]'>
-                  <FormikInputField
-                    isPopupOpen={false}
-                    label='CD% CUST'
-                    id='discPercent'
-                    name='discPercent'
-                    formik={formik}
-                    className='!mb-0'
-                    maxLength={5}
-                    labelClassName='min-w-[110px]'
-                    isRequired={false}
-                    prevField='panNumber'
-                    nextField='isDiscountPercent'
-                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                      handleKeyDown(e)
-                    }
-                    showErrorTooltip={
-                      formik.touched.discPercent && !!formik.errors.discPercent
-                    }
-                  />
+                  <NumberInput
+                        label='CD% CUST'
+                        id='discPercent'
+                        name='discPercent'
+                        maxLength={5}
+                        min={0}
+                        value={formik.values.discPercent}
+                        onChange={(value) => formik.setFieldValue('discPercent', value)}
+                        onBlur={() => {
+                          formik.setFieldTouched('discPercent', true);
+                        }}
+                        prevField='panNumber'
+                        nextField='isDiscountPercent'
+                        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
+                          handleKeyDown(e)
+                        }
+                        error={
+                          formik.touched.discPercent && !!formik.errors.discPercent
+                        }
+                        labelClassName='min-w-[110px]'
+                        inputClassName='text-left !text-[10px] px-1 !h-[22px] !w-[70%]'
+                      />
                 </div>
                 <div className='w-[50%]'>
                   <CustomSelect
@@ -629,17 +653,21 @@ export const CreateCompany = ({ setView , data }: any) => {
                     label='CD% CUST Same for Every Item'
                     onChange={handleFieldChange}
                     options={[
-                      { value: 'No', label: 'No' },
-                      { value: 'Yes', label: 'Yes' },
+                      { value: false, label: 'No' },
+                      { value: true, label: 'Yes' },
                     ]}
-                    value={
-                      formik.values.isDiscountPercent === ''
-                        ? null
-                        : {
-                            label: formik.values.isDiscountPercent,
-                            value: formik.values.isDiscountPercent,
-                          }
-                    }
+                    // value={
+                    //   formik.values.isDiscountPercent === ''
+                    //     ? null
+                    //     : {
+                    //         label: formik.values.isDiscountPercent.label,
+                    //         value: formik.values.isDiscountPercent,
+                    //       }
+                    // }\
+                    value={[
+                      { value: false, label: 'No' },
+                      { value: true, label: 'Yes' },
+                    ].find((option) => option.value === formik.values['isDiscountPercent']) || null}
                     isSearchable={false}
                     disableArrow={false}
                     hidePlaceholder={false}
