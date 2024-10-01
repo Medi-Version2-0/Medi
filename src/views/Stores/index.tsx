@@ -1,20 +1,17 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { FaEdit } from 'react-icons/fa';
 import { MdDeleteForever } from 'react-icons/md';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
-import { StoreFormData } from '../../interface/global';
+import { popupOptions, StoreFormData } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import Button from '../../components/common/button/Button';
 import { CreateStore } from './CreateStore';
 import { storeValidationSchema } from './validation_schema';
 import usePermission from '../../hooks/useRole';
-import { useDispatch, useSelector } from 'react-redux'
-import { AppDispatch } from '../../store/types/globalTypes';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
-import { getAndSetStore } from '../../store/action/globalAction';
 import useApi from '../../hooks/useApi';
 
 const initialValue = {
@@ -23,7 +20,7 @@ const initialValue = {
   address1: '',
   address2: '',
   address3: '',
-  isPredefinedStore: true,
+  isPredefinedStore: false,
 };
 
 export const Store = () => {
@@ -39,19 +36,37 @@ export const Store = () => {
   const editing = useRef(false);
   const isDelete = useRef(false);
   const { createAccess, updateAccess, deleteAccess } = usePermission('store')
-
-  const [popupState, setPopupState] = useState({
-    isModalOpen: false,
-    isAlertOpen: false,
-    message: '',
-  });
-  const dispatch = useDispatch<AppDispatch>()
-  const { store: storeData } = useSelector((state: any) => state.global);
-  const [tableData, setTableData] = useState([...(createAccess ? [initialValue] :[]), ...storeData]);
+  const popUpInitialValues = useMemo<popupOptions>(()=>{
+    return {
+      isModalOpen: false,
+      isAlertOpen: false,
+      message: '',
+    }
+  },[]);
+  const [popupState, setPopupState] = useState<popupOptions>(popUpInitialValues);
+  const [tableData, setTableData] = useState<StoreFormData[]>([]);
+  const settingPopupState = (isModal: boolean, message: string) => {
+    setPopupState((previousState: popupOptions)=>{
+      return {
+        ...previousState,
+      [isModal ? 'isModalOpen' : 'isAlertOpen']: true,
+      message: message,
+    }
+    });
+  };
 
   useEffect(() => {
-    setTableData(storeData);
-  }, [storeData]);
+    getAndSetTableData();
+  }, []);
+
+  async function getAndSetTableData() {
+    try {
+      const allStores = await sendAPIRequest('/store');
+      setTableData(allStores);
+    } catch (err) {
+      console.error('Store data in store index not being fetched');
+    }
+  }
 
   const togglePopup = (isOpen: boolean) => {
     if (!isOpen) {
@@ -62,37 +77,31 @@ export const Store = () => {
   };
 
   const handleAlertCloseModal = () => {
-    setPopupState({ ...popupState, isAlertOpen: false });
+    setPopupState(popUpInitialValues);
   };
 
   const handleClosePopup = () => {
     setPopupState({ ...popupState, isModalOpen: false });
   };
 
-  const handleConfirmPopup = async () => {
-    setPopupState({ ...popupState, isModalOpen: false });
-    if (formData.store_name) {
-      formData.store_name =
-        formData.store_name.charAt(0).toUpperCase() +
-        formData.store_name.slice(1);
-    }
+  const handleConfirmPopup = async (values:StoreFormData) => {
     try {
-      if (formData !== initialValue) {
-        if (formData.store_code) {
+      if (values !== initialValue) {
+        if (values.store_code) {
           await sendAPIRequest(
             `/store/${formData.store_code}`,
             {
               method: 'PUT',
-              body: formData,
+              body: values,
             }
           );
         } else {
           await sendAPIRequest(`/store`, {
             method: 'POST',
-            body: formData,
+            body: values,
           });
         }
-        dispatch(getAndSetStore())
+        await getAndSetTableData();
         togglePopup(false);
       }
     } catch (error: any) {
@@ -102,55 +111,21 @@ export const Store = () => {
     }
   };
 
-  const handelFormSubmit = (values: StoreFormData) => {
-    const mode = values.store_code ? 'update' : 'create';
-    const existingStore = tableData.find((store: StoreFormData) => {
-      if (mode === 'create') {
-        return (
-          store.store_name.toLowerCase() === values.store_name.toLowerCase()
-        );
-      }
-      return (
-        store.store_name.toLowerCase() === values.store_name.toLowerCase() &&
-        store.store_code !== values.store_code
-      );
-    });
-
-    if (existingStore) {
-      setPopupState({
-        ...popupState,
-        isAlertOpen: true,
-        message: 'Store with this name already exists!',
-      });
-      return;
-    }
-
-    if (values.store_name) {
-      values.store_name =
-        values.store_name.charAt(0).toUpperCase() + values.store_name.slice(1);
-    }
-    if (values !== initialValue) {
-      setPopupState({
-        ...popupState,
-        isModalOpen: true,
-        message: `Are you sure you want to ${mode} this Store?`,
-      });
-      setFormData(values);
-    }
-  };
-
-  const deleteAcc = async (store_code: string) => {
+  const deleteAcc = async () => {
     isDelete.current = false;
     togglePopup(false);
+    setPopupState(popUpInitialValues);
     try {
-      await sendAPIRequest(`/store/${store_code}`, {
+      await sendAPIRequest(`/store/${selectedRow.store_code}`, {
         method: 'DELETE',
       });
-      dispatch(getAndSetStore())
+      await getAndSetTableData();
     } catch (error: any) {
       if (!error?.isErrorHandled) {
         console.log('Store not deleted');
       }
+    }finally{
+      setSelectedRow(null);
     }
   };
 
@@ -158,7 +133,6 @@ export const Store = () => {
     isDelete.current = true;
     setFormData(oldData);
     togglePopup(true);
-    setSelectedRow(null);
   };
 
   const handleUpdate = (oldData: StoreFormData) => {
@@ -168,6 +142,10 @@ export const Store = () => {
     togglePopup(true);
     setSelectedRow(null);
   };
+
+  function handleDeleteFromForm() {
+    settingPopupState(true, 'Are you sure you want to delete the group');
+  }
 
   const handleCellEditingStopped = async (e: any) => {
     editing.current = false;
@@ -185,11 +163,7 @@ export const Store = () => {
         );
 
         if (existingStore.length > 1) {
-          setPopupState({
-            ...popupState,
-            isAlertOpen: true,
-            message: 'Store with this name already exists!',
-          });
+          settingPopupState(false,'Store with this name already exists')
           node.setDataValue(field, oldValue);
           return;
         }
@@ -197,11 +171,7 @@ export const Store = () => {
         newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
       }
     } catch (error: any) {
-      setPopupState({
-        ...popupState,
-        isAlertOpen: true,
-        message: error.message,
-      });
+      settingPopupState(false,error.message);
       node.setDataValue(field, oldValue);
       return;
     }
@@ -212,7 +182,7 @@ export const Store = () => {
         method: 'PUT',
         body: { [field]: newValue },
       });
-      dispatch(getAndSetStore())
+      await getAndSetTableData();
     } catch (error: any) {
       if (!error?.isErrorHandled) {
         console.log('Store not updated');
@@ -238,7 +208,7 @@ export const Store = () => {
       event,
       handleDelete,
       handleUpdate,
-      togglePopup,
+      undefined,
       selectedRow,
       undefined
     );
@@ -256,11 +226,7 @@ export const Store = () => {
        if(updateAccess){
         const isPredefined = !p.data.isPredefinedStore
         if(!isPredefined){
-          setPopupState({
-            ...popupState,
-            isAlertOpen: true,
-            message: 'Predefined Stores are not editable',
-          });
+          settingPopupState(false,'Predefined Stores are not editable');
         }
         return isPredefined
        }
@@ -282,34 +248,26 @@ export const Store = () => {
       },
       cellRenderer: (params: { data: StoreFormData }) => (
         <div className='table_edit_buttons'>
-          <FaEdit
+          {updateAccess && <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
             onClick={() => {
               if (params.data.isPredefinedStore) {
-                setPopupState({
-                  ...popupState,
-                  isAlertOpen: true,
-                  message: 'Predefined Stores are not editable',
-                });
+                settingPopupState(false,'Predefined Stores are not editable');
               } else {
                 handleUpdate(params.data);
               }
             }}
-          />
-          <MdDeleteForever
+          />}
+          {deleteAccess && <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
             onClick={() => {
               if (params.data.isPredefinedStore) {
-                setPopupState({
-                  ...popupState,
-                  isAlertOpen: true,
-                  message: 'Predefined Stores should not be deleted',
-                });
+                settingPopupState(false,'Predefined Stores should not be deleted');
               } else {
                 handleDelete(params.data);
               }
             }}
-          />
+          />}
         </div>
       ),
     },
@@ -360,7 +318,7 @@ export const Store = () => {
             onConfirm={
               popupState.isAlertOpen
                 ? handleAlertCloseModal
-                : handleConfirmPopup
+                : deleteAcc
             }
             message={popupState.message}
             isAlert={popupState.isAlertOpen}
@@ -371,9 +329,9 @@ export const Store = () => {
           <CreateStore
             togglePopup={togglePopup}
             data={formData}
-            handelFormSubmit={handelFormSubmit}
+            handleDeleteFromForm={handleDeleteFromForm}
+            handleConfirmPopup={handleConfirmPopup}
             isDelete={isDelete.current}
-            deleteAcc={deleteAcc}
             className='absolute'
           />
         )}
