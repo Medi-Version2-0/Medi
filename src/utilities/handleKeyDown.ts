@@ -39,17 +39,17 @@ export const handleKeyDownCommon = (
         }
       }
       break;
-    case's':
-    case 'S':
-      if (event.ctrlKey && handleSave) {
-        event.preventDefault();
-        if (dataToSave){
-         handleSave(dataToSave);
-         return;
-        }
-        handleSave();
-      }
-      break;
+    // case's':
+    // case 'S':
+    //   if (event.ctrlKey && handleSave) {
+    //     event.preventDefault();
+    //     if (dataToSave){
+    //      handleSave(dataToSave);
+    //      return;
+    //     }
+    //     handleSave();
+    //   }
+      // break;
     default:
       break;
   }

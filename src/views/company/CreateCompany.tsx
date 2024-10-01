@@ -1,23 +1,24 @@
 import { useEffect, useState } from 'react';
-import { FormikProps, useFormik } from 'formik';
+import { useFormik } from 'formik';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import Button from '../../components/common/button/Button';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import FormikInputField from '../../components/common/FormikInputField';
 import { getCompanyFormSchema } from './validation_schema';
-import { CompanyFormData, Option, StationFormData, SalesPurchaseFormData } from '../../interface/global';
+import { Option, StationFormData, SalesPurchaseFormData } from '../../interface/global';
 import CustomSelect from '../../components/custom_select/CustomSelect';
-import onKeyDown from '../../utilities/formKeyDown';
 import titleCase from '../../utilities/titleCase';
 import useApi from '../../hooks/useApi';
 import NumberInput from '../../components/common/numberInput/numberInput'
+import { companyViewChain, createCompanyChain } from '../../constants/focusChain/companyFocusChain';
+import { TabManager } from '../../components/class/tabManager';
 
 export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: any) => {
   const [stationOptions, setStationOptions] = useState<Option[]>([]);
   const [salesOptions, setSalesOptions] = useState<Option[]>([]);
   const [purchaseOptions, setPurchaseOptions] = useState<Option[]>([]);
-  const [focused, setFocused] = useState('');
+  const tabManager = TabManager.getInstance()
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
@@ -42,7 +43,7 @@ export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: a
       openingBalType: data?.openingBalType || 'Dr',
       salesId: data?.salesId || '',
       purchaseId: data?.purchaseId || '',
-      discPercent: data?.discPercent || 0,
+      discPercent: data?.discPercent|| 0,
       isDiscountPercent: data?.isDiscountPercent || false,
       //tax
       gstIn: data?.gstIn || '',
@@ -106,6 +107,10 @@ export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: a
 
     initSalesAndPurchase();
   }, []);
+  useEffect(() => {
+    tabManager.updateFocusChainAndSetFocus(createCompanyChain, 'companyName')
+  }, [])
+
 
   useEffect(() => {
     setStationOptions(
@@ -138,7 +143,7 @@ export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: a
 
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
-    setView({type : '' , data : {}});
+    setView({ type: '', data: {} });
   };
 
   const handleClosePopup = () => {
@@ -156,30 +161,28 @@ export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: a
     if (decimalIndex !== -1) {
       const beforeDecimal = filteredValue.slice(0, decimalIndex);
       const afterDecimal = filteredValue.slice(decimalIndex + 1);
-  
+
       filteredValue = beforeDecimal + '.' + afterDecimal.slice(0, 2);
     }
-      if (filteredValue.length <= 12) {
-        formik.setFieldValue('openingBal', filteredValue);
-      } else {
-        formik.setFieldValue('openingBal', filteredValue.slice(0, 12));
-      }    
+    if (filteredValue.length <= 12) {
+      formik.setFieldValue('openingBal', filteredValue);
+    } else {
+      formik.setFieldValue('openingBal', filteredValue.slice(0, 12));
+    }
   };
 
-  const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>,
-    formik?: FormikProps<CompanyFormData>,
-    radioField?: any
-  ) => {
-    onKeyDown({
-      e,
-      formik: formik,
-      radioField: radioField,
-      focusedSetter: (field: string) => {
-        setFocused(field);
-      },
-    });
-  };
+
+  const handleKeyDownCustomSelect = (e: React.KeyboardEvent<HTMLSelectElement>) => {
+    const dropdown = document.querySelector(
+      '.custom-select__menu'
+    );
+    if (e.key === 'Enter' && !dropdown) {
+      e.preventDefault();
+      e.stopPropagation();
+      tabManager.focusManager()
+    }
+  }
+
 
   return (
     <div className='w-full'>
@@ -189,9 +192,13 @@ export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: a
         </h1>
         <Button
           type='highlight'
-          id='company_button'
+          id='back'
           handleOnClick={() => {
-            setView({type : '' , data : {}});
+            setView({ type: '', data: {} });
+            setTimeout(() => {
+              tabManager.updateFocusChainAndSetFocus(companyViewChain, 'add')
+            }, 0);
+
           }}
         >
           Back
@@ -214,10 +221,6 @@ export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: a
                   className='!mb-0'
                   labelClassName='min-w-[112px]'
                   isRequired={true}
-                  nextField='shortName'
-                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                    handleKeyDown(e)
-                  }
                   showErrorTooltip={
                     formik.touched.companyName && !!formik.errors.companyName
                   }
@@ -233,11 +236,6 @@ export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: a
                   labelClassName='min-w-[110px]'
                   inputClassName='w-[150px]'
                   isRequired={false}
-                  prevField='companyName'
-                  nextField='address1'
-                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                    handleKeyDown(e)
-                  }
                   showErrorTooltip={
                     formik.touched.shortName && !!formik.errors.shortName
                   }
@@ -257,11 +255,6 @@ export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: a
                       placeholder='Address 1'
                       formik={formik}
                       className='!mb-0'
-                      prevField='shortName'
-                      nextField='address2'
-                      onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                        handleKeyDown(e)
-                      }
                       showErrorTooltip={
                         formik.touched.address1 && !!formik.errors.address1
                       }
@@ -274,11 +267,6 @@ export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: a
                       placeholder='Address 2'
                       formik={formik}
                       className='!mb-0'
-                      prevField='address1'
-                      nextField='address3'
-                      onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                        handleKeyDown(e)
-                      }
                       showErrorTooltip={
                         formik.touched.address2 && !!formik.errors.address2
                       }
@@ -291,11 +279,6 @@ export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: a
                       placeholder='Address 3'
                       formik={formik}
                       className='!mb-0'
-                      prevField='address2'
-                      nextField='stationId'
-                      onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                        handleKeyDown(e)
-                      }
                       showErrorTooltip={
                         formik.touched.address3 && !!formik.errors.address3
                       }
@@ -308,16 +291,15 @@ export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: a
                     label='Station'
                     id='stationId'
                     labelClass='min-w-[110px]'
-                    isFocused={focused === 'stationId'}
                     value={
                       formik.values.stationId === ''
                         ? null
                         : {
-                            label: stationOptions.find(
-                              (e) => e.value === formik.values.stationId
-                            )?.label,
-                            value: formik.values.stationId,
-                          }
+                          label: stationOptions.find(
+                            (e) => e.value === formik.values.stationId
+                          )?.label,
+                          value: formik.values.stationId,
+                        }
                     }
                     onChange={handleFieldChange}
                     options={stationOptions}
@@ -332,17 +314,9 @@ export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: a
                     showErrorTooltip={true}
                     onBlur={() => {
                       formik.setFieldTouched('stationId', true);
-                      setFocused('');
                     }}
                     onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-                      const dropdown = document.querySelector(
-                        '.custom-select__menu'
-                      );
-                      if (e.key === 'Enter') {
-                        !dropdown && e.preventDefault();
-                        document.getElementById('openingBal')?.focus();
-                        setFocused('openingBal')
-                      }
+                      handleKeyDownCustomSelect(e)
                     }}
                   />
                   <div className='flex gap-2'>
@@ -360,13 +334,6 @@ export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: a
                         }}
                         prevField='stateInout'
                         nextField='openingBalType'
-                        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            setFocused('openingBalType')
-
-                          }
-                        }}
                         labelClassName='min-w-[90px] !h-[22px] w-fit text-nowrap me-2'
                         inputClassName='text-left !text-[10px] px-1 !h-[22px] !w-[70%]'
                         error={formik.touched.openingBal && formik.errors.openingBal}
@@ -377,9 +344,9 @@ export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: a
                         formik.values.openingBalType === ''
                           ? null
                           : {
-                              label: formik.values.openingBalType,
-                              value: formik.values.openingBalType,
-                            }
+                            label: formik.values.openingBalType,
+                            value: formik.values.openingBalType,
+                          }
                       }
                       id='openingBalType'
                       onChange={handleFieldChange}
@@ -393,258 +360,195 @@ export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: a
                       hidePlaceholder={false}
                       containerClass='!w-1/4'
                       className='!rounded-none !h-6'
-                      isFocused={focused === 'openingBalType'}
                       onBlur={() => {
                         formik.setFieldTouched('openingBalType', true);
-                        setFocused('');
                       }}
                       onKeyDown={(
                         e: React.KeyboardEvent<HTMLSelectElement>
                       ) => {
-                        const dropdown = document.querySelector(
-                          '.custom-select__menu'
-                        );
-                        if (e.key === 'Enter') {
-                          !dropdown && e.preventDefault();
-                          setFocused('salesId');
-                        }
+                        handleKeyDownCustomSelect(e)
                       }}
                     />
                   </div>
                 </div>
               </div>
-                <div className='flex items-center gap-[1.4rem] m-[1px] w-full'>
-                  <div className='w-[33%]'>
-                    <CustomSelect
-                      isPopupOpen={false}
-                      label='Sales Account'
-                      id='salesId'
-                      labelClass='min-w-[110px]'
-                      isFocused={focused === 'salesId'}
-                      value={
-                        formik.values.salesId === ''
-                          ? null
-                          : {
-                              label: salesOptions.find(
-                                (e) => e.value == formik.values.salesId
-                              )?.label,
-                              value: formik.values.salesId,
-                            }
-                      }
-                      onChange={handleFieldChange}
-                      options={salesOptions}
-                      isSearchable={true}
-                      placeholder='Sales'
-                      disableArrow={true}
-                      hidePlaceholder={false}
-                      className='!h-6 rounded-sm'
-                      isRequired={true}
-                      error={formik.errors.salesId}
-                      isTouched={formik.touched.salesId}
-                      showErrorTooltip={true}
-                      onBlur={() => {
-                        formik.setFieldTouched('salesId', true);
-                        setFocused('');
-                      }}
-                      onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-                        const dropdown = document.querySelector(
-                          '.custom-select__menu'
-                        );
-                        if (e.key === 'Enter') {
-                          !dropdown && e.preventDefault();
-                          document.getElementById('purchaseId')?.focus();
-                          setFocused('purchaseId');
+              <div className='flex items-center gap-[1.4rem] m-[1px] w-full'>
+                <div className='w-[33%]'>
+                  <CustomSelect
+                    isPopupOpen={false}
+                    label='Sales Account'
+                    id='salesId'
+                    labelClass='min-w-[110px]'
+                    value={
+                      formik.values.salesId === ''
+                        ? null
+                        : {
+                          label: salesOptions.find(
+                            (e) => e.value == formik.values.salesId
+                          )?.label,
+                          value: formik.values.salesId,
                         }
-                      }}
-                    />
-                  </div>
-                  <div className='w-[33%]'>
-                    <CustomSelect
-                      isPopupOpen={false}
-                      label='Purchase Account'
-                      id='purchaseId'
-                      labelClass='min-w-[110px]'
-                      isFocused={focused === 'purchaseId'}
-                      value={
-                        formik.values.purchaseId === ''
-                          ? null
-                          : {
-                              label: purchaseOptions.find(
-                                (e) => e.value == formik.values.purchaseId
-                              )?.label,
-                              value: formik.values.purchaseId,
-                            }
-                      }
-                      onChange={handleFieldChange}
-                      options={purchaseOptions}
-                      isSearchable={true}
-                      placeholder='Purchase'
-                      disableArrow={true}
-                      hidePlaceholder={false}
-                      className='!h-6 rounded-sm'
-                      isRequired={true}
-                      error={formik.errors.purchaseId}
-                      isTouched={formik.touched.purchaseId}
-                      showErrorTooltip={true}
-                      onBlur={() => {
-                        formik.setFieldTouched('purchaseId', true);
-                        setFocused('');
-                      }}
-                      onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-                        const dropdown = document.querySelector(
-                          '.custom-select__menu'
-                        );
-                        if (e.key === 'Enter') {
-                          !dropdown && e.preventDefault();
-                          document.getElementById('purSaleAc')?.focus();
-                          setFocused('purSaleAc');
-                        }
-                      }}
-                    />
-                  </div>
-                  <div className=' w-[33%]'>
-                    <CustomSelect
-                      isPopupOpen={false}
-                      id='purSaleAc'
-                      label='Sale/Purchase Account Same for Every Item'
-                      // labelClass='min-w-[110px] mr-3'
-                      // value={
-                      //   formik.values.purSaleAc === ''
-                      //     ? null
-                      //     : {
-                      //         label: formik.values.purSaleAc,
-                      //         value: formik.values.purSaleAc,
-                      //       }
-                      // }
-                      value={[
-                        { value: false, label: 'No' },
-                        { value: true, label: 'Yes' },
-                      ].find((option) => option.value === formik.values['purSaleAc']) || null}
-                      onChange={handleFieldChange}
-                      options={[
-                        { value: false, label: 'No' },
-                        { value: true, label: 'Yes' },
-                      ]}
-                      isSearchable={false}
-                      placeholder=''
-                      disableArrow={false}
-                      hidePlaceholder={false}
-                      labelClass='min-w-[170px]'
-                      className='!rounded-none !h-6'
-                      isFocused={focused === 'purSaleAc'}
-                      onBlur={() => {
-                        formik.setFieldTouched('purSaleAc', true);
-                        setFocused('');
-                      }}
-                      onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-                        const dropdown = document.querySelector(
-                          '.custom-select__menu'
-                        );
-                        if (e.key === 'Enter') {
-                          !dropdown && e.preventDefault();
-                          document.getElementById('gstIn')?.focus();
-                          setFocused('gstIn');
-                        }
-                      }}
-                    />
+                    }
+                    onChange={handleFieldChange}
+                    options={salesOptions}
+                    isSearchable={true}
+                    placeholder='Sales'
+                    disableArrow={true}
+                    hidePlaceholder={false}
+                    className='!h-6 rounded-sm'
+                    isRequired={true}
+                    error={formik.errors.salesId}
+                    isTouched={formik.touched.salesId}
+                    showErrorTooltip={true}
+                    onBlur={() => {
+                      formik.setFieldTouched('salesId', true);
+                    }}
+                    onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+                      handleKeyDownCustomSelect(e)
+                    }}
+                  />
                 </div>
+                <div className='w-[33%]'>
+                  <CustomSelect
+                    isPopupOpen={false}
+                    label='Purchase Account'
+                    id='purchaseId'
+                    labelClass='min-w-[110px]'
+                    value={
+                      formik.values.purchaseId === ''
+                        ? null
+                        : {
+                          label: purchaseOptions.find(
+                            (e) => e.value == formik.values.purchaseId
+                          )?.label,
+                          value: formik.values.purchaseId,
+                        }
+                    }
+                    onChange={handleFieldChange}
+                    options={purchaseOptions}
+                    isSearchable={true}
+                    placeholder='Purchase'
+                    disableArrow={true}
+                    hidePlaceholder={false}
+                    className='!h-6 rounded-sm'
+                    isRequired={true}
+                    error={formik.errors.purchaseId}
+                    isTouched={formik.touched.purchaseId}
+                    showErrorTooltip={true}
+                    onBlur={() => {
+                      formik.setFieldTouched('purchaseId', true);
+                    }}
+                    onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+                      handleKeyDownCustomSelect(e)
+                    }}
+                  />
                 </div>
-                  <div className='flex items-center gap-[0.8rem] m-[1px] w-full'>
-                    <div className='w-[33%] mr-3'>
-                      <FormikInputField
-                        isPopupOpen={false}
-                        label='GSTIN'
-                        id='gstIn'
-                        name='gstIn'
-                        inputClassName='w-[170px]'
-                        isTitleCase={false}
-                        formik={formik}
-                        className='!mb-0'
-                        maxLength={15}
-                        labelClassName='min-w-[110px]'
-                        isRequired={false}
-                        prevField='purSaleAc'
-                        nextField='drugLicenceNo1'
-                        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                          handleKeyDown(e)
+                <div className=' w-[33%]'>
+                  <CustomSelect
+                    isPopupOpen={false}
+                    id='purSaleAc'
+                    label='Sale/Purchase Account Same for Every Item'
+                    value={
+                      formik.values.purSaleAc === ''
+                        ? null
+                        : {
+                          label: formik.values.purSaleAc,
+                          value: formik.values.purSaleAc,
                         }
-                        showErrorTooltip={
-                          formik.touched.gstIn && !!formik.errors.gstIn
-                        }
-                      />
-                    </div>
-                    <div className='w-[33%] mr-3'>
-                      <FormikInputField
-                        isPopupOpen={false}
-                        label='Drug Licence'
-                        id='drugLicenceNo1'
-                        name='drugLicenceNo1'
-                        isTitleCase={false}
-                        inputClassName='w-[147px]'
-                        formik={formik}
-                        maxLength={17}
-                        className='!mb-0'
-                        labelClassName='min-w-[110px]'
-                        isRequired={false}
-                        prevField='gstIn'
-                        nextField='panNumber'
-                        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                          handleKeyDown(e)
-                        }
-                        showErrorTooltip={
-                          formik.touched.drugLicenceNo1 &&
-                          !!formik.errors.drugLicenceNo1
-                        }
-                      />
-                    </div>
-                    <div className='w-[33%]'>
-                      <FormikInputField
-                        isPopupOpen={false}
-                        label='PAN Number'
-                        id='panNumber'
-                        name='panNumber'
-                        maxLength={10}
-                        inputClassName='w-[158px]'
-                        isTitleCase={false}
-                        formik={formik}
-                        className='!mb-0'
-                        labelClassName='min-w-[110px]'
-                        isRequired={false}
-                        prevField='drugLicenceNo1'
-                        nextField='discPercent'
-                        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                          handleKeyDown(e)
-                        }
-                        showErrorTooltip={
-                          formik.touched.panNumber && !!formik.errors.panNumber
-                        }
-                      />
-                  </div>
-                  </div>
+                    }
+                    onChange={handleFieldChange}
+                    options={[
+                      { value: 'No', label: 'No' },
+                      { value: 'Yes', label: 'Yes' },
+                    ]}
+                    isSearchable={false}
+                    placeholder=''
+                    disableArrow={false}
+                    hidePlaceholder={false}
+                    labelClass='min-w-[170px]'
+                    className='!rounded-none !h-6'
+                    onBlur={() => {
+                      formik.setFieldTouched('purSaleAc', true);
+                    }}
+                    onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
+                      handleKeyDownCustomSelect(e)
+                    }}
+                  />
+                </div>
+              </div>
+              <div className='flex items-center gap-[0.8rem] m-[1px] w-full'>
+                <div className='w-[33%] mr-3'>
+                  <FormikInputField
+                    isPopupOpen={false}
+                    label='GSTIN'
+                    id='gstIn'
+                    name='gstIn'
+                    inputClassName='w-[170px]'
+                    isTitleCase={false}
+                    formik={formik}
+                    className='!mb-0'
+                    maxLength={15}
+                    labelClassName='min-w-[110px]'
+                    isRequired={false}
+                    showErrorTooltip={
+                      formik.touched.gstIn && !!formik.errors.gstIn
+                    }
+                  />
+                </div>
+                <div className='w-[33%] mr-3'>
+                  <FormikInputField
+                    isPopupOpen={false}
+                    label='Drug Licence'
+                    id='drugLicenceNo1'
+                    name='drugLicenceNo1'
+                    isTitleCase={false}
+                    inputClassName='w-[147px]'
+                    formik={formik}
+                    maxLength={17}
+                    className='!mb-0'
+                    labelClassName='min-w-[110px]'
+                    isRequired={false}
+                    showErrorTooltip={
+                      formik.touched.drugLicenceNo1 &&
+                      !!formik.errors.drugLicenceNo1
+                    }
+                  />
+                </div>
+                <div className='w-[33%]'>
+                  <FormikInputField
+                    isPopupOpen={false}
+                    label='PAN Number'
+                    id='panNumber'
+                    name='panNumber'
+                    maxLength={10}
+                    inputClassName='w-[158px]'
+                    isTitleCase={false}
+                    formik={formik}
+                    className='!mb-0'
+                    labelClassName='min-w-[110px]'
+                    isRequired={false}
+                    showErrorTooltip={
+                      formik.touched.panNumber && !!formik.errors.panNumber
+                    }
+                  />
+                </div>
+              </div>
               <div className='flex gap-[3rem] m-[1px] w-full'>
                 <div className='w-[50%]'>
-                  <NumberInput
-                        label='CD% CUST'
-                        id='discPercent'
-                        name='discPercent'
-                        maxLength={5}
-                        min={0}
-                        value={formik.values.discPercent}
-                        onChange={(value) => formik.setFieldValue('discPercent', value)}
-                        onBlur={() => {
-                          formik.setFieldTouched('discPercent', true);
-                        }}
-                        prevField='panNumber'
-                        nextField='isDiscountPercent'
-                        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                          handleKeyDown(e)
-                        }
-                        error={
-                          formik.touched.discPercent && !!formik.errors.discPercent
-                        }
-                        labelClassName='min-w-[110px]'
-                        inputClassName='text-left !text-[10px] px-1 !h-[22px] !w-[70%]'
-                      />
+                  <FormikInputField
+                    isPopupOpen={false}
+                    label='CD% CUST'
+                    id='discPercent'
+                    name='discPercent'
+                    formik={formik}
+                    className='!mb-0'
+                    maxLength={5}
+                    labelClassName='min-w-[110px]'
+                    isRequired={false}
+                    showErrorTooltip={
+                      formik.touched.discPercent && !!formik.errors.discPercent
+                    }
+                  />
                 </div>
                 <div className='w-[50%]'>
                   <CustomSelect
@@ -656,38 +560,25 @@ export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: a
                       { value: false, label: 'No' },
                       { value: true, label: 'Yes' },
                     ]}
-                    // value={
-                    //   formik.values.isDiscountPercent === ''
-                    //     ? null
-                    //     : {
-                    //         label: formik.values.isDiscountPercent.label,
-                    //         value: formik.values.isDiscountPercent,
-                    //       }
-                    // }\
-                    value={[
-                      { value: false, label: 'No' },
-                      { value: true, label: 'Yes' },
-                    ].find((option) => option.value === formik.values['isDiscountPercent']) || null}
+                    value={
+                      formik.values.isDiscountPercent === ''
+                        ? null
+                        : {
+                          label: formik.values.isDiscountPercent,
+                          value: formik.values.isDiscountPercent,
+                        }
+                    }
                     isSearchable={false}
                     disableArrow={false}
                     hidePlaceholder={false}
                     labelClass='w-[30.6%]'
                     containerClass=''
                     className='!rounded-none !h-6'
-                    isFocused={focused === 'isDiscountPercent'}
                     onBlur={() => {
                       formik.setFieldTouched('isDiscountPercent', true);
-                      setFocused('');
                     }}
                     onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-                      const dropdown = document.querySelector(
-                        '.custom-select__menu'
-                      );
-                      if (e.key === 'Enter') {
-                        !dropdown && e.preventDefault();
-                        document.getElementById('stateInOut')?.focus();
-                        setFocused('stateInOut');
-                      }
+                      handleKeyDownCustomSelect(e)
                     }}
                   />
                 </div>
@@ -703,9 +594,9 @@ export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: a
                       formik.values.stateInOut === ''
                         ? null
                         : {
-                            label: formik.values.stateInOut,
-                            value: formik.values.stateInOut,
-                          }
+                          label: formik.values.stateInOut,
+                          value: formik.values.stateInOut,
+                        }
                     }
                     onChange={handleFieldChange}
                     options={[
@@ -718,20 +609,11 @@ export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: a
                     disableArrow={false}
                     hidePlaceholder={false}
                     className='!h-6 rounded-sm'
-                    isFocused={focused === 'stateInOut'}
                     onBlur={() => {
                       formik.setFieldTouched('stateInOut', true);
-                      setFocused('');
                     }}
                     onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
-                      const dropdown = document.querySelector(
-                        '.custom-select__menu'
-                      );
-                      if (e.key === 'Enter') {
-                        !dropdown && e.preventDefault();
-                        document.getElementById('phoneNumber')?.focus();
-                        setFocused('phoneNumber');
-                      }
+                      handleKeyDownCustomSelect(e)
                     }}
                   />
                 </div>
@@ -755,11 +637,6 @@ export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: a
                         +91
                       </span>
                     }
-                    prevField='stateInOut'
-                    nextField='mobileNumber'
-                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                      handleKeyDown(e)
-                    }
                     showErrorTooltip={
                       formik.touched.phoneNumber && !!formik.errors.phoneNumber
                     }
@@ -782,11 +659,6 @@ export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: a
                         +91
                       </span>
                     }
-                    prevField='phoneNumber'
-                    nextField='emailId1'
-                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                      handleKeyDown(e)
-                    }
                     showErrorTooltip={
                       formik.touched.mobileNumber &&
                       !!formik.errors.mobileNumber
@@ -808,11 +680,6 @@ export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: a
                   showErrorTooltip={
                     formik.touched.emailId1 && formik.errors.emailId1
                   }
-                  prevField='mobileNumber'
-                  nextField='emailId2'
-                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                    handleKeyDown(e)
-                  }
                 />
                 <FormikInputField
                   isPopupOpen={false}
@@ -826,11 +693,6 @@ export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: a
                   formik={formik}
                   showErrorTooltip={
                     formik.touched.emailId2 && formik.errors.emailId2
-                  }
-                  prevField='emailId1'
-                  nextField='emailId3'
-                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                    handleKeyDown(e)
                   }
                 />
                 <FormikInputField
@@ -846,11 +708,6 @@ export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: a
                   showErrorTooltip={
                     formik.touched.emailId3 && formik.errors.emailId3
                   }
-                  prevField='emailId2'
-                  nextField= {formik.isValid ? 'submit_company' : 'companyName'}
-                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                    handleKeyDown(e)
-                  }
                 />
               </div>
             </div>
@@ -860,20 +717,9 @@ export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: a
           <Button
             type='fill'
             padding='px-4 py-2'
-            id='submit_company'
+            id='save'
             btnType='submit'
             disable={!(formik.isValid) || formik.isSubmitting}
-            handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
-              if (e.key === 'ArrowUp' || e.shiftKey && e.key === 'Tab') {
-                document.getElementById('emailId3')?.focus();
-                setFocused('emailId3')
-                e.preventDefault();
-              }
-              if (e.key === 'Tab') {
-                document.getElementById('companyName')?.focus();
-                e.preventDefault();
-              }
-            }}
           >
             {!!data.company_id ? 'Update' : 'Submit'}
           </Button>

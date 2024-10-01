@@ -514,6 +514,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
                 label='Party Name'
                 id='partyId'
                 name='partyId'
+                readOnly={true}
                 formik={formik}
                 className='!mb-0'
                 labelClassName='min-w-[140px] text-base text-gray-700'
