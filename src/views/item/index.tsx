@@ -86,13 +86,6 @@ const Items = ({type = '' , batchData = null}) => {
   const sales = extractKeys(salesCodeMap);
   const purchases = extractKeys(purchaseCodeMap);
 
-  // useEffect(() => {
-  //   document.addEventListener('keydown', handleKeyDown);
-  //   return () => {
-  //     document.removeEventListener('keydown', handleKeyDown);
-  //   };
-  // }, [selectedRow]);
-
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false, isModalOpen: false });
   };
@@ -163,10 +156,6 @@ const Items = ({type = '' , batchData = null}) => {
   const cellEditingStarted = () => {
     editing.current = true;
   };
-
-  // const handleKeyDown = (event: KeyboardEvent) => {
-  //   handleKeyDownCommon( event, handleDelete, undefined, undefined, selectedRow, setView );
-  // };
 
   const BatchCellRenderer = (props: ICellRendererParams) => {
     const handleClick = () => {

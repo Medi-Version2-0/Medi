@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-import { useFormik, FormikProps } from 'formik';
+import { useFormik } from 'formik';
 import {
   CreateSalePurchaseProps,
   SalesPurchaseFormData,
@@ -7,13 +6,12 @@ import {
 import { Popup } from '../../components/popup/Popup';
 import * as Yup from 'yup';
 import Button from '../../components/common/button/Button';
-import onKeyDown from '../../utilities/formKeyDown';
 import FormikInputField from '../../components/common/FormikInputField';
 import CustomSelect from '../../components/custom_select/CustomSelect';
 import { Option } from '../../interface/global';
-import useHandleKeydown from '../../hooks/useHandleKeydown';
-import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import NumberInput from '../../components/common/numberInput/numberInput';
+import { TabManager } from '../../components/class/tabManager';
+import { createSalePurchaseAccountFieldsChain, deleteSalePurchaseAccountFieldsChain } from '../../constants/focusChain/salePurchaseAccountFocusChain';
 
 export const CreateSalePurchase = ({
   togglePopup,
@@ -25,7 +23,8 @@ export const CreateSalePurchase = ({
   className,
 }: CreateSalePurchaseProps) => {
   const { sp_id } = data;
-  const [focused, setFocused] = useState('');
+  const tabManager = TabManager.getInstance()
+
 
   const validationSchema = Yup.object({
     sptype: Yup.string()
@@ -37,19 +36,11 @@ export const CreateSalePurchase = ({
       .max(20, `Short name must be 20 characters or less`),
   });
 
-  useEffect(() => {
-    const focusTarget = !isDelete
-      ? document.getElementById('sptype')
-      : document.getElementById('cancel_button');
-    focusTarget?.focus();
-  }, []);
-
   const handleSubmit = async (values: any) => {
     const formData = {
       ...values,
       ...(sp_id && { sp_id }),
     };
-    !sp_id && document.getElementById('account_button')?.focus();
     handleConfirmPopup(formData);
     return formData;
   };
@@ -67,35 +58,6 @@ export const CreateSalePurchase = ({
     onSubmit: handleSubmit,
   });
 
-  const keyDown = (event: KeyboardEvent) => {
-    handleKeyDownCommon(
-      event,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      formik.submitForm,
-    );
-  };
-  useHandleKeydown(keyDown, [])
-
-  const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>,
-    formik?: FormikProps<SalesPurchaseFormData>,
-    radioField?: any
-  ) => {
-    onKeyDown({
-      e,
-      formik: formik,
-      radioField: radioField,
-      focusedSetter: (field: string) => {
-        setFocused(field);
-      },
-    });
-
-  };
-
   const handleFieldChange = (option: Option | null) => {
     formik.setFieldValue('openingBalType', option?.value);  
   };
@@ -103,6 +65,8 @@ export const CreateSalePurchase = ({
   return (
     <Popup
       togglePopup={togglePopup}
+      id={type === 'Sales' ? 'createSaleAccountPopup' : 'createPurchaseAccountPopup'}
+      focusChain={isDelete ? deleteSalePurchaseAccountFieldsChain : createSalePurchaseAccountFieldsChain}
       heading={
         sp_id && isDelete
           ? `Delete ${type} Account`
@@ -124,12 +88,6 @@ export const CreateSalePurchase = ({
           formik={formik}
           className='!gap-0'
           isDisabled={isDelete && sp_id}
-          nextField='igst'
-          prevField='sptype'
-          sideField='igst'
-          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-            handleKeyDown(e, formik)
-          }
           showErrorTooltip={!!(formik.touched.sptype && formik.errors.sptype)}
         />
 
@@ -177,12 +135,6 @@ export const CreateSalePurchase = ({
           formik={formik}
           className='!gap-0'
           isDisabled={isDelete && sp_id}
-          sideField='shortName2'
-          nextField='shortName2'
-          prevField='surCharge'
-          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-            handleKeyDown(e, formik)
-          }
           showErrorTooltip={
             !!(formik.touched.shortName && formik.errors.shortName)
           }
@@ -195,12 +147,6 @@ export const CreateSalePurchase = ({
           isUpperCase={true}
           className='!gap-0'
           isDisabled={isDelete && sp_id}
-          sideField='openingBal'
-          nextField='openingBal'
-          prevField='shortName'
-          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-            handleKeyDown(e, formik)
-          }
           showErrorTooltip={
             !!(formik.touched.shortName2 && formik.errors.shortName2)
           } 
@@ -219,15 +165,6 @@ export const CreateSalePurchase = ({
             onBlur={() => {
               formik.setFieldTouched('openingBal', true);
             }}
-            prevField='shortName2'
-            nextField='openingBalType'
-            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                setFocused('openingBalType')
-
-              }
-            }}
             labelClassName='absolute w-fit text-nowrap -top-2 left-1'
             inputClassName='text-left !text-[10px] px-1 !h-[25px] w-fit'
             error={formik.touched.openingBal && formik.errors.openingBal || ''}
@@ -245,7 +182,6 @@ export const CreateSalePurchase = ({
             id='openingBalType'
             isDisabled={isDelete && sp_id}
             onChange={handleFieldChange}
-            isFocused={focused === 'openingBalType'}
             options={[
               { value: 'Cr', label: 'Cr' },
               { value: 'Dr', label: 'Dr' },
@@ -258,7 +194,6 @@ export const CreateSalePurchase = ({
             className='!rounded-none !h-6'
             onBlur={() => {
               formik.setFieldTouched('openingBalType', true);
-              setFocused('');
             }}
             onKeyDown={(
               e: React.KeyboardEvent<HTMLSelectElement>
@@ -267,8 +202,11 @@ export const CreateSalePurchase = ({
                 '.custom-select__menu'
               );
               if (e.key === 'Enter') {
-                !dropdown && e.preventDefault();
-                document.getElementById('submit_button')?.focus();
+                if (!dropdown) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  tabManager.focusManager()
+                }
               }
             }}
           />
@@ -278,27 +216,6 @@ export const CreateSalePurchase = ({
             type='fog'
             id='cancel_button'
             handleOnClick={() => togglePopup(false)}
-            handleOnKeyDown={(e) => {
-              if (e.key === 'Tab') {
-                document
-                  .getElementById(
-                    `${isDelete ? 'del_button' : 'submit_button'}`
-                  )
-                  ?.focus();
-                e.preventDefault();
-              }
-              if (e.key === 'ArrowUp') {
-                e.preventDefault();
-              document.getElementById(`${isDelete ? 'del_button' : 'sptype'}`)?.focus();
-              }
-              if (e.shiftKey && e.key === 'Tab') {
-                setFocused('openingBalType');
-              }
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                togglePopup(false);
-              }
-            }}
           >
             Cancel
           </Button>
@@ -309,33 +226,15 @@ export const CreateSalePurchase = ({
               padding='px-4 py-2'
               btnType='button'
               handleOnClick={handleDeleteFromForm}
-              handleOnKeyDown={(e) => {
-                if (e.key === 'Tab') {
-                  e.preventDefault();
-                  document.getElementById('cancel_button')?.focus();
-                }
-                if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab')) {
-                  document.getElementById('cancel_button')?.focus();
-                }
-              }}
             >
               Delete
             </Button>
           ) : (
             <Button
-              id='submit_button'
+              id='save'
               type='fill'
               padding='px-8 py-2'
-              autoFocus={true}
-              handleOnKeyDown={(e) => {
-                if (e.key === 'Tab' || (!formik.isValid && e.key === 'Enter')) {
-                  document.getElementById('sptype')?.focus();
-                  e.preventDefault();
-                }
-                if (e.key === 'ArrowUp' || (e.shiftKey && e.key === 'Tab')) {
-                  document.getElementById('cancel_button')?.focus();
-                }
-              }}
+              disable={formik.isSubmitting || !formik.isValid}
             >
               {sp_id ? 'Update' : 'Add'}
             </Button>

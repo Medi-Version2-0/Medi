@@ -7,6 +7,7 @@ import { itemFormValidations } from './validation_schema';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { CommonBtn } from '../../components/common/button/CommonFormButtons';
 import { ItemGroupFormData, Option, CompanyFormData, SalesPurchaseFormData, ItemFormInfoType } from '../../interface/global';
+import {  basicInfoChain, costDetailsChain, itemFocusChain, itemInfoChain, miscChain } from '../../constants/focusChain/itemsFocusChain';
 import { useControls } from '../../ControlRoomContext';
 import { SelectList } from '../../components/common/customSelectList/customSelectList';
 import { Container } from '../../components/common/commonFormFields';
@@ -14,7 +15,6 @@ import { TabManager } from '../../components/class/tabManager';
 import { useTabs } from '../../TabsContext';
 import { Company } from '../company';
 import useApi from '../../hooks/useApi';
-import { createItemFieldsChain, itemFocusChain } from '../../constants/focusChain/itemsFocusChain';
 
 const root = process.env.REACT_APP_API_URL;
 
@@ -44,7 +44,6 @@ const CreateItem = ({ setView, data, setShowBatch , fetchItemData, fieldOptions 
   const { sendAPIRequest } = useApi();
   const { openTab } = useTabs();
   const lastElementRef = useRef('')
-
 
   const settingPopupState = (isModal: boolean, message: string, addText: string) => {
     setPopupState({ ...popupState, [isModal ? 'isModalOpen' : 'isAlertOpen']: true, message: message, addText: addText });
@@ -85,26 +84,26 @@ const CreateItem = ({ setView, data, setShowBatch , fetchItemData, fieldOptions 
           maxQty: +values.maxQty,
           minQty: +values.minQty,
         }
-        const formData = new FormData();
 
-        if (finalValues.upload instanceof File) {
-          formData.append('file', finalValues.upload);
-        }
+        const formData = new FormData();
+        Object.keys(values).forEach((key) => {
+          if (values[key] instanceof File) {
+            formData.append('file', values[key]);
+            formData.append(key, 'upload');
+          } else {
+            formData.append(key, values[key]);
+          }
+        });
 
         if (data.id) {
-          await sendAPIRequest(`/item/${data.id}`, { method: 'PUT', body: finalValues });
-          if (formData.has('file')) await sendAPIRequest(`/item/${data.id}`, { method: 'PUT', body: formData });
+          await sendAPIRequest(`/item/${data.id}`, { method: 'PUT', body: formData });
         } else {
-          const resp: any = await sendAPIRequest(`/item`, { method: 'POST', body: finalValues });
-          if (formData.has('file')) {
-            const resp: any = await sendAPIRequest(`/item`, { method: 'POST', body: formData })
-            console.log(" resp ====> ", formData, resp);
-            setNewItem(resp);
-          }
+          const resp: any = await sendAPIRequest(`/item`, { method: 'POST', body: formData });
           setNewItem(resp);
         }
         fetchItemData();
-        settingPopupState(false, `Do you want to create Batches for this item`, 'Add Batch');
+        settingPopupState(false, `Item ${data.id ? 'updated' : 'created'} successfully.`, 'Add Batch');
+        
       } catch (error: any) {
         if (!error?.isErrorHandled) {
           settingPopupState(false, `Failed to ${data.id ? 'update' : 'create'} item`, '');
@@ -121,11 +120,39 @@ const CreateItem = ({ setView, data, setShowBatch , fetchItemData, fieldOptions 
   }, [])
 
   useEffect(() => {
-    tabManager.updateFocusChainAndSetFocus([...createItemFieldsChain] , 'name');
-    if(controlRoomSettings.rackNumber){
-      tabManager.updateFocusChainAndSetFocus([...createItemFieldsChain] , 'name');
-    }
+    const focusChain = getFocusChain()
+    console.log("focusChain", focusChain)
+    tabManager.updateFocusChainAndSetFocus([...focusChain , 'save'] , 'name');    
   }, [])
+
+  const getFocusChain = () => {
+    let modifiedBasicInfoChain = [...basicInfoChain];
+    let modifiedItemInfoChain = [...itemInfoChain];
+    let modifiedMiscChain = [...miscChain];
+  
+    if (controlRoomSettings.packaging) {
+      modifiedBasicInfoChain = [...modifiedBasicInfoChain, 'packing'];
+    }
+  
+    if (controlRoomSettings.batchWiseManufacturingCode) {
+      modifiedItemInfoChain = ['shortName', ...modifiedItemInfoChain];
+    }
+  
+    if (controlRoomSettings.rxNonrx) {
+      modifiedItemInfoChain = [...modifiedItemInfoChain, 'custom_select_prescriptionType'];
+    }
+  
+    if (controlRoomSettings.dpcoAct) {
+      modifiedMiscChain = ['dpcoAct', ...modifiedMiscChain];
+    }
+  
+    if (controlRoomSettings.rackNumber) {
+      modifiedMiscChain = ['rackNumber', ...modifiedMiscChain];
+    }
+  
+    const combinedFocusChain = [...modifiedBasicInfoChain, ...modifiedItemInfoChain, ...costDetailsChain, ...modifiedMiscChain];  
+    return combinedFocusChain;
+  };
 
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
@@ -188,11 +215,6 @@ const CreateItem = ({ setView, data, setShowBatch , fetchItemData, fieldOptions 
     }
   }
 
-  const handleFocusShift = (field: string) => {
-    document.getElementById(field)?.focus();
-    setFocused(field);
-  }
-
   const handleCompanyList = () => {
     setPopupList({
       isOpen: true,
@@ -207,44 +229,30 @@ const CreateItem = ({ setView, data, setShowBatch , fetchItemData, fieldOptions 
         handleSelect: (rowData: any) => {
           handleFieldChange({ label: rowData.companyName, value: rowData.company_id }, 'compId');
           handleFieldValue('compId', rowData.company_id);
-          console.log("row data ===> ", rowData);
           setSelectedCompany(rowData);
-          // controlRoomSettings.packaging ? handleFocusShift('packing') : (controlRoomSettings.batchWiseManufacturingCode ? handleFocusShift('shortName') : handleFocusShift('service'));
         },
-        onEsc: () => {
-          setPopupList({ isOpen: false, data: {} });
-          // controlRoomSettings.packaging ? document.getElementById('packing')?.focus() : (controlRoomSettings.batchWiseManufacturingCode ? 'shortName' : 'service')
-        },
+        onEsc: () => setPopupList({ isOpen: false, data: {} }),
       }
     })
     lastElementRef.current='compId';
   }
 
-  useEffect(() => {
-    console.log('comp id ===> ', itemFormInfo.values.compId === '' || !selectedCompany ? null : selectedCompany?.companyName)
-  }, [itemFormInfo.values.compId])
-
-  const handleCompanyValue = () => {
-    return itemFormInfo.values.compId === '' || !selectedCompany ? null : selectedCompany?.companyName;
-  }
-
   const basicInfoFields = [
-    { label: 'Item Name', id: 'name', name: 'name', isRequired: true, type: 'text', nextField: 'compId', autoFocus: true },
+    { label: 'Item Name', id: 'name', name: 'name', isRequired: true, type: 'text', autoFocus: true },
     {
       label: 'Company',
       id: 'compId',
       name: 'compId',
       isRequired: true,
       type: 'text',
-      // value: `${itemFormInfo.values.compId === '' || !selectedCompany ? null : selectedCompany?.companyName}`, 
       value: itemFormInfo.values.compId === '' || !selectedCompany ? null : selectedCompany?.companyName,
       onClick: handleCompanyList
     },
-    ...controlRoomSettings.packaging ? [{ label: 'Packing', id: 'packing', name: 'packing', type: 'text', nextField: 'shortName', prevField: 'compId' }] : [],
+    ...controlRoomSettings.packaging ? [{ label: 'Packing', id: 'packing', name: 'packing', type: 'text'}] : [],
   ];
 
   const container1Fields = [
-    ...controlRoomSettings.batchWiseManufacturingCode ? [{ label: 'MFG. Code', id: 'shortName', name: 'shortName', type: 'text', prevField: controlRoomSettings.packaging ? 'packing' : 'compId', nextField: 'service' }] : [],
+    ...controlRoomSettings.batchWiseManufacturingCode ? [{ label: 'MFG. Code', id: 'shortName', name: 'shortName', type: 'text'}] : [],
     {
       label: 'Type',
       id: 'service',
@@ -253,82 +261,26 @@ const CreateItem = ({ setView, data, setShowBatch , fetchItemData, fieldOptions 
       options: controlRoomSettings.allowItemAsService
         ? [{ label: 'Goods', value: 'Goods' }, { label: 'Services', value: 'Services' }]
         : [{ label: 'Goods', value: 'Goods' }],
-      // nextField: 'hsnCode',
-      // prevField: controlRoomSettings.batchWiseManufacturingCode ? 'shortName' : controlRoomSettings.packaging ? 'packing' : 'compId',
     },
-    { label: 'HSN/SAC', id: 'hsnCode', name: 'hsnCode', type: 'text', isRequired: true, nextField: 'itemGroupCode', prevField: 'service' },
-    { label: 'Item Group', id: 'itemGroupCode', name: 'itemGroupCode', type: 'select', nextField: 'scheduleDrug', prevField: 'hsnCode', options: options.groupOptions },
-    {
-      label: 'Schedule Drug',
-      id: 'scheduleDrug',
-      name: 'scheduleDrug',
-      type: 'select',
-      options: [{ label: 'Non-H1', value: 'NON-H1' }, { label: 'Schedule H1', value: 'H1' }],
-      // prevField: 'itemGroupCode',
-      // nextField: controlRoomSettings.rxNonrx ? 'prescriptionType' : 'saleAccId',
-    },
-    ...controlRoomSettings.rxNonrx
-      ? [{
-        label: 'Prescription Type',
-        id: 'prescriptionType',
-        name: 'prescriptionType',
-        type: 'select',
-        // nextField: 'saleAccId',
-        // prevField: 'scheduleDrug',
-        options: [{ label: 'RX', value: 'RX' }, { label: 'Non-RX', value: 'NON-RX' }],
-      }] : [],
-  ];
+    { label: 'HSN/SAC', id: 'hsnCode', name: 'hsnCode', type: 'text', isRequired: true},
+    { label: 'Item Group', id:'itemGroupCode', name: 'itemGroupCode', type: 'select', options: options.groupOptions },
+    { label: 'Schedule Drug', id: 'scheduleDrug', name: 'scheduleDrug', type: 'select', options: [{ label: 'Non-H1', value: 'NON-H1' }, { label: 'Schedule H1', value: 'H1' }]},
+    ...controlRoomSettings.rxNonrx ? [{ label: 'Prescription Type', id: 'prescriptionType', name: 'prescriptionType', type: 'select', options: [{ label: 'RX', value: 'RX' }, { label: 'Non-RX', value: 'NON-RX' }]}] : []];
 
   const container2Fields = [
-    { label: 'Sales Account', id: 'saleAccId', name: 'saleAccId', type: 'select', options: options.salesOptions, prevField: controlRoomSettings.rxNonrx ? 'prescriptionType' : 'scheduleDrug', nextField: 'purAccId' },
-    { label: 'Purchase Account', id: 'purAccId', name: 'purAccId', type: 'select', options: options.purchaseOptions, prevField: 'saleAccId', nextField: 'discountPer' },
-    { label: 'Cash Discount %', id: 'discountPer', name: 'cashDiscountPer', type: 'number', nextField: 'marginPercentage', prevField: 'purAccId' },
-    { label: 'Margin %', id: 'marginPercentage', name: 'marginPercentage', type: 'number', nextField: 'minQty', prevField: 'discountPer' },
-    { label: 'Min. Quantity', id: 'minQty', name: 'minQty', nextField: 'maxQty', type: 'number', prevField: 'marginPercentage' },
-    { label: 'Max. Quantity', id: 'maxQty', name: 'maxQty', prevField: 'minQty', type: 'number', nextField: controlRoomSettings.rackNumber ? 'rackNumber' : controlRoomSettings.dpcoAct ? 'dpcoact' : 'upload' },
+    { label: 'Sales Account', id: 'saleAccId', name: 'saleAccId', type: 'select', options: options.salesOptions},
+    { label: 'Purchase Account', id: 'purAccId', name: 'purAccId', type: 'select', options: options.purchaseOptions},
+    { label: 'Cash Discount %', id: 'discountPer', name: 'cashDiscountPer', type: 'number'},
+    { label: 'Margin %', id: 'marginPercentage', name: 'marginPercentage', type: 'number'},
+    { label: 'Min. Quantity', id: 'minQty', name: 'minQty', type: 'number'},
+    { label: 'Max. Quantity', id: 'maxQty', name: 'maxQty', type: 'number' },
   ];
 
   const container3Fields = [
     ...controlRoomSettings.rackNumber ? [{ label: 'Rack No.', id: 'rackNumber', name: 'rackNumber', type: 'text', nextField: 'dpcoact', prevField: 'maxQty' }] : [],
-    ...controlRoomSettings.dpcoAct
-      ? [{
-        label: 'DPCO Act.',
-        id: 'dpcoact',
-        name: 'dpcoact',
-        type: 'select',
-        // nextField: 'upload',
-        // prevField: controlRoomSettings.rackNumber ? 'rackNumber' : 'maxQty',
-        options: [{ label: 'Yes', value: 'Yes' }, { label: 'No', value: 'No' }],
-      }] : [],
-    { label: 'Upload Img.', id: 'upload', name: 'upload', type: 'file', nextField: (itemFormInfo.isValid) ? 'submit_all' : 'name', prevField: controlRoomSettings.dpcoAct ? 'dpcoact' : controlRoomSettings.rackNumber ? 'rackNumber' : 'maxQty' },
+    ...controlRoomSettings.dpcoAct ? [{ label: 'DPCO Act.', id: 'dpcoact', name: 'dpcoact', type: 'select', options: [{ label: 'Yes', value: 'Yes' }, { label: 'No', value: 'No' }]}] : [],
+    { label: 'Upload Img.', id: 'upload', name: 'upload', type: 'file' },
   ];
-
-//   useEffect(() => {
-//     const handleFocusChange = (event: CustomEvent) => {
-//         const { tabId, focusedElementId } = event.detail;
-//       if (tabManager.activeTabId === tabId) {
-//         if (focusedElementId?.includes('compId')) {
-//           if(lastElementRef.current !== 'compId'){
-//             // handlePartyList()
-//             handleCompanyList()
-//           }
-
-//         }
-//         else {
-//           lastElementRef.current = ''
-//         }
-//       }
-//     };
-
-//     window.addEventListener('tabFocusChange', handleFocusChange as EventListener);
-
-//     return () => {
-//         window.removeEventListener('tabFocusChange', handleFocusChange as EventListener);
-//     };
-// }, []);
-
-
-
 
   return (
     <div className='w-full'>
@@ -346,7 +298,7 @@ const CreateItem = ({ setView, data, setShowBatch , fetchItemData, fieldOptions 
             Add Batch
           </Button>
           }
-          <Button type='highlight' id='item_button' handleOnClick={() => {setView(''); tabManager.updateFocusChainAndSetFocus(itemFocusChain, 'add')}} > Back </Button>
+          <Button type='highlight' id='back' handleOnClick={() => {setView(''); tabManager.updateFocusChainAndSetFocus(itemFocusChain, 'add')}} > Back </Button>
         </div>
       </div>
       <form onSubmit={itemFormInfo.handleSubmit} className='flex flex-col w-full'>

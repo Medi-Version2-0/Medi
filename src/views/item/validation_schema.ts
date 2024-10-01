@@ -4,7 +4,7 @@ export const itemFormValidations = Yup.object({
   name: Yup.string()
     .max(250, 'Item Name must be 100 characters or less')
     .required('Item Name is required'),
-  // compId: Yup.number().required('Choose the company.'),
+  compId: Yup.number().required('Choose the company.'),
   packing: Yup.string().max(7, 'Packing must be 7 characters or less'),
   shortName: Yup.string().max(8, 'MFG code must be 8 characters or less').nullable(),
   hsnCode: Yup.string().required()
