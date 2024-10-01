@@ -19,7 +19,8 @@ import useApi from '../../hooks/useApi';
 import { FssaiNumber } from '../../components/ledger form/FssaiNumber.';
 import { useControls } from '../../ControlRoomContext';
 import { TabManager } from '../../components/class/tabManager';
-import { BalanceChain, BalanceChainIsSUNDRY, bankChain, contactChain, FassiChain, GeneralInfoChainIsSUNDRY, GernalInfoChain, GstChain, ledgerViewChain, Licence2Chain, LicenceChain, TaxChain } from '../../constants/focusChain/ledgerFocusChain';
+import { BalanceChain, BalanceChainIsSUNDRY, bankChain, contactChain, FassiChain, GeneralInfoChainIsSUNDRY, GernalInfoChain, GstChain, ledgerViewChain, Licence2Chain, LicenceChain, NrxH1ItemChain, TaxChain } from '../../constants/focusChain/ledgerFocusChain';
+import { NRXAndH1 } from '../../components/ledger form/StopNRX_H1';
 
 const initialState = {
   btn_1: false,
@@ -46,7 +47,7 @@ export const CreateLedger = ({ setView, data, getAndSetParties, stations }: any)
   const { controlRoomSettings } = useControls();
 
   useEffect(() => {
-    tabManager.updateFocusChainAndSetFocus([...GernalInfoChain , ...BalanceChain] , 'partyName')
+    tabManager.updateFocusChainAndSetFocus([...GernalInfoChain, ...BalanceChain, ...NrxH1ItemChain, 'save'] , 'partyName')
     async function getAndSetGroups(){
       try{
         const allGroups = await sendAPIRequest('/group');
@@ -91,8 +92,8 @@ export const CreateLedger = ({ setView, data, getAndSetParties, stations }: any)
       routeNo: data?.routeNo || '',
       partyCashCreditInvoice: data?.partyCashCreditInvoice || '',
       deductDiscount: data?.deductDiscount || '',
-      stopNrx: data?.stopNrx || '',
-      stopHi: data?.stopHi || '',
+      stopNrx: data?.stopNrx || false,
+      stopH1: data?.stopH1 || false,
       notPrinpba: data?.notPrinpba || '',
       openingBal: data?.openingBal || '',
       openingBalType: data?.openingBalType || 'Dr',
@@ -173,7 +174,7 @@ export const CreateLedger = ({ setView, data, getAndSetParties, stations }: any)
       handleTaxChain('GST_Tax_Details' , 'custom_select_accountGroup')
     }
     else {
-     tabManager.updateFocusChainAndSetFocus([...GernalInfoChain , ...BalanceChain] , 'custom_select_accountGroup')
+      tabManager.updateFocusChainAndSetFocus([...GernalInfoChain, ...BalanceChain, ...NrxH1ItemChain, 'save'] , 'custom_select_accountGroup')
     }
    }, [isSUNDRY])
 
@@ -196,6 +197,7 @@ export const CreateLedger = ({ setView, data, getAndSetParties, stations }: any)
   }, [group]);
 
   const handleValueChange = (value: string) => {
+    const selectedGroupDetails =  groups.find(group => group.group_name === value.toUpperCase());
     if (value !== data?.accountGroup) {
       const newValues: any = {};
       Object.keys(ledgerFormInfo.initialValues).forEach((key) => {
@@ -216,6 +218,7 @@ export const CreateLedger = ({ setView, data, getAndSetParties, stations }: any)
       }
       newValues.openingBal = '';
       newValues.openingBalType = 'Dr';
+      newValues.partyType = selectedGroupDetails.type;
       ledgerFormInfo.setValues(newValues);
     } else {
       const initialValues = { ...data, accountGroup: value };
@@ -262,11 +265,11 @@ export const CreateLedger = ({ setView, data, getAndSetParties, stations }: any)
     }
   }
 
-  const handleTaxChain = (id: string ,label :string) => {
+  const handleTaxChain = async (id: string ,label :string) => {
     let updatedTaxChain = [...TaxChain ,...controlRoomSettings.fssaiNumber ? ['FSSAI_Number'] : []];
     const idMapping: Record<string, string[]> = {
       'GST_Tax_Details': GstChain,
-      'Licence_Info': ledgerFormInfo.values.drugLicenceNo2 !== '' ? Licence2Chain : LicenceChain,
+      'Licence_Info': LicenceChain,
       'Contact_Info': contactChain,
       'Bank_Details' : bankChain,
       ...controlRoomSettings.fssaiNumber ? {'FSSAI_Number': FassiChain} : {}
@@ -281,24 +284,7 @@ export const CreateLedger = ({ setView, data, getAndSetParties, stations }: any)
       ];
     }
     if(isSUNDRY){
-      tabManager.updateFocusChainAndSetFocus([...GeneralInfoChainIsSUNDRY , ...BalanceChainIsSUNDRY , ...updatedTaxChain , 'save'] , getInitialFocusFieldName(label))
-  }
-  };
-
-  const addLicence2DetailsToTaxChain = () => {
-    let updatedTaxChain = [...TaxChain ,...controlRoomSettings.fssaiNumber ? ['FSSAI_Number'] : []];
-  
-    const licenceDetails =  Licence2Chain;
-        const index = updatedTaxChain.indexOf('Licence_Info');
-    if (index !== -1) {
-      updatedTaxChain = [
-        ...updatedTaxChain.slice(0, index + 1),
-        ...licenceDetails,                 
-        ...updatedTaxChain.slice(index + 1)
-      ];
-    }
-    if(isSUNDRY){
-      tabManager.updateFocusChainAndSetFocus([...GeneralInfoChainIsSUNDRY , ...BalanceChainIsSUNDRY , ...updatedTaxChain , 'save'] , 'drugLicenceNo2')
+      tabManager.updateFocusChainAndSetFocus([...GeneralInfoChainIsSUNDRY, ...controlRoomSettings.multiPriceList ? ['custom_select_salesPriceList', 'excessRate'] : ['excessRate'], ...BalanceChainIsSUNDRY, ...NrxH1ItemChain ,...updatedTaxChain , 'save'] , getInitialFocusFieldName(label))
     }
   };
   
@@ -334,6 +320,7 @@ export const CreateLedger = ({ setView, data, getAndSetParties, stations }: any)
           <div className='flex flex-col gap-6 w-[40%]'>
             <BalanceDetails selectedGroupName={group} formik={ledgerFormInfo} />
             <ContactNumbers selectedGroupName={group} formik={ledgerFormInfo} />
+            <NRXAndH1 formik={ledgerFormInfo} />
           </div>
         </div>
         {
@@ -363,7 +350,7 @@ export const CreateLedger = ({ setView, data, getAndSetParties, stations }: any)
               </div>
               {showActiveElement.btn_1 && <TaxDetails formik={ledgerFormInfo} />}
               {showActiveElement.btn_2 && (
-                <LicenceDetails formik={ledgerFormInfo} addDl2 = {addLicence2DetailsToTaxChain} />
+                <LicenceDetails formik={ledgerFormInfo} />
               )}
               {showActiveElement.btn_3 && (
                 <ContactDetails formik={ledgerFormInfo} />
