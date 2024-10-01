@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { FaEdit } from 'react-icons/fa';
 import { MdDeleteForever } from 'react-icons/md';
@@ -29,14 +29,13 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState<SalesPurchaseFormData>(initialValue);
   const [selectedRow, setSelectedRow] = useState<any>(null);
+  const popupInitialState = useMemo(() => {
+    return { isModalOpen: false, isAlertOpen: false, message: '' };
+  }, []);
   const { createAccess, updateAccess, deleteAccess } = usePermission(type === 'Sales' ?'saleaccount' : 'purchaseaccount')
   const [tableData, setTableData] = useState<SalesPurchaseFormData[]>([]);
 
-  const [popupState, setPopupState] = useState({
-    isModalOpen: false,
-    isAlertOpen: false,
-    message: '',
-  });
+  const [popupState, setPopupState] = useState(popupInitialState);
   const editing = useRef(false);
   const isDelete = useRef(false);
 
@@ -74,7 +73,8 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
       event,
       handleDelete,
       handleUpdate,
-      togglePopup,
+      togglePopup, // will be removed
+      // undefined,
       selectedRow,
       undefined
     );
@@ -82,7 +82,7 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
   useHandleKeydown(handleKeyDown, [selectedRow, popupState])
 
   const handleAlertCloseModal = () => {
-    setPopupState({ ...popupState, isAlertOpen: false, isModalOpen: false });
+    setPopupState(popupInitialState);
   };
 
   const handleClosePopup = () => {
@@ -102,6 +102,13 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
         : `${endPoint}`;
       const method = data.sp_id ? 'PUT' : 'POST';
       const filteredData:any = removeNullUndefinedEmptyString(data);
+      console.log('filteredData ==> ',filteredData)
+      if (!filteredData.shortName){
+        filteredData.shortName = '';
+      }
+      if (!filteredData.shortName2){
+        filteredData.shortName2 = '';
+      }
       filteredData.igst = parseFloat(filteredData.igst)
       filteredData.openingBal = parseFloat(filteredData.openingBal)
       filteredData.surCharge = parseFloat(filteredData.surCharge)
@@ -145,13 +152,15 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
     togglePopup(false);
     try {
       await sendAPIRequest(endpoint, { method: 'DELETE' });
-      settingPopupState(false,`${type}Account deleted`)
       await getAndSetTableData();
+      setPopupState(popupInitialState);
     } catch (error: any) {
       if (!error?.isErrorHandled) {
         if (error.response.data) settingPopupState(false, error.response.data.error.message);
         console.log(`${type === 'Sales' ? "SaleAccount" : "PurchaseAccount"} not deleted`);
       }
+    }finally{
+      setSelectedRow(null);
     }
   };
 
@@ -329,7 +338,7 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
           <h1 className='font-bold'>{type} Account</h1>
           {createAccess &&<Button
             type='highlight'
-            id='sp_button'
+            id='add'
             handleOnClick={() => togglePopup(true)}
           >
             Add {type}

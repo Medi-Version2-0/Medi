@@ -34,6 +34,10 @@ import { Godown } from '../../views/godown/godown';
 import { saleChallanView } from '../../constants/focusChain/saleChallan';
 import { stationFocusChain } from '../../constants/focusChain/stationFocusChain';
 import { ledgerViewChain } from '../../constants/focusChain/ledgerFocusChain';
+import { groupViewChain } from '../../constants/focusChain/groupsFocusChain';
+import { subGroupViewChain } from '../../constants/focusChain/subGroupFocusChain';
+import { saleAccountViewChain } from '../../constants/focusChain/saleAccountFocusChain';
+import { purchaseAccountViewChain } from '../../constants/focusChain/purchseAccountFocusChain';
 
 interface SidebarProps {
   isGroup?: boolean;
@@ -76,13 +80,13 @@ const Sidebar: React.FC<SidebarProps> = ({
     {
       url: '/groups',
       label: 'Groups',
-      onClick: () => openTab?.('Groups', <Groups />),
+      onClick: () => tabManager.openTab('Groups', <Groups />, groupViewChain, openTab),
       isDisabled: isNotReadAccess('group')
     },
     {
       url: '/subgroups',
       label: 'Sub Groups',
-      onClick: () => openTab?.('Sub Groups', <SubGroups />),
+      onClick: () => tabManager.openTab('Sub Groups', <SubGroups />, subGroupViewChain, openTab),
       isDisabled: isNotReadAccess('subgroup')
     },
     {
@@ -112,13 +116,13 @@ const Sidebar: React.FC<SidebarProps> = ({
     {
       url: '/sales_purchase_table',
       label: 'Sales Account',
-      onClick: () => openTab?.('Sales Account', <Sales_Table type={'Sales'} />),
+      onClick: () => tabManager.openTab('Sales Account', <Sales_Table type={'Sales'} />, saleAccountViewChain, openTab),
       isDisabled: isNotReadAccess('saleaccount')
     },
     {
       url: '/sales_purchase_table',
       label: 'Purchase Account',
-      onClick: () => openTab?.('Purchase Account', <Sales_Table type='Purchase' />),
+      onClick: () => tabManager.openTab('Purchase Account', <Sales_Table type='Purchase' />, purchaseAccountViewChain, openTab),
       isDisabled: isNotReadAccess('purchaseaccount')
     },
     {
