@@ -39,6 +39,7 @@ import { subGroupViewChain } from '../../constants/focusChain/subGroupFocusChain
 import { salePurchaseAccountViewChain } from '../../constants/focusChain/salePurchaseAccountFocusChain';
 import { storeViewChain } from '../../constants/focusChain/storeFocusChain';
 import { companyViewChain } from '../../constants/focusChain/companyFocusChain';
+import { partywiseDiscountViewChain } from '../../constants/focusChain/partywiseDiscount'
 
 interface SidebarProps {
   isGroup?: boolean;
@@ -149,7 +150,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       url: '/discount',
       label: 'Party-wise discount',
       icon: <FaPlus className='fill-yellow-900' />,
-      onClick: () => openTab?.('Party-wise discount', <PartyWiseDiscount />),
+      onClick: () => tabManager.openTab('Party-wise discount', <PartyWiseDiscount /> , partywiseDiscountViewChain , openTab),
       isDisabled: isNotReadAccess('partywisediscount')
     },
     ...(controlRoomSettings.pricewisePartyList ? [
