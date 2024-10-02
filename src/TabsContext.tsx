@@ -18,11 +18,9 @@ export const TabsProvider: React.FC<{ children: React.ReactNode; ready: (cb: (in
       tabManager.setDynTabsInstance(instance)
       if (!listenersAddedRef.current) {
         const handleSelect = (tab: { currentSelectedTabId: string; previousSelectedTabId: string }) => {
-          console.log('calling on select');
           tabManager.setActiveTab(tab.currentSelectedTabId);
         };
         const handleClose = (closedTab: [string]) => {
-          console.log('calling onClose', closedTab[0]);
           tabManager.closeTab(closedTab[0]);
         };
         instance.on('onSelect', handleSelect);

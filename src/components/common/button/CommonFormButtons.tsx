@@ -27,6 +27,7 @@ export const CommonBtn: FC<ButtonProps> = ({
             case "cancel":
                 return "bg-white hover:bg-gray-100 font-medium text-[#171A1FFF] border-2 border-solid border-[#cbc9c9] focus:border-yellow-500 focus-visible:border-yellow-500";
             case "delete":
+                return "bg-[#009196FF] hover:bg-[#009196e3] font-medium text-white border-2 border-solid border-[white] focus:border-yellow-500 focus-visible:border-yellow-500";
             case 'submit':
                 return "bg-[#009196FF] hover:bg-[#009196e3] font-medium text-white rounded-md border-none focus:border-yellow-500 focus-visible:border-yellow-500";
             default:

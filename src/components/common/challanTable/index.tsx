@@ -241,6 +241,7 @@ export const ChallanTable = ({
                           <CustomSelect
                             isPopupOpen={false}
                             isSearchable={true}
+                            disableArrow={false}
                             id={`cell-${rowIndex}-${colIndex}`}
                             isFocused={
                               focused === `cell-${rowIndex}-${colIndex}`

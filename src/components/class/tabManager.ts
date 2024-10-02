@@ -87,6 +87,14 @@ export class TabManager {
                         return;
                     }
                 }
+
+                if(event.key === 'Escape'){
+                    const cross = document.querySelector(`[id="${lastPopup.popupId}"] #cross`) as HTMLElement;
+                    if(cross){
+                        cross.click();
+                        return;
+                    }
+                }
             }
             if (activeTab?.lastFocusedElementId?.includes('cell')){
                 return;
@@ -226,8 +234,8 @@ export class TabManager {
 
             if (!elementFound) {
                 activeTab.lastFocusedElementId = focusElementId;
+                this.emitFocusChange(this.activeTabId!, focusElementId);
             }
-            this.emitFocusChange(this.activeTabId!, focusElementId);
         }, 0);
     }
 

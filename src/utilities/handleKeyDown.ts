@@ -9,9 +9,9 @@ export const handleKeyDownCommon = (
   dataToSave?: any,
 ) => {
   switch (event.key) {
-    case 'Escape':
-      if (togglePopup) togglePopup(false);
-      break;
+    // case 'Escape':
+    //   if (togglePopup) togglePopup(false);
+    //   break;
     // case 'n':
     // case 'N':
     //   if (event.ctrlKey) {
