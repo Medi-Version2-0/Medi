@@ -92,6 +92,10 @@ code {
   text-transform: uppercase;
 }
 
+.ag-input-field-input[type="text"].ag-text-field-input {
+  text-transform: uppercase;
+}
+
 .ag-ltr .ag-cell {
   border-right: 1px solid #ccc !important;
 }
