@@ -15,7 +15,6 @@ import useToastManager from '../../helper/toastManager';
 import useApi from '../../hooks/useApi';
 import { useSelector } from 'react-redux';
 import { TabManager } from '../../components/class/tabManager';
-import { saleChallanView } from '../../constants/focusChain/saleChallan';
 
 const DeliveryChallan = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
@@ -58,11 +57,6 @@ const DeliveryChallan = () => {
     getDeliveryChallanData();
   }, [data]);
 
-    useEffect(() => {
-      if(view.type !== 'add'){
-        tabManager.updateFocusChainAndSetFocus(saleChallanView, 'add')
-      }
-    }, [view])
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);

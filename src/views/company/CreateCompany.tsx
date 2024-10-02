@@ -395,7 +395,7 @@ export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: a
                 <div className='w-[33%]'>
                   <CustomSelect
                     isPopupOpen={false}
-                    label='Sales Account'
+                    label='Sale Account'
                     id='salesId'
                     labelClass='min-w-[110px]'
                     value={

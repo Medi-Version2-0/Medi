@@ -469,6 +469,7 @@ export type FieldConfig = {
   textFieldClassName?: string;
   minLength?: number; 
   maxLength?: number;
+  max?: number
   isTitleCase?: boolean;
   value? : string;
   onFocus?: () => void;

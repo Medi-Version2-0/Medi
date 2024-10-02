@@ -55,7 +55,7 @@ export const getCompanyFormSchema = Yup.object({
 
   panNumber: Yup.string().matches(panRegex, 'Invalid Pan Card Number'),
 
-  salesId: Yup.string().required('Sales Account is required'),
+  salesId: Yup.string().required('Sale Account is required'),
 
   purchaseId: Yup.string().required('Purchase Account is required'),
 

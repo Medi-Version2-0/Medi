@@ -20,7 +20,7 @@ import { pendingChallansList } from '../../constants/saleChallan';
 import useApi from '../../hooks/useApi';
 import usePartyFooterData from '../../hooks/usePartyFooterData';
 import { TabManager } from '../../components/class/tabManager';
-import { createSaleChallanAllStation, createSaleChallanOneStation } from '../../constants/focusChain/saleChallan';
+import { createSaleChallanAllStation, createSaleChallanOneStation, saleChallanView } from '../../constants/focusChain/saleChallan';
 
 export interface DeliveryChallanFormValues {
   oneStation: string;
@@ -404,6 +404,9 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
           id='back'
           handleOnClick={() => {
             setView({ type: '', data: {} });
+            setTimeout(() => {
+              tabManager.updateFocusChainAndSetFocus(saleChallanView, 'add')
+            }, 0);
           }}
         >
           Back

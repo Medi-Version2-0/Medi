@@ -49,7 +49,7 @@ const Items = ({type = '' , batchData = null}) => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [view.type]);
 
   const itemSettingsInitialValues = {
     generateBarcodeBatchWise: controlRoomSettings.generateBarcodeBatchWise || false,

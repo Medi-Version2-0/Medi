@@ -123,8 +123,8 @@ const Sidebar: React.FC<SidebarProps> = ({
     },
     {
       url: '/sales_purchase_table',
-      label: 'Sales Account',
-      onClick: () => tabManager.openTab('Sales Account', <Sales_Table type={'Sales'} />, salePurchaseAccountViewChain, openTab),
+      label: 'Sale Account',
+      onClick: () => tabManager.openTab('Sale Account', <Sales_Table type={'Sales'} />, salePurchaseAccountViewChain, openTab),
       isDisabled: isNotReadAccess('saleaccount')
     },
     {
