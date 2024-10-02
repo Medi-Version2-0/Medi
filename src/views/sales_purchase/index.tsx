@@ -359,6 +359,7 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
         </div>
         {(popupState.isModalOpen || popupState.isAlertOpen) && (
           <Confirm_Alert_Popup
+            id='stAlert'
             onClose={handleClosePopup}
             onConfirm={
               popupState.isAlertOpen

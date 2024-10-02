@@ -41,7 +41,7 @@ export const ItemGroups = () => {
   }
 
   const settingPopupState = (isModal: boolean, message: string) => {
-    setPopupState({ ...popupState, [isModal ? 'isModalOpen' : 'isAlertOpen']: true, message: message });
+    setPopupState({ ...popupState, [isModal ? 'isModalOpen' : 'isAlertOpen']: true, [!isModal ? 'isModalOpen' : 'isAlertOpen'] :false, message: message });
   };
 
   const togglePopup = (isOpen: boolean) => {
@@ -252,7 +252,7 @@ export const ItemGroups = () => {
         <div id='account_table' className='ag-theme-quartz'>
           <AgGridReact rowData={tableData} columnDefs={colDefs} defaultColDef={defaultCols} onCellClicked={onCellClicked} onCellEditingStarted={cellEditingStarted} onCellEditingStopped={handleCellEditingStopped} />
         </div>
-        {(popupState.isModalOpen || popupState.isAlertOpen) && (<Confirm_Alert_Popup onClose={handleClosePopup} onConfirm={popupState.isAlertOpen ? handleAlertCloseModal : deleteAcc} message={popupState.message} isAlert={popupState.isAlertOpen} className='absolute' />)}
+        {(popupState.isModalOpen || popupState.isAlertOpen) && (<Confirm_Alert_Popup id='itemGroupAlert' onClose={handleClosePopup} onConfirm={popupState.isAlertOpen ? handleAlertCloseModal : deleteAcc} message={popupState.message} isAlert={popupState.isAlertOpen} className='absolute' />)}
         {open && (<CreateItemGroup togglePopup={togglePopup} focusChain={isDelete.current ? deleteItemGroupChain : createItemGroupFieldsChain} data={formData} handleConfirmPopup={handleConfirmPopup} isDelete={isDelete.current} handleDeleteFromForm={handleDeleteFromForm} className='absolute' />)}
       </div>
     </>

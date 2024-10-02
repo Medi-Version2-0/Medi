@@ -372,6 +372,7 @@ export const PartyLockedSetup = () => {
 
       {(popupState.isModalOpen || popupState.isAlertOpen) && (
           <Confirm_Alert_Popup
+            id='plAlert'
             onClose={handleClosePopup}
             onConfirm={
               popupState.isAlertOpen

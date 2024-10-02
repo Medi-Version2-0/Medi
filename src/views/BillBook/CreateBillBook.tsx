@@ -73,6 +73,7 @@ export const CreateBillBook = ({
             : 'Create Series'
       }
       className={className}
+      onClose={() => togglePopup(false)}
     >
       <Formik
         innerRef={formikRef}

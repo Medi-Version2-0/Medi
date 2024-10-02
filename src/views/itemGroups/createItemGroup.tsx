@@ -35,7 +35,7 @@ export const CreateItemGroup: React.FC<CreateItemGroupProps> = ({togglePopup, da
   ]
 
   return (
-    <Popup id='create_itemGroup' focusChain={focusChain} heading={ group_code && isDelete ? 'Delete Group' : group_code ? 'Update Group' : 'Create Group' } className={className} >
+    <Popup id='create_itemGroup' onClose={() => togglePopup(false)} focusChain={focusChain} heading={ group_code && isDelete ? 'Delete Group' : group_code ? 'Update Group' : 'Create Group' } className={className} >
       <PopupFormContainer fields={itemGroupFormFields} formik={itemGroupInfo} setFocused={setFocused} focused={focused} />
       <div className='flex justify-between p-4 w-full'>
         <CommonBtn variant='cancel' component='itemGroup' handleOnClick={() => togglePopup(false)} > Cancel </CommonBtn>

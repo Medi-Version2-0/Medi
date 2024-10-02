@@ -467,18 +467,14 @@ export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: a
                     isPopupOpen={false}
                     id='purSaleAc'
                     label='Sale/Purchase Account Same for Every Item'
-                    value={
-                      formik.values.purSaleAc === ''
-                        ? null
-                        : {
-                          label: formik.values.purSaleAc,
-                          value: formik.values.purSaleAc,
-                        }
-                    }
+                    value={[
+                      { value: false, label: 'No' },
+                      { value: true, label: 'Yes' },
+                    ].find((option) => option.value === formik.values['purSaleAc']) || null}
                     onChange={handleFieldChange}
                     options={[
-                      { value: 'No', label: 'No' },
-                      { value: 'Yes', label: 'Yes' },
+                      { value: false, label: 'No' },
+                      { value: true, label: 'Yes' },
                     ]}
                     isSearchable={false}
                     placeholder=''
@@ -554,19 +550,24 @@ export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: a
               </div>
               <div className='flex gap-[3rem] m-[1px] w-full'>
                 <div className='w-[50%]'>
-                  <FormikInputField
-                    isPopupOpen={false}
+
+                  <NumberInput
                     label='CD% CUST'
                     id='discPercent'
                     name='discPercent'
-                    formik={formik}
-                    className='!mb-0'
+                    className='gap-2'
                     maxLength={5}
-                    labelClassName='min-w-[110px]'
                     isRequired={false}
-                    showErrorTooltip={
-                      formik.touched.discPercent && !!formik.errors.discPercent
-                    }
+                    min={0}
+                    max={100}
+                    value={formik.values.discPercent}
+                    onChange={(value) => formik.setFieldValue('discPercent', value)}
+                    onBlur={() => {
+                      formik.setFieldTouched('discPercent', true);
+                    }}
+                    labelClassName='min-w-[110px] !px-0'
+                    inputClassName='!text-[10px] px-1 !h-[22px] !w-[70%]'
+                    error={formik.touched.discPercent && formik.errors.discPercent}
                   />
                 </div>
                 <div className='w-[50%]'>
@@ -579,14 +580,10 @@ export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: a
                       { value: false, label: 'No' },
                       { value: true, label: 'Yes' },
                     ]}
-                    value={
-                      formik.values.isDiscountPercent === ''
-                        ? null
-                        : {
-                          label: formik.values.isDiscountPercent,
-                          value: formik.values.isDiscountPercent,
-                        }
-                    }
+                    value={[
+                      { value: false, label: 'No' },
+                      { value: true, label: 'Yes' },
+                    ].find((option) => option.value === formik.values['isDiscountPercent']) || null}
                     isSearchable={false}
                     disableArrow={false}
                     hidePlaceholder={false}
@@ -745,6 +742,7 @@ export const CreateCompany = ({ setView , data, stations, getAndSetTableData}: a
       </form>
       {(popupState.isModalOpen || popupState.isAlertOpen) && (
         <Confirm_Alert_Popup
+          id='crateCompanyAlert'
           onClose={handleClosePopup}
           onConfirm={handleAlertCloseModal}
           message={popupState.message}

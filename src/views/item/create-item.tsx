@@ -308,6 +308,7 @@ const CreateItem = ({ setView, data, setShowBatch , fetchItemData, fieldOptions 
       </form>
       {(popupState.isModalOpen || popupState.isAlertOpen) && (
         <Confirm_Alert_Popup
+          id='createItemAlert'
           onClose={handleAlertCloseModal}
           onConfirm={handleAlertCloseModal}
           message={popupState.message}

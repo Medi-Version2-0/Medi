@@ -339,6 +339,7 @@ export const Ledger = ({type = ''}) => {
         )}
         {(popupState.isModalOpen || popupState.isAlertOpen) && (
           <Confirm_Alert_Popup
+            id='viewLedgerAlert'
             onClose={handleClosePopup}
             onConfirm={
               popupState.isAlertOpen

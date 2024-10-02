@@ -75,6 +75,7 @@ export const CreateSalePurchase = ({
             : `Add ${type} Account`
       }
       className={className}
+      onClose={() => togglePopup(false)}
     >
       <form
         onSubmit={formik.handleSubmit}

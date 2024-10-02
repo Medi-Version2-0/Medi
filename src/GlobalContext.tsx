@@ -70,6 +70,7 @@ export const GlobalProvider: React.FC<{ children: ReactNode }> = ({
         (popup === 403) &&
         <Confirm_Alert_Popup
           className='absolute'
+          id='403'
           isAlert={true}
           message={alertMessage.current}
           onClose={hidePopup}

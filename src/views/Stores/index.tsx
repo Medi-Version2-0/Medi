@@ -323,6 +323,7 @@ export const Store = () => {
             message={popupState.message}
             isAlert={popupState.isAlertOpen}
             className='absolute'
+            id='storeAlert'
           />
         )}
         {open && (

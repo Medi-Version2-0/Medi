@@ -43,11 +43,8 @@ export const Groups = () => {
   const gridRef = useRef<any>(null);
 
   const settingPopupState = (isModal: boolean, message: string) => {
-    setPopupState({
-      ...popupState,
-      [isModal ? 'isModalOpen' : 'isAlertOpen']: true,
-      message: message,
-    });
+    setPopupState({ ...popupState, [isModal ? 'isModalOpen' : 'isAlertOpen']: true, [!isModal ? 'isModalOpen' : 'isAlertOpen'] :false, message: message });
+
   };
 
   async function getAndSetGroups() {
@@ -335,6 +332,7 @@ export const Groups = () => {
         </div>
         {(popupState.isModalOpen || popupState.isAlertOpen) && (
           <Confirm_Alert_Popup
+          id='viewGroupAlert'
             onClose={handleClosePopup}
             onConfirm={
               popupState.isAlertOpen

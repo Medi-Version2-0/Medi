@@ -432,6 +432,7 @@ export const BillBook = () => {
 
           {(popupState.isModalOpen || popupState.isAlertOpen) && (
             <Confirm_Alert_Popup
+              id='billBookAlert'
               onClose={handleClosePopup}
               onConfirm={
                 popupState.isAlertOpen

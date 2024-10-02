@@ -375,6 +375,7 @@ export const CreateLedger = ({ setView, data, getAndSetParties, stations }: any)
       </form>
       {(popupState.isModalOpen || popupState.isAlertOpen) && (
         <Confirm_Alert_Popup
+          id='createLedgerAlert'
           onClose={handleClosePopup}
           onConfirm={handleAlertCloseModal}
           message={popupState.message}

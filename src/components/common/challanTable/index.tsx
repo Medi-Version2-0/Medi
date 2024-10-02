@@ -396,6 +396,7 @@ export const ChallanTable = ({
 
         {popupState.isAlertOpen && (
           <Confirm_Alert_Popup
+            id='challanTableAlert'
             onClose={handleClosePopup}
             onConfirm={handleAlertCloseModal}
             message={popupState.message}

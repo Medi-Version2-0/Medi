@@ -245,6 +245,7 @@ const Items = ({type = '' , batchData = null}) => {
             )}
             {(popupState.isModalOpen || popupState.isAlertOpen) && (
               <Confirm_Alert_Popup
+                id='viewItemAlert'
                 onClose={handleClosePopup}
                 onConfirm={ popupState.isAlertOpen ? handleAlertCloseModal : handleConfirmPopup }
                 message={popupState.message}

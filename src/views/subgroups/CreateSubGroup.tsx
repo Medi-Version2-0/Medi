@@ -55,6 +55,7 @@ export const CreateSubGroup: React.FC<CreateSubGroupProps> = ({
             : 'Create Sub-Group'
       }
       className={className}
+      onClose={() => togglePopup(false)}
     >
       <Formik
         innerRef={formikRef}
