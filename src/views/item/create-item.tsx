@@ -243,7 +243,6 @@ const CreateItem = ({ setView, data, setShowBatch , fetchItemData, fieldOptions 
     lastElementRef.current='compId';
   }
   
-  console.log(selectedCompany , 'dsflkj' , data)
 
   const basicInfoFields = [
     { label: 'Item Name', id: 'name', name: 'name', isRequired: true, type: 'text', autoFocus: true },
