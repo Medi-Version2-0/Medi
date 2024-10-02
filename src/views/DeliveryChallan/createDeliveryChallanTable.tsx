@@ -98,7 +98,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     return () => {
         window.removeEventListener('tabFocusChange', handleFocusChange as EventListener);
     };
-}, [itemValue , batches]);
+}, [itemValue , batches , gridData.length]);
 
 
   useEffect(() => {
@@ -471,9 +471,10 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
       }
     })
   }
+  console.log(gridData , 'gridata')
 
   const openBatch = (rowIndex: number) => {
-    const selectedItem = itemValue.find((item: any) => item.id === gridData[rowIndex].columns.itemId?.value);
+    const selectedItem = itemValue.find((item: any) => item.id === gridData[rowIndex]?.columns.itemId?.value);
     if (!selectedItem) {
       setPopupState({ ...popupState, isAlertOpen: true, message: 'Select item name first' });
       return document.getElementById(`cell-${rowIndex}-${focusColIndex.current + 1}`)?.focus();

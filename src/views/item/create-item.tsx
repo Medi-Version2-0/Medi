@@ -7,7 +7,7 @@ import { itemFormValidations } from './validation_schema';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { CommonBtn } from '../../components/common/button/CommonFormButtons';
 import { ItemGroupFormData, Option, CompanyFormData, SalesPurchaseFormData, ItemFormInfoType } from '../../interface/global';
-import {  basicInfoChain, costDetailsChain, itemFocusChain, itemInfoChain, miscChain } from '../../constants/focusChain/itemsFocusChain';
+import {  basicInfoChain, basicInfoChainPacking, costDetailsChain, itemFocusChain, itemInfoChain, itemInfoChianIG, miscChain } from '../../constants/focusChain/itemsFocusChain';
 import { useControls } from '../../ControlRoomContext';
 import { SelectList } from '../../components/common/customSelectList/customSelectList';
 import { Container } from '../../components/common/commonFormFields';
@@ -28,7 +28,7 @@ export const companyHeader = [
 export const companyFooterData = [
   {
     label: 'Comapny Info',
-    data: [ {label: 'GSTIN', key: 'gstIn'}, {label: 'Sales Account', key: 'salesId'}, {label: 'Purchase Account', key: 'purchaseId'}, {label: 'MFG Code', key: 'shortName'}]
+    data: [ {label: 'GSTIN', key: 'gstIn'}, {label: 'Sale Account', key: 'salesId'}, {label: 'Purchase Account', key: 'purchaseId'}, {label: 'MFG Code', key: 'shortName'}]
   }
 ]
 
@@ -113,15 +113,27 @@ const CreateItem = ({ setView, data, setShowBatch , fetchItemData, fieldOptions 
   useEffect(() => {
     const focusChain = getFocusChain()
     tabManager.updateFocusChainAndSetFocus([...focusChain , 'save'] , 'name');    
-  }, [])
+  }, [controlRoomSettings.allowItemAsService , options.groupOptions?.length])
 
   const getFocusChain = () => {
     let modifiedBasicInfoChain = [...basicInfoChain];
-    let modifiedItemInfoChain = [...itemInfoChain];
+    let modifiedItemInfoChain = [...itemInfoChianIG];
     let modifiedMiscChain = [...miscChain];
   
     if (controlRoomSettings.packaging) {
-      modifiedBasicInfoChain = [...modifiedBasicInfoChain, 'packing'];
+      modifiedBasicInfoChain = [...basicInfoChainPacking];
+    }
+
+    if (data?.id){
+      modifiedBasicInfoChain = ['addBatch' , ...modifiedBasicInfoChain]
+    }
+
+    if(!options.groupOptions?.length){
+      modifiedItemInfoChain = [...itemInfoChain];
+    }
+
+    if(controlRoomSettings.allowItemAsService){
+      modifiedItemInfoChain = ['custom_select_service', ...modifiedItemInfoChain];
     }
   
     if (controlRoomSettings.batchWiseManufacturingCode) {
@@ -220,7 +232,7 @@ const CreateItem = ({ setView, data, setShowBatch , fetchItemData, fieldOptions 
           handleFieldChange({ label: rowData.companyName, value: rowData.company_id }, 'compId');
           handleFieldValue('compId', rowData.company_id);
           setSelectedCompany(rowData);
-          tabManager.setTabLastFocusedElementId(controlRoomSettings.packaging ? 'packing' : controlRoomSettings.batchWiseManufacturingCode ? 'shortName' : 'service' )
+          tabManager.setTabLastFocusedElementId(controlRoomSettings.batchWiseManufacturingCode ? 'shortName' : controlRoomSettings.allowItemAsService ? 'service' : 'hsnCode' )
           setTimeout(() => {
             itemFormInfo.setFieldTouched('compId', true, true);
           }, 0);
@@ -234,6 +246,8 @@ const CreateItem = ({ setView, data, setShowBatch , fetchItemData, fieldOptions 
 
   const basicInfoFields = [
     { label: 'Item Name', id: 'name', name: 'name', isRequired: true, type: 'text', autoFocus: true },
+    ...controlRoomSettings.packaging ? [{ label: 'Packing', id: 'packing', name: 'packing', type: 'text'}] : [],
+
     {
       label: 'Company',
       id: 'compId',
@@ -244,32 +258,32 @@ const CreateItem = ({ setView, data, setShowBatch , fetchItemData, fieldOptions 
       value: itemFormInfo.values.compId === '' || !selectedCompany ? null : selectedCompany?.companyName.toUpperCase(),
       onClick: handleCompanyList
     },
-    ...controlRoomSettings.packaging ? [{ label: 'Packing', id: 'packing', name: 'packing', type: 'text'}] : [],
   ];
 
   const container1Fields = [
-    ...controlRoomSettings.batchWiseManufacturingCode ? [{ label: 'MFG. Code', id: 'shortName', name: 'shortName', type: 'text'}] : [],
+    ...controlRoomSettings.batchWiseManufacturingCode ? [{ label: 'MFG. Code', id: 'shortName', name: 'shortName', type: 'text', maxLength: 8 }] : [],
     {
       label: 'Type',
       id: 'service',
       name: 'service',
       type: 'select',
+      disabled: !controlRoomSettings.allowItemAsService,
       options: controlRoomSettings.allowItemAsService
         ? [{ label: 'Goods', value: 'Goods' }, { label: 'Services', value: 'Services' }]
         : [{ label: 'Goods', value: 'Goods' }],
     },
-    { label: 'HSN/SAC', id: 'hsnCode', name: 'hsnCode', type: 'text', isRequired: true},
-    { label: 'Item Group', id:'itemGroupCode', name: 'itemGroupCode', type: 'select', options: options.groupOptions },
-    { label: 'Schedule Drug', id: 'scheduleDrug', name: 'scheduleDrug', type: 'select', options: [{ label: 'Non-H1', value: 'NON-H1' }, { label: 'Schedule H1', value: 'H1' }]},
-    ...controlRoomSettings.rxNonrx ? [{ label: 'Prescription Type', id: 'prescriptionType', name: 'prescriptionType', type: 'select', options: [{ label: 'RX', value: 'RX' }, { label: 'Non-RX', value: 'NON-RX' }]}] : []];
+    { label: 'HSN/SAC', id: 'hsnCode', name: 'hsnCode', type: 'text', isRequired: true, maxLength: 8 },
+    { label: 'Item Group', id:'itemGroupCode', name: 'itemGroupCode', type: 'select', options: options.groupOptions , disabled : !options.groupOptions?.length},
+    { label: 'H1 Schedule', id: 'scheduleDrug', name: 'scheduleDrug', type: 'select', options: [{ label: 'Non-H1', value: 'NON-H1' }, { label: 'Schedule H1', value: 'H1' }]},
+    ...controlRoomSettings.rxNonrx ? [{ label: <><b>RX</b>/Non RX</> as any, id: 'prescriptionType', name: 'prescriptionType', type: 'select', options: [{ label: 'RX', value: 'RX' }, { label: 'Non-RX', value: 'NON-RX' }]}] : []];
 
   const container2Fields = [
-    { label: 'Sales Account', id: 'saleAccId', name: 'saleAccId', type: 'select', options: options.salesOptions},
-    { label: 'Purchase Account', id: 'purAccId', name: 'purAccId', type: 'select', options: options.purchaseOptions},
-    { label: 'Cash Discount %', id: 'discountPer', name: 'cashDiscountPer', type: 'number'},
+    { label: 'Sale A/C', id: 'saleAccId', name: 'saleAccId', type: 'select', options: options.salesOptions},
+    { label: 'Purchase A/C', id: 'purAccId', name: 'purAccId', type: 'select', options: options.purchaseOptions},
+    { label: 'CD %', id: 'discountPer', name: 'cashDiscountPer', type: 'number', minLength : 0 , max :100},
     { label: 'Margin %', id: 'marginPercentage', name: 'marginPercentage', type: 'number'},
-    { label: 'Min. Quantity', id: 'minQty', name: 'minQty', type: 'number'},
-    { label: 'Max. Quantity', id: 'maxQty', name: 'maxQty', type: 'number' },
+    { label: 'Min. QTY', id: 'minQty', name: 'minQty', type: 'number'},
+    { label: 'Max. QTY', id: 'maxQty', name: 'maxQty', type: 'number' },
   ];
 
   const container3Fields = [
@@ -278,6 +292,7 @@ const CreateItem = ({ setView, data, setShowBatch , fetchItemData, fieldOptions 
     { label: 'Upload Img.', id: 'upload', name: 'upload', type: 'file' },
   ];
 
+
   return (
     <div className='w-full'>
       <div className='flex w-full items-center justify-between px-8 py-1'>
@@ -285,7 +300,7 @@ const CreateItem = ({ setView, data, setShowBatch , fetchItemData, fieldOptions 
         <div className='flex gap-2'>
           {data?.id && <Button
             type='fill'
-            id='item_button'
+            id='addBatch'
             handleOnClick={() => {
               setView('');
               setShowBatch(data);
@@ -300,11 +315,11 @@ const CreateItem = ({ setView, data, setShowBatch , fetchItemData, fieldOptions 
       <form onSubmit={itemFormInfo.handleSubmit} className='flex flex-col w-full'>
         <div className='flex flex-row px-4 mx-4 py-2 gap-2'>
           <div className='flex flex-col w-full gap-14 my-4'>
-            <Container title='Basic Info' fields={basicInfoFields} formik={itemFormInfo} focused={focused} setFocused={setFocused} className={'!grid-cols-3 !gap-6'} labelClassName={'!min-w-[150px]'} />
-            <div className='flex flex-row gap-8'>
-              <Container title='Item Info' fields={container1Fields} formik={itemFormInfo} focused={focused} setFocused={setFocused} className={'!flex flex-col !gap-6'} labelClassName={'!min-w-[150px]'} />
-              <Container title='Cost Details' fields={container2Fields} formik={itemFormInfo} focused={focused} setFocused={setFocused} className={'!flex flex-col !gap-6'} labelClassName={'!min-w-[150px]'} />
-              <Container title='Misc.' fields={container3Fields} formik={itemFormInfo} focused={focused} setFocused={setFocused} className={'!flex flex-col !gap-6'} labelClassName={'!min-w-[150px]'} />
+            <Container title='Basic Info' fields={basicInfoFields} formik={itemFormInfo} focused={focused} setFocused={setFocused} className={'!grid-cols-3 !gap-6'} labelClassName={'!min-w-[134px]'} />
+            <div className='flex flex-row gap-2'>
+              <Container title='Item Info' fields={container1Fields} formik={itemFormInfo} focused={focused} setFocused={setFocused} className={'!flex flex-col !gap-6'} labelClassName={'!min-w-[134px]'} />
+              <Container title='Cost Details' fields={container2Fields} formik={itemFormInfo} focused={focused} setFocused={setFocused} className={'!flex flex-col !gap-6'} labelClassName={'!min-w-[100px]'} />
+              <Container title='Misc.' fields={container3Fields} formik={itemFormInfo} focused={focused} setFocused={setFocused} className={'!flex flex-col !gap-6'} labelClassName={'!min-w-[134px]'} />
             </div>
           </div>
         </div>

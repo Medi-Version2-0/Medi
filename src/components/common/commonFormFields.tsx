@@ -158,6 +158,8 @@ export const Container = <FormValues,>({
                   inputClassName='mr-4 ml-2 text-xs p-1.5'
                   isDisabled={field?.disabled || false}
                   onBlur={field.onBlur}
+                  {...(field.max && {max : field.max})}
+
                 />
             ) : (
                 <div key={field.id} className='w-full pr-4'>
@@ -178,6 +180,7 @@ export const Container = <FormValues,>({
                     isRequired={field.isRequired}
                     type={field.type}
                     {...(field.value && { value: field.value })}
+                    {...(field.maxLength && {maxLength: field.maxLength})}
                     onClick={()=> field.onClick ? field.onClick() : ''}
                     onChange={field.type === 'file' ? handleFileChange : undefined}
                     onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {

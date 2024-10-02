@@ -21,7 +21,7 @@ export const companyFooterData =[
             key: 'gstIn'
           },
           {
-            label: 'Sales Account',
+            label: 'Sale Account',
             key: 'salesId'
           },
           {
