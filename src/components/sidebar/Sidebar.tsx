@@ -42,6 +42,7 @@ import { companyViewChain } from '../../constants/focusChain/companyFocusChain';
 import { partywiseDiscountViewChain } from '../../constants/focusChain/partywiseDiscount'
 import { hqFocusChain } from '../../constants/focusChain/hqFocusChain';
 import { itemGroupFocusChain } from '../../constants/focusChain/temGroupFocusChain';
+import { billBookSetupViewChain } from '../../constants/focusChain/billBookSetupFocusChain';
 
 interface SidebarProps {
   isGroup?: boolean;
@@ -145,7 +146,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     {
       url: '/billBook',
       label: 'Bill Book Setup',
-      onClick: () => openTab?.('Bill Book Setup', <BillBook />),
+      onClick: () => tabManager.openTab('Bill Book Setup', <BillBook />, billBookSetupViewChain, openTab),
       isDisabled: isNotReadAccess('billbook')
     },
     {

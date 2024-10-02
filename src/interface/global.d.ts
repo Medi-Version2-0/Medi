@@ -287,9 +287,9 @@ export interface StoreFormDataProps {
 export interface CreateStoreProps {
   togglePopup: Function;
   data: StoreFormData;
-  handelFormSubmit: any;
+  handleConfirmPopup: any;
   isDelete: any;
-  deleteAcc: (store_code: string) => void;
+  handleDeleteFromForm: () => void;
   className?: string;
 }
 
@@ -499,4 +499,10 @@ tableData: any[];
 dataKeys?: any;
 rightAlignCells?: any[];
 onValueChange?: (rowIndex: number, value: string) => void;
+}
+
+export interface popupOptions {
+  isModalOpen: boolean;
+  isAlertOpen: boolean;
+  message: string;
 }

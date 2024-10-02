@@ -13,24 +13,29 @@ import { createStoreFieldsChain, deleteStoreFieldsChain } from '../../constants/
 export const CreateStore: React.FC<CreateStoreProps> = ({
   togglePopup,
   data,
-  handelFormSubmit,
+  handleConfirmPopup,
+  handleDeleteFromForm,
   isDelete,
-  deleteAcc,
   className,
 }) => {
   const { store_code } = data;
-  const formikRef = useRef<FormikProps<StoreFormDataProps>>(null);
+  // const formikRef = useRef<FormikProps<StoreFormDataProps>>(null);
 
   const handleSubmit = async (values: object) => {
     const formData = {
       ...values,
       ...(store_code && { store_code }),
     };
-    handelFormSubmit(formData);
+    handleConfirmPopup(formData);
   };
+
+  function closePopup() {
+    togglePopup(false);
+  }
 
   return (
     <Popup
+      onClose={closePopup}
       togglePopup={togglePopup}
       id='createStorePopup'
       focusChain={isDelete ? deleteStoreFieldsChain : createStoreFieldsChain}
@@ -44,7 +49,7 @@ export const CreateStore: React.FC<CreateStoreProps> = ({
       className={className}
     >
       <Formik
-        innerRef={formikRef}
+        // innerRef={formikRef}
         initialValues={{
           store_name: data?.store_name || '',
           address1: data?.address1 || '',
@@ -60,6 +65,7 @@ export const CreateStore: React.FC<CreateStoreProps> = ({
               label='store Name'
               id='store_name'
               name='store_name'
+              isUpperCase={true}
               formik={formik}
               className='!gap-0'
               isDisabled={isDelete && store_code}
@@ -70,6 +76,7 @@ export const CreateStore: React.FC<CreateStoreProps> = ({
             <FormikInputField
               label='Address line1'
               id='address1'
+              isUpperCase={true}
               name='address1'
               formik={formik}
               className='!gap-0'
@@ -77,6 +84,7 @@ export const CreateStore: React.FC<CreateStoreProps> = ({
             />
             <FormikInputField
               label='Address line2'
+              isUpperCase={true}
               id='address2'
               name='address2'
               formik={formik}
@@ -85,6 +93,7 @@ export const CreateStore: React.FC<CreateStoreProps> = ({
             />
             <FormikInputField
               label='Address line3'
+              isUpperCase={true}
               id='address3'
               name='address3'
               formik={formik}
@@ -103,8 +112,9 @@ export const CreateStore: React.FC<CreateStoreProps> = ({
                 <Button
                   id='del_button'
                   type='fill'
+                  btnType='button'
                   padding='px-4 py-2'
-                  handleOnClick={() => store_code && deleteAcc(store_code)}
+                  handleOnClick={handleDeleteFromForm}
                 >
                   Delete
                 </Button>
