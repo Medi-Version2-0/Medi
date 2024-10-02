@@ -44,9 +44,9 @@ export interface SubGroupFormData {
 export interface CreateStationProps {
   togglePopup: Function;
   data: StationFormData;
-  handelFormSubmit: any;
+  handleConfirmPopup?: any;
   isDelete: any;
-  deleteAcc: (station_id: string) => void;
+  handleDeleteFromForm?: () => void;
   className?: string;
   states?: any[];
   focusChain?: string[]
@@ -154,10 +154,11 @@ export interface BillBookFormDataProps {
 export interface CreateItemGroupProps {
   togglePopup: Function;
   data: ItemGroupFormData;
-  handelFormSubmit: any;
+  handleConfirmPopup?: any;
   isDelete: any;
-  deleteAcc: (group_code: string) => void;
+  handleDeleteFromForm?: () => void;
   className?: string;
+  focusChain?: string[]
 }
 export interface SubGroupFormDataProps {
   group_name: string;
@@ -286,9 +287,9 @@ export interface StoreFormDataProps {
 export interface CreateStoreProps {
   togglePopup: Function;
   data: StoreFormData;
-  handelFormSubmit: any;
+  handleConfirmPopup: any;
   isDelete: any;
-  deleteAcc: (store_code: string) => void;
+  handleDeleteFromForm: () => void;
   className?: string;
 }
 
@@ -502,4 +503,10 @@ tableData: any[];
 dataKeys?: any;
 rightAlignCells?: any[];
 onValueChange?: (rowIndex: number, value: string) => void;
+}
+
+export interface popupOptions {
+  isModalOpen: boolean;
+  isAlertOpen: boolean;
+  message: string;
 }

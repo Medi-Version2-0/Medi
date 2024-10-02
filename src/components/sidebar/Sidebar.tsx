@@ -41,6 +41,9 @@ import { salePurchaseAccountViewChain } from '../../constants/focusChain/salePur
 import { storeViewChain } from '../../constants/focusChain/storeFocusChain';
 import { companyViewChain } from '../../constants/focusChain/companyFocusChain';
 import { partywiseDiscountViewChain } from '../../constants/focusChain/partywiseDiscount'
+import { hqFocusChain } from '../../constants/focusChain/hqFocusChain';
+import { itemGroupFocusChain } from '../../constants/focusChain/temGroupFocusChain';
+import { billBookSetupViewChain } from '../../constants/focusChain/billBookSetupFocusChain';
 
 interface SidebarProps {
   isGroup?: boolean;
@@ -95,7 +98,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     {
       url: '/itemGroup',
       label: 'Item Groups',
-      onClick: () => openTab?.('Item Groups', <ItemGroups />),
+      onClick: () => tabManager.openTab('Item Groups', <ItemGroups />, itemGroupFocusChain, openTab),
       isDisabled: isNotReadAccess('itemgroup')
     },
     {
@@ -113,7 +116,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     {
       url: '/headquarters',
       label: 'Headquarters',
-      onClick: () => openTab?.('Headquarters', <Headquarters />),
+      onClick: () => tabManager.openTab('Headquarters', <Headquarters />, hqFocusChain, openTab),
       isDisabled: isNotReadAccess('headquarters')
     },
     {
@@ -144,7 +147,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     {
       url: '/billBook',
       label: 'Bill Book Setup',
-      onClick: () => openTab?.('Bill Book Setup', <BillBook />),
+      onClick: () => tabManager.openTab('Bill Book Setup', <BillBook />, billBookSetupViewChain, openTab),
       isDisabled: isNotReadAccess('billbook')
     },
     {

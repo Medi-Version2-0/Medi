@@ -9,11 +9,6 @@ interface ButtonProps {
     children?: React.ReactNode;
     disable?: boolean;
     component?: string;
-    setFocused: (field: string) => void;
-    focused?: string;
-    prevField?: string;
-    nextField?: string;
-    autoFocus?: boolean;
 }
 
 export const CommonBtn: FC<ButtonProps> = ({
@@ -24,9 +19,6 @@ export const CommonBtn: FC<ButtonProps> = ({
     children,
     disable,
     component,
-    setFocused,
-    focused,
-    autoFocus=false,
     ...rest
 }) => {
 
@@ -54,8 +46,6 @@ export const CommonBtn: FC<ButtonProps> = ({
                 variantType,
             )}
             onClick={handleOnClick}
-            // onKeyDown={handleKeyDown}
-            autoFocus={autoFocus}
             {...rest}
         >
             {children}
