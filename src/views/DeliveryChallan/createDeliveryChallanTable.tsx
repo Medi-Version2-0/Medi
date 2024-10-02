@@ -463,6 +463,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
             setItemValue([...itemValue, rowData]);
           }
           if (isItemSelected > -1 && isItemSelected !== rowIndex) {
+            tabManager.setTabLastFocusedElementId(`cell-${rowIndex}-${focusColIndex.current + 1}`)
             setPopupState({ ...popupState, isAlertOpen: true, message: "Alert! , You've already selected this item"});
           }
         },
@@ -471,7 +472,6 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
       }
     })
   }
-  console.log(gridData , 'gridata')
 
   const openBatch = (rowIndex: number) => {
     const selectedItem = itemValue.find((item: any) => item.id === gridData[rowIndex]?.columns.itemId?.value);

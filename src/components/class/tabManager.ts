@@ -244,7 +244,9 @@ export class TabManager {
             const activeTab = this.tabs[this.activeTabIndex];
             if (!activeTab) return;
                 activeTab.lastFocusedElementId = focusElementId;
-            this.emitFocusChange(this.activeTabId!, focusElementId);
+                if(!activeTab.popups.length){
+                    this.emitFocusChange(this.activeTabId!, focusElementId);
+                }
     }
 
     public focusManager(reverse: boolean = false) {

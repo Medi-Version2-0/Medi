@@ -195,6 +195,12 @@ export const ChallanTable = ({
       (_: any, index: number) => index !== rowIndex
     );
     setGridData(updatedGridData);
+    if(rowIndex) {
+      document.getElementById(`cell-${rowIndex-1}-${newRowTrigger}`)?.focus()
+    }
+    else{
+      document.getElementById(`cell-0-0`)?.focus()
+    }
     if (rowDeleteCallback) {
       rowDeleteCallback(rowIndex, row);
     }
@@ -339,6 +345,7 @@ export const ChallanTable = ({
                           id={`cell-${rowIndex}-${colIndex}`}
                           value={columnValue}
                           type={header.props.inputType || 'text'}
+                          autoComplete='off'
                           onFocus={() => {
                             tabManager.setLastFocusedElementId(`cell-${rowIndex}-${colIndex}`)
 
