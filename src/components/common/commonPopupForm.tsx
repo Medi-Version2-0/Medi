@@ -21,9 +21,6 @@ interface PopupFormProps {
 
 export const PopupFormContainer = <FormValues,>({ fields, formik, setFocused, focused }: PopupFormProps) => {
 
-    // const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, formik?: FormikProps<FormValues>, radioField?: any) => {
-    //     onKeyDown({ e, formik: formik, radioField: radioField, focusedSetter: (field: string) => setFocused(field) });
-    // };
     const tabManager = TabManager.getInstance()
     const handleOptionSelections = (field: FieldConfig, option: Option | null) => {
         formik.setFieldValue(field.name, option ? option.value : null);
@@ -82,12 +79,12 @@ export const PopupFormContainer = <FormValues,>({ fields, formik, setFocused, fo
                         onChange={field.onChange}
                         isTitleCase={field.isTitleCase}
                         className='!gap-0'
+                        isUpperCase={true}
                         isRequired={field.isRequired}
                         nextField={field.nextField}
                         prevField={field.prevField}
                         sideField={field.sideField}
                         type={field.type}
-                        // onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => handleKeyDown(e)}
                         showErrorTooltip={!!(formik.touched[field.name as keyof typeof formik.touched] && formik.errors[field.name as keyof typeof formik.errors])}
                         isDisabled={field?.disabled || false}
                         autoFocus={field.autoFocus}
