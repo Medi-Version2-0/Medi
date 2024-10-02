@@ -23,14 +23,8 @@ const CopyPratywisePriceList: React.FC = () => {
     isAlertOpen: false,
     message: '',
   });
-  const focusedEle =  useRef<HTMLElement | null>(null);
-
   
   useEffect(()=> {
-    setTimeout(()=>{
-      focusedEle.current = document.getElementById('copyFrom')
-      focusedEle.current?.focus();
-    },100)
     getPartyData();
   },[]) 
 
@@ -146,7 +140,6 @@ const CopyPratywisePriceList: React.FC = () => {
                     searchFrom: 'partyName',
                     handleSelect: (rowData: any) => {
                       setCopyFrom(rowData)
-                      document.getElementById('copyTo')?.focus()
                     }
                   }
                 })
@@ -180,7 +173,6 @@ const CopyPratywisePriceList: React.FC = () => {
                     searchFrom: 'partyName',
                     handleSelect: (rowData: any) => {
                       setCopyTo(rowData)
-                      document.getElementById('copyButton')?.focus()
                     }
                   }
                 });
@@ -200,7 +192,7 @@ const CopyPratywisePriceList: React.FC = () => {
         </Button>
       </div>)}
       <div className='flex w-full'>
-        {createAccess && (<Button type='highlight' btnType='button' handleOnClick={() => {
+        {createAccess && (<Button id='AddBtn' type='highlight' btnType='button' handleOnClick={() => {
           setCopyFrom({});
           setCopyTo(null);
           setTableData([]);
