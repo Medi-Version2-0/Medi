@@ -41,6 +41,7 @@ export const Popup: React.FC<PopupProps> = ({
         {onClose && (
           <button
             type="button"
+            id='cross'
             className="absolute top-[-5px] right-2 m-2 text-red-500 hover:text-red-700  bg-white"
             onClick={onClose}
           >

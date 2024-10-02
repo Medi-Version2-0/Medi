@@ -215,7 +215,8 @@ export const SelectList = ({
                   ref={(el) => (tableRefs.current[rowIndex] = el)}
                   tabIndex={-1}
                   id={`row-${rowIndex}`}
-                  onClick={() => { setFocusedRowIndex(rowIndex) }}
+                  onClick={() => { setFocusedRowIndex(rowIndex) ,         handleSelect(row);
+                  }}
                   className={focusedRowIndex === rowIndex ? 'bg-[#EAFBFCFF] border-[2px] focus:outline-0 !rounded-lg border-solid border-black' : ''}
                 >
                   {selectMultiple && (

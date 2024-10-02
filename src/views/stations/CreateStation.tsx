@@ -49,7 +49,7 @@ export const CreateStation = ({ togglePopup, data, handleConfirmPopup, isDelete,
   ];
 
   return (
-    <Popup id='create_station' focusChain={focusChain} heading={station_id && isDelete ? 'Delete Station' : station_id ? 'Update Station' : 'Create Station'} className={className}>
+    <Popup id='create_station' focusChain={focusChain} heading={station_id && isDelete ? 'Delete Station' : station_id ? 'Update Station' : 'Create Station'} className={className} onClose={()=> togglePopup(false)}>
       <PopupFormContainer fields={stationFormFields} formik={StationFormInfo} setFocused={setFocused} focused={focused} />
       <div className='flex justify-between p-4 w-full'>
         <CommonBtn variant='cancel' component='station' handleOnClick={() => togglePopup(false)} > Cancel </CommonBtn>

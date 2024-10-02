@@ -13,7 +13,6 @@ const Confirm_Alert_Popup: React.FC<Confirm_Alert_PopupProps> = ({
   onAdd,
   addText,
   id,
-  focusChain =[]
 }) => {
   const handleKeyPress = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Escape') {
@@ -30,7 +29,7 @@ const Confirm_Alert_Popup: React.FC<Confirm_Alert_PopupProps> = ({
       const currentTabId = tabManager.activeTabId;
       setInitialTabId(currentTabId);
       setTimeout(() => {
-        tabManager.addPopupToActiveTab(id, focusChain);
+        tabManager.addPopupToActiveTab(id, ['confirm' , ...(!isAlert ? ['cancel'] : [])]);
       }, 0);
     }
     return () => {
@@ -53,14 +52,14 @@ const Confirm_Alert_Popup: React.FC<Confirm_Alert_PopupProps> = ({
           <div className='flex gap-8 mb-4 mt-8 px-8'>
             <Button
               className=''
-              // id='confirm'
+              id='confirm'
               type='highlight'
               handleOnClick={onConfirm}
             >
               OK
             </Button>
             {!isAlert && (
-              <Button type='fog' handleOnClick={onClose}>
+              <Button type='fog' id='cancel' handleOnClick={onClose}>
                 Cancel
               </Button>
             )}

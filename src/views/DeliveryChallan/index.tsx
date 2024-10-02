@@ -118,14 +118,14 @@ const DeliveryChallan = () => {
   };
 
   const handleKeyDown = (event: KeyboardEvent) => {
-    // handleKeyDownCommon(
-    //   event,
-    //   handleDelete,
-    //   undefined,
-    //   undefined,
-    //   selectedRow,
-    //   setView
-    // );
+    handleKeyDownCommon(
+      event,
+      handleDelete,
+      undefined,
+      undefined,
+      selectedRow,
+      setView
+    );
   };
 
   const colDefs: any[] = [

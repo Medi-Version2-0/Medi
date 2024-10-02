@@ -253,6 +253,10 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
   };
 
   const handleFieldChange = (option: Option | null, id: string) => {
+    if(id !== 'partyId'){
+      formik.setFieldValue('partyId' , '')
+      setSelectedParty(null)
+    }
     formik.setFieldValue(id, option?.value);
   };
 
@@ -266,11 +270,6 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
     }
 
   }, [formik.values.oneStation]);
-
-  useEffect(() => {
-      formik.setFieldValue('partyId' , '')
-      setSelectedParty(null)
-  }, [formik.values.oneStation , formik.values.stationId])
   
 
   useEffect(() => {
@@ -352,7 +351,6 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
           apiRoute: `/deliveryChallan/pending/${formik.values.partyId}`,
           handleSelect: () => { },
           autoClose: true,
-          onEsc : ()=> {setPopupList({isOpen:false , data :{}}); document.getElementById('submit_all')?.focus()}
         }
       })
     }
@@ -482,7 +480,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
                     onChange={handleFieldChange}
                     options={stationOptions}
                     isSearchable={true}
-                    disableArrow={true}
+                    disableArrow={false}
                     hidePlaceholder={false}
                     className='!h-6 rounded-sm'
                     isRequired={formik.values.oneStation === 'One Station' ? true : false}
@@ -705,7 +703,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
           <Button
             type='fill'
             padding='px-4 py-2'
-            id='submit_all'
+            id='save'
             disable={hasMissingKeys()}
             handleOnClick={() => formik.handleSubmit}
             handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {

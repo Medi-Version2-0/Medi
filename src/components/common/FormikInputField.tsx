@@ -61,7 +61,7 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
   isRequired = false,
   children,
   isTitleCase = false,
-  isUpperCase = false,
+  isUpperCase = true,
   name,
   onChange,
   onKeyDown,

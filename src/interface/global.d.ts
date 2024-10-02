@@ -212,7 +212,6 @@ export interface Confirm_Alert_PopupProps {
   onAdd?: () => void;
   addText?: string;
   id? : string;
-  focusChain? : string[];
 }
 
 export interface State {

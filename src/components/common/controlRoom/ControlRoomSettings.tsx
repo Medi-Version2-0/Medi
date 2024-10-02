@@ -24,7 +24,10 @@ export const ControlRoomSettings = ({
       heading={heading}
       childClass='!max-h-fit !min-w-[60%]'
       className={className}
-    >
+      id={`${heading.replace(/[\s/]/g, '_')}_controlSettings`}
+      focusChain={['save' , 'cancel']}
+      onClose={()=>togglePopup(false)}
+      >
       <Formik initialValues={initialValues} onSubmit={handleSubmit}>
         {(formik) => (
           <Form className='flex flex-col gap-3 items-center px-2'>
@@ -45,13 +48,13 @@ export const ControlRoomSettings = ({
               <Button
                 autoFocus={true}
                 type='fog'
-                id='cancel_button'
+                id='cancel'
                 handleOnClick={() => togglePopup(false)}
               >
                 Cancel
               </Button>
               <Button
-                id='submit_button'
+                id='save'
                 type='fill'
                 autoFocus
                 handleOnClick={formik.handleSubmit}
