@@ -79,7 +79,7 @@ export const Container = <FormValues,>({
                 id={field.id}
                 name={field.name}
                 isSearchable={field.isSearchable}
-                disableArrow={field.disableArrow}
+                disableArrow={false}
                 options={field.options}
                 isFocused={focused === field.id}
                 onFocus={() => field.onFocus && field.onFocus()}
