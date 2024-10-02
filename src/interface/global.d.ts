@@ -58,9 +58,9 @@ export interface CreateHeadQuarterProps extends CreateStationProps {
 export interface CreateBillProps {
   togglePopup: Function;
   data: BillBookFormData;
-  handelFormSubmit: any;
+  handleConfirmPopup: any;
   isDelete: any;
-  deleteAcc: (station_id: string) => void;
+  handleDeleteFromForm: () => void;
   className?: string;
   selectedSeries: string;
   billBookData: any[];
