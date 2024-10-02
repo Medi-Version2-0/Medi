@@ -40,7 +40,7 @@ export const BalanceDetails = ({
             onBlur={() => {
               formik.setFieldTouched('openingBal', true);
             }}
-            labelClassName='min-w-[90px] !h-[22px] w-fit text-nowrap me-2'
+            labelClassName='!ps-0 bg-white px-1  min-w-[90px] !h-[22px] w-[47%]'
             inputClassName='text-left !text-[10px] px-1 !h-[22px] !w-[70%]'
             error={formik.touched.openingBal && formik.errors.openingBal}
           />
@@ -106,7 +106,7 @@ export const BalanceDetails = ({
             disableArrow={false}
             hidePlaceholder={false}
             containerClass='gap-[3.28rem] !w-114% !justify-between'
-            className='!rounded-none !h-6 w-full width: fit-content !important text-wrap: nowrap'
+            className='!rounded-sm !h-6 !w-[68.4%] width: fit-content !important text-wrap: nowrap'
             onBlur={() => {
               formik.setFieldTouched('partyType', true);
             }}
@@ -136,7 +136,7 @@ export const BalanceDetails = ({
               }}
               prevField='partyType'
               nextField='creditDays'
-              labelClassName='min-w-[90px] !h-[22px] w-[47%]'
+              labelClassName='min-w-[90px] !ps-0 !h-[22px] w-[47%]'
               inputClassName='text-left !text-[10px] px-1 !h-[22px]'
             />
             <NumberInput
@@ -151,7 +151,7 @@ export const BalanceDetails = ({
                 formik.setFieldTouched('creditDays', true);
               }}
               maxLength={3}
-              labelClassName='min-w-[90px] !h-[22px] w-[47%]'
+              labelClassName='min-w-[90px] !ps-0 !h-[22px] w-[47%]'
               inputClassName='text-left !text-[10px] px-1 !h-[22px]'
             />
           </div>

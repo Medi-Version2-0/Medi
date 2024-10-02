@@ -27,11 +27,11 @@ export const NRXAndH1: React.FC<ContactNumbersProps> = ({
         <div className='absolute top-[-14px] left-2 px-2 w-max bg-[#f3f3f3]'>
           NRX & H1 item
         </div>
-        <div className='flex gap-5 justify-between'>
+        <div className='flex !text-[12px] gap-2 justify-between flex-col'>
           <CustomSelect
             isPopupOpen={false}
             label='STOP SALE OF NRX ITEM'
-            labelClass='whitespace-nowrap'
+            labelClass='whitespace-nowrap !min-w-[44%]'
             value={
               {
                 label: formik.values.stopNrx ? 'Yes' : 'No',
@@ -45,8 +45,8 @@ export const NRXAndH1: React.FC<ContactNumbersProps> = ({
             isSearchable={false}
             disableArrow={false}
             hidePlaceholder={false}
-            containerClass='!w-1/2'
-            className='!rounded-none !h-6'
+            containerClass='!w-full'
+            className='!rounded-sm !h-6 w-[70%]'
             onBlur={() => {
               formik.setFieldTouched('stopNrx', true);
             }}
@@ -64,7 +64,7 @@ export const NRXAndH1: React.FC<ContactNumbersProps> = ({
           <CustomSelect
             isPopupOpen={false}
             label='STOP SALE OF H1 ITEM'
-            labelClass='whitespace-nowrap'
+            labelClass='whitespace-nowrap !min-w-[44%]'
             value={
               {
                 label: formik.values.stopH1 ? 'Yes' : 'No',
@@ -78,8 +78,8 @@ export const NRXAndH1: React.FC<ContactNumbersProps> = ({
             isSearchable={false}
             disableArrow={false}
             hidePlaceholder={false}
-            containerClass='!w-1/2'
-            className='!rounded-none !h-6'
+            containerClass='!w-full'
+            className='!rounded-sm !h-6 w-[70%]'
             onBlur={() => {
               formik.setFieldTouched('stopH1', true);
             }}
