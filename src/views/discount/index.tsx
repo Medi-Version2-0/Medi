@@ -338,6 +338,7 @@ export const PartyWiseDiscount = () => {
         </div>
         {(popupState.isModalOpen || popupState.isAlertOpen) && (
           <Confirm_Alert_Popup
+          id='viewDiscountAlert'
             onClose={handleClosePopup}
             onConfirm={
               popupState.isAlertOpen

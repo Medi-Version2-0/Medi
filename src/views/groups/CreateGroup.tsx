@@ -47,6 +47,7 @@ export const CreateGroup = ({
             ? 'Update Group'
             : 'Create Group'
       }
+      onClose={() => togglePopup(false)}
     >
       <Formik
         innerRef={formikRef}

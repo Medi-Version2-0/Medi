@@ -315,6 +315,7 @@ export const Batch = ({ params }: { params: { showBatch: any; setShowBatch: Reac
         </div>
         {(popupState.isModalOpen || popupState.isAlertOpen) && (
           <Confirm_Alert_Popup
+            id='itemBatchAlert '
             onClose={handleClosePopup}
             onConfirm={popupState.isAlertOpen ? handleAlertCloseModal : handleConfirmPopup}
             message={popupState.message}

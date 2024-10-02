@@ -271,6 +271,7 @@ const Vouchers = () => {
                 {/* )} */}
                 {(popupState.isModalOpen || popupState.isAlertOpen) && (
                     <Confirm_Alert_Popup
+                        id='viewVouchAlert'
                         onClose={handleClosePopup}
                         onConfirm={
                             popupState.isAlertOpen

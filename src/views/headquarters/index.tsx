@@ -47,7 +47,7 @@ export const Headquarters = () => {
   }
 
   const settingPopupState = (isModal: boolean, message: string) => {
-    setPopupState({ ...popupState, [isModal ? 'isModalOpen' : 'isAlertOpen']: true, message: message });
+    setPopupState({ ...popupState, [isModal ? 'isModalOpen' : 'isAlertOpen']: true, [!isModal ? 'isModalOpen' : 'isAlertOpen'] :false, message: message });
   };
 
   const togglePopup = (isOpen: boolean) => {
@@ -107,7 +107,7 @@ export const Headquarters = () => {
     togglePopup(false);
     try {
       await sendAPIRequest(`/headquarters/${selectedRow.station_id}`, { method: 'DELETE' });
-      setPopupState({ ...popupState, isAlertOpen: false });
+      setPopupState({ ...popupState, isAlertOpen: false  , isModalOpen :false});
       fetchData();
     } catch (error: any) {
       if (!error?.isErrorHandled) {
@@ -268,7 +268,7 @@ export const Headquarters = () => {
         <div id='account_table' className='ag-theme-quartz'>
           <AgGridReact rowData={tableData} columnDefs={colDefs} defaultColDef={defaultCol} onCellClicked={onCellClicked} onCellEditingStarted={cellEditingStarted} onCellEditingStopped={handleCellEditingStopped} />
         </div>
-        {(popupState.isModalOpen || popupState.isAlertOpen) && ( <Confirm_Alert_Popup onClose={handleClosePopup} onConfirm={ popupState.isAlertOpen ? handleAlertCloseModal : deleteAcc } message={popupState.message} isAlert={popupState.isAlertOpen} className='absolute '/>)}
+        {(popupState.isModalOpen || popupState.isAlertOpen) && ( <Confirm_Alert_Popup id={'viwHqAlert'} onClose={handleClosePopup} onConfirm={ popupState.isAlertOpen ? handleAlertCloseModal : deleteAcc } message={popupState.message} isAlert={popupState.isAlertOpen} className='absolute '/>)}
         {open && ( <CreateHQ togglePopup={togglePopup} data={formData} focusChain={isDelete.current ? deleteHqChain : (editing.current ? updateHqFieldsChain : createHqFieldsChain)} handleConfirmPopup={handleConfirmPopup} isDelete={isDelete.current} handleDeleteFromForm={handleDeleteFromForm} className='absolute' stations={stations} />)}
       </div>
     </>

@@ -90,8 +90,8 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
 
   const handleInputChange = (newValue: string) => {
     setIsEmpty(false);
-    setInputValue(titleCase(newValue));
-    return titleCase(newValue);
+    setInputValue((newValue.toUpperCase()));
+    return (newValue.toUpperCase());
   };
 
   useEffect(() => {

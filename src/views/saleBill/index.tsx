@@ -164,6 +164,7 @@ const SaleBill = () => {
 
           {(popupState.isModalOpen || popupState.isAlertOpen) && (
             <Confirm_Alert_Popup
+              id='viewSbAlert'
               onClose={handleClosePopup}
               onConfirm={
                 popupState.isAlertOpen

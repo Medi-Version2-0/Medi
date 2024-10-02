@@ -357,6 +357,7 @@ export const SubGroups = () => {
         </div>
         {(popupState.isModalOpen || popupState.isAlertOpen) && (
           <Confirm_Alert_Popup
+            id='viewSGAlert'
             onClose={handleClosePopup}
             onConfirm={
               popupState.isAlertOpen

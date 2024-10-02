@@ -527,6 +527,7 @@ export const CreateSaleBillTable = ({ setDataFromTable, totalValue, setTotalValu
 
       {popupState.isAlertOpen && (
         <Confirm_Alert_Popup
+          id='createSbtAlert'
           onClose={handleClosePopup}
           onConfirm={handleAlertCloseModal}
           message={popupState.message}

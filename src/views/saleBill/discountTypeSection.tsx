@@ -326,6 +326,7 @@ export const DiscountTypeSection = ({ setView, data }: any) => {
             </form>
             {(popupState.isModalOpen || popupState.isAlertOpen) && (
                 <Confirm_Alert_Popup
+                    id='dtsAlert'
                     onClose={handleClosePopup}
                     onConfirm={handleAlertCloseModal}
                     message={popupState.message}

@@ -211,7 +211,7 @@ export interface Confirm_Alert_PopupProps {
   className?: string;
   onAdd?: () => void;
   addText?: string;
-  id? : string;
+  id : string;
 }
 
 export interface State {

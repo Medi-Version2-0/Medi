@@ -228,6 +228,7 @@ const DeliveryChallan = () => {
                   ? handleAlertCloseModal
                   : handleConfirmPopup
               }
+              id='viewChallanAlert'
               message={popupState.message}
               isAlert={popupState.isAlertOpen}
             />

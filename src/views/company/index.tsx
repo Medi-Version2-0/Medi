@@ -288,6 +288,7 @@ export const Company = ({type = ''}) => {
                 ? handleAlertCloseModal
                 : handleConfirmPopup
             }
+            id='viewCompanyAlert'
             message={popupState.message}
             isAlert={popupState.isAlertOpen}
           />

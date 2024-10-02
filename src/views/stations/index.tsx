@@ -269,7 +269,7 @@ export const Stations = () => {
         <div id='account_table' className='ag-theme-quartz'>
           <AgGridReact rowData={tableData} columnDefs={columnDefs} gridOptions={gridOptions} onCellClicked={onCellClicked} onCellEditingStarted={cellEditingStarted} onCellEditingStopped={handleCellEditingStopped}/>
         </div>
-        {(popupState.isModalOpen || popupState.isAlertOpen) && (<Confirm_Alert_Popup onClose={handleClosePopup} onConfirm={popupState.isAlertOpen ? handleAlertCloseModal : deleteAcc} message={popupState.message} isAlert={popupState.isAlertOpen} className='absolute' />)}
+        {(popupState.isModalOpen || popupState.isAlertOpen) && (<Confirm_Alert_Popup id='viewStationAlert' onClose={handleClosePopup} onConfirm={popupState.isAlertOpen ? handleAlertCloseModal : deleteAcc} message={popupState.message} isAlert={popupState.isAlertOpen} className='absolute' />)}
         {open && (<CreateStation togglePopup={togglePopup} focusChain={isDelete.current ? deleteStationChain : createStationFieldsChain} data={formData} handleConfirmPopup={handleConfirmPopup} isDelete={isDelete.current} handleDeleteFromForm={handleDeleteFromForm} className='absolute' states={stateData} />)}
       </div>
     </>

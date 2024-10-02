@@ -1,8 +1,7 @@
 import * as Yup from 'yup';
+import { gstRegex } from '../ledger/validation_schema';
 
 export const phoneRegex = /^[6-9][0-9]{9}$/;
-export const gstRegex =
-  /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
 export const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}/;
 export const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 export const decimalRegex = /^\d+(\.\d{0,2})?$/;
@@ -50,7 +49,7 @@ export const getCompanyFormSchema = Yup.object({
       }
     ),
 
-  gstIn: Yup.string().matches(gstRegex, 'Invalid GSTIN'),
+  gstIn: Yup.string().matches(gstRegex,'Invalid GST Identification Number'),
 
   phoneNumber: Yup.string().matches(phoneRegex, 'Invalid Phone Number'),
 

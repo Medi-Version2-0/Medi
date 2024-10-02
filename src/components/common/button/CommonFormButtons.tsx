@@ -42,7 +42,7 @@ export const CommonBtn: FC<ButtonProps> = ({
             id={id ? id : `${component}_${variant}Btn`}
             disabled={disable}
             className={classNames(
-                `flex flex-row items-center text-base font-medium justify-center cursor-pointer rounded-md h-8
+                `flex flex-row items-center text-base font-medium justify-center cursor-pointer rounded-md h-8 !uppercase
                 ${disable ? "opacity-60 !cursor-not-allowed" : "opacity-100"} px-6 py-2`,
                 variantType,
             )}

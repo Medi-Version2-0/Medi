@@ -350,6 +350,7 @@ export const CreateDiscount = ({
       </form>
       {(popupState.isModalOpen || popupState.isAlertOpen) && (
         <Confirm_Alert_Popup
+          id='createDiscountAlert'
           onClose={handleClosePopup}
           onConfirm={handleAlertCloseModal}
           message={popupState.message}

@@ -986,6 +986,7 @@ const CreateVouchers = ({ setView, data }: any) => {
 
       {(popupState.isModalOpen || popupState.isAlertOpen) && (
         <Confirm_Alert_Popup
+          id='createVouchAlert'
           onClose={handleClosePopup}
           onConfirm={popupState.isAlertOpen
             ? handleAlertCloseModal

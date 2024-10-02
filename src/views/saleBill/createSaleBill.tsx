@@ -627,6 +627,7 @@ const CreateSaleBill = ({ setView, data }: any) => {
       </form>}
       {(popupState.isModalOpen || popupState.isAlertOpen) && (
         <Confirm_Alert_Popup
+          id='crateSbAlert'
           onClose={handleClosePopup}
           onConfirm={handleAlertCloseModal}
           message={popupState.message}
