@@ -15,6 +15,7 @@ import usePermission from '../../hooks/useRole';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
 import useApi from '../../hooks/useApi';
 import { extractKeys, lookupValue } from '../../helper/helper';
+import { createHqFieldsChain, deleteHqChain, updateHqFieldsChain } from '../../constants/focusChain/hqFocusChain';
 
 export const Headquarters = () => {
   const initialValue = { station_id: '', station_name: '', station_headQuarter: '' };
@@ -66,26 +67,25 @@ export const Headquarters = () => {
   };
 
   const handleConfirmPopup = async (data?: any) => {
-    const respData = data ? data : formData;
     setPopupState({ ...popupState, isModalOpen: false });
-    const payload = {
-      station_id: respData.station_name || formData.station_id,
-      station_headQuarter: respData.station_headQuarter || formData.station_headQuarter,
-    };
     let id = 0;
     const mode = stations.some((station: any) => {
-      if (station.station_id === (formData.station_id || payload.station_id) && station.station_headQuarter === null) {
+      if ((station.station_id === data.station_id || station.station_id === data.station_name) && station.station_headQuarter === null) {
         return true;
-      } else if (station.station_id === formData.station_id && station.station_headQuarter !== null) {
+      } else if (station.station_id === data.station_id && station.station_headQuarter !== null) {
         id = +station.station_id;
         return false;
       }
     });
     try {
       if (mode === false) {
-        await sendAPIRequest(`/headquarters/${id}`, { method: 'PUT', body: formData });
+        await sendAPIRequest(`/headquarters/${id}`, { method: 'PUT', body: data });
       } else {
-        await sendAPIRequest(`/headquarters`, { method: 'POST', body: payload });
+        if(data.station_id === ''){
+          data.station_id = data.station_name; 
+          delete data.station_name;
+        }
+        await sendAPIRequest(`/headquarters`, { method: 'POST', body: data });
       }
       togglePopup(false);
     } catch (error: any) {
@@ -95,31 +95,26 @@ export const Headquarters = () => {
         console.log('Station not created or updated',error)
       }
     }
-    fetchData();
+    await fetchData();
   };
 
-  const handleFormSubmit = (values: StationFormData) => {
-    const mode = stations.some((station: any) => {
-      if (station.station_id === values.station_id && station.station_headQuarter === null) {
-        return true;
-      } else if (station.station_id === values.station_id && station.station_headQuarter !== null) {
-        return false;
-      }
-    });
-    if (values !== initialValue) {
-      settingPopupState(true, `Are you sure you want to ${mode === false ? 'update' : 'create'} this Headquarter?`)
-      setFormData(values);
-    }
-  };
+  function handleDeleteFromForm() {
+    settingPopupState(true, 'Are you sure you want to delete');
+  }
 
-  const deleteAcc = async (station_id: string) => {
+  const deleteAcc = async (station_id?: string) => {
     isDelete.current = false;
     togglePopup(false);
     try {
-      await sendAPIRequest(`/headquarters/${station_id}`, { method: 'DELETE' });
+      await sendAPIRequest(`/headquarters/${selectedRow.station_id}`, { method: 'DELETE' });
+      setPopupState({ ...popupState, isAlertOpen: false });
       fetchData();
     } catch (error: any) {
-      if (!error?.isErrorHandled) settingPopupState(false, 'This Headquarter is associated');
+      if (!error?.isErrorHandled) {
+        if(error?.response?.data) settingPopupState(false,error.response.data.error.message);
+      }
+    } finally{
+      setSelectedRow(null)
     }
   };
 
@@ -127,7 +122,6 @@ export const Headquarters = () => {
     isDelete.current = true;
     setFormData(oldData);
     togglePopup(true);
-    setSelectedRow(null);
   };
 
   const handleUpdate = (oldData: StationFormData) => {
@@ -269,13 +263,13 @@ export const Headquarters = () => {
       <div className='w-full relative'>
         <div className='flex w-full items-center justify-between px-8 py-1'>
           <h1 className='font-bold'>Headquarters</h1>
-          {createAccess && <Button id='hq_addBtn' type='highlight' handleOnClick={() => togglePopup(true)} > Add Headquarter </Button>}
+          {createAccess && <Button id='add' type='highlight' handleOnClick={() => togglePopup(true)} > Add Headquarter </Button>}
         </div>
         <div id='account_table' className='ag-theme-quartz'>
           <AgGridReact rowData={tableData} columnDefs={colDefs} defaultColDef={defaultCol} onCellClicked={onCellClicked} onCellEditingStarted={cellEditingStarted} onCellEditingStopped={handleCellEditingStopped} />
         </div>
-        {(popupState.isModalOpen || popupState.isAlertOpen) && ( <Confirm_Alert_Popup onClose={handleClosePopup} onConfirm={ popupState.isAlertOpen ? handleAlertCloseModal : handleConfirmPopup } message={popupState.message} isAlert={popupState.isAlertOpen} className='absolute '/>)}
-        {open && ( <CreateHQ togglePopup={togglePopup} data={formData} handelFormSubmit={handleFormSubmit} isDelete={isDelete.current} deleteAcc={deleteAcc} className='absolute' stations={stations} />)}
+        {(popupState.isModalOpen || popupState.isAlertOpen) && ( <Confirm_Alert_Popup onClose={handleClosePopup} onConfirm={ popupState.isAlertOpen ? handleAlertCloseModal : deleteAcc } message={popupState.message} isAlert={popupState.isAlertOpen} className='absolute '/>)}
+        {open && ( <CreateHQ togglePopup={togglePopup} data={formData} focusChain={isDelete.current ? deleteHqChain : (editing.current ? updateHqFieldsChain : createHqFieldsChain)} handleConfirmPopup={handleConfirmPopup} isDelete={isDelete.current} handleDeleteFromForm={handleDeleteFromForm} className='absolute' stations={stations} />)}
       </div>
     </>
   );

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useEffect } from 'react';
 import { useFormik } from 'formik';
 import { CreateItemGroupProps, ItemGroupFormInfoType } from '../../interface/global';
 import { Popup } from '../../components/popup/Popup';
@@ -7,7 +6,7 @@ import { itemGroupValidationSchema } from './validation_schema';
 import { PopupFormContainer } from '../../components/common/commonPopupForm';
 import { CommonBtn } from '../../components/common/button/CommonFormButtons';
 
-export const CreateItemGroup: React.FC<CreateItemGroupProps> = ({togglePopup, data, handelFormSubmit, isDelete, deleteAcc, className }) => {
+export const CreateItemGroup: React.FC<CreateItemGroupProps> = ({togglePopup, data, handleConfirmPopup, isDelete, handleDeleteFromForm, className, focusChain=[]  }) => {
   const { group_code } = data;
   const [focused, setFocused] = useState('');
 
@@ -20,14 +19,10 @@ export const CreateItemGroup: React.FC<CreateItemGroupProps> = ({togglePopup, da
     onSubmit: async (values: any) => {
       const formData = group_code ? { ...values, group_code: group_code } : values;
       !group_code && document.getElementById('account_button')?.focus();
-      handelFormSubmit(formData);
+      handleConfirmPopup(formData);
+
     },
   })
-
-  useEffect(() => {
-    const focusTarget = !isDelete ? document.getElementById('group_name') : document.getElementById('cancel_button');
-    focusTarget?.focus();
-  }, []);
 
   const radioOptions = [
     {label : 'P&L', value: 'P&L'},
@@ -35,18 +30,18 @@ export const CreateItemGroup: React.FC<CreateItemGroupProps> = ({togglePopup, da
   ]
 
   const itemGroupFormFields = [
-    {id: 'group_name', name: 'group_name', label: 'Group Name', type: 'text', disabled: isDelete && group_code, nextField: 'type', prevField: 'itemGroup_submitBtn', sideField: 'type' },
-    { id: 'type', name: 'type', label: 'Type', type: 'select', disabled: isDelete && group_code, options: radioOptions, isSearchable: false, disableArrow: false, hidePlaceholder: false, nextField: 'itemGroup_submitBtn', prevField: 'group_name' },
+    {id: 'group_name', name: 'group_name', label: 'Group Name', type: 'text', disabled: isDelete && group_code },
+    { id: 'type', name: 'type', label: 'Type', type: 'select', disabled: isDelete && group_code, options: radioOptions, isSearchable: false, disableArrow: false, hidePlaceholder: false },
   ]
 
   return (
-    <Popup heading={ group_code && isDelete ? 'Delete Group' : group_code ? 'Update Group' : 'Create Group' } className={className} >
+    <Popup id='create_itemGroup' focusChain={focusChain} heading={ group_code && isDelete ? 'Delete Group' : group_code ? 'Update Group' : 'Create Group' } className={className} >
       <PopupFormContainer fields={itemGroupFormFields} formik={itemGroupInfo} setFocused={setFocused} focused={focused} />
       <div className='flex justify-between p-4 w-full'>
-        <CommonBtn variant='cancel' component='itemGroup' autoFocus={true} setFocused={setFocused} focused={focused} handleOnClick={() => togglePopup(false)} nextField={`${isDelete ? 'itemGroup_deleteBtn' : 'itemGroup_submitBtn'}`} prevField={'type'} > Cancel </CommonBtn>
+        <CommonBtn variant='cancel' component='itemGroup' handleOnClick={() => togglePopup(false)} > Cancel </CommonBtn>
         {isDelete ?
-          <CommonBtn variant='delete' component='itemGroup' setFocused={()=>''} handleOnClick={() => group_code && deleteAcc(group_code)} nextField={`itemGroup_cancelBtn`} prevField={'itemGroup_cancelBtn'} > Delete </CommonBtn>
-          : <CommonBtn variant='submit' component='itemGroup' autoFocus={true} setFocused={()=>''} handleOnClick={() => itemGroupInfo.handleSubmit()} disable={!itemGroupInfo.isValid || itemGroupInfo.isSubmitting} nextField={`group_name`} prevField={'itemGroup_cancelBtn'} > {group_code ? 'Update' : 'Add'} </CommonBtn>
+          <CommonBtn id='delete' variant='delete' component='itemGroup' handleOnClick={handleDeleteFromForm}  > Delete </CommonBtn>
+          : <CommonBtn id='save' variant='submit' component='itemGroup' handleOnClick={() => itemGroupInfo.handleSubmit()} disable={!itemGroupInfo.isValid || itemGroupInfo.isSubmitting} > {group_code ? 'Update' : 'Add'} </CommonBtn>
         }
       </div>
     </Popup>

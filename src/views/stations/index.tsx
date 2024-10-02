@@ -13,7 +13,7 @@ import { stationValidationSchema } from './validation_schema';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
 import usePermission from '../../hooks/useRole';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
-import { extractKeys, lookupValue } from '../../helper/helper';
+import { extractKeys, lookupValue, removeNullUndefinedEmptyString } from '../../helper/helper';
 import useApi from '../../hooks/useApi';
 import { ColDef, GridOptions } from 'ag-grid-community';
 import { createStationFieldsChain, deleteStationChain } from '../../constants/focusChain/stationFocusChain';
@@ -65,22 +65,14 @@ export const Stations = () => {
   };
 
   const handleConfirmPopup = async (data?: any) => {
-    const respData = data ? data : formData;
     setPopupState({ ...popupState, isModalOpen: false });
-    if (formData.station_name) formData.station_name = formData.station_name.charAt(0).toUpperCase() + formData.station_name.slice(1);
-
-    const payload = {
-      station_name: respData.station_name ? respData.station_name : formData.station_name,
-      state_code: respData.state_code ? respData.state_code : `${formData.state_code}`,
-      station_pinCode: respData.station_pinCode ? respData.station_pinCode : formData.station_pinCode,
-    };
     try {
-      if (payload !== initialValue) {
-        formData.state_code = +formData.state_code;
-        if (formData.station_id) {
-          await sendAPIRequest(`/station/${formData.station_id}`, { method: 'PUT', body: formData });
+      data = removeNullUndefinedEmptyString(data);
+      if (data !== initialValue) {
+        if (data.station_id) {
+          await sendAPIRequest(`/station/${formData.station_id}`, { method: 'PUT', body: data });
         } else {
-          await sendAPIRequest(`/station`, { method: 'POST', body: payload });
+          await sendAPIRequest(`/station`, { method: 'POST', body: data });
         }         
         togglePopup(false);
       }
@@ -91,33 +83,28 @@ export const Stations = () => {
         console.log('Station not created or updated',error)
       }
     }
-    fetchData();
+    await fetchData();
   };
 
-  const handelFormSubmit = (values: StationFormData) => {
-    const mode = values.station_id ? 'update' : 'create';
-    const existingStation = tableData.find((station: StationFormData) => {
-      if (mode === 'create') {
-        return (station.station_name.toLowerCase() === values.station_name.toLowerCase());
-      }
-      return (station.station_name.toLowerCase() === values.station_name.toLowerCase() && station.station_id !== values.station_id);
-    });
-    if (existingStation) settingPopupState(false, 'Station with this name already exists!');
+  function handleDeleteFromForm() {
+    settingPopupState(true, 'Are you sure you want to delete');
+  }
 
-    if (values !== initialValue) {
-      settingPopupState(true, `Are you sure you want to ${mode} this Station?`)
-      setFormData(values);
-    }
-  };
-
-  const deleteAcc = async (station_id: string) => {
+  const deleteAcc = async (station_id?: string) => {
     isDelete.current = false;
     togglePopup(false);
     try {
-      await sendAPIRequest(`/station/${station_id}`, { method: 'DELETE' });
+      await sendAPIRequest(`/station/${selectedRow.station_id}`, { method: 'DELETE' });
+      // handleAlertCloseModal();
+      setPopupState({ ...popupState, isAlertOpen: false, isModalOpen: false });
       fetchData();
     } catch (error: any) {
-      if (!error?.isErrorHandled) settingPopupState(false, 'This Station is associated');
+      if (!error?.isErrorHandled) {
+        if(error?.response?.data) settingPopupState(false,error.response.data.error.message);
+      }
+    }
+    finally{
+      setSelectedRow(null);
     }
   };
 
@@ -125,7 +112,6 @@ export const Stations = () => {
     isDelete.current = true;
     setFormData(oldData);
     togglePopup(true);
-    setSelectedRow(null);
   };
 
   const handleUpdate = (oldData: StationFormData) => {
@@ -283,8 +269,8 @@ export const Stations = () => {
         <div id='account_table' className='ag-theme-quartz'>
           <AgGridReact rowData={tableData} columnDefs={columnDefs} gridOptions={gridOptions} onCellClicked={onCellClicked} onCellEditingStarted={cellEditingStarted} onCellEditingStopped={handleCellEditingStopped}/>
         </div>
-        {(popupState.isModalOpen || popupState.isAlertOpen) && (<Confirm_Alert_Popup onClose={handleClosePopup} onConfirm={popupState.isAlertOpen ? handleAlertCloseModal : handleConfirmPopup} message={popupState.message} isAlert={popupState.isAlertOpen} className='absolute' />)}
-        {open && (<CreateStation togglePopup={togglePopup} focusChain={isDelete.current ? deleteStationChain : createStationFieldsChain} data={formData} handelFormSubmit={handelFormSubmit} isDelete={isDelete.current} deleteAcc={deleteAcc} className='absolute' states={stateData} />)}
+        {(popupState.isModalOpen || popupState.isAlertOpen) && (<Confirm_Alert_Popup onClose={handleClosePopup} onConfirm={popupState.isAlertOpen ? handleAlertCloseModal : deleteAcc} message={popupState.message} isAlert={popupState.isAlertOpen} className='absolute' />)}
+        {open && (<CreateStation togglePopup={togglePopup} focusChain={isDelete.current ? deleteStationChain : createStationFieldsChain} data={formData} handleConfirmPopup={handleConfirmPopup} isDelete={isDelete.current} handleDeleteFromForm={handleDeleteFromForm} className='absolute' states={stateData} />)}
       </div>
     </>
   );
