@@ -129,7 +129,7 @@ export class TabManager {
             if (activeElement && activeElement.tagName.toLowerCase() === 'button') {
                 return;
             }
-            if (activeElement && activeElement.id.includes('custom_select')) {
+            if (activeElement && (activeElement.id.includes('custom_select') || activeElement.id.includes('upload'))) {
                 return;
             }
             event.preventDefault();

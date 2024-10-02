@@ -171,6 +171,7 @@ export const Container = <FormValues,>({
                     onBlur={field.onBlur}
                     isTitleCase={field.isTitleCase}
                     isUpperCase={true}
+                    readOnly={field.readOnly}
                     className='!mb-0'
                     inputClassName={`text-xs  ${field.type === 'file' ? 'py-0' : 'py-3.5'}`}
                     labelClassName={`min-w-[120px] text-base text-gray-700 ${labelClassName}`}
