@@ -76,15 +76,6 @@ const CreateItem = ({ setView, data, setShowBatch , fetchItemData, fieldOptions 
     validationSchema: itemFormValidations,
     onSubmit: async (values: any) => {
       try {
-        const finalValues = {
-          ...values,
-          itemGroupCode: values.itemGroupCode === '' ? null : values.itemGroupCode,
-          discountPer: +values.discountPer,
-          marginPercentage: +values.marginPercentage,
-          maxQty: +values.maxQty,
-          minQty: +values.minQty,
-        }
-
         const formData = new FormData();
         Object.keys(values).forEach((key) => {
           if (values[key] instanceof File) {
@@ -121,7 +112,6 @@ const CreateItem = ({ setView, data, setShowBatch , fetchItemData, fieldOptions 
 
   useEffect(() => {
     const focusChain = getFocusChain()
-    console.log("focusChain", focusChain)
     tabManager.updateFocusChainAndSetFocus([...focusChain , 'save'] , 'name');    
   }, [])
 
@@ -313,7 +303,7 @@ const CreateItem = ({ setView, data, setShowBatch , fetchItemData, fieldOptions 
           </div>
         </div>
         <div className='w-full px-8 py-2'>
-          <CommonBtn id='save' variant='submit' component='itemGroup' setFocused={() => ''} handleOnClick={() => itemFormInfo.handleSubmit()} disable={!itemFormInfo.isValid || itemFormInfo.isSubmitting} prevField='' nextField='' > {data.id ? 'Update' : 'Submit'} </CommonBtn>
+          <CommonBtn id='save' variant='submit' component='itemGroup' handleOnClick={() => itemFormInfo.handleSubmit()} disable={!itemFormInfo.isValid || itemFormInfo.isSubmitting}> {data.id ? 'Update' : 'Submit'} </CommonBtn>
         </div>
       </form>
       {(popupState.isModalOpen || popupState.isAlertOpen) && (

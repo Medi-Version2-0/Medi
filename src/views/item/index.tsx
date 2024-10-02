@@ -19,6 +19,7 @@ import { itemFormValidations } from './validation_schema';
 import usePermission from '../../hooks/useRole';
 import useApi from '../../hooks/useApi';
 import { extractKeys, lookupValue } from '../../helper/helper';
+import useHandleKeydown from '../../hooks/useHandleKeydown';
 
 const initialPopupState = { setting: false, search: false };
 
@@ -163,6 +164,12 @@ const Items = ({type = '' , batchData = null}) => {
     };
     return <div onClick={handleClick}>{props.value}</div>;
   };
+
+  const handleKeyDown = (event: KeyboardEvent) => {
+    handleKeyDownCommon(event, handleDelete, undefined, undefined, selectedRow, setView);
+  };
+
+  useHandleKeydown(handleKeyDown, [selectedRow, popupState]);
 
   const commonColDefConfig = {
     flex: 1,
