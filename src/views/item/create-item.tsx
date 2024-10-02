@@ -35,7 +35,7 @@ export const companyFooterData = [
 const CreateItem = ({ setView, data, setShowBatch , fetchItemData, fieldOptions }: any) => {
   const [newItem, setNewItem] = useState();
   const [focused, setFocused] = useState('');
-  const [selectedCompany, setSelectedCompany] = useState<any>(null);
+  const [selectedCompany, setSelectedCompany] = useState<any>(data?.company || null);
   const [popupList, setPopupList] = useState<{ isOpen: boolean, data: any }>({ isOpen: false, data: {} })
   const [popupState, setPopupState] = useState({ isModalOpen: false, isAlertOpen: false, message: '', addText: '' });
   const [options, setOptions] = useState<{ companiesOptions: Option[]; salesOptions: Option[]; purchaseOptions: Option[]; groupOptions: Option[]; }>({ companiesOptions: [], salesOptions: [], purchaseOptions: [], groupOptions: [] });
@@ -243,6 +243,7 @@ const CreateItem = ({ setView, data, setShowBatch , fetchItemData, fieldOptions 
     lastElementRef.current='compId';
   }
   
+  console.log(selectedCompany , 'dsflkj' , data)
 
   const basicInfoFields = [
     { label: 'Item Name', id: 'name', name: 'name', isRequired: true, type: 'text', autoFocus: true },
