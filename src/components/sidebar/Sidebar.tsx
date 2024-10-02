@@ -44,6 +44,8 @@ import { partywiseDiscountViewChain } from '../../constants/focusChain/partywise
 import { hqFocusChain } from '../../constants/focusChain/hqFocusChain';
 import { itemGroupFocusChain } from '../../constants/focusChain/temGroupFocusChain';
 import { billBookSetupViewChain } from '../../constants/focusChain/billBookSetupFocusChain';
+import { partywisePriceListViewChain } from '../../constants/focusChain/partywisePriceList'
+import { copyPartywisePriceListViewChain } from '../../constants/focusChain/copyPartywisePriceList'
 
 interface SidebarProps {
   isGroup?: boolean;
@@ -162,7 +164,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         url: '/partywisePriceList',
         label: 'Party-wise PriceList',
         icon: <FaPlus className='fill-yellow-900' />,
-        onClick: () => openTab?.('Party-Wise PriceList', <PriceList />),
+        onClick: () => tabManager.openTab('Party-Wise PriceList', <PriceList /> , partywisePriceListViewChain , openTab),
         isDisabled: isNotReadAccess('partywise_pricelist')
       }
     ] : []),
@@ -171,7 +173,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         url: '/copyPartywisePriceList',
         label: 'Copy Party-wise PriceList',
         icon: <FaPlus className='fill-yellow-900' />,
-        onClick: () => openTab?.('Copy Party-wise PriceList', <CopyPratywisePriceList />),
+        onClick: () => tabManager.openTab('Copy Party-wise PriceList', <CopyPratywisePriceList /> , copyPartywisePriceListViewChain , openTab),
         isDisabled: isNotReadAccess('copy_partywise_pricelist')
       }
     ] : []),

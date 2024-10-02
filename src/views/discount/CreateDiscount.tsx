@@ -105,6 +105,7 @@ export const CreateDiscount = ({
           });
         }
         // settingPopupState(false, `Partywise discount ${!!data.discount_id ? 'updated' : 'created'} successfully`)
+        setView({ type: '', data: {} });
         getAndSetPartywiseDiscountHandler();
       }catch(error: any){
         if (!error?.isErrorHandled && error.response.status === 409) {

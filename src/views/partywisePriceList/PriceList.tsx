@@ -9,6 +9,8 @@ import { SelectList } from '../../components/common/customSelectList/customSelec
 import useApi from '../../hooks/useApi';
 import usePermission from '../../hooks/useRole';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
+import { TabManager } from '../../components/class/tabManager';
+import { partywisePriceListViewChain } from '../../constants/focusChain/partywisePriceList';
 
 const PriceList = () => {
   const { createAccess, deleteAccess } = usePermission('ledger')
@@ -29,15 +31,12 @@ const PriceList = () => {
     isOpen: false,
     data: {}
   })
+  const tabManager = TabManager.getInstance()
 
-  const focusedEle =  useRef<HTMLElement | null>(null);
   useEffect(()=> {
-    setTimeout(()=>{
-      focusedEle.current = document.getElementById('partySelect')
-      focusedEle.current?.focus();
-    },100)
     getPartyData();
     getItem();
+    tabManager.updateFocusChainAndSetFocus([...partywisePriceListViewChain ] , 'partySelect')    
   },[])
 
   const getPartyData = async () => {
@@ -119,6 +118,7 @@ const PriceList = () => {
       node.setDataValue(field, oldValue);
       return;
     }
+    data.combinedId = data.combinedId || `${currentSavedData?.party_id}${data.id}`;
     try {
       await sendAPIRequest(`/partyWisePriceList/${data.combinedId}`, {
         method: 'PUT',
@@ -159,7 +159,9 @@ const PriceList = () => {
   useEffect(() => {
     const fetchData = async () => {
       if (Object.keys(currentSavedData)?.length !== 0) {
-        await getItemData(currentSavedData?.party_id);
+        setTimeout(()=>{
+          getItemData(currentSavedData?.party_id);
+        },100)
         if (!checkItemData.current) {
           handleItemData(itemData);
         }
@@ -180,7 +182,7 @@ const PriceList = () => {
       if (unlockedBatches.length > 0) {
         const batch = unlockedBatches[unlockedBatches.length - 1];
         const party = currentSavedData?.salesPriceList;
-        item.salePrice = (party === '1' || !party) ? batch[`salePrice`] ?? 0 : batch[`salePrice${party}`] ?? 0;
+        item.salePrice = (Number(party) === 1 || !party) ? batch[`salePrice`] ?? 0 : batch[`salePrice${party}`] ?? 0;
         return true;
       }
       return false;
@@ -239,8 +241,7 @@ const PriceList = () => {
                           searchFrom: 'partyName',
                           handleSelect: (rowData: any) => {
                             setCurrentSavedData(rowData)
-                            document.getElementById('partySelect')?.focus()
-                            console                     }
+                          }
                         }
                       })
                     }
