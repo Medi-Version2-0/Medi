@@ -170,6 +170,7 @@ export const Container = <FormValues,>({
                     formik={formik}
                     onBlur={field.onBlur}
                     isTitleCase={field.isTitleCase}
+                    isUpperCase={true}
                     className='!mb-0'
                     inputClassName={`text-xs  ${field.type === 'file' ? 'py-0' : 'py-3.5'}`}
                     labelClassName={`min-w-[120px] text-base text-gray-700 ${labelClassName}`}

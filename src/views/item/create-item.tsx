@@ -235,7 +235,7 @@ const CreateItem = ({ setView, data, setShowBatch , fetchItemData, fieldOptions 
       name: 'compId',
       isRequired: true,
       type: 'text',
-      value: itemFormInfo.values.compId === '' || !selectedCompany ? null : selectedCompany?.companyName,
+      value: itemFormInfo.values.compId === '' || !selectedCompany ? null : selectedCompany?.companyName.toUpperCase(),
       onClick: handleCompanyList
     },
     ...controlRoomSettings.packaging ? [{ label: 'Packing', id: 'packing', name: 'packing', type: 'text'}] : [],
