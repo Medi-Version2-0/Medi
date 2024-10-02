@@ -4,7 +4,7 @@ import { FaEdit } from 'react-icons/fa';
 import { MdDeleteForever } from 'react-icons/md';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
-import { BillBookForm } from '../../interface/global';
+import { BillBookForm, BillBookFormData, popupOptions } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import Button from '../../components/common/button/Button';
 import { CreateBillBook } from './CreateBillBook';
@@ -13,14 +13,11 @@ import { ControlRoomSettings } from '../../components/common/controlRoom/Control
 import { invoiceSettingFields } from '../../components/common/controlRoom/settings';
 import { useControls } from '../../ControlRoomContext';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
-import { getAndSetBillBook } from '../../store/action/globalAction';
 import { billBookValidationSchema } from './validation_schema';
-import { useSelector } from 'react-redux'
 import usePermission from '../../hooks/useRole';
-import { ValueFormatterParams } from 'ag-grid-community';
-import { lookupValue } from '../../helper/helper';
+import { ColDef, GridOptions, ValueFormatterParams } from 'ag-grid-community';
+import { lookupValue, stringValueParser } from '../../helper/helper';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
-import { useGetSetData } from '../../hooks/useGetSetData';
 import useApi from '../../hooks/useApi';
 import CustomSelect from '../../components/custom_select/CustomSelect';
 import { TabManager } from '../../components/class/tabManager';
@@ -57,9 +54,8 @@ const seriesOptions: SeriesOption[] = [
 ];
 
 export const BillBook = () => {
-  const getAndSetBillBookHandler = useGetSetData(getAndSetBillBook);
   const { sendAPIRequest } = useApi();
-  const { billBookSeries: billBookSeriesData } = useSelector((state: any) => state.global);
+  const [billBookSeriesData, setBillBookSeriesData] = useState<any[]>([]);
   const [open, setOpen] = useState<boolean>(false);
   const [settingToggleOpen, setSettingToggleOpen] = useState<boolean>(false);
   const [selectedSeries, setSelectedSeries] = useState<string>('1');
@@ -89,14 +85,16 @@ export const BillBook = () => {
     shippingAddressRequired:
       controlRoomSettings.shippingAddressRequired || false,
   };
-
+  const popUpInitialValues = useMemo<popupOptions>(() => {
+    return {
+      isModalOpen: false,
+      isAlertOpen: false,
+      message: '',
+    }
+  }, []);
   const isDelete = useRef(false);
 
-  const [popupState, setPopupState] = useState({
-    isModalOpen: false,
-    isAlertOpen: false,
-    message: '',
-  });
+  const [popupState, setPopupState] = useState(popUpInitialValues);
 
   const settingPopupState = (isModal: boolean, message: string) => {
     setPopupState({
@@ -105,6 +103,18 @@ export const BillBook = () => {
       message: message,
     });
   };
+
+  async function getAndSetBillBookData() {
+    try {
+      const allBillBook = await sendAPIRequest('/billBook');
+      setBillBookSeriesData(allBillBook);
+    } catch (err) {
+      console.error('BillBook data in billBook index not being fetched');
+    }
+  }
+  useEffect(() => {
+    getAndSetBillBookData();
+  }, []);
 
   const getBillBook = async () => {
     const data = billBookSeriesData?.filter((data: any) => data.seriesId === +selectedSeries);
@@ -127,86 +137,72 @@ export const BillBook = () => {
     setOpen(isOpen);
   };
   const handleAlertCloseModal = () => {
-    setPopupState({ ...popupState, isAlertOpen: false });
+    setPopupState(popUpInitialValues);
   };
 
   const handleClosePopup = () => {
     setPopupState({ ...popupState, isModalOpen: false });
   };
 
-  const handleConfirmPopup = async () => {
-    setPopupState({ ...popupState, isModalOpen: false });
-    if (formData.billName) {
-      formData.billName =
-        formData.billName.charAt(0).toUpperCase() + formData.billName.slice(1);
+  const handleConfirmPopup = async (values: BillBookForm) => {
+    values.seriesId = +selectedSeries;
+    if(!values.orderOfBill){
+      values.orderOfBill = 0; // by default 0
     }
-    formData.seriesId = selectedSeries;
-
-    if (formData !== initialValue) {
+    if (values !== initialValue) {
       try {
-        if (formData.id) {
-          await sendAPIRequest(`/billBook/${formData.id}`, {
+        if (values.id) {
+          await sendAPIRequest(`/billBook/${values.id}`, {
             method: 'PUT',
-            body: formData,
+            body: values,
           });
         } else {
           await sendAPIRequest(`/billBook`, {
             method: 'POST',
-            body: formData,
+            body: values,
           });
         }
-
         togglePopup(false);
-        getAndSetBillBookHandler();
       } catch (error: any) {
         if (!error?.isErrorHandled) {
-          console.log('BillBook not created or updated');
+          if (error.response?.data.messages) {
+            settingPopupState(false, error.response?.data.messages.map((e: any) => e.message).join('\n'));
+            return;
+          }
+          settingPopupState(false, error.response.data.error.message) 
         }
+      }finally{
+        await getAndSetBillBookData(); // always show latest data to user weather there is error or not
       }
     }
   };
 
-  const handelFormSubmit = (values: BillBookForm) => {
-    const mode = values.id ? 'update' : 'create';
-    const existingBill = tableData.find((bill: BillBookForm) => {
-      if (mode === 'create')
-        return bill.billName.toLowerCase() === values.billName.toLowerCase();
-      return (
-        bill.billName.toLowerCase() === values.billName.toLowerCase() &&
-        bill.id !== values.id
-      );
-    });
-    if (existingBill) {
-      settingPopupState(false, 'Bill with this name already exists!');
-      return;
-    }
-
-    if (values !== initialValue) {
-      settingPopupState(true, `Are you sure you want to ${mode} this bill?`);
-      setFormData(values);
-    }
-  };
-
-  const deleteAcc = async (id: string) => {
+  const deleteAcc = async () => {
     isDelete.current = false;
+    setPopupState({ ...popupState, isModalOpen: false });
     togglePopup(false);
     try {
-      await sendAPIRequest(`/billBook/${id}`, {
+      await sendAPIRequest(`/billBook/${selectedRow.id}`, {
         method: 'DELETE',
       });
-      getAndSetBillBookHandler();
     } catch(error:any) {
       if (!error?.isErrorHandled) {
         settingPopupState(false, 'This bill book series is associated');
       }
+    }finally{
+      await getAndSetBillBookData();
+      setSelectedRow(null);
     }
   };
+
+  function handleDeleteFromForm(){
+    settingPopupState(true, 'Are you sure you want to delete the billbook')
+  }
 
   const handleDelete = (oldData: BillBookForm) => {
     isDelete.current = true;
     setFormData(oldData);
     togglePopup(true);
-    setSelectedRow(null);
   };
 
   const handleUpdate = (oldData: BillBookForm) => {
@@ -228,34 +224,18 @@ export const BillBook = () => {
   const handleCellEditingStopped = async (e: any) => {
     currTable = [];
     editing.current = false;
-    const { data, column, oldValue, valueChanged, node } = e;
-    let { newValue } = e;
+    const { data, column, newValue, oldValue, node } = e;
     if (newValue == oldValue) return;
     const field = column.colId;
-
+    const payload = {
+      [field]: newValue,
+      seriesId:selectedSeries,
+      id: data.id,
+      billType: data.billType,
+      company: data.company,
+    }
     try {
-      const billBookTableData = tableData.filter((e: any) => e.id !== data.id);
-      await billBookValidationSchema(billBookTableData, selectedSeries, false).validateAt(field, { [field]: newValue });
-
-      if (field === 'billName') {
-        newValue = newValue.charAt(0).toUpperCase() + newValue.slice(1);
-        tableData.forEach((data: any) => {
-          if (data.station_id !== e.data.station_id) {
-            currTable.push(data);
-          }
-        });
-
-        const existingBill = currTable.find(
-          (bill: BillBookForm) =>
-            bill.billName.toLowerCase() === newValue.toLowerCase()
-        );
-
-        if (existingBill) {
-          settingPopupState(false, 'Bill with this name already exists!');
-          node.setDataValue(field, oldValue);
-          return;
-        }
-      }
+      await billBookValidationSchema(false).validateAt(field, { [field]: newValue });
     } catch (error: any) {
       settingPopupState(false, `${error.message}`);
       node.setDataValue(field, oldValue);
@@ -265,13 +245,18 @@ export const BillBook = () => {
     try {
       await sendAPIRequest(`/billBook/${data.id}`, {
         method: 'PUT',
-        body: { [field]: newValue },
+        body: payload,
       });
-      getAndSetBillBookHandler();
     } catch (error: any) {
       if (!error?.isErrorHandled) {
-        console.log('BillBook not updated');
+        if (error.response?.data.messages) {
+          settingPopupState(false, error.response?.data.messages.map((e: any) => e.message).join('\n'));
+          return;
+        }
+        settingPopupState(false, error.response.data.error.message);
       }
+    }finally{
+      await getAndSetBillBookData();
     }
   };
 
@@ -288,7 +273,7 @@ export const BillBook = () => {
       event,
       () => handleDelete(selectedRow),
       () => handleUpdate(selectedRow),
-      togglePopup,
+      undefined,
       selectedRow,
       undefined
     );
@@ -296,7 +281,7 @@ export const BillBook = () => {
 
   useHandleKeydown(handleKeyDown, [selectedRow, popupState])
 
-  const defaultCols = {
+  const defaultColDef: ColDef = {
     floatingFilter: true,
     flex: 1,
     filter: true,
@@ -309,6 +294,7 @@ export const BillBook = () => {
     {
       headerName: 'Series Name',
       field: 'billName',
+      valueParser: stringValueParser,
     },
     {
       headerName: 'Prefix',
@@ -331,11 +317,12 @@ export const BillBook = () => {
       cellEditorParams: { values: Object.values(billTypeMapping) },
       valueFormatter: (params: ValueFormatterParams) => lookupValue(billTypeMapping, params.value),
     },
-    {
-      headerName: 'Sequence of Bill',
-      field: 'orderOfBill',
-      headerClass: 'custom-header-class custom-header',
-    },
+    // sequence number will be not shown in the grid it is just tell the sorting of series
+    // { 
+    //   headerName: 'Sequence of Bill',
+    //   field: 'orderOfBill',
+    //   headerClass: 'custom-header-class custom-header',
+    // },
     {
       headerName: 'Lock Bill',
       field: 'locked',
@@ -355,21 +342,28 @@ export const BillBook = () => {
       },
       cellRenderer: (params: { data: BillBookForm }) => (
         <div className='table_edit_buttons'>
-          <FaEdit
+          {updateAccess && <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
             onClick={() => {
-              setSelectedRow(selectedRow !== null ? null : params.data);
+              setSelectedRow(params.data);
               handleUpdate(params.data);
             }}
-          />
-          <MdDeleteForever
+          />}
+          {deleteAccess && <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
             onClick={() => handleDelete(params.data)}
-          />
+          />}
         </div>
       ),
     },
   ];
+
+  const gridOptions: GridOptions<any> = {
+    pagination: true,
+    paginationPageSize: 20,
+    paginationPageSizeSelector: [20, 30, 40],
+    defaultColDef,
+  };
 
   return (
     <>
@@ -394,7 +388,7 @@ export const BillBook = () => {
               labelClass='whitespace-nowrap text-base font-medium'
               value={
                 {
-                  label: seriesOptions.find((s:any)=> s.value === selectedSeries)?.label,
+                  label: seriesOptions.find((s:any)=> s.value === +selectedSeries)?.label,
                   value: selectedSeries,
                 }
               }
@@ -422,7 +416,7 @@ export const BillBook = () => {
               <AgGridReact
                 rowData={tableData}
                 columnDefs={colDefs}
-                defaultColDef={defaultCols}
+                gridOptions={gridOptions}
                 onCellClicked={onCellClicked}
                 onCellEditingStarted={cellEditingStarted}
                 onCellEditingStopped={handleCellEditingStopped}
@@ -437,7 +431,7 @@ export const BillBook = () => {
               onConfirm={
                 popupState.isAlertOpen
                   ? handleAlertCloseModal
-                  : handleConfirmPopup
+                  : deleteAcc
               }
               message={popupState.message}
               isAlert={popupState.isAlertOpen}
@@ -448,10 +442,10 @@ export const BillBook = () => {
             <CreateBillBook
               togglePopup={togglePopup}
               data={formData}
-              handelFormSubmit={handelFormSubmit}
+              handleConfirmPopup={handleConfirmPopup}
               isDelete={isDelete.current}
-              deleteAcc={deleteAcc}
               className='absolute'
+              handleDeleteFromForm={handleDeleteFromForm}
               selectedSeries={selectedSeries}
               billBookData={tableData}
             />

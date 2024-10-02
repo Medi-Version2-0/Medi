@@ -12,15 +12,16 @@ import FormikInputField from '../../components/common/FormikInputField';
 import CustomSelect from '../../components/custom_select/CustomSelect';
 import { TabManager } from '../../components/class/tabManager';
 import { createBillBookSetupFieldsChain, createBillBookSetupFieldsChainIfId, deleteBillBookSetupFieldsChain } from '../../constants/focusChain/billBookSetupFocusChain';
+import NumberInput from '../../components/common/numberInput/numberInput';
 
 export const CreateBillBook = ({
   togglePopup,
   data,
-  handelFormSubmit,
+  handleConfirmPopup,
   isDelete,
-  deleteAcc,
   className,
   selectedSeries,
+  handleDeleteFromForm,
   billBookData
 }: CreateBillProps) => {
   const { id } = data;
@@ -42,7 +43,7 @@ export const CreateBillBook = ({
       ...values,
       ...(id && { id }),
     };
-    handelFormSubmit(formData);
+    handleConfirmPopup(formData);
   };
 
   const handleFieldChange = (option: Option | null, id: string) => {
@@ -52,13 +53,6 @@ export const CreateBillBook = ({
   const handleUppercase = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
     formikRef.current?.setFieldValue(e.target.name, value.toUpperCase());
-  };
-
-  const handleNumeric = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = e.target;
-    if (/^[0-9]*$/.test(value)) {
-      formikRef.current?.setFieldValue(e.target.name, value);
-    }
   };
 
   return (
@@ -85,7 +79,7 @@ export const CreateBillBook = ({
           orderOfBill: data?.orderOfBill || '',
           locked: data?.locked || 'No',
         }}
-        validationSchema={() => billBookValidationSchema(billBookData, selectedSeries, editing)}
+        validationSchema={() => billBookValidationSchema(editing)}
         onSubmit={handleSubmit}
       >
         {(formik) => (
@@ -93,6 +87,7 @@ export const CreateBillBook = ({
             <FormikInputField
               label='Series Name'
               id='billName'
+              isUpperCase={true}
               name='billName'
               formik={formik}
               className='!gap-0'
@@ -207,20 +202,18 @@ export const CreateBillBook = ({
                 )}
               </Field>
             </div>
-            <FormikInputField
+            <NumberInput
               label='Sequence of Bill'
               id='orderOfBill'
               name='orderOfBill'
-              formik={formik}
-              className='!gap-0'
-              isDisabled={isDelete && id}
-              sideField='orderOfBill'
-              nextField={`${id ? 'locked' : 'submit_button'}`}
-              prevField='billType'
-              onChange={handleNumeric}
-              showErrorTooltip={
-                !!(formik.touched.orderOfBill && formik.errors.orderOfBill)
-              }
+              min={0}
+              value={formik.values.orderOfBill}
+              onChange={(value) => formik.setFieldValue('orderOfBill', value)}
+              onBlur={() => {
+                formik.setFieldTouched('orderOfBill', true);
+              }}
+              labelClassName='absolute !h-4 !text-[12px] left-1 -top-2'
+              inputClassName='!text-left !text-[12px] px-1 !h-8'
             />
             {id && (
               <div className='flex flex-col w-full '>
@@ -246,7 +239,7 @@ export const CreateBillBook = ({
                       isSearchable={false}
                       disableArrow={false}
                       hidePlaceholder={false}
-                      className='!h-6 rounded-sm text-xs'
+                      className='!h-8 rounded-sm text-xs'
                       isTouched={formik.touched.locked}
                       error={formik.errors.locked}
                       isDisabled={isDelete && id}
@@ -283,7 +276,7 @@ export const CreateBillBook = ({
                   type='fill'
                   btnType='button'
                   padding='px-4 py-2'
-                  handleOnClick={() => id && deleteAcc(`${id}`)}
+                  handleOnClick={handleDeleteFromForm}
                 >
                   Delete
                 </Button>
