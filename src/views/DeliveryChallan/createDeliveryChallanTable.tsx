@@ -281,7 +281,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
       openItem(rowIndex)
     }
     if (colIndex === 1 && (lastElement.current.row  !== rowIndex || lastElement.current.col !==1)) {
-    openBatch(rowIndex)
+      openBatch(rowIndex)
     }
   }
 
@@ -494,6 +494,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
               setBatches([...batches, rowData]);
             }
             if (nearexpiry) {
+              tabManager.setTabLastFocusedElementId(`cell-${rowIndex}-${2}`)
               setPopupState({
                 ...popupState, isAlertOpen: true, message: 'Item is near Expiry'
               });
