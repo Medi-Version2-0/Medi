@@ -264,7 +264,7 @@ export const SelectList = ({
             isSuggestionPopup={true}
             id='selectList'
             onClose={closeList}
-            focusChain={[]}
+            focusChain={['searchBar']}
         >
             <div className='flex px-4 mt-4 w-full justify-between items-center'>
                 <form className='flex w-full gap-5'>
