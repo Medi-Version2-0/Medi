@@ -63,6 +63,7 @@ export const AuthForm = ({ isLogin }: { isLogin: boolean }) => {
                   name='email'
                   type='email'
                   isTitleCase={false}
+                  isUpperCase={false}
                   formik={formik}
                   nextField='password'
                 />
@@ -74,6 +75,7 @@ export const AuthForm = ({ isLogin }: { isLogin: boolean }) => {
                   name='password'
                   type='password'
                   isTitleCase={false}
+                  isUpperCase={false}
                   formik={formik}
                   prevField='email'
                   nextField='submit_all'
