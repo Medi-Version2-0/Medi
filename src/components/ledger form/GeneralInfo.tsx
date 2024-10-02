@@ -156,7 +156,7 @@ export const GeneralInfo = ({
                 isPopupOpen={false}
                 label='Account Group'
                 id='accountGroup'
-                labelClass='min-w-[90px]'
+                labelClass='min-w-[90px] !inline-block'
                 value={
                   formik.values.accountGroup === ''
                     ? null
@@ -200,7 +200,7 @@ export const GeneralInfo = ({
             )}
           </div>
           {isSUNDRY && (
-            <div className="flex items-center w-[40%] before:content-['*'] before:relative before:-right-11 before:text-red-500">
+            <div className="flex items-center w-[40%]">
               <CustomSelect
                 isPopupOpen={false}
                 label='Station'
@@ -223,7 +223,7 @@ export const GeneralInfo = ({
                 disableArrow={false}
                 hidePlaceholder={false}
                 className='!h-6 rounded-sm'
-                isRequired={false}
+                isRequired={isSUNDRY ? true : false}
                 isFocused={focused === 'stationName'}
                 error={formik.errors.stationName}
                 isTouched={formik.touched.stationName}
@@ -343,8 +343,7 @@ export const GeneralInfo = ({
             )}
           </div>
         )}
-        <div className='flex flex-row justify-between w-full items-center'>
-        <div className='flex gap-[9%] w-full'>
+        <div className='flex flex-row justify-between m-[1px] w-full items-center'>
           {isSUNDRY && (
               <FormikInputField
                 isPopupOpen={false}
@@ -352,7 +351,7 @@ export const GeneralInfo = ({
                 id='mailTo'
                 name='mailTo'
                 isUpperCase={false}
-                className='!w-[51%]'
+                className='!w-[50%]'
                 formik={formik}
                 showErrorTooltip={formik.touched.mailTo && formik.errors.mailTo}
                 labelClassName='min-w-[90px]'
@@ -364,12 +363,13 @@ export const GeneralInfo = ({
                 }
               />
         )}
-            <div className={`flex items-center ${isSUNDRY ? 'w-[41%]' : 'w-[50%]'} before:content-['*'] before:relative before:-right-[70px] before:text-red-500`}>
+            <div className={`${isSUNDRY ? 'w-[40%]': '!min-w-[50%]'}`}>
           <CustomSelect
             isPopupOpen={false}
             label='State In Out'
             id='stateInout'
-            labelClass={`${isSUNDRY ? 'items-center w-1/2 ' : 'min-w-[90px]'}`}
+            isRequired={true}
+            labelClass={`${isSUNDRY ? 'w-1/3' : 'min-w-[90px]'} !inline-block`}
             value={
               {
                 label: formik.values.stateInout,
@@ -387,7 +387,7 @@ export const GeneralInfo = ({
             placeholder='Select an option'
             disableArrow={false}
             hidePlaceholder={false}
-            className='!h-6 rounded-sm'
+            className='!h-6 rounded-sm w-full'
             onBlur={() => {
               formik.setFieldTouched('stateInout', true);
               setFocused('');
@@ -404,15 +404,14 @@ export const GeneralInfo = ({
           />
           </div>
         </div>
-        </div>
         <div className='flex justify-between'>
           {isSUNDRY &&  controlRoomSettings.multiPriceList && (
-              <div className='w-[50.3%]'>
+              <div className='w-[50%]'>
                 <CustomSelect
                   isPopupOpen={false}
                   label='Select Price List'
                   id='salesPriceList'
-                  labelClass='items-center w-[55%]'
+                  labelClass='items-center min-w-[90px]'
                   value={
                     formik.values.salesPrice === ''
                       ? null
@@ -458,22 +457,24 @@ export const GeneralInfo = ({
                 />
               </div>
           )}
-          {isSUNDRY && <NumberInput
-            label={`Excess Rate %`}
-            id='excessRate'
-            name='excessRate'
-            max={1000}
-            min={0}
-            value={formik.values.excessRate}
-            onChange={(value) => formik.setFieldValue('excessRate', value)}
-            onBlur={() => {
-              formik.setFieldTouched('excessRate', true);
-            }}
-            className='!w-2/5'
-            labelClassName='min-w-[90px] !h-[22px] w-fit text-nowrap me-2'
-            inputClassName='text-left !text-[10px] px-1 !h-[22px] !w-[70%]'
-            error={formik.touched.excessRate && formik.errors.excessRate}
-          />}
+          {isSUNDRY && <div className={`${isSUNDRY && controlRoomSettings.multiPriceList ? '!min-w-[40%]' : '!min-w-[50%]'}`}>
+            <NumberInput
+              label={`Excess Rate %`}
+              id='excessRate'
+              name='excessRate'
+              max={1000}
+              min={0}
+              value={formik.values.excessRate}
+              onChange={(value) => formik.setFieldValue('excessRate', value)}
+              onBlur={() => {
+                formik.setFieldTouched('excessRate', true);
+              }}
+              className='flex items-center'
+              labelClassName='!min-w-[90px] !h-[16px] w-fit text-nowrap me-2 !ps-0'
+              inputClassName='text-left !text-[10px] px-1 !h-[24px]'
+              error={formik.touched.excessRate && formik.errors.excessRate}
+            />
+          </div>}
         </div>
       </div>
     </div>
