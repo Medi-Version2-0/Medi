@@ -474,7 +474,8 @@ export type FieldConfig = {
   onFocus?: () => void;
   onChange?: (e:any) => void;
   onBlur?: () => void;
-  onClick? : ()=> void;
+  onClick?: ()=> void;
+  readOnly?: boolean;
 };
 
 export type SaleBillFormInfoType = FormikProps<saleBillFormValues>;

@@ -133,7 +133,7 @@ const CreateItem = ({ setView, data, setShowBatch , fetchItemData, fieldOptions 
     }
   
     if (controlRoomSettings.dpcoAct) {
-      modifiedMiscChain = ['dpcoAct', ...modifiedMiscChain];
+      modifiedMiscChain = ['custom_select_dpcoAct', ...modifiedMiscChain];
     }
   
     if (controlRoomSettings.rackNumber) {
@@ -220,12 +220,17 @@ const CreateItem = ({ setView, data, setShowBatch , fetchItemData, fieldOptions 
           handleFieldChange({ label: rowData.companyName, value: rowData.company_id }, 'compId');
           handleFieldValue('compId', rowData.company_id);
           setSelectedCompany(rowData);
+          tabManager.setTabLastFocusedElementId(controlRoomSettings.packaging ? 'packing' : controlRoomSettings.batchWiseManufacturingCode ? 'shortName' : 'service' )
+          setTimeout(() => {
+            itemFormInfo.setFieldTouched('compId', true, true);
+          }, 0);
         },
         onEsc: () => setPopupList({ isOpen: false, data: {} }),
       }
     })
     lastElementRef.current='compId';
   }
+  
 
   const basicInfoFields = [
     { label: 'Item Name', id: 'name', name: 'name', isRequired: true, type: 'text', autoFocus: true },
@@ -233,6 +238,7 @@ const CreateItem = ({ setView, data, setShowBatch , fetchItemData, fieldOptions 
       label: 'Company',
       id: 'compId',
       name: 'compId',
+      readOnly : true,
       isRequired: true,
       type: 'text',
       value: itemFormInfo.values.compId === '' || !selectedCompany ? null : selectedCompany?.companyName.toUpperCase(),
@@ -268,7 +274,7 @@ const CreateItem = ({ setView, data, setShowBatch , fetchItemData, fieldOptions 
 
   const container3Fields = [
     ...controlRoomSettings.rackNumber ? [{ label: 'Rack No.', id: 'rackNumber', name: 'rackNumber', type: 'text', nextField: 'dpcoact', prevField: 'maxQty' }] : [],
-    ...controlRoomSettings.dpcoAct ? [{ label: 'DPCO Act.', id: 'dpcoact', name: 'dpcoact', type: 'select', options: [{ label: 'Yes', value: 'Yes' }, { label: 'No', value: 'No' }]}] : [],
+    ...controlRoomSettings.dpcoAct ? [{ label: 'DPCO Act.', id: 'dpcoAct', name: 'dpcoact', type: 'select', options: [{ label: 'Yes', value: 'Yes' }, { label: 'No', value: 'No' }]}] : [],
     { label: 'Upload Img.', id: 'upload', name: 'upload', type: 'file' },
   ];
 
