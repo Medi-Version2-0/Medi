@@ -40,7 +40,7 @@ export const CreateHQ = ({ togglePopup, data, handleConfirmPopup, isDelete, hand
   ]
 
   return (
-    <Popup id='create_hq' heading={`${fetchType(isDelete, data.station_id)} Headquarter`} focusChain={focusChain} className={className}>
+    <Popup id='create_hq' onClose={() => togglePopup(false)} heading={`${fetchType(isDelete, data.station_id)} Headquarter`} focusChain={focusChain} className={className}>
       <PopupFormContainer fields={headquartersFields} formik={HQFormInfo} setFocused={setFocused} focused={focused} />
       <div className='flex justify-between p-4 w-full'>
         <CommonBtn variant='cancel' component='hq' handleOnClick={() => togglePopup(false)} > Cancel </CommonBtn>
