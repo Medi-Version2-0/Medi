@@ -247,15 +247,15 @@ export const Batch = ({ params }: { params: { showBatch: any; setShowBatch: Reac
     filter: true,
     editable: true,
     sortable: true,
-    flex: 1,
     headerClass: 'custom-header',
     suppressMovable: true,
-    cellStyle: { display: 'flex', justifyContent: 'center', alignItems: 'center' },
+    cellStyle: { display: 'flex', justifyContent: 'flex-start', alignItems: 'center' },
     cellEditor: 'agTextCellEditor',
     cellRenderer: (params: any) => (
       <PlaceholderCellRenderer
         value={params.value}
         rowIndex={params.node.rowIndex}
+        className={'text-start'}
         column={params.colDef}
         startEditingCell={(editParams) => gridRef.current?.api?.startEditingCell(editParams)}
         placeholderText={params.colDef.headerName}
@@ -266,12 +266,12 @@ export const Batch = ({ params }: { params: { showBatch: any; setShowBatch: Reac
   const salePriceColumns: ColDef[] = [];
 
   if (controlRoomSettings.multiPriceList && controlRoomSettings.salesPriceLimit > 1) {
-    salePriceColumns.push({ headerName: 'Sale Price 1', field: 'salePrice', cellDataType: 'number', headerClass: 'custom-header-class custom-header' });
+    salePriceColumns.push({ headerName: 'Sale Price 1', field: 'salePrice', cellDataType: 'number', width: 180, headerClass: 'custom-header-class custom-header'});
     for (let i = 2; i <= controlRoomSettings.salesPriceLimit; i++) {
-      salePriceColumns.push({ headerName: `Sale Price ${i}`, field: `salePrice${i}`, cellDataType: 'number', headerClass: 'custom-header-class custom-header' });
+      salePriceColumns.push({ headerName: `Sale Price ${i}`, field: `salePrice${i}`, cellDataType: 'number', width: 180, headerClass: 'custom-header-class custom-header' });
     }
   } else {
-    salePriceColumns.push({ headerName: 'Sale Price', field: 'salePrice', cellDataType: 'number', headerClass: 'custom-header-class custom-header' });
+    salePriceColumns.push({ headerName: 'Sale Price', field: 'salePrice', cellDataType: 'number', width: 180, headerClass: 'custom-header-class custom-header' });
   }
 
     const colDefs: ColDef[] = [
@@ -281,10 +281,10 @@ export const Batch = ({ params }: { params: { showBatch: any; setShowBatch: Reac
       { headerName: 'Scheme Stock', field: 'opFree', cellDataType: 'number' },
       { headerName: 'Purchase Price', field: 'purPrice', cellDataType: 'number', headerClass: 'custom-header-class custom-header', cellStyle: { display: 'flex', justifyContent: 'center', alignItems: 'center' }},
       ...salePriceColumns,
-      { headerName: 'MRP', field: 'mrp', cellDataType: 'number' },
-      { headerName: 'Current Stock', field: 'currentStock', editable: false },
-      { headerName: 'Lock Batch', field: 'locked' },
-      ...(controlRoomSettings.batchWiseManufacturingCode ? [{ headerName: 'MFG Code', field: 'mfgCode' }] : []),
+      { headerName: 'MRP', field: 'mrp', width: 150, cellDataType: 'number' },
+      { headerName: 'Current Stock', width: 200, field: 'currentStock', editable: false },
+      { headerName: 'Lock Batch', width: 150, field: 'locked' },
+      ...(controlRoomSettings.batchWiseManufacturingCode ? [{ headerName: 'MFG Code', field: 'mfgCode', width: 150 }] : []),
     ];
 
   return (
@@ -294,7 +294,7 @@ export const Batch = ({ params }: { params: { showBatch: any; setShowBatch: Reac
           <h1 className="font-bold">{item && item.name}</h1>
           <Button type="highlight" handleOnClick={() => params.setShowBatch(null)}> Back </Button>
         </div>
-        <div id="account_table" className="ag-theme-quartz">
+        <div id="scrollheaders" className="ag-theme-quartz" >
           {tableData &&
             <AgGridReact
               ref={gridRef}

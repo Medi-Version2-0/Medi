@@ -26,6 +26,18 @@ code {
   height: calc(100vh - 4rem);
 }
 
+#scrollheaders{
+  overflow: auto;
+  margin: 0.5rem 2rem;
+  background-color: white;
+  border-radius: 0.2rem;
+  height: calc(100vh - 4rem);
+  -webkit-border-radius: 0.2rem;
+  -moz-border-radius: 0.2rem;
+  -ms-border-radius: 0.2rem;
+  -o-border-radius: 0.2rem;
+}
+
 .table_edit_buttons {
   display: flex;
   gap: 0.7rem;
