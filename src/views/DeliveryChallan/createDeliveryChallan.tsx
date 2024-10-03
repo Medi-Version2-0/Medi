@@ -638,6 +638,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
             setIsNetRateSymbol={setIsNetRateSymbol}
             setChallanTableData={setChallanTableData}
             challanId={data?.id}
+            selectedParty={selectedParty}
           />
         </div>
 
