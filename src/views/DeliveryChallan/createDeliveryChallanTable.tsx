@@ -455,6 +455,11 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     }
   };
 
+  const handlePartyRestrictionAlert = (alertMessage: string) => {
+    setPopupState({ ...popupState, isAlertOpen: true, message: alertMessage });
+  };
+
+
   const openItem = (rowIndex: number) => {
     setPopupList({
       isOpen: true, data: {
@@ -463,6 +468,24 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
         extraQueryParams: selectedParty?.party_id ? { partyId: selectedParty.party_id } : {},
          searchFrom: 'name',
         handleSelect: (rowData: any) => {
+          if (rowData.prescriptionType === "NON-RX" || rowData.scheduleDrug === "H1") {
+            if (rowData.prescriptionType === "NON-RX" && rowData.scheduleDrug === "H1") {
+              if (selectedParty.stopNrx && selectedParty.stopH1) {
+                handlePartyRestrictionAlert("This party is restricted for selling NRX and H1 items.");
+              }
+            } else if (rowData.scheduleDrug === "H1" && selectedParty.stopH1) {
+              handlePartyRestrictionAlert("This party is restricted for selling H1 items.");
+
+            } else if (rowData.prescriptionType === "NON-RX" && selectedParty.stopNrx) {
+              handlePartyRestrictionAlert("This party is restricted for selling NRX items.");
+
+            }
+            return tabManager.setTabLastFocusedElementId(`cell-${rowIndex}-${0}`)
+          }
+
+          
+
+           
           const isItemSelected = gridData.findIndex((x) => x.columns.itemId?.value === rowData.id)
           setCurrentSavedData({ ...currentSavedData, item: rowData });
           const isItemExists = itemValue.some((item: any) => item.id === rowData.id);
@@ -473,8 +496,9 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
             tabManager.setTabLastFocusedElementId(`cell-${rowIndex}-${focusColIndex.current + 1}`)
             setPopupState({ ...popupState, isAlertOpen: true, message: "Alert! , You've already selected this item"});
           }
+          setPopupList({isOpen:false , data:{}})
         },
-        autoClose: true
+        autoClose: false
 
       }
     })

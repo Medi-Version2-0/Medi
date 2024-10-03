@@ -228,7 +228,7 @@ export const SelectList = ({
             if (onEsc) {
                 onEsc()
             }
-            else if (autoClose) {
+            else{
                 closeList();
             }
         } else if (event.key.length === 1 || event.key === 'Backspace' || event.key === 'Delete') {
