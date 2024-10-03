@@ -11,6 +11,7 @@ import usePermission from '../../hooks/useRole';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
 import { TabManager } from '../../components/class/tabManager';
 import { partywisePriceListViewChain } from '../../constants/focusChain/partywisePriceList';
+import { useSelector } from 'react-redux';
 
 const PriceList = () => {
   const { createAccess, deleteAccess } = usePermission('ledger')
@@ -31,13 +32,38 @@ const PriceList = () => {
     isOpen: false,
     data: {}
   })
+  const settingPopupState = (isModal: boolean, message: string) => {
+    setPopupState({
+      ...popupState,
+      [isModal ? 'isModalOpen' : 'isAlertOpen']: true,
+      message: message,
+    });
+  };
   const tabManager = TabManager.getInstance()
+  const decimalPlaces = useSelector((state: any) => state.global.controlRoomSettings.decimalValueCount || 2);
 
   useEffect(()=> {
     getPartyData();
     getItem();
     tabManager.updateFocusChainAndSetFocus([...partywisePriceListViewChain ] , 'partySelect')    
   },[])
+
+  const fetchData = async () => {
+    if (Object.keys(currentSavedData)?.length !== 0) {
+      setTimeout(()=>{
+        getItemData(currentSavedData?.party_id);
+      },100)
+      if (!checkItemData.current) {
+        handleItemData(itemData);
+      }
+      setSelectedPartyStation(currentSavedData?.station_name || '');
+    }
+  };
+
+  useEffect(() => { 
+    getItemData();
+    // fetchData();
+  }, [currentSavedData.party_id, itemData]);
 
   const getPartyData = async () => {
     try {
@@ -58,8 +84,14 @@ const PriceList = () => {
 
   const getItemData = async (partyId?: any) => {
     try {
+      partyId = partyId ? partyId : currentSavedData?.party_id
       const getItemData = await sendAPIRequest<any[]>(`/partyWisePriceList/${partyId}`, {method: 'GET'});
       const hasMatchingId = getItemData.some((item:any) => item.partyId === partyId);
+      if(!getItemData.length){
+        fetchData();
+      }else{
+        setTableData(getItemData)
+      }
       if (hasMatchingId && (itemData.length === getItemData.length)) {
         checkItemData.current = true;
         setTableData(getItemData)
@@ -92,27 +124,47 @@ const PriceList = () => {
       suppressMovable: true,
       headerClass: 'custom-header',
   }
-
-  const colDefs = useMemo(
-    () => [
-      {
-        headerName: 'Item Name',
-        field: 'name',
+  
+  const colDefs = [
+    {
+      headerName: 'Item Name',
+      field: 'name',
+    },
+    {
+      headerName: 'Sale Price',
+      field: 'salePrice',
+      editable: true,
+      cellEditor: 'agNumberCellEditor',
+      cellEditorParams: {
+        precision: decimalPlaces,
       },
-      {
-        headerName: 'Sale Price',
-        field: 'salePrice',
-        editable: true,
+      valueParser: (params: any) => {
+        const value = params.newValue;
+        if (value === null || value === undefined || value === '') return null;
+        const parsed = parseFloat(value);
+        return isNaN(parsed) ? null : parsed;
       },
-    ],
-    []
-  );
+    },
+  ];
 
   const handleCellEditingStopped = async (e: any) => {
     const { data, column, oldValue, valueChanged, node } = e;
     const { newValue } = e;
     if (!valueChanged) return;
     const field = column.colId;
+
+    if (field === 'salePrice') {
+      const decimalPart = newValue.toString().split('.');
+      if (decimalPart && decimalPart.length > decimalPlaces) {
+        node.setDataValue(field, oldValue);
+        settingPopupState(false, '')
+        return;
+      }
+      if (newValue < 0) {
+        node.setDataValue(field, oldValue);
+        return;
+      }
+    }
 
     if (newValue < 0) {
       node.setDataValue(field, oldValue);
@@ -156,38 +208,29 @@ const PriceList = () => {
     }
   }
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (Object.keys(currentSavedData)?.length !== 0) {
-        setTimeout(()=>{
-          getItemData(currentSavedData?.party_id);
-        },100)
-        if (!checkItemData.current) {
-          handleItemData(itemData);
-        }
-        setSelectedPartyStation(currentSavedData?.station_name || '');
-      }
-    };
-  
-    fetchData();
-  }, [currentSavedData.party_id, itemData]);
-
 
   const handleItemData = async (itemData: any) => {
     const filteredItemData = itemData?.filter((item: any) => {
       let batches = item.ItemBatches;
-      batches = batches?.sort((a: any, b: any) => a.id - b.id);
+      if (batches && batches.length > 0) {
+        batches = batches.sort((a: any, b: any) => a.id - b.id);
+      }
 
       const unlockedBatches = batches.filter((batch: any) => batch.locked !== "Y");
       if (unlockedBatches.length > 0) {
         const batch = unlockedBatches[unlockedBatches.length - 1];
         const party = currentSavedData?.salesPriceList;
         item.salePrice = (Number(party) === 1 || !party) ? batch[`salePrice`] ?? 0 : batch[`salePrice${party}`] ?? 0;
-        return true;
+        // return true;
       }
-      return false;
+      else {
+        item.salePrice = 0;
+        // return true
+      }
+      return item;
     });
     if (filteredItemData.length > 0) setTableData(filteredItemData);
+    getItemData();
     await handleAdd(filteredItemData);
   };
 
