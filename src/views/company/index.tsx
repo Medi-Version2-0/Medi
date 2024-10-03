@@ -39,6 +39,8 @@ export const Company = ({type = ''}) => {
     setPopupState({
       ...popupState,
       [isModal ? 'isModalOpen' : 'isAlertOpen']: true,
+      [!isModal ? 'isModalOpen' : 'isAlertOpen']: false,
+
       message: message,
     });
   };
@@ -92,6 +94,7 @@ export const Company = ({type = ''}) => {
     } catch (error: any) {
       if (!error?.isErrorHandled) {
         console.log('Company not deleted');
+        settingPopupState(false, 'This company is associated');
       }
     }
   };
