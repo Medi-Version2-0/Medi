@@ -15,6 +15,7 @@ import { AppDispatch } from '../../store/types/globalTypes';
 import { getAndSetItem } from '../../store/action/globalAction';
 import { useSelector } from 'react-redux';
 import useApi from '../../hooks/useApi';
+import { SelectListTableWithInput } from '../../components/common/customSelectListWithInput/customSelectListWithInput';
 
 export const Batch = ({
   params,
@@ -40,7 +41,7 @@ export const Batch = ({
     ...(controlRoomSettings.multiPriceList ? { salePrice2: null } : {}),
     mrp: null,
     locked: 'N',
-    ...(controlRoomSettings.batchWiseManufacturingCode ? { mfgCode: '', } : {}),
+    ...(controlRoomSettings.batchWiseManufacturingCode ? { mfgCode: '' } : {}),
   };
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [inputRow, setInputRow] = useState<BatchForm | any>(pinnedRow);
@@ -48,13 +49,16 @@ export const Batch = ({
   const [item, setItems] = useState<any>(null);
   const editing = useRef(false);
   const gridRef = useRef<any>(null);
+  const [godownData, setGodownData] = useState<any | []>(null);
+  const [isUpdateMode, setIsUpdateMode] = useState<boolean>(false);
+  const selectedBatchId = useRef<any>(null);
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
     message: '',
   });
-  const dispatch = useDispatch<AppDispatch>()
-  const {item: itemsData} = useSelector((state: any) => state.global);
+  const dispatch = useDispatch<AppDispatch>();
+  const { item: itemsData } = useSelector((state: any) => state.global);
   const itemData = itemsData.find((item: any) => item.id === id);
   const settingPopupState = (isModal: boolean, message: string) => {
     setPopupState({
@@ -63,11 +67,20 @@ export const Batch = ({
       message: message,
     });
   };
-
+  const [savedData, setSavedData] = useState<any[]>([]);
+  const [saveUpdatedData, setSaveUpdatedData] = useState<any[]>([]);
+  const [popupList, setPopupList] = useState<{ isOpen: boolean; data: any }>({
+    isOpen: false,
+    data: {},
+  });
+  const GodownHeaders = [
+    { label: 'Godown Name', key: 'godownName' },
+    { label: 'Stocks', key: 'stocks', isInput: true },
+  ];
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const getBatch = (async () => {
+  const getBatch = async () => {
     setInputRow(pinnedRow);
     setItems(itemData);
     let newRow = { ...pinnedRow, itemId: 0 };
@@ -75,7 +88,7 @@ export const Batch = ({
       newRow = { ...newRow, mfgCode: itemData?.shortName || '' };
     }
     setTableData([newRow, ...itemData.ItemBatches]);
-  });
+  };
 
   const onGridReady = () => {
     if (gridRef.current) {
@@ -89,14 +102,15 @@ export const Batch = ({
 
   useEffect(() => {
     getBatch();
-  }, [itemsData])
+  }, [itemsData]);
 
   useEffect(() => {
     onGridReady();
-  }, [tableData])
+  }, [tableData]);
 
   useEffect(() => {
     onGridReady();
+    getGodownData();
   }, []);
 
   const handleBatchAdd = async () => {
@@ -104,7 +118,8 @@ export const Batch = ({
       await batchSchema.validate(inputRow);
       const existingBatch = item.ItemBatches.find(
         (tableBatch: BatchForm) =>
-          numberedStringLowerCase(tableBatch?.batchNo) === numberedStringLowerCase(inputRow.batchNo)
+          numberedStringLowerCase(tableBatch?.batchNo) ===
+          numberedStringLowerCase(inputRow.batchNo)
       );
       if (existingBatch) {
         settingPopupState(false, 'Batch with this id already exists!');
@@ -117,12 +132,20 @@ export const Batch = ({
         locked: inputRow.locked.toUpperCase(),
         mfgCode: itemData?.shortName,
       };
+
+      const length = savedData?.length;
+      for (let i = 0; i < length; i++) {
+        formattedInputRow[`opGodown${i}`] = savedData[i]?.stocks;
+        formattedInputRow[`clGodown${i}`] = savedData[i]?.stocks;
+      }
+
+      console.log('formatted data ===> ', formattedInputRow);
       await sendAPIRequest(`/item/${id}/batch`, {
         method: 'POST',
         body: formattedInputRow,
       });
       setInputRow(pinnedRow);
-      dispatch(getAndSetItem())
+      dispatch(getAndSetItem());
     } catch (err: any) {
       if (err.message) {
         settingPopupState(false, `${err.message}`);
@@ -157,6 +180,7 @@ export const Batch = ({
 
   const handleClosePopup = () => {
     setPopupState({ ...popupState, isModalOpen: false });
+    // setPopupIsOpen(false);
   };
 
   const handleRowSelected = useCallback((event: any) => {
@@ -164,7 +188,6 @@ export const Batch = ({
       setSelectedRow(event.data);
     }
   }, []);
-
 
   const onCellKeyDown = () => {
     const api = gridRef?.current?.api;
@@ -181,7 +204,22 @@ export const Batch = ({
         });
       }, 30);
     }
-  }
+  };
+
+  const getGodownData = async () => {
+    try {
+      const godownData: any = await sendAPIRequest(`/godown/`, {
+        method: 'GET',
+      });
+      setGodownData(godownData);
+    } catch (error: any) {
+      setPopupState({
+        ...popupState,
+        isAlertOpen: true,
+        message: `${error.message}`,
+      });
+    }
+  };
 
   const handleCellEditingStopped = useCallback(
     async (e: {
@@ -196,13 +234,47 @@ export const Batch = ({
       const { data, column, oldValue, newValue, node } = e;
       const batchId = data.id;
       const field = column.colId;
-      if (newValue === oldValue) return;
+      selectedBatchId.current = batchId; 
+      
+      if (field === 'godownStocks') {
+        node.setDataValue(field, oldValue);
+        return;
+      }
+      // if (field === 'godownStocks') {
+        //   console.log("🚀 ~ godownData: during updation ", godownData, savedData)
+        //   setPopupList({
+          //     isOpen: true,
+          //     data: {
+            //       heading: 'Godowns',
+            //       headers: [...GodownHeaders],
+            //       tableData: savedData.length ? savedData: godownData,
+            //       handleSelect: (rowData: any) => {},
+            //     },       
+            //   });
+            // }
+            console.log("2-----------------",field,"2--", newValue,"3---", oldValue,"4---",field !== 'godownStocks' && newValue === oldValue )
+      if (field !== 'godownStocks' && newValue === oldValue) return;
+      // if (newValue === oldValue) return;
       try {
+        console.log("3-----------------")
         const finalValue = field === 'locked' ? newValue.toUpperCase() : newValue;
         if (node.rowIndex === 0 && !isAnyFilterActive()) {
+          setIsUpdateMode(false);
           try {
             await batchSchema.validateAt(field, { [field]: finalValue });
             const newBatch = { ...inputRow, [field]: finalValue };
+            if (field === 'godownStocks') {
+              setPopupList({
+                isOpen: true,
+                data: {
+                  heading: 'Godowns',
+                  headers: [...GodownHeaders],
+                  tableData: godownData,
+                  handleSelect: (rowData: any) => {},
+                },
+              });
+            }
+            // setSavedData([])
             validatePrices(newBatch);
             setInputRow(newBatch);
           } catch (err: any) {
@@ -217,13 +289,67 @@ export const Batch = ({
           }
         } else {
           try {
-            await batchSchema.validate({ ...data, [field]: finalValue });
-            validatePrices({ ...data, [field]: finalValue });    
-            await sendAPIRequest(`/item/${id}/batch/${batchId}`, {
-              method: 'PUT',
-              body: { ...data, [field]: finalValue },
+            console.log("1-----------------")
+            setIsUpdateMode(true);
+            let i = 0; 
+            const dataTosend = godownData.map((row:any) => {
+              const emptyRow: any = {};
+              GodownHeaders.forEach(header => {
+                emptyRow[header.key] = header.isInput ? data[`opGodown${i}`] : row[header.key];
+              });
+              i++;
+              return emptyRow;
             });
-            dispatch(getAndSetItem())          
+            console.log("🚀 ~ dataTosend ~ dataTosend:", dataTosend)
+            // setSavedData([]);
+            await batchSchema.validate({ ...data, [field]: finalValue });
+            // if (field === 'opBalance') {
+            //   setPopupList({
+            //     isOpen: true,
+            //     data: {
+            //       heading: 'Godowns',
+            //       headers: [...GodownHeaders],
+            //       tableData: dataTosend,
+            //       handleSelect: (rowData: any) => {},
+            //     },
+            //   });              
+            // }
+            if (field === 'godownStocks') {
+              setPopupList({
+                isOpen: true,
+                data: {
+                  heading: 'Godowns',
+                  headers: [...GodownHeaders],
+                  tableData: dataTosend,
+                  batchData: data,
+                  handleSelect: (rowData: any) => {},
+                },
+              });           
+            }
+            validatePrices({ ...data, [field]: finalValue });
+            
+            const length = savedData?.length;
+
+            for (let i = 0; i < length; i++) {
+              data[`opGodown${i}`] = savedData[i]?.stocks;
+              data[`clGodown${i}`] = savedData[i]?.stocks;
+            }
+
+            console.log("final daata for update ====> ", data, {...data, [field]: finalValue});
+            
+            if(field !== 'godownStocks'){
+              await sendAPIRequest(`/item/${id}/batch/${batchId}`, {
+                method: 'PUT',
+                body: { ...data, [field]: finalValue },
+              });
+            }
+            if (field === 'godownStocks') {
+              setTimeout(()=>{
+                console.log("1------------------")
+                saveUpdatedGodown({ ...data, [field]: finalValue }, dataTosend);
+              },1000)
+            }
+            dispatch(getAndSetItem());
           } catch (err: any) {
             if (err.message) {
               await gridRef.current?.api?.startEditingCell({
@@ -251,10 +377,38 @@ export const Batch = ({
     [[tableData, inputRow]]
   );
 
-
-  const onCellClicked = (params: { data: any }) => {
+  const onCellClicked = (params: { data: any; column: any }) => {
     setSelectedRow(selectedRow !== null ? null : params.data);
   };
+
+  const handleGodownSave = async (updatedData: any[]) => {
+    console.log('updated data of godown in batch file =======> ', updatedData);
+    setSavedData(updatedData);
+    // if(selectedBatchId.current){
+    //   await sendAPIRequest(`/item/${id}/batch/${selectedBatchId.current}`, {
+    //     method: 'PUT',
+    //     // body: { ...data, [field]: finalValue },
+    //   });
+    // }
+  };
+
+  const saveUpdatedGodown = async(data: any, dataToSend: any ) => {
+    console.log("🚀 ~ saveUpdatedGodown ~ data:", data, savedData)
+    dataToSend.forEach((godown: any, index: any) => {
+      // Create the dynamic key for opGodown fields (e.g., opGodown0, opGodown1, ...)
+      const opGodownKey = `opGodown${index}`;
+  
+      // Check if the opGodown key exists in the data object and update it
+      if (opGodownKey in data) {
+        data[opGodownKey] = godown.stocks || 0; // Use 0 as default if stocks is undefined
+      }
+    });
+    console.log("DATAAAAAAAAAAAAA",data)
+    await sendAPIRequest(`/item/${id}/batch/${selectedBatchId.current}`, {
+      method: 'PUT',
+      body: data
+    });
+  }
 
   const cellEditingStarted = () => {
     editing.current = true;
@@ -283,7 +437,6 @@ export const Batch = ({
           !editing.current &&
             settingPopupState(false, `${validationStatus.error}`);
         }
-
       }
     } else if (event.code === 'Tab') {
       onCellKeyDown();
@@ -340,7 +493,6 @@ export const Batch = ({
     ),
   };
 
-
   const salePriceColumns: ColDef[] = [];
 
   if (controlRoomSettings.multiPriceList && controlRoomSettings.salesPriceLimit > 1) {
@@ -388,6 +540,12 @@ export const Batch = ({
         cellDataType: 'number',
       },
       {
+        headerName: 'Godown Stocks',
+        field: 'godownStocks',
+        cellDataType: 'number',
+        valueGetter: () => godownData?.length,
+      },
+      {
         headerName: 'Purchase Price',
         field: 'purPrice',
         cellDataType: 'number',
@@ -425,14 +583,14 @@ export const Batch = ({
 
   return (
     <div ref={containerRef}>
-      <div className="w-full">
-        <div className="flex w-full items-center justify-between px-8 py-1">
-          <h1 className="font-bold">{item && item.name}</h1>
-          <Button type="highlight" handleOnClick={() => params.setShowBatch(null)}>
+      <div className='w-full'>
+        <div className='flex w-full items-center justify-between px-8 py-1'>
+          <h1 className='font-bold'>{item && item.name}</h1>
+          <Button type='highlight' handleOnClick={() => params.setShowBatch(null)}>
             Back
           </Button>
         </div>
-        <div id="account_table" className="ag-theme-quartz">
+        <div id='account_table' className='ag-theme-quartz'>
           {tableData &&
             <AgGridReact
               ref={gridRef}
@@ -453,6 +611,24 @@ export const Batch = ({
             />
           }
         </div>
+
+        {popupList.isOpen && (
+          <SelectListTableWithInput
+            heading={popupList.data.heading}
+            headers={popupList.data.headers}
+            tableData={popupList.data.tableData}
+            // onValueChange={handleValueChange}
+            focusedColumn={1}
+            closeList={() => setPopupList({ isOpen: false, data: {} })}
+            onSave={handleGodownSave}
+            isUpdateMode={isUpdateMode}
+            setIsUpdateMode={setIsUpdateMode}
+            setSavedData={setSavedData}
+            setSaveUpdatedData={setSaveUpdatedData}
+            batchData={{id: id, batchId: selectedBatchId.current}}
+          />
+        )}
+
         {(popupState.isModalOpen || popupState.isAlertOpen) && (
           <Confirm_Alert_Popup
             onClose={handleClosePopup}

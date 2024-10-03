@@ -70,6 +70,7 @@ export const batchSchema = yup.object().shape({
         }),
     mfgCode: yup.string().notRequired(),
     batchNo: yup.string().required('Batch Number is required').max(100, 'Batch number cannot exceed 100 characters'),
+    godownStocks: yup.number().notRequired(),
 });
 
 export const validatePrices = (newBatch: any) => {
