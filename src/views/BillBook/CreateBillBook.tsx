@@ -206,6 +206,7 @@ export const CreateBillBook = ({
               label='Sequence of Bill'
               id='orderOfBill'
               name='orderOfBill'
+              isDisabled={isDelete && id}
               min={0}
               value={formik.values.orderOfBill}
               onChange={(value) => formik.setFieldValue('orderOfBill', value)}
