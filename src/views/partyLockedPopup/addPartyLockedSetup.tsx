@@ -35,13 +35,28 @@ export const PartyLockedSetup = () => {
     isAlertOpen: false,
     message: '',
   });
-  const focusedCells = useRef('partyName')
+  
+  const api = gridRef.current?.api;  
+     
+  useEffect(() => {
+    getPartyData();
+      setTimeout(() => { 
+        if (api) {
+          api.setFocusedCell(0, 'partyName');
+        }
+      },300);
+  }, [])
 
   const handleClosePopup = () => {
     setPopupState({ ...popupState, isModalOpen: false });
   };
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
+    setTimeout(() => {      
+      if (api) {
+        api.setFocusedCell(0, 'partyName');
+      }
+    }, 100);
   };
   const settingPopupState = (isModal: boolean, message: string) => {
     setPopupState({
@@ -59,10 +74,6 @@ export const PartyLockedSetup = () => {
   ];
 
 
-  useEffect(() => {
-    getPartyData();
-    document.getElementById(focusedCells.current)?.focus();
-  }, [])
 
   const getPartyData = async () => {
     try {
@@ -183,6 +194,12 @@ export const PartyLockedSetup = () => {
     openSelectPartyList(params)
   };
 
+  const handleCellKeyDown = (params: any) => {
+    if (params.column.colDef.headerName === 'Actions' && params.event.key === 'Enter') {
+      handleDelete(params.data, params.node.rowIndex);
+    }
+  };
+
   const handleCellEditingStopped = async (e: any) => {
 
     editing.current = false;
@@ -204,12 +221,15 @@ export const PartyLockedSetup = () => {
             body: { [field]: newValue },
           });
           if (data.partyName && !response.error) {
-            settingPopupState(false, 'Party Locked successfully');
+            settingPopupState(false, 'Party Locked successfully')
           }
           getPartyData();
         }
       } catch (error: any) {
         settingPopupState(false, error.message)
+        if (api) {
+          api.setFocusedCell(0, 'partyName');
+        }
       }
     }
   };
@@ -221,8 +241,13 @@ export const PartyLockedSetup = () => {
       });
     }
     settingPopupState(true,"Are you sure you want to Unlocked the Party")
+    if (api) {
+      api.setFocusedCell(0, 'partyName');
+    }
     partyId.current = rowData.party_id;
-
+    if (api) {
+      api.setFocusedCell(0, 'partyName');
+    }
   };
 
   const defaultCol = {
@@ -342,7 +367,7 @@ export const PartyLockedSetup = () => {
       },
       cellRenderer: (params: any) => (
         <div className='table_edit_buttons'>
-          {updateAccess && params.node.rowIndex !== 0 && <MdDeleteForever
+          { updateAccess  && params.node.rowIndex !== 0 && <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
             onClick={() => {
               setSelectedRow(selectedRow !== null ? null : params.data);
@@ -366,6 +391,7 @@ export const PartyLockedSetup = () => {
             onCellClicked={onCellClicked}
             onCellEditingStarted={cellEditingStarted}
             onCellEditingStopped={handleCellEditingStopped}
+            onCellKeyDown={handleCellKeyDown}
           />
         }
       </div>
