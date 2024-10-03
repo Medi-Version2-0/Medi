@@ -266,12 +266,12 @@ export const Batch = ({ params }: { params: { showBatch: any; setShowBatch: Reac
   const salePriceColumns: ColDef[] = [];
 
   if (controlRoomSettings.multiPriceList && controlRoomSettings.salesPriceLimit > 1) {
-    salePriceColumns.push({ headerName: 'Sale Price 1', field: 'salePrice', cellDataType: 'number', width: 180, headerClass: 'custom-header-class custom-header'});
+    salePriceColumns.push({ headerName: 'Sale Price 1', field: 'salePrice', cellDataType: 'number', width: 180});
     for (let i = 2; i <= controlRoomSettings.salesPriceLimit; i++) {
-      salePriceColumns.push({ headerName: `Sale Price ${i}`, field: `salePrice${i}`, cellDataType: 'number', width: 180, headerClass: 'custom-header-class custom-header' });
+      salePriceColumns.push({ headerName: `Sale Price ${i}`, field: `salePrice${i}`, cellDataType: 'number', width: 180});
     }
   } else {
-    salePriceColumns.push({ headerName: 'Sale Price', field: 'salePrice', cellDataType: 'number', width: 180, headerClass: 'custom-header-class custom-header' });
+    salePriceColumns.push({ headerName: 'Sale Price', field: 'salePrice', cellDataType: 'number', width: 180 });
   }
 
     const colDefs: ColDef[] = [
@@ -279,7 +279,7 @@ export const Batch = ({ params }: { params: { showBatch: any; setShowBatch: Reac
       { headerName: 'Expiry Date', field: 'expiryDate' },
       { headerName: 'Opening Stock', field: 'opBalance', cellDataType: 'number' },
       { headerName: 'Scheme Stock', field: 'opFree', cellDataType: 'number' },
-      { headerName: 'Purchase Price', field: 'purPrice', cellDataType: 'number', headerClass: 'custom-header-class custom-header', cellStyle: { display: 'flex', justifyContent: 'center', alignItems: 'center' }},
+      { headerName: 'Purchase Price', field: 'purPrice', cellDataType: 'number'},
       ...salePriceColumns,
       { headerName: 'MRP', field: 'mrp', width: 150, cellDataType: 'number' },
       { headerName: 'Current Stock', width: 200, field: 'currentStock', editable: false },
