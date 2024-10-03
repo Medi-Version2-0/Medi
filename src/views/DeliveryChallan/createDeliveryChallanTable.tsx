@@ -18,7 +18,7 @@ interface RowData {
 }
 
 
-export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTotalValue, challanTableData, setIsNetRateSymbol, challanId, challanDate }: any) => {
+export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTotalValue, challanTableData, setIsNetRateSymbol, challanId, challanDate, selectedParty }: any) => {
   const headers = [
     { name: 'Item name', key: 'itemId', width: '15%', type: 'input', props: { inputType: 'text', label: true, handleFocus: (rowIndex: number, colIndex: number) => {}, handleClick : ({rowIndex}:any)=>{openItem(rowIndex)}  }},
     { name: 'Batch no', key: 'batchNo', width: '15%', type: 'input', props: { inputType: 'text', label: true, handleFocus: (rowIndex: number, colIndex: number) => {} , handleClick : ({rowIndex}:any)=>{openBatch(rowIndex)}  } },
@@ -98,7 +98,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     return () => {
         window.removeEventListener('tabFocusChange', handleFocusChange as EventListener);
     };
-}, [itemValue , batches , gridData.length]);
+}, [itemValue , batches , gridData.length , selectedParty]);
 
 
   useEffect(() => {
@@ -406,9 +406,13 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
   const handleQtyInput = (rowIndex: number, value: any) => {
     const updatedGridData = [...gridData];
     const batch = batches?.find((batch: any) => batch.id === value?.value);
+    const item = itemValue?.find((item: any) => item.id === batch.itemId);
+    const basePrice = item?.partyWisePriceList?.salePrice ?? batch?.salePrice;
+    const excessRate = selectedParty?.excessRate ?? 0; 
+    const finalPrice = basePrice + (basePrice * excessRate / 100);
     const remainingQty = handleRemainingQty(rowIndex, batch);
     updatedGridData[rowIndex].columns.qty = remainingQty;
-    updatedGridData[rowIndex].columns.rate = batch?.salePrice;
+    updatedGridData[rowIndex].columns.rate = finalPrice;
     updatedGridData[rowIndex].columns.mrp = batch?.mrp;
     updatedGridData[rowIndex].columns.expDate = batch?.expiryDate;
     setGridData(updatedGridData);
@@ -454,7 +458,10 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
   const openItem = (rowIndex: number) => {
     setPopupList({
       isOpen: true, data: {
-        heading: 'Item', headers: [...itemHeader], footers: itemFooters, newItem: () => openTab('Items', <Items type='add' />), apiRoute: '/item', searchFrom: 'name',
+        heading: 'Item', headers: [...itemHeader], footers: itemFooters, newItem: () => openTab('Items', <Items type='add' />),
+        apiRoute: '/item',
+        extraQueryParams: selectedParty?.party_id ? { partyId: selectedParty.party_id } : {},
+         searchFrom: 'name',
         handleSelect: (rowData: any) => {
           const isItemSelected = gridData.findIndex((x) => x.columns.itemId?.value === rowData.id)
           setCurrentSavedData({ ...currentSavedData, item: rowData });
