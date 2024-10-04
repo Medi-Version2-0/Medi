@@ -258,7 +258,7 @@ export const Batch = ({ params }: { params: { showBatch: any; setShowBatch: Reac
         className={'text-start'}
         column={params.colDef}
         startEditingCell={(editParams) => gridRef.current?.api?.startEditingCell(editParams)}
-        placeholderText={params.colDef.headerName}
+        placeholderText={params.colDef.headerName === 'Expiry Date' ? 'MM/YYYY' : params.colDef.headerName}
       />
     ),
   };

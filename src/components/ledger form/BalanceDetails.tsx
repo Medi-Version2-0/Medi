@@ -127,6 +127,7 @@ export const BalanceDetails = ({
             <NumberInput
               label='Credit Limit'
               id='creditLimit'
+              placeholder='0'
               name='creditLimit'
               min={0}
               value={formik.values.creditLimit}

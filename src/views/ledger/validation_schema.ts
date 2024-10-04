@@ -4,6 +4,8 @@ export const phoneRegex = /^[6-9][0-9]{9}$/;
 export const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
 export const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}/;
 export const decimalRegex = /^\d+(\.\d{0,2})?$/;
+export const dateRegex = /^(0[1-9]|1[0-2])\/\d{4}$/;
+
 // export const drugLicenceNo = /^(DL-\d{7}-[A-Z]{2}|\d{2,5}\/\d{2,5})$/;
 
 export const getLedgerFormValidationSchema = () =>
@@ -45,7 +47,7 @@ export const getLedgerFormValidationSchema = () =>
     gstIn: Yup.string().matches(gstRegex,'Invalid GST Identification Number'),
     panCard: Yup.string().matches(panRegex, 'Invalid Pan Card Number'),
     drugLicenceNo1: Yup.string(),
-    licenceExpiry: Yup.string(),
+    licenceExpiry: Yup.string().matches(dateRegex, 'date must be in MM/YYYY format'),
     emailId1: Yup.string().email('Invalid email'),
     emailId2: Yup.string().email('Invalid email'),
     drugLicenceNo2: Yup.string(),
