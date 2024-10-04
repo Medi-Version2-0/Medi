@@ -111,6 +111,42 @@ const CopyPratywisePriceList: React.FC = () => {
     ],
     []
   );
+
+  const openCopyToPopup = () => {
+    setPopupList({
+      isOpen: true,
+      data: {
+        heading: 'Select Party',
+        headers: [...partyHeaders],
+        footers: partyFooterData,
+        autoClose: true,
+        apiRoute: '/ledger',
+        extraQueryParams: { locked: "!Y" },
+        searchFrom: 'partyName',
+        handleSelect: (rowData: any) => {
+          setCopyFrom(rowData)
+        }
+      }
+    })
+  };
+
+  const openCopyFromPopup = () =>{
+    setPopupList({
+      isOpen: true,
+      data: {
+        heading: 'Select Party',
+        headers: [...partyHeaders],
+        footers: partyFooterData,
+        autoClose: true,
+        apiRoute: '/ledger',
+        extraQueryParams: { locked: "!Y" },
+        searchFrom: 'partyName',
+        handleSelect: (rowData: any) => {
+          setCopyTo(rowData)
+        }
+      }
+    });
+  }
   
 
   return (
@@ -126,23 +162,10 @@ const CopyPratywisePriceList: React.FC = () => {
           <input
             id='copyFrom'
             placeholder='Select Party...'
+            onClick={() => openCopyToPopup()} 
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && partyData.length) {
-                setPopupList({
-                  isOpen: true,
-                  data: {
-                    heading: 'Select Party',
-                    headers: [...partyHeaders],
-                    footers: partyFooterData,
-                    autoClose: true,
-                    apiRoute: '/ledger',
-                    extraQueryParams: { locked: "!Y" },
-                    searchFrom: 'partyName',
-                    handleSelect: (rowData: any) => {
-                      setCopyFrom(rowData)
-                    }
-                  }
-                })
+              if(e.key === 'Enter'){
+                openCopyToPopup();
               }
             }}
             value={copyFrom?.partyName || ''}
@@ -159,23 +182,10 @@ const CopyPratywisePriceList: React.FC = () => {
           <input
             id='copyTo'
             placeholder='Select Party...'
+            onClick={() => openCopyFromPopup()} 
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && partyData.length) {
-                setPopupList({
-                  isOpen: true,
-                  data: {
-                    heading: 'Select Party',
-                    headers: [...partyHeaders],
-                    footers: partyFooterData,
-                    autoClose: true,
-                    apiRoute: '/ledger',
-                    extraQueryParams: { locked: "!Y" },
-                    searchFrom: 'partyName',
-                    handleSelect: (rowData: any) => {
-                      setCopyTo(rowData)
-                    }
-                  }
-                });
+              if(e.key === 'Enter'){
+                openCopyFromPopup();
               }
             }}
             value={copyTo?.partyName || ''}
