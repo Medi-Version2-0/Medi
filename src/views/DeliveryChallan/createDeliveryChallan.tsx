@@ -329,7 +329,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
           heading: 'Party',
           headers: [...partyHeaders],
           footers: partyFooterData,
-          newItem: () => openTab('Ledger', <Ledger type='add' />),
+          newItem: () => tabManager.openTab('Ledger', <Ledger type='add' /> , [] , openTab),
           autoClose: true,
           apiRoute: '/ledger',
           ...(formik.values.oneStation === 'One Station' && { extraQueryParams: { stationId: formik.values.stationId } }),

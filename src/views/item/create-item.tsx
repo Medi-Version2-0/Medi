@@ -224,7 +224,7 @@ const CreateItem = ({ setView, data, setShowBatch , fetchItemData, fieldOptions 
         heading: 'Select Company',
         headers: [...companyHeader],
         footers: companyFooterData,
-        newItem: () => openTab('Company', <Company type='add' />),
+        newItem: () => tabManager.openTab('Company', <Company type='add' /> , [] , openTab),
         autoClose: true,
         apiRoute: '/company',
         searchFrom: 'companyName',

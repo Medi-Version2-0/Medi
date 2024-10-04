@@ -463,7 +463,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
   const openItem = (rowIndex: number) => {
     setPopupList({
       isOpen: true, data: {
-        heading: 'Item', headers: [...itemHeader], footers: itemFooters, newItem: () => openTab('Items', <Items type='add' />),
+        heading: 'Item', headers: [...itemHeader], footers: itemFooters, newItem: () => tabManager.openTab('Items', <Items type='add' /> , [] , openTab),
         apiRoute: '/item',
         extraQueryParams: selectedParty?.party_id ? { partyId: selectedParty.party_id } : {},
          searchFrom: 'name',
