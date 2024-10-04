@@ -8,6 +8,9 @@ import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import {validateValue} from './validation'
 import useApi from '../../hooks/useApi';
 import { useSelector } from 'react-redux';
+import usePartyFooterData from '../../hooks/usePartyFooterData';
+import { createVoucherChainForDebit, createVoucherChainForCredit, voucherViewChain } from '../../constants/focusChain/voucherFocusChain';
+import { TabManager } from '../../components/class/tabManager';
 
 interface RowData {
   columns: {
@@ -47,8 +50,10 @@ const CreateVouchers = ({ setView, data }: any) => {
       message: message,
     });
   };
-  const [focused, setFocused] = useState('');
+  // const [focused, setFocused] = useState('');
   const decimalPlaces = useSelector((state: any) => state.global.controlRoomSettings.decimalValueCount || 2);
+  const partyFooterData = usePartyFooterData();
+  const tabManager = TabManager.getInstance();
 
   const bankName = useRef<{partyName:string,partyId:number}>({
     partyName:'',
@@ -64,7 +69,7 @@ const CreateVouchers = ({ setView, data }: any) => {
   ];
 
   const commonHeaders1 = [
-    { name: 'Party', key: 'partyName', width: '17vw', type: 'input', props: { inputType: 'text', label: true, required: true, handleFocus: (rowIndex: number, colIndex: number) => { handleFocus(rowIndex, colIndex) } } },
+    { name: 'Party', key: 'partyName', width: '17vw', type: 'input', props: { inputType: 'text', label: true, required: true, handleFocus: (rowIndex: number, colIndex: number) => {}, handleClick : ({rowIndex , colIndex}:any)=>{ handleFocus(rowIndex, colIndex)}}},
     { name: 'Narration', key: 'narration', width: '31vw', type: 'input', props: { inputType: 'text', handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); } } },
     { name: 'Amount (₹)', key: 'amount', width: '15vw', type: 'input', props: { inputType: 'number', required: true, handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); }, } },
     {
@@ -119,7 +124,7 @@ const CreateVouchers = ({ setView, data }: any) => {
 
   useEffect(()=>{
     getPartyData();
-    setFocused('voucherType');
+    // setFocused('voucherType');
   },[])
   
   useEffect(() => {
@@ -138,24 +143,32 @@ const CreateVouchers = ({ setView, data }: any) => {
 
     totalDebitAndCredit();
 
-    if (gridData.length > 0 && !!gridData[0]?.columns?.partyName?.value) {
-      const lastRowIndex = gridData.length - 1;
-      const lastColumn = headers.current.length - 1
-      const lastCellId = `cell-${lastRowIndex}-${lastColumn}`;
-      const lastCellElement = document.getElementById(lastCellId);
-      if (lastCellElement) {
-          lastCellElement.focus();
-      }
-  }
+  //   if (gridData.length > 0 && !!gridData[0]?.columns?.partyName?.value) {
+  //     const lastRowIndex = gridData.length - 1;
+  //     const lastColumn = headers.current.length - 1
+  //     const lastCellId = `cell-${lastRowIndex}-${lastColumn}`;
+  //     const lastCellElement = document.getElementById(lastCellId);
+  //     if (lastCellElement) {
+  //         console.log("🚀 ~ useEffect ~ lastCellElement:", lastCellElement)
+  //         lastCellElement.focus();
+  //     }
+  // }
+  
+
     
   const ele = document.getElementById(`tableContainer`)
-      ele?.scrollTo({
-        top: 100,
-        left: 0,
-        behavior: 'smooth'
-      });
+  ele?.scrollTo({top: 100, left: 0,behavior: 'smooth'});
     
   }, [gridData.length, voucherType?.value]);
+
+useEffect(() => {
+  if(voucherType?.value === 'CR' || voucherType?.value === 'BD'){
+    tabManager.updateFocusChainAndSetFocus(createVoucherChainForCredit, 'custom_select_voucherType')
+  }
+  else {
+    tabManager.updateFocusChainAndSetFocus(createVoucherChainForDebit, 'custom_select_voucherType')
+  }
+}, [voucherType?.value])
 
   useEffect(()=>{
     if ((!data.rowData?.voucherNumber) && (voucherType?.value === 'BD' || voucherType?.value === 'BW') ) {
@@ -175,7 +188,8 @@ const CreateVouchers = ({ setView, data }: any) => {
               partyName: rowData.partyName,
               partyId: rowData.party_id
             };
-            document.getElementById("dateInput")?.focus();
+            tabManager.setTabLastFocusedElementId('dateInput')
+            // document.getElementById("dateInput")?.focus();
           }
         }
       });
@@ -367,7 +381,12 @@ const CreateVouchers = ({ setView, data }: any) => {
 
   const handleSubmit = async () => {
     const dataToSend: any = {
-      rows: gridData.map((row : any) => {
+      rows: gridData.filter((row: any) => {
+        const { value } = row.columns.partyName || {};
+        const amount = Number(row.columns.amount);
+        return value && !isNaN(amount) && amount !== 0;
+      })
+      .map((row : any) => {
         const { label, value } = row.columns.partyName || {};
 
         const convertedColumns = convertRowDataTypes(row.columns);
@@ -678,13 +697,13 @@ const CreateVouchers = ({ setView, data }: any) => {
       handleInputChange({ rowIndex:focusedRowIndex, header:'partyName',value: newGridData[focusedRowIndex].columns.partyName })
     }
 
-    if (focusColIndex.current === 0) {
-      handleFocus(focusedRowIndex, 1)
-    }
+    // if (focusColIndex.current === 0) {
+    //   handleFocus(focusedRowIndex, 1)
+    // }
 
-    if (focusColIndex.current === 1) {
-      document.getElementById(`cell-${focusedRowIndex}-1`)?.focus();
-    }
+    // if (focusColIndex.current === 1) {
+    //   document.getElementById(`cell-${focusedRowIndex}-1`)?.focus();
+    // }
   };
 
   const handleFocus = (rowIndex: number, colIndex: number) => {
@@ -707,75 +726,13 @@ const CreateVouchers = ({ setView, data }: any) => {
         }
       });
       const ele = document.getElementById(`tableContainer`)
-      ele?.scrollTo({
-        top: 100,
-        left: 0,
-        behavior: 'smooth'
-      });
+      ele?.scrollTo({top: 100,left: 0,behavior: 'smooth'});
+      setTimeout(() => {
+        tabManager.setTabLastFocusedElementId(`cell-${focusedRowIndex}-1`)
+      }, 0);
     }
   };  
 
-  const partyFooterData: any[] = [
-    {
-      label: 'Address',
-      data: [
-        {
-          label: 'Address 1',
-          key: 'address1'
-        },
-        {
-          label: 'GST IN',
-          key: 'gstIn'
-        },
-        {
-          label: 'PAN No',
-          key: 'panCard'
-        },
-      ]
-    },
-    {
-      label: 'License Info',
-      data: [
-        {
-          label: 'License No 1',
-          key: 'drugLicenceNo1'
-        },
-        {
-          label: 'License No 2',
-          key: 'drugLicenceNo2'
-        },
-        {
-          label: 'Expiry',
-          key: 'licenceExpiry'
-        },
-      ]
-    },
-    {
-      label: 'Current Status',
-      data: [
-        {
-          label: 'Opening',
-          key: 'openingBal'
-        },
-        {
-          label: 'Credit',
-          key: 'credit'
-        },
-        {
-          label: 'Debit',
-          key: 'debit'
-        },
-        {
-          label: 'Closing Balance',
-          key: 'closingBalance',
-        },
-        {
-          label: 'C.B.Type',
-          key: 'closingBalanceType',
-        }
-      ]
-    },
-  ];
 
   const totalDebitAndCredit = async() => {
     const newGridData = [...gridData]
@@ -829,6 +786,7 @@ const CreateVouchers = ({ setView, data }: any) => {
           id="voucher_back_button"
           handleOnClick={() => {
             setView({ type: '', data: {} });
+            tabManager.updateFocusChainAndSetFocus(voucherViewChain , 'add')
           }}
         >
           Back
@@ -844,7 +802,7 @@ const CreateVouchers = ({ setView, data }: any) => {
             id="voucherType"
             onChange={handleVoucherTypeChange}
             options={voucherTypes}
-            isFocused={focused === 'voucherType'}
+            // isFocused={focused === 'voucherType'}
             isSearchable={true}
             placeholder="Select Voucher Type"
             disableArrow={false}
@@ -858,10 +816,12 @@ const CreateVouchers = ({ setView, data }: any) => {
               );
               if (e.key === 'Enter') {
                 !dropdown && e.preventDefault();
-                const nextFieldId='dateInput';
-                document.getElementById(nextFieldId)?.focus();                    
-                setFocused(nextFieldId);
-              }
+                // const nextFieldId='dateInput';
+                // document.getElementById(nextFieldId)?.focus();                    
+                // setFocused(nextFieldId);
+                e.stopPropagation();
+                tabManager.focusManager();
+                }
             }}
           />
 
@@ -881,8 +841,9 @@ const CreateVouchers = ({ setView, data }: any) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
                     const nextFieldId = (voucherType?.value === 'CR' || voucherType?.value === 'BD') ? 'cell-0-0': 'gstNature' ;
-                    document.getElementById(nextFieldId)?.focus();                    
-                    setFocused(nextFieldId);
+                    // document.getElementById(nextFieldId)?.focus();                    
+                    // setFocused(nextFieldId);
+                    tabManager.focusManager();
                   }
                 }}
               />
@@ -906,7 +867,7 @@ const CreateVouchers = ({ setView, data }: any) => {
                 onChange={handleGstNatureChange}
                 options={gstNatureTypes}
                 isSearchable={true}
-                isFocused={focused === 'gstNature'}
+                // isFocused={focused === 'gstNature'}
                 placeholder="Select GST Nature"
                 disableArrow={false}
                 hidePlaceholder={false}
@@ -919,8 +880,10 @@ const CreateVouchers = ({ setView, data }: any) => {
                   );
                   if (e.key === 'Enter') {
                     !dropdown && e.preventDefault();
-                    if(gstNature?.value) document.getElementById('cell-0-0')?.focus();
-                    else setFocused('gstNature')
+                    // if(gstNature?.value) document.getElementById('cell-0-0')?.focus();
+                    // else setFocused('gstNature')
+                    e.stopPropagation();
+                    tabManager.focusManager();
                   }
                 }}
               />
@@ -959,7 +922,7 @@ const CreateVouchers = ({ setView, data }: any) => {
       {voucherType && selectedDate && (
         <div className="mt-4 text-center">
           <Button type="highlight"
-                  id="save_voucher_button"
+                  id="save"
                   handleOnClick={handleSubmit}
           >
             {data.rowData?.voucherNumber ? 'Update' : 'Submit'}
