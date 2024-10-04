@@ -46,6 +46,7 @@ import { itemGroupFocusChain } from '../../constants/focusChain/temGroupFocusCha
 import { billBookSetupViewChain } from '../../constants/focusChain/billBookSetupFocusChain';
 import { partywisePriceListViewChain } from '../../constants/focusChain/partywisePriceList'
 import { copyPartywisePriceListViewChain } from '../../constants/focusChain/copyPartywisePriceList'
+import { voucherViewChain } from '../../constants/focusChain/voucherFocusChain'
 
 interface SidebarProps {
   isGroup?: boolean;
@@ -186,7 +187,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     {
       url: '/vouchers',
       label: 'Vouchers',
-      onClick: () => openTab?.('Vouchers', <Vouchers />),
+      onClick: () => tabManager.openTab('Vouchers', <Vouchers /> , voucherViewChain , openTab),
       isDisabled: isNotReadAccess('vouchers')
     },
     {

@@ -11,6 +11,7 @@ import { FaEdit } from 'react-icons/fa';
 import { MdDeleteForever } from 'react-icons/md';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import useApi from '../../hooks/useApi';
+import { GridOptions } from 'ag-grid-community';
 
 const Vouchers = () => {
     const [view, setView] = useState<View>({ type: '', data: {} });
@@ -120,10 +121,6 @@ const Vouchers = () => {
         getVoucherData();
     }, [filterDate, view, selectedVoucherType]);
 
-    useEffect(()=> {
-        createButtonRef.current = document.getElementById('createButton')
-        createButtonRef.current?.focus();
-    },[createButtonRef.current])
 
     function getTodayDate(date: Date): string {
         const year = date.getFullYear();
@@ -212,6 +209,13 @@ const Vouchers = () => {
         }
     };
 
+    const gridOptions: GridOptions<any> = {
+        pagination: true,
+        paginationPageSize: 20,
+        paginationPageSizeSelector: [20, 30, 40],
+        defaultColDef,
+      };
+
     const voucher = () => {
         return (
             <>
@@ -225,7 +229,7 @@ const Vouchers = () => {
                         {createAccess && (
                             <div className='flex items-center'>
                                 <Button
-                                    id ="createButton"
+                                    id ="add"
                                     type='highlight'
                                     handleOnClick={() => {
                                         setView({ type: 'add', data: {} });
@@ -266,6 +270,7 @@ const Vouchers = () => {
                             columnDefs={colDefs}
                             defaultColDef={defaultColDef}
                             onCellClicked={onCellClicked}
+                            gridOptions={gridOptions}
                         />
                     </div>
                 {/* )} */}
