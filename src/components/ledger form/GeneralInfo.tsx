@@ -350,6 +350,7 @@ export const GeneralInfo = ({
                 label='Email to'
                 id='mailTo'
                 name='mailTo'
+                placeholder='abc@example.com'
                 isUpperCase={false}
                 className='!w-[50%]'
                 formik={formik}
@@ -412,8 +413,9 @@ export const GeneralInfo = ({
                   label='Select Price List'
                   id='salesPriceList'
                   labelClass='items-center min-w-[90px]'
+                  placeholder='Sales Price'
                   value={
-                    formik.values.salesPrice === ''
+                    formik.values.salesPriceList === ''
                       ? null
                       : {
                           value: formik.values.salesPriceList,
@@ -421,6 +423,7 @@ export const GeneralInfo = ({
                         }
                   }
                   onChange={(option) => handleFieldChange(option, 'salesPriceList')}
+                  disableArrow={false}
                   options={
                     controlRoomSettings.salesPriceLimit < 1 
                       ? [{ value: 1, label: 'Sales Price' }]
@@ -430,8 +433,6 @@ export const GeneralInfo = ({
                         }))
                   }
                   isSearchable={true}
-                  placeholder='Price List'
-                  disableArrow={true}
                   hidePlaceholder={false}
                   className='!h-6 rounded-sm'
                   isRequired={false}
@@ -463,6 +464,7 @@ export const GeneralInfo = ({
               id='excessRate'
               name='excessRate'
               max={1000}
+              placeholder='0.00'
               min={0}
               value={formik.values.excessRate}
               onChange={(value) => formik.setFieldValue('excessRate', value)}

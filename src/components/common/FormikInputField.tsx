@@ -172,7 +172,7 @@ const FormikInputField: React.FC<FormikInputFieldProps> = ({
         onKeyDown={handleKeyDown}
         onClick={onClick}
         onFocus={()=> {id && tabManager.setLastFocusedElementId(id); onFocus?.()}}
-        placeholder={placeholder}
+        placeholder={ isUpperCase ? placeholder?.toUpperCase() : placeholder }
         disabled={isDisabled}
         readOnly={readOnly}
         data-next-field={nextField}
