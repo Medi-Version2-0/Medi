@@ -128,7 +128,7 @@ export const CreateDiscount = ({
           heading: 'Party',
           headers: [...partyHeaders],
           footers: partyFooterData,
-          newItem: () => openTab('Ledger', <Ledger type='add' />),
+          newItem: () => tabManager.openTab('Ledger', <Ledger type='add' />, [], openTab),
           autoClose: true,
           apiRoute: '/ledger',
           extraQueryParams: { locked: "!Y" },

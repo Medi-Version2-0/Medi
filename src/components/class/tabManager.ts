@@ -200,6 +200,7 @@ export class TabManager {
     }
 
     public updateFocusChainAndSetFocus(newFocusChain: string[], focusElementId: string) {
+       setTimeout(() => {
         if (this.activeTabIndex === null) return;
         const activeTab = this.tabs[this.activeTabIndex];
         if (!activeTab) return;
@@ -214,6 +215,7 @@ export class TabManager {
         if (focusElement) {
             focusElement.focus();
         }
+       }, 0);
     }
 
     public setLastFocusedElementId(focusElementId: string) {
@@ -250,6 +252,7 @@ export class TabManager {
     }
 
     public focusManager(reverse: boolean = false) {
+        console.log(this.tabs)
         if (this.activeTabIndex === null) return;
         const tab = this.tabs[this.activeTabIndex];
         if (tab?.popups.length > 0) {
