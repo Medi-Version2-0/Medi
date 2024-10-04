@@ -10,17 +10,13 @@ import {
   View,
 } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
-import { ValueFormatterParams } from 'ag-grid-community';
 import Button from '../../components/common/button/Button';
 import { CreateDiscount } from './CreateDiscount';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import usePermission from '../../hooks/useRole';
-import { useSelector } from 'react-redux';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
 import { decimalFormatter, extractKeys, lookupValue } from '../../helper/helper';
 import { discountValidationSchema } from './validation_schema';
-import { useGetSetData } from '../../hooks/useGetSetData';
-import { getAndSetPartywiseDiscount } from '../../store/action/globalAction';
 import { useControls } from '../../ControlRoomContext';
 import useApi from '../../hooks/useApi';
 import { getDiscountFormSchema } from './validation_schema'
@@ -35,11 +31,8 @@ export const PartyWiseDiscount = () => {
   const editing = useRef(false);
   const discountId = useRef('');
   const { createAccess, updateAccess, deleteAccess } = usePermission('partywisediscount')
-  const getAndSetPartywiseDiscountHandler = useGetSetData(getAndSetPartywiseDiscount);
   
   const { controlRoomSettings } = useControls();
-  const { party: allParties, company: allCompanies, partywiseDiscount: partywiseDiscounts } = useSelector((state: any) => state.global);
-  // let currTable: any[] = [];
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
@@ -71,11 +64,30 @@ export const PartyWiseDiscount = () => {
     companyMap[company.company_id] = company.companyName;
   });
 
+  async function getAndSetTableData() {
+    try {
+      const allPartywiseDiscounts = await sendAPIRequest('/partyWiseDiscount');
+      setTableData(allPartywiseDiscounts);
+    } catch (err) {
+      console.error(`PartyWise Discount data in partywiseDiscount (index) not being fetched`);
+    }
+  }
+
+  async function initData(){
+    try {
+      const allCompaniesData = await sendAPIRequest('/company');
+      const allPartiesData = await sendAPIRequest('/ledger');
+      setCompanyData(allCompaniesData);
+      setPartyData(allPartiesData);
+    } catch (err) {
+      console.error(`Companies or Parties data in partywiseDiscount (index) not initialized`);
+    }
+  }
+
   useEffect(() => {
-    setPartyData(allParties);
-    setCompanyData(allCompanies);
-    setTableData(partywiseDiscounts);
-  }, [partywiseDiscounts,allParties,allCompanies]);
+    initData();
+    getAndSetTableData();
+  }, []);
 
   const discountTypeMap: { [key: string]: string } = discountTypeOptions.reduce(
     (map: any, option) => {
@@ -106,11 +118,12 @@ export const PartyWiseDiscount = () => {
           method: 'DELETE',
         }
       );
-      getAndSetPartywiseDiscountHandler();
     } catch (error: any) {
       if (!error?.isErrorHandled) {
         console.log('Partywise discount not deleted');
       }
+    }finally{
+      await getAndSetTableData();
     }
   };
 
@@ -164,7 +177,6 @@ export const PartyWiseDiscount = () => {
           body: payload,
         }
       );
-      getAndSetPartywiseDiscountHandler();
     }catch(err:any){
       if (!err?.isErrorHandled) {
         if (err?.response?.status === 409) {
@@ -174,13 +186,14 @@ export const PartyWiseDiscount = () => {
         } else {
           console.log('Error while updateing the Party-wise discount ---> ', err)
         }
-        getAndSetPartywiseDiscountHandler();
       }
+    }finally{
+      await getAndSetTableData();
     }
   };
 
   const onCellClicked = (params: { data: any }) => {
-    setSelectedRow(selectedRow !== null ? null : params.data);
+    setSelectedRow(params.data);
   };
 
   const cellEditingStarted = () => {
@@ -258,9 +271,9 @@ export const PartyWiseDiscount = () => {
     {
       headerName: 'Company Name',
       field: 'companyId',
-      type: 'rightAligned',
+      // type: 'rightAligned',
       editable: (params:any) => params.data.discountType !== 'allCompanies',
-      headerClass: 'custom-header custom_header_class ag-right-aligned-header',
+      headerClass: 'custom-header custom_header_class',
       cellEditor: 'agSelectCellEditor',
       cellEditorParams: (params: any) => {
         return cellEditorParams(params, companies);
@@ -279,6 +292,8 @@ export const PartyWiseDiscount = () => {
     {
       headerName: 'Discount',
       field: 'discount',
+      type: 'numberColumn',  
+      cellEditor: 'agNumberCellEditor', 
       valueFormatter: decimalFormatter,
     },
     {
@@ -295,16 +310,16 @@ export const PartyWiseDiscount = () => {
       },
       cellRenderer: (params: { data: any }) => (
         <div className='table_edit_buttons'>
-          <FaEdit
+          {updateAccess && <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
             onClick={() => {
               setView({ type: 'add', data: params.data });
             }}
-          />
-          <MdDeleteForever
+          />}
+          {deleteAccess && <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
             onClick={() => handleDelete(params.data)}
-          />
+          />}
         </div>
       ),
     },
@@ -321,7 +336,7 @@ export const PartyWiseDiscount = () => {
               setView({ type: 'add', data: {} });
             }}
           >
-            Add PartyWise discount
+            Add Party-Wise discount
           </Button>}
         </div>
         <div id='account_table' className='ag-theme-quartz'>
@@ -360,6 +375,7 @@ export const PartyWiseDiscount = () => {
           <CreateDiscount
             setView={setView}
             data={view.data}
+            getAndSetTableData={getAndSetTableData}
             discountTypeOptions={discountTypeOptions}
           />
         );
