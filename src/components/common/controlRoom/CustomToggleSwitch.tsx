@@ -91,7 +91,7 @@ const   CustomToggleSwitch = ({ field, form, label, index, formik }: any) => {
       {field.name === 'dpcoAct' && formik.values.dpcoAct && (
         <div className='flex flex-row justify-between items-center border-[1px] border-t-0 border-solid border-[#009196FF] pr-4 bg-[#EAFBFC]'>
           <span className='ml-[0.7rem] w-[70%] p-2 border-r-[1px] border-solid border-[#009196FF]'>
-            Discount
+            Discount %
           </span>
           <label className='w-[12vw] h-[1.3rem]'>
             <input

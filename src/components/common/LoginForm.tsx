@@ -10,20 +10,12 @@ const LoginForm: React.FC = () => {
   const [password, setPassword] = useState<string>('');  // password state for password input change
   const [message, setMessage] = useState<string>('');    // used to set the message if there is any error like invalid credentials
   const [visible, setVisibility] = useState<boolean>(false);    // used to show or hide password 
-  const emailRef = useRef<HTMLInputElement | null>(null);   // used to focus on email input when component mounted
   const previousActiveElement = useRef<Element | null>(null); // used to focus on previous active element when component unmounted
   const { login } = useUser();   // used for login logic
   const { hidePopup } = useGlobal();   // used for hide the login popup when logged in successfully
 
   useEffect(() => {
-    previousActiveElement.current = document.activeElement;
-    emailRef.current?.focus();
-    return () => {
-      // Ensure the element exists and can be focused
-      if (previousActiveElement.current instanceof HTMLElement) {
-        previousActiveElement.current.focus();  
-      }
-    };
+    document.getElementById('email')?.focus();
   },[]);
   // Handler for form submission
   const handleSubmit = async (e: FormEvent) => {
@@ -51,7 +43,6 @@ const LoginForm: React.FC = () => {
         </label>
         <input
           type="email"
-          ref={emailRef}
           id="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -79,7 +70,7 @@ const LoginForm: React.FC = () => {
           )
         }
       </div>
-      <Button id='submit_all' type='fill' className='!h-11'>Login</Button>
+      <Button id='save' type='fill' className='!h-11'>Login</Button>
       {message && (
         <p className='mt-4 text-center text-red-600'>{message}</p>
       )}
