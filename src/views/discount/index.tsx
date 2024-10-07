@@ -20,6 +20,7 @@ import { discountValidationSchema } from './validation_schema';
 import { useControls } from '../../ControlRoomContext';
 import useApi from '../../hooks/useApi';
 import { getDiscountFormSchema } from './validation_schema'
+import { ValueParserParams } from 'ag-grid-community';
 
 export const PartyWiseDiscount = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
@@ -49,7 +50,7 @@ export const PartyWiseDiscount = () => {
   const discountTypeOptions = [
     { value: 'allCompanies', label: 'All companies same discount' },
     { value: 'companyWise', label: 'Companywise discount' },
-    { value: 'dpcoact', label: 'DPCO act settings' },
+    // { value: 'dpcoact', label: 'DPCO act settings' },
   ];
 
 
@@ -100,7 +101,6 @@ export const PartyWiseDiscount = () => {
   const parties = extractKeys(partyMap);
   const companies = extractKeys(companyMap);
 
-
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
   };
@@ -139,17 +139,17 @@ export const PartyWiseDiscount = () => {
     if (!valueChanged) return;
     const field = column.colId;
     try{
-      await getDiscountFormSchema.validateAt(field, { [field]: newValue });
-      if (!newValue) {
-        const capitalizedFieldName = field.charAt(0).toUpperCase() + field.slice(1);
-        throw new Error(`${capitalizedFieldName} is required`);
-      }
-      if (field === 'discount') {
-        await discountValidationSchema.validateAt(field, { [field]: newValue });
-      }
-      if (field === 'discountType' && data.discountType === 'dpcoact' && controlRoomSettings.dpcoAct) {
-        data.discount = controlRoomSettings.dpcoDiscount;
-      }
+      // await getDiscountFormSchema.validateAt(field, { [field]: newValue });
+      // if (!newValue) {
+      //   const capitalizedFieldName = field.charAt(0).toUpperCase() + field.slice(1);
+      //   throw new Error(`${capitalizedFieldName} is required`);
+      // }
+      // if (field === 'discount') {
+      //   await discountValidationSchema.validateAt(field, { [field]: newValue });
+      // }
+      // if (field === 'discountType' && data.discountType === 'dpcoact' && controlRoomSettings.dpcoAct) {
+      //   data.discount = controlRoomSettings.dpcoDiscount;
+      // }
       if (data.discountType === 'allCompanies') {
         data.companyId = null;
       } else {
@@ -163,17 +163,19 @@ export const PartyWiseDiscount = () => {
         companyId?: number|null;
         discountType?: string;
         discount?:number;
+        discount_id: number;
       } = {
         [field]: newValue,
         partyId:data.partyId,
         companyId: data.companyId,
         discountType: data.discountType !== 'allCompanies' ? data.discountType : 'allCompanies',
-        discount: data.discount
+        discount: data.discount,
+        discount_id: data.discount_id
       }
       await sendAPIRequest(
-        `/partyWiseDiscount/${data.discount_id}`,
+        `/partyWiseDiscount`,
         {
-          method: 'PUT',
+          method: 'POST',
           body: payload,
         }
       );
@@ -199,6 +201,16 @@ export const PartyWiseDiscount = () => {
   const cellEditingStarted = () => {
     editing.current = true;
   };
+
+  const valueParser = (params: ValueParserParams): number | null => {
+    const { newValue, colDef } = params;
+    if (parseFloat(newValue) < 0) {  // value must be positive
+      // settingPopupState(false, `${colDef?.field} can't be negative`);
+      return 0;
+    }
+    const parsedValue = parseFloat(newValue);
+    return isNaN(parsedValue) ? null : parsedValue;
+  }
 
   const handleKeyDown = (event: KeyboardEvent) => {
     handleKeyDownCommon(
@@ -294,6 +306,7 @@ export const PartyWiseDiscount = () => {
       field: 'discount',
       type: 'numberColumn',  
       cellEditor: 'agNumberCellEditor', 
+      valueParser,
       valueFormatter: decimalFormatter,
     },
     {
