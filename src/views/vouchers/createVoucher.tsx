@@ -722,14 +722,14 @@ useEffect(() => {
           searchFrom: 'partyName',
           handleSelect: (rowData: any) => {
             setCurrentSavedData({ ...currentSavedData, party: rowData })
+            setTimeout(() => {
+              tabManager.setTabLastFocusedElementId(`cell-${focusedRowIndex}-1`)
+            }, 0);
           }
         }
       });
       const ele = document.getElementById(`tableContainer`)
       ele?.scrollTo({top: 100,left: 0,behavior: 'smooth'});
-      setTimeout(() => {
-        tabManager.setTabLastFocusedElementId(`cell-${focusedRowIndex}-1`)
-      }, 0);
     }
   };  
 
