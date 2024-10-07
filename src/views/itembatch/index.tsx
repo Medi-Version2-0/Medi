@@ -11,12 +11,15 @@ import { useControls } from '../../ControlRoomContext';
 import { batchSchema, validatePrices } from './validation_schema';
 import PlaceholderCellRenderer from '../../components/ag_grid/PlaceHolderCell';
 import useApi from '../../hooks/useApi';
+import { SelectListTableWithInput } from '../../components/common/customSelectList/selectListWithInputs';
 
 export const Batch = ({ params }: { params: { showBatch: any; setShowBatch: React.Dispatch<React.SetStateAction<any>>; };}) => {
   const { id } = params.showBatch;
   const { sendAPIRequest } = useApi();
-
   const { controlRoomSettings } = useControls();
+
+  const GodownHeaders = [{ label: 'Godown Name', key: 'godownName' }, { label: 'Stocks', key: 'stocks', isInput: true }];
+
   const pinnedRow: BatchForm = {
     itemId: id ? +id : 0,
     batchNo: '',
@@ -35,18 +38,23 @@ export const Batch = ({ params }: { params: { showBatch: any; setShowBatch: Reac
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [inputRow, setInputRow] = useState<BatchForm | any>(pinnedRow);
   const [tableData, setTableData] = useState<BatchForm | any>(null);
+  const [fetchedGodown, setFetchedGodown] = useState<any | []>(null);
+  const [godownDataDuringCreate, setGodownDataDuringCreate] = useState<any | []>(null);
+  const [popupList, setPopupList] = useState<{ isOpen: boolean; data: any }>({ isOpen: false, data: {} });
   const [popupState, setPopupState] = useState({ isModalOpen: false, isAlertOpen: false, message: '' });
   const editing = useRef(false);
   const gridRef = useRef<any>(null);
   
   const fetchItems = async() => {
     const items = await sendAPIRequest<ItemFormData[] | any>('/item');
+    const godownData = await sendAPIRequest<any>(`/godown`);
     const itemData = items.find((item: any) => item.id === id);
     setInputRow(pinnedRow);
     setItem(itemData);
     let newRow = { ...pinnedRow, itemId: 0 }; 
     if (controlRoomSettings.batchWiseManufacturingCode) newRow = { ...newRow, mfgCode: itemData?.shortName || '' };
     setTableData([newRow, ...itemData.ItemBatches]);
+    setFetchedGodown(godownData);
   }
 
   useEffect(() => {
@@ -86,7 +94,13 @@ export const Batch = ({ params }: { params: { showBatch: any; setShowBatch: Reac
         locked: inputRow.locked.toUpperCase(),
         mfgCode: item?.shortName,
       };
+      const length = godownDataDuringCreate?.length;
+      for (let i = 0; i < length; i++) {
+        formattedInputRow[`opGodown${i}`] = Number(godownDataDuringCreate[i]?.stocks);
+        formattedInputRow[`clGodown${i}`] = Number(godownDataDuringCreate[i]?.stocks);
+      }
       await sendAPIRequest(`/item/${id}/batch`, { method: 'POST', body: formattedInputRow });
+      setGodownDataDuringCreate(null);
       setInputRow(pinnedRow);
       fetchItems();
     } catch (err: any) {
@@ -207,18 +221,64 @@ export const Batch = ({ params }: { params: { showBatch: any; setShowBatch: Reac
     }
   };
 
+  const openPopup = (rowSelected: any, currentStocks: number, tableData: any) => {
+    setPopupList({
+      isOpen: true,
+      data: {
+        heading: 'Godowns',
+        headers: [...GodownHeaders],
+        tableData,
+        rowData: rowSelected,
+        currentStocks,
+        handleSelect: (rowData: any) => {},
+      },
+    });
+  };
+
+  const mapGodownData = (rowSelected: any) => {
+    let i = 0;
+    return fetchedGodown.map((row: any) => {
+      const mappedRow: any = {};
+      GodownHeaders.forEach(header => {
+        mappedRow[header.key] = header.isInput ? rowSelected[`opGodown${i}`] : row[header.key];
+      });
+      i++;
+      return mappedRow;
+    });
+  };
+
   const handleKeyDown = async (event: KeyboardEvent) => {
+    const focusedCell = gridRef?.current?.api.getFocusedCell();
+    if (!focusedCell) return;
+  
+    const { rowIndex, column } = focusedCell;
+    const { colId } = column || {};
+    const isGodownStockColumn = colId === "godownStocks";    
+  
     if (event.code === 'Enter') {
-      const focusedCell = gridRef?.current?.api.getFocusedCell();
-      const lastEditedRowIndex = focusedCell?.rowIndex;
-      if (focusedCell && lastEditedRowIndex === 0 && !isAnyFilterActive()) {
+      if (isGodownStockColumn && rowIndex === 0) {
+        event.preventDefault();
+        event.stopPropagation();
+        const currentStocks = inputRow?.opBalance + inputRow?.opFree;
+        openPopup(null,currentStocks, godownDataDuringCreate || fetchedGodown);
+        return;
+      }  
+      if (isGodownStockColumn && rowIndex !== 0) {
+        event.preventDefault();
+        event.stopPropagation();
+        const rowSelected = tableData[rowIndex];
+        const dataTosend = mapGodownData(rowSelected);
+        const currentStocks = rowSelected?.currentStock; 
+        openPopup(rowSelected, currentStocks, dataTosend);
+        return;
+      }  
+      if (rowIndex === 0 && !isAnyFilterActive()) {
         const validationStatus = await isPinnedRowDataCompleted();
         if (validationStatus.completed) {
           if (!editing.current) handleBatchAdd();
         } else {
           !editing.current && settingPopupState(false, `${validationStatus.error}`);
         }
-
       }
     } else if (event.code === 'Tab') {
       onCellKeyDown();
@@ -279,6 +339,7 @@ export const Batch = ({ params }: { params: { showBatch: any; setShowBatch: Reac
       { headerName: 'Expiry Date', field: 'expiryDate' },
       { headerName: 'Opening Stock', field: 'opBalance', cellDataType: 'number' },
       { headerName: 'Scheme Stock', field: 'opFree', cellDataType: 'number' },
+      { headerName: 'Godown Stocks', field: 'godownStocks', cellDataType: 'number', valueGetter: () => fetchedGodown?.length },
       { headerName: 'Purchase Price', field: 'purPrice', cellDataType: 'number'},
       ...salePriceColumns,
       { headerName: 'MRP', field: 'mrp', width: 150, cellDataType: 'number' },
@@ -320,6 +381,18 @@ export const Batch = ({ params }: { params: { showBatch: any; setShowBatch: Reac
             onConfirm={popupState.isAlertOpen ? handleAlertCloseModal : handleConfirmPopup}
             message={popupState.message}
             isAlert={popupState.isAlertOpen}
+          />
+        )}
+        {popupList.isOpen && (
+          <SelectListTableWithInput
+            heading={popupList.data.heading}
+            headers={popupList.data.headers}
+            tableData={popupList.data.tableData}
+            currentStocks={popupList.data.currentStocks}
+            setGodownDataDuringCreate={setGodownDataDuringCreate}
+            rowDataDuringUpdation={popupList.data.rowData}
+            focusedColumn={1}
+            closeList={() => setPopupList({ isOpen: false, data: {} })}
           />
         )}
       </div>

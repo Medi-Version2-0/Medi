@@ -495,15 +495,15 @@ export interface godownSetup{
   godownName: string,
 }
 
-interface SelectListTableProps {
-heading?: string;
-closeList: () => void;
-className?: string;
-headers: any[];
-tableData: any[];
-dataKeys?: any;
-rightAlignCells?: any[];
-onValueChange?: (rowIndex: number, value: string) => void;
+export interface SelectListTableProps {
+  heading: string;
+  headers: { label: string; key: string; auto?: boolean; isInput?: boolean }[];
+  tableData: any[];
+  currentStocks: number;
+  focusedColumn?: number;
+  closeList: () => void;
+  rowDataDuringUpdation: any;
+  setGodownDataDuringCreate: any;
 }
 
 export interface popupOptions {
