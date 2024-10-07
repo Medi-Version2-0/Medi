@@ -415,6 +415,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     updatedGridData[rowIndex].columns.rate = finalPrice;
     updatedGridData[rowIndex].columns.mrp = batch?.mrp;
     updatedGridData[rowIndex].columns.expDate = batch?.expiryDate;
+    updatedGridData[rowIndex].columns.disPer = item?.partyWiseDiscount
     setGridData(updatedGridData);
   };
 
