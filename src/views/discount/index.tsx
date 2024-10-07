@@ -266,40 +266,42 @@ export const PartyWiseDiscount = () => {
     {
       headerName: 'Discount Type',
       field: 'discountType',
-      cellEditor: 'agSelectCellEditor',
-      cellEditorParams: (params: any) => {
-        return cellEditorParams(params, discountTypeOptions.map((option) => option.value));
-      },
+      editable:false,
+      // cellEditor: 'agSelectCellEditor',
+      // cellEditorParams: (params: any) => {
+      //   return cellEditorParams(params, discountTypeOptions.map((option) => option.value));
+      // },
       valueFormatter: (params: { value: string | number }) => {
         return lookupValue(discountTypeMap, params.value);
       }, 
-      valueGetter: (params: { data: any }) => {
-        return lookupValue(discountTypeMap, params.data.discountType);
-      },
-      filterValueGetter: (params: { data: any }) => {
-        return lookupValue(discountTypeMap, params.data.discountType);
-      },
+      // valueGetter: (params: { data: any }) => {
+      //   return lookupValue(discountTypeMap, params.data.discountType);
+      // },
+      // filterValueGetter: (params: { data: any }) => {
+      //   return lookupValue(discountTypeMap, params.data.discountType);
+      // },
     },
     {
       headerName: 'Company Name',
       field: 'companyId',
+      editable:false,
       // type: 'rightAligned',
-      editable: (params:any) => params.data.discountType !== 'allCompanies',
+      // editable: (params:any) => params.data.discountType !== 'allCompanies',
       headerClass: 'custom-header custom_header_class',
-      cellEditor: 'agSelectCellEditor',
-      cellEditorParams: (params: any) => {
-        return cellEditorParams(params, companies);
-      },
+      // cellEditor: 'agSelectCellEditor',
+      // cellEditorParams: (params: any) => {
+      //   return cellEditorParams(params, companies);
+      // },
       valueFormatter: (params: { value: string | number, data: any }) => {
-        if (!params.value && params.data.discountType==='allCompanies') return 'All';
+        if (!params.value) return 'All';
         return lookupValue(companyMap, params.value);
       },
-      valueGetter: (params: { data: any }) => {
-        return lookupValue(companyMap, params.data.companyId);
-      },
-      filterValueGetter: (params: { data: any }) => {
-        return lookupValue(companyMap, params.data.companyId);
-      },
+      // valueGetter: (params: { data: any }) => {
+      //   return lookupValue(companyMap, params.data.companyId);
+      // },
+      // filterValueGetter: (params: { data: any }) => {
+      //   return lookupValue(companyMap, params.data.companyId);
+      // },
     },
     {
       headerName: 'Discount',

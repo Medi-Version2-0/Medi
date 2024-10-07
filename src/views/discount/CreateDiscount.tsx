@@ -121,14 +121,14 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
       discountType: data?.discountType || '',
       partyId: data?.partyId || selectedParty ,
       discount: data?.discount || null,
-      dpcoDiscount: data?.dpcoDiscount || null,
+      dpcoDiscount: data?.discount || dpcoDiscount || null
     },
     validationSchema: discountValidationSchema,
     onSubmit: async (values) => {
       try{
       values.partyId = selectedParty?.party_id;
-      const allData:any = { ...values, discount: Number(values.discount), ...( dpcoAct ? {dpcoDiscount: Number(values.dpcoDiscount)} : {}) };
-
+      const allData:any = { ...values, discount: Number(values.discount)};
+      delete allData.dpcoDiscount;
       if (data.discount_id || discountsOfCorrespondingParty.length !== 0) {
         if (allData.discountType === 'allCompanies') {
           allData.companyId = null;
@@ -320,8 +320,7 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
       });
     }
   }
-
-
+  
   const colDefs: any[] = [
     {
       headerName: 'Company Name',
@@ -418,10 +417,10 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
                     id='dpcoDiscount'
                     name='dpcoDiscount'
                     min={0}
-                    value={dpcoDiscount}
+                    value={formik.values.dpcoDiscount}
                     onBlur={handleDPCODiscountBlur}
                     onChange={(value) => {
-                      // formik.setFieldValue('dpcoDiscount',value);
+                      formik.setFieldValue('dpcoDiscount',value);
                     }}
                     className='!mb-0 justify-between'
                     labelClassName='min-w-[110px] !h-[22px] w-fit text-nowrap !ps-0 me-2 !text-base !gap-6'
