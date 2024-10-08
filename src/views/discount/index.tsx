@@ -147,29 +147,31 @@ export const PartyWiseDiscount = () => {
         companyId?: number|null;
         discountType?: string;
         discount?:number;
-        discount_id: number;
       } = {
         [field]: newValue,
         partyId:data.partyId,
         companyId: data.companyId,
         discountType: data.discountType !== 'allCompanies' ? data.discountType : 'allCompanies',
         discount: data.discount,
-        discount_id: data.discount_id
       }
       if (e.data.discountType === 'dpcoact') {
         payload.dpcoDiscount = newValue;
         delete payload.discount;
       }
       await sendAPIRequest(
-        `/partyWiseDiscount`,
+        `/partyWiseDiscount/${data.discount_id}`,
         {
-          method: 'POST',
+          method: 'PUT',
           body: payload,
         }
       );
     }catch(error:any){
       if (!error?.isErrorHandled) {
-        if (error.response?.data.messages) {
+        if (error.response?.data.error.message){
+          settingPopupState(false, error.response.data.error.message);
+          return;
+        }
+        if (error.response?.data.error.messages) {
           settingPopupState(false, error.response?.data.messages.map((e: any) => e.message).join('\n'))
           return
         }
@@ -256,19 +258,9 @@ export const PartyWiseDiscount = () => {
       headerName: 'Discount Type',
       field: 'discountType',
       editable:false,
-      // cellEditor: 'agSelectCellEditor',
-      // cellEditorParams: (params: any) => {
-      //   return cellEditorParams(params, discountTypeOptions.map((option) => option.value));
-      // },
       valueFormatter: (params: { value: string | number }) => {
         return lookupValue(discountTypeMap, params.value);
       }, 
-      // valueGetter: (params: { data: any }) => {
-      //   return lookupValue(discountTypeMap, params.data.discountType);
-      // },
-      // filterValueGetter: (params: { data: any }) => {
-      //   return lookupValue(discountTypeMap, params.data.discountType);
-      // },
     },
     {
       headerName: 'Company Name',

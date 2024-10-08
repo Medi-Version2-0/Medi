@@ -52,6 +52,7 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
   const [discountsOfCorrespondingParty, setDiscountsOfCorrespondingParty] = useState<any[]>([]);
   const tabManager = TabManager.getInstance()
   const gridRef = useRef<AgGridReact>(null);
+  const dpcoDiscountPreviousValue = useRef<number | null>(null);
 
   async function makeChanges(payload:any){
     // all requirements and checks handled by backend 
@@ -140,7 +141,7 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
       let focusChain:any[] = [];
       const focusedCol = formik.values.discountType === 'allCompanies' ? 'custom_select_discountType' : 'partyId'
       focusChain = dpcoAct ? (formik.values.discountType == 'companyWise' ? createPartywiseDiscountChainForDpcoCompanyWise : createPartywiseDiscountChainForDpco) : 
-                              formik.values.discountType === 'companyWise' ? createPartywiseDiscountChainForCompanyWise : createPartywiseDiscountChain;
+                              (formik.values.discountType === 'companyWise' ? createPartywiseDiscountChainForCompanyWise : createPartywiseDiscountChain)
       
       tabManager.updateFocusChainAndSetFocus([...focusChain], focusedCol);
   }, [formik.values.discountType, dpcoAct])
@@ -161,7 +162,7 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
             formik.setFieldValue('partyId', rowData.partyName);
             handleFieldChange({ label: rowData.partyName, value: rowData.party_id }, 'partyId');
             setSelectedParty(rowData);
-            tabManager.setTabLastFocusedElementId('custom_select_discountType')
+            tabManager.setTabLastFocusedElementId(`${dpcoAct ? 'dpcoDiscount' : 'custom_select_discountType'}`)
            }
         }
       })
@@ -213,20 +214,22 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
         const res = await sendAPIRequest(`/partyWiseDiscount/${id}`);
         const response = res.discounts;
         if (res.dpcoDiscount) {
+          dpcoDiscountPreviousValue.current = res.dpcoDiscount.discount;
           formik.setFieldValue('dpcoDiscount', res.dpcoDiscount.discount); // setting dpcoDiscount field to saved dpcodiscount in DB for the selected party
         } else {
+          dpcoDiscountPreviousValue.current = dpcoDiscount;
           formik.setFieldValue('dpcoDiscount', dpcoDiscount); // set the dpcoDiscount field to controlRoom setttings if value is not stored in DB
         }
         if(response.length !== 0) {
-          formik.values.discountType = response[0].discountType;
-          if (formik.values.discountType === 'companyWise') {
+          formik.setFieldValue('discountType', response[0].discountType);  // setting discountType from backend
+          if (response[0].discountType === 'companyWise') {
             const modifiedResponse = response.map((r: any) => {  // adding companyName field direct to object from company.companyName
               return { ...r, companyName: r.company.companyName }
             })
             setDiscountsOfCorrespondingParty(modifiedResponse);
             return;
           }
-          if (formik.values.discountType === 'allCompanies') {
+          if (response[0].discountType === 'allCompanies') {
             formik.setFieldValue('discountId', response[0].discountId); // set the discountId in formik
             formik.setFieldValue('discount', response[0].discount); // set the discount field to saved discount in DB for the selected party for allCompanies
             setDiscountsOfCorrespondingParty(response);
@@ -248,6 +251,10 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
 
   async function handleDPCODiscountBlur(){ // on blur the dpcodiscount field auto send the api to backend to save the dpco %
     if(selectedParty?.party_id){
+      if (dpcoDiscountPreviousValue.current === Number(formik.values.dpcoDiscount)){
+        return;  // if value not change then no api call to prevent unnecessary api calling
+      }
+      dpcoDiscountPreviousValue.current = Number(formik.values.dpcoDiscount);  // if value change then update previous value also
       const payload = {
         partyId: selectedParty.party_id,
         companyId: null,
