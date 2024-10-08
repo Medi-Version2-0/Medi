@@ -20,17 +20,17 @@ interface RowData {
 
 export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTotalValue, challanTableData, setIsNetRateSymbol, challanId, challanDate, selectedParty }: any) => {
   const headers = [
-    { name: 'Item name', key: 'itemId', width: '15%', type: 'input', props: { inputType: 'text', label: true, handleFocus: (rowIndex: number, colIndex: number) => {}, handleClick : ({rowIndex}:any)=>{openItem(rowIndex)}  }},
+    { name: 'Item name', key: 'itemId', width: '20%', type: 'input', props: { inputType: 'text', label: true, handleFocus: (rowIndex: number, colIndex: number) => {}, handleClick : ({rowIndex}:any)=>{openItem(rowIndex)}  }},
     { name: 'Batch no', key: 'batchNo', width: '15%', type: 'input', props: { inputType: 'text', label: true, handleFocus: (rowIndex: number, colIndex: number) => {} , handleClick : ({rowIndex}:any)=>{openBatch(rowIndex)}  } },
-    { name: 'Qty', key: 'qty', width: '5%', type: 'input', props: { inputType: 'number', handleBlur: (args: any) => { handleQtyChange(args); handleTotalAmt(args) }, handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
-    { name: 'Scheme', key: 'scheme', width: '7%', type: 'input', props: { inputType: 'number', handleBlur: (args: any) => { handleQtyChange(args); handleTotalAmt(args) }, handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
-    { name: 'Scheme type', key: 'schemeType', width: '10%', type: 'customSelect', props: { options: schemeTypeOptions, handleChange: (args: any) => { handleSelectChange(args); handleQtyChange(args); handleTotalAmt(args) }, handleBlur: (args: any) => { handleQtyChange(args); handleTotalAmt(args) } } },
-    { name: 'Rate', key: 'rate', width: '5%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
-    { name: 'Dis.%', key: 'disPer', width: '5%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
-    { name: 'Amt', key: 'amt', width: '5%', type: 'input', props: { inputType: 'number', disable: true } },
-    { name: 'MRP', key: 'mrp', width: '5%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
-    { name: 'Exp. Date', key: 'expDate', width: '8%', type: 'input', props: { inputType: 'text', handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
-    { name: 'Tax type', key: 'taxType', width: '15%', type: 'input', props: { inputType: 'text', disable: true } },
+    { name: 'Qty', key: 'qty', width: '10%', type: 'input', props: { inputType: 'number', handleBlur: (args: any) => { handleQtyChange(args); handleTotalAmt(args) }, handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
+    { name: 'Scheme', key: 'scheme', width: '10%', type: 'input', props: { inputType: 'number', handleBlur: (args: any) => { handleQtyChange(args); handleTotalAmt(args) }, handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
+    { name: 'Scheme type', key: 'schemeType', width: '12%', type: 'customSelect', props: { options: schemeTypeOptions, handleChange: (args: any) => { handleSelectChange(args); handleQtyChange(args); handleTotalAmt(args) }, handleBlur: (args: any) => { handleQtyChange(args); handleTotalAmt(args) } } },
+    { name: 'Rate', key: 'rate', width: '8%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
+    { name: 'Dis.%', key: 'disPer', width: '8%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
+    { name: 'Amount', key: 'amt', width: '10%', type: 'input', props: { inputType: 'number', disable: true } },
+    { name: 'MRP', key: 'mrp', width: '10%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
+    { name: 'Exp. Date', key: 'expDate', width: '12%', type: 'input', props: { inputType: 'text', handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
+    { name: 'Tax type', key: 'taxType', width: '20%', type: 'input', props: { inputType: 'text', disable: true } },
     { name: 'GST', key: 'gstAmount', width: '5%', type: 'input', props: { inputType: 'number', disable: true } },
   ];
 
@@ -55,6 +55,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
   const { controlRoomSettings } = useControls();
   const lastElement = useRef({row : -1 , col: -1})
   const tabManager = TabManager.getInstance()
+  const initialId = tabManager.activeTabId
 
   const [popupState, setPopupState] = useState<any>({
     isModalOpen: false,
@@ -80,7 +81,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
   useEffect(() => {
     const handleFocusChange = (event: CustomEvent) => {
       const { tabId, focusedElementId } = event.detail;
-      if (tabManager.activeTabId === tabId) {
+      if (initialId === tabId) {
         if (focusedElementId?.includes('cell')) {
           const row = splitCellId(focusedElementId)?.row
           const col = splitCellId(focusedElementId)?.col
@@ -210,6 +211,9 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
         label: currentSavedData.batch.batchNo,
         value: currentSavedData.batch.id,
       };
+      if(selectedParty?.salesPriceList){
+        newGridData[focusedRowIndex].columns['rate'] = currentSavedData.batch[`salePrice${selectedParty.salesPriceList}`]
+      }
       setGridData(newGridData);
       handleQtyInput(
         focusedRowIndex,
@@ -407,7 +411,13 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     const updatedGridData = [...gridData];
     const batch = batches?.find((batch: any) => batch.id === value?.value);
     const item = itemValue?.find((item: any) => item.id === batch.itemId);
-    const basePrice = item?.partyWisePriceList?.salePrice ?? batch?.salePrice;
+    // const basePrice = item?.partyWisePriceList?.salePrice ?? batch?.salePrice;
+    let basePrice;
+  if (selectedParty && selectedParty.salesPriceList) {
+    basePrice = batch?.[`salePrice${selectedParty.salesPriceList}`] ?? batch?.salePrice;
+  } else {
+    basePrice = item?.partyWisePriceList?.salePrice ?? batch?.salePrice;
+  }
     const excessRate = selectedParty?.excessRate ?? 0; 
     const finalPrice = basePrice + (basePrice * excessRate / 100);
     const remainingQty = handleRemainingQty(rowIndex, batch);
@@ -466,8 +476,11 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
       isOpen: true, data: {
         heading: 'Item', headers: [...itemHeader], footers: itemFooters, newItem: () => tabManager.openTab('Items', <Items type='add' /> , [] , openTab),
         apiRoute: '/item',
-        extraQueryParams: selectedParty?.party_id ? { partyId: selectedParty.party_id } : {},
-         searchFrom: 'name',
+        extraQueryParams: { 
+          ...(selectedParty?.party_id ? { partyId: selectedParty.party_id } : {}),
+          sort: 'name'
+        },   
+        searchFrom: 'name',
         handleSelect: (rowData: any) => {
           if (rowData.prescriptionType === "NON-RX" || rowData.scheduleDrug === "H1") {
             if (rowData.prescriptionType === "NON-RX" && rowData.scheduleDrug === "H1") {
@@ -517,7 +530,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
           heading: 'Batch', headers: [...batchHeader], footers: batchFooters,
           newItem: () => openTab('Item', <Items batchData={itemValue.find((x) => x.id === gridData[rowIndex].columns.itemId?.value)} />),
           apiRoute: `/item/${gridData[rowIndex].columns.itemId?.value}/batch`,
-          ...({ extraQueryParams: { locked: 'N' } }), searchFrom: 'batchNo', autoClose: true,
+          ...({ extraQueryParams: { locked: 'N' , sort : 'expiryDate' } }), searchFrom: 'batchNo', autoClose: true,
           handleSelect: (rowData: any) => {
             setCurrentSavedData({ ...currentSavedData, batch: rowData });
             const nearexpiry = isLessThanMonths(challanDate, rowData.expiryDate, controlRoomSettings.expiryWarningMonths)

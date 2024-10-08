@@ -216,7 +216,7 @@ export const ChallanTable = ({
           {headers.map((header, index) => (
             <div
               key={index}
-              className={`flex-shrink-0 border-[1px] border-solid bg-[#009196FF] border-gray-400 text-center text-white p-2 ${stikyColumn?.includes(index) ? 'sticky left-0' : ''}`}
+              className={`flex-shrink-0 border-[1px] border-solid bg-[#009196FF] border-gray-400 text-left text-white p-2 ${stikyColumn?.includes(index) ? 'sticky left-0' : ''}`}
               style={{ width: header.width }}
             >
               {header.name}

@@ -21,10 +21,10 @@ export const schemeTypeOptions = [
 ];
 
 export const itemHeader = [
-  { label: 'ID', key: 'id' },
-  { label: 'Name', key: 'name' },
-  { label: 'Company', key: 'company.companyName' },
-  { label: 'Sales', key: 'saleAccount.sptype' },
+  { label: 'Sr.No', key: 'id' , auto: true, width: '2%' },
+  { label: 'Name', key: 'name' , width: '25%' },
+  { label: 'Company', key: 'company.companyName' , width: '15%' },
+  { label: 'Sale', key: 'saleAccount.sptype' },
   { label: 'Purchase', key: 'purchaseAccount.sptype' },
 ];
 export const itemHeaderForSaleBill = [
@@ -38,12 +38,13 @@ export const challanHeaderForSaleBill = [
 ];
 
 export const batchHeader = [
-  { label: 'ID', key: 'id' },
+  { label: 'Sr.No', key: 'id' , auto: true, width: '2%' },
   { label: 'Batch', key: 'batchNo' },
-  { label: 'Current Stock', key: 'currentStock' },
+  { label: 'Current Stock', key: 'currentStock', width: '10%' },
   { label: 'Expiry Date', key: 'expiryDate' },
-  { label: 'Locked', key: 'locked' },
-  { label: 'Scheme', key: 'opFree' },
+  { label: 'Sale Price', key: 'salePrice', className: 'text-right' },
+  { label: 'MRP', key: 'mrp', className: 'text-right' },
+
 ];
 
 
@@ -79,13 +80,11 @@ export const batchFooters = [
     label: 'Purchase Info',
     data: [
       { label: 'Purchase Price', key: 'purPrice' },
-      { label: 'MRP', key: 'mrp' },
     ],
   },
   {
     label: 'Selling Info',
     data: [
-      { label: 'Sale Price 1', key: 'salePrice' },
       { label: 'Sale Price 2', key: 'salePrice2' },
       { label: 'Sale Price 3', key: 'salePrice3' },
       { label: 'Sale Price 4', key: 'salePrice4' },

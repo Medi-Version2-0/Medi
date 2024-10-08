@@ -133,6 +133,8 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
     totalPendingItems: 0
   })
   const tabManager = TabManager.getInstance();
+  const initialId = tabManager.activeTabId
+
   const [totalValue, setTotalValue] = useState({
     totalAmt: 0.0,
     totalQty: 0.0,
@@ -356,7 +358,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
   }
 
   const hasMissingKeys = (): boolean => {
-    if (!dataFromTable.length || !formik.isValid) return true;
+    if (!dataFromTable.length || !formik.isValid || formik.isSubmitting) return true;
     return dataFromTable?.some((columns) => {
       if (!columns) return true;
       const { itemId, batchNo, qty, rate, scheme, schemeType } = columns;
@@ -370,8 +372,8 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
 
   useEffect(() => {
     const handleFocusChange = (event: CustomEvent) => {
-        const { tabId, focusedElementId } = event.detail;
-      if (tabManager.activeTabId === tabId) {
+      const { tabId, focusedElementId } = event.detail;
+      if (initialId === tabId) {
         if (focusedElementId?.includes('partyId')) {
           if(lastElementRef.current !== 'partyId'){
             handlePartyList()
@@ -421,7 +423,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
                 isRequired={true}
                 id='oneStation'
                 name='oneStation'
-                labelClass='min-w-[140px] text-base text-gray-700'
+                labelClass='min-w-[115px] text-base text-gray-700'
                 value={
                   formik.values.oneStation === ''
                     ? null
@@ -517,7 +519,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
                 readOnly={true}
                 formik={formik}
                 className='!mb-0'
-                labelClassName='min-w-[140px] text-base text-gray-700'
+                labelClassName='min-w-[115px] text-base text-gray-700'
                 isRequired={false}
                 value={
                   formik.values.partyId === '' || !selectedParty
@@ -574,7 +576,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
                 className='!mb-0'
                 // prevField='partyId'
                 // nextField='cell-0-0'
-                labelClassName='min-w-[140px] text-base text-gray-700'
+                labelClassName='min-w-[115px] text-base text-gray-700'
                 isRequired={false}
                 showErrorTooltip={formik.touched.personName && !!formik.errors.personName}
               />
@@ -605,7 +607,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
                 name='date'
                 formik={formik}
                 className='!mb-0'
-                labelClassName='min-w-[140px] text-base text-gray-700'
+                labelClassName='min-w-[115px] text-base text-gray-700'
                 isRequired={false}
                 inputClassName='disabled:text-gray-800'
               />
