@@ -14,9 +14,10 @@ import { CreateDiscount } from './CreateDiscount';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import usePermission from '../../hooks/useRole';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
-import { decimalFormatter, extractKeys, lookupValue } from '../../helper/helper';
+import { extractKeys, lookupValue } from '../../helper/helper';
 import useApi from '../../hooks/useApi';
-import { ValueParserParams } from 'ag-grid-community';
+import { ValueFormatterParams, ValueParserParams } from 'ag-grid-community';
+import { useControls } from '../../ControlRoomContext';
 
 export const PartyWiseDiscount = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
@@ -27,7 +28,8 @@ export const PartyWiseDiscount = () => {
   const [companyData, setCompanyData] = useState<any[]>([]);
   const editing = useRef(false);
   const discountId = useRef('');
-  const { createAccess, updateAccess, deleteAccess } = usePermission('partywisediscount')
+  const { createAccess, updateAccess, deleteAccess } = usePermission('partywisediscount');
+  const { decimalValueCount } = useControls().controlRoomSettings;
   
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
@@ -62,15 +64,11 @@ export const PartyWiseDiscount = () => {
   async function getAndSetTableData() {
     try {
       const allPartywiseDiscounts = await sendAPIRequest('/partyWiseDiscount');
-      console.log("alllllllllll",allPartywiseDiscounts)
       setTableData(allPartywiseDiscounts);
     } catch (err) {
       console.error(`PartyWise Discount data in partywiseDiscount (index) not being fetched`);
     }
   }
-
-  console.log('partyMap >> ',partyMap)
-  
   useEffect(() => {
     async function initData(){
       try {
@@ -136,9 +134,11 @@ export const PartyWiseDiscount = () => {
     if (!valueChanged) return;
     const field = column.colId;
     try{
+      console.log('field >> ',field)
+      console.log('newValue >> ',newValue)
       if (data.discountType === 'allCompanies') {
         data.companyId = null;
-      }      
+      }    
       const payload: {
         [x: string]: any;
         companyId?: number|null;
@@ -155,7 +155,9 @@ export const PartyWiseDiscount = () => {
         payload.dpcoDiscount = newValue;
         delete payload.discount;
       }
-      console.log("PUTtttttttttttttttttt",payload)
+      if (field === 'discount' && !newValue) {
+        payload.discount = 0;
+      }  
       await sendAPIRequest(
         `/partyWiseDiscount/${data.discount_id}`,
         {
@@ -230,7 +232,6 @@ export const PartyWiseDiscount = () => {
       value: params.data[params.colDef.field],
     }
   }
-  console.log("party--------->",tableData)
 
   const colDefs: any[] = [
     {
@@ -247,7 +248,6 @@ export const PartyWiseDiscount = () => {
         return lookupValue(partyMap, params.value);
       },
       valueGetter: (params: { data: any }) => {
-        // console.log('valueGetter >> ', lookupValue(partyMap, params.data.partyId))
         return lookupValue(partyMap, params.data.partyId);
       },
       filterValueGetter: (params: { data: any }) => {
@@ -284,12 +284,14 @@ export const PartyWiseDiscount = () => {
       },
     },
     {
-      headerName: 'Discount',
+      headerName: 'Discount %',
       field: 'discount',
       type: 'numberColumn',  
       cellEditor: 'agNumberCellEditor', 
       valueParser,
-      valueFormatter: decimalFormatter,
+      valueFormatter: (params: ValueFormatterParams) =>{
+        return params.value.toFixed(decimalValueCount);
+      },
     },
     {
       headerName: 'Actions',

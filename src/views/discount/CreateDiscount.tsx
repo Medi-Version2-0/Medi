@@ -201,11 +201,13 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
 
   async function handleCellEditingStopped(event: CellEditingStoppedEvent) {
     const { valueChanged } = event;
-    const { discount, discountType, discount_id, partyId, companyId } = event.data;
+    const { discountType, discount_id, partyId, companyId } = event.data;
+    let { discount } = event.data;
     if (!valueChanged) return;
+    if(discount === null) discount = 0
     await makeChanges({
       discountId: discount_id,
-      discount,
+      discount: discount,
       discountType,
       partyId,
       companyId
@@ -287,9 +289,9 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
       cellEditor: 'agNumberCellEditor', 
       editable: true,
       valueFormatter: (params: ValueFormatterParams) =>{
-        if(!params.value){
-          // return parseFloat('0').toFixed(decimalValueCount);
-          return params.value;
+        if(params.value === null ) return params.value;
+        if(params.value === 0){
+          return parseFloat('0').toFixed(decimalValueCount);
         }
         return params.value.toFixed(decimalValueCount);
       },
