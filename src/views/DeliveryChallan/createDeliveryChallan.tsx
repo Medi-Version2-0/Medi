@@ -13,7 +13,6 @@ import { CreateDeliveryChallanTable } from './createDeliveryChallanTable';
 import { saleChallanFormValidations } from './validation_schema';
 import { Popup } from '../../components/popup/Popup';
 import { SelectList } from '../../components/common/customSelectList/customSelectList';
-import { partyHeaders } from '../partywisePriceList/partywiseHeader';
 import { Ledger } from '../ledger';
 import { useTabs } from '../../TabsContext';
 import { pendingChallansList } from '../../constants/saleChallan';
@@ -153,7 +152,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
     isOpen: false,
     data: {}
   })
-  const partyFooterData = usePartyFooterData();
+  const { partyFooterData , partyHeaders} = usePartyFooterData();
 
   const formik: DeliveryChallanFormInfoType = useFormik({
     initialValues: {

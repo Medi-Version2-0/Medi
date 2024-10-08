@@ -15,7 +15,6 @@ import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { SelectList } from '../../components/common/customSelectList/customSelectList';
 import { BillBookFormData, LedgerFormData, Option, SaleBillFormInfoType, StationFormData } from '../../interface/global';
 import { DrugLicenceSection } from './drugLicenceSection';
-import { partyHeaders } from '../partywisePriceList/partywiseHeader';
 import { useTabs } from '../../TabsContext';
 import { Ledger } from '../ledger';
 import usePartyFooterData from '../../hooks/usePartyFooterData';
@@ -37,7 +36,7 @@ const CreateSaleBill = ({ setView, data }: any) => {
   const isEditing = useRef<boolean>(false);
   const invoiceNo = useRef<string>('');
   const { openTab } = useTabs();
-  const partyFooterData = usePartyFooterData();
+  const { partyFooterData, partyHeaders} = usePartyFooterData();
 
   const [popupState, setPopupState] = useState<any>({
     isModalOpen: false,

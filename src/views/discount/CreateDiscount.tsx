@@ -11,7 +11,7 @@ import './discount.css';
 import { discountValidationSchema } from './validation_schema';
 import useApi from '../../hooks/useApi';
 import usePartyFooterData from '../../hooks/usePartyFooterData';
-import { partyHeaders } from './partyHeaders'
+import { useCompanyPopupData } from '../../hooks/useCompanyPopupData';
 import { useTabs } from '../../TabsContext';
 import { Ledger } from '../ledger';
 import { SelectList } from '../../components/common/customSelectList/customSelectList';
@@ -36,7 +36,9 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
   const { decimalValueCount, dpcoDiscount, dpcoAct } = useControls().controlRoomSettings;
   const [popupState, setPopupState] = useState({ isModalOpen: false, isAlertOpen: false, message: '' });
   const { openTab } = useTabs()
-  const partyFooterData = usePartyFooterData();
+  const {partyFooterData, partyHeaders} = usePartyFooterData();
+  // const { companyHeader, companyFooterData } = useCompanyPopupData();
+  // const getAndSetPartywiseDiscountHandler = useGetSetData(getAndSetPartywiseDiscount);
   const settingPopupState = (isModal: boolean, message: string) => {
     setPopupState({ ...popupState, [isModal ? 'isModalOpen' : 'isAlertOpen']: true, message: message, });
   };
