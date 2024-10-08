@@ -52,7 +52,7 @@ const CreateVouchers = ({ setView, data }: any) => {
   };
   // const [focused, setFocused] = useState('');
   const decimalPlaces = useSelector((state: any) => state.global.controlRoomSettings.decimalValueCount || 2);
-  const partyFooterData = usePartyFooterData();
+  const { partyFooterData, partyHeaders } = usePartyFooterData();
   const tabManager = TabManager.getInstance();
 
   const bankName = useRef<{partyName:string,partyId:number}>({
@@ -102,12 +102,6 @@ const CreateVouchers = ({ setView, data }: any) => {
     { name: 'IGST', key: 'igstValue', width: '8vw', type: 'input', props: { inputType: 'number', readOnly : true, handleChange: (args: handleChangeInHeaders) => { handleInputChange(args); },  parseFloat: true } },
   ];
 
-  const partyHeaders = [
-    { label: 'Name', key: 'partyName' },
-    { label: 'Station', key: 'station_name' },
-    { label: 'Closing Balance', key: 'closingBalance' },
-    { label: 'Closing Balance Type', key: 'closingBalanceType' },
-  ];
 
   const gstNatureTypes =[
     { value: '1', label: 'GST Not Applicable' },
