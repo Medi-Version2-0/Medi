@@ -15,22 +15,9 @@ import { TabManager } from '../../components/class/tabManager';
 import { useTabs } from '../../TabsContext';
 import { Company } from '../company';
 import useApi from '../../hooks/useApi';
+import { useCompanyPopupData } from '../../hooks/useCompanyPopupData';
 
 const root = process.env.REACT_APP_API_URL;
-
-export const companyHeader = [
-  { label: 'Company Name', key: 'companyName',width: '50%'},
-  { label: 'Station', key: 'Station.station_name',width: '50%'},
-  { label: 'OB', key: 'openingBal', width: '14%',fullForm: 'Opening Balance' },
-  { label: 'OBT', key: 'openingBalType', width: '6%', fullForm: 'Opening Balance Type'},
-]
-
-export const companyFooterData = [
-  {
-    label: 'Comapny Info',
-    data: [ {label: 'GSTIN', key: 'gstIn'}, {label: 'Sale Account', key: 'salesId'}, {label: 'Purchase Account', key: 'purchaseId'}, {label: 'MFG Code', key: 'shortName'}]
-  }
-]
 
 const CreateItem = ({ setView, data, setShowBatch , fetchItemData, fieldOptions }: any) => {
   const [newItem, setNewItem] = useState();
@@ -44,6 +31,7 @@ const CreateItem = ({ setView, data, setShowBatch , fetchItemData, fieldOptions 
   const { sendAPIRequest } = useApi();
   const { openTab } = useTabs();
   const lastElementRef = useRef('')
+  const { companyHeader, companyFooterData } = useCompanyPopupData();
 
   const settingPopupState = (isModal: boolean, message: string, addText: string) => {
     setPopupState({ ...popupState, [isModal ? 'isModalOpen' : 'isAlertOpen']: true, message: message, addText: addText });
