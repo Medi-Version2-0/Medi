@@ -274,10 +274,11 @@ export const SelectList = ({
                                 type={'text'}
                                 id='searchBar'
                                 name={`${searchFrom && 'searchBar'}`}
-                                className={`w-full border border-solid border-[#9ca3af] text-[10px] text-gray-800 h-full rounded-sm p-1 appearance-none disabled:text-[#4c4c4c] disabled:bg-[#f5f5f5] focus:rounded-none focus:!outline-yellow-500 focus:bg-[#EAFBFCFF]`}
-                                onChange={(e) => formik.setFieldValue('searchBar', e.target.value)}
-                                placeholder='Search...'
-                                // autoFocus={true}
+                                className={`w-full border border-solid border-[#9ca3af] text-[10px] text-gray-800 h-full rounded-sm p-1 appearance-none disabled:text-[#4c4c4c] disabled:bg-[#f5f5f5] focus:rounded-none focus:!outline-yellow-500 focus:bg-[#EAFBFCFF] uppercase`}
+                                onChange={(e) => formik.setFieldValue('searchBar', e.target.value.toUpperCase())}
+                                value={formik.values.searchBar}
+                                placeholder='SEARCH...'
+                                style={{ textTransform: 'uppercase' }}
                             />
 
                         </div>
@@ -330,9 +331,8 @@ export const SelectList = ({
                                         </td>
                                     )}
                                     {headers.map((header: any, colIndex: number) => (
-                                        <td key={colIndex} className={`border-[1px] border-gray-400 p-2 w-[${header.width}]`}>
-                                            {header.auto ? rowIndex + 1 : getNestedValue(row, header.key)
-                                            }
+                                        <td key={colIndex} className={`border-[1px] border-gray-400 p-2  ${header.className}`} style={{...(header.width && {width: header.width})}}>
+                                            {header.auto ? rowIndex + 1 : getNestedValue(row, header.key)}
                                         </td>
                                     ))}
                                 </tr>

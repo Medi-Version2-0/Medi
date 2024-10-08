@@ -124,7 +124,7 @@ export const Godown = () =>{
 
         const toTitleCase = (str: string) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
         
-        if (field === 'godownName') {
+        if (field === 'godownName' && newValue !== null) {
           const titleCasedNewValue = toTitleCase(newValue);
           const isDuplicate = tableData.some((item: any) =>
             item.godownName.toLowerCase() === titleCasedNewValue.toLowerCase() && item.godownCode !== data.godownCode
@@ -135,7 +135,11 @@ export const Godown = () =>{
             return;
           }
         }
-
+        if(newValue === null || newValue === ''){
+          settingPopupState(false, 'Godown name cannot be empty');
+          node.setDataValue(field, oldValue);
+          return;
+        }
         
         if (node.rowIndex === 0 && createAccess) {
           try {

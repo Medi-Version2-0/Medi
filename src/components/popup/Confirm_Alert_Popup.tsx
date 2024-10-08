@@ -59,7 +59,7 @@ const Confirm_Alert_Popup: React.FC<Confirm_Alert_PopupProps> = ({
               OK
             </Button>
             {!isAlert && (
-              <Button type='fog' id='cancel' handleOnClick={onClose}>
+              <Button autoFocus={true} type='fog' id='cancel' handleOnClick={onClose}>
                 Cancel
               </Button>
             )}
