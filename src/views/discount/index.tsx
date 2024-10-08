@@ -6,24 +6,18 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import {
   CompanyFormData,
-  PartyWiseDiscountFormData,
   View,
 } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
-import { ValueFormatterParams } from 'ag-grid-community';
 import Button from '../../components/common/button/Button';
 import { CreateDiscount } from './CreateDiscount';
 import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import usePermission from '../../hooks/useRole';
-import { useSelector } from 'react-redux';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
-import { decimalFormatter, extractKeys, lookupValue } from '../../helper/helper';
-import { discountValidationSchema } from './validation_schema';
-import { useGetSetData } from '../../hooks/useGetSetData';
-import { getAndSetPartywiseDiscount } from '../../store/action/globalAction';
-import { useControls } from '../../ControlRoomContext';
+import { extractKeys, lookupValue } from '../../helper/helper';
 import useApi from '../../hooks/useApi';
-import { getDiscountFormSchema } from './validation_schema'
+import { ValueFormatterParams, ValueParserParams } from 'ag-grid-community';
+import { useControls } from '../../ControlRoomContext';
 
 export const PartyWiseDiscount = () => {
   const [view, setView] = useState<View>({ type: '', data: {} });
@@ -34,12 +28,9 @@ export const PartyWiseDiscount = () => {
   const [companyData, setCompanyData] = useState<any[]>([]);
   const editing = useRef(false);
   const discountId = useRef('');
-  const { createAccess, updateAccess, deleteAccess } = usePermission('partywisediscount')
-  const getAndSetPartywiseDiscountHandler = useGetSetData(getAndSetPartywiseDiscount);
+  const { createAccess, updateAccess, deleteAccess } = usePermission('partywisediscount');
+  const { decimalValueCount } = useControls().controlRoomSettings;
   
-  const { controlRoomSettings } = useControls();
-  const { party: allParties, company: allCompanies, partywiseDiscount: partywiseDiscounts } = useSelector((state: any) => state.global);
-  // let currTable: any[] = [];
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
@@ -56,7 +47,6 @@ export const PartyWiseDiscount = () => {
   const discountTypeOptions = [
     { value: 'allCompanies', label: 'All companies same discount' },
     { value: 'companyWise', label: 'Companywise discount' },
-    { value: 'dpcoact', label: 'DPCO act settings' },
   ];
 
 
@@ -71,11 +61,29 @@ export const PartyWiseDiscount = () => {
     companyMap[company.company_id] = company.companyName;
   });
 
+  async function getAndSetTableData() {
+    try {
+      const allPartywiseDiscounts = await sendAPIRequest('/partyWiseDiscount');
+      setTableData(allPartywiseDiscounts);
+    } catch (err) {
+      console.error(`PartyWise Discount data in partywiseDiscount (index) not being fetched`);
+    }
+  }
   useEffect(() => {
-    setPartyData(allParties);
-    setCompanyData(allCompanies);
-    setTableData(partywiseDiscounts);
-  }, [partywiseDiscounts,allParties,allCompanies]);
+    async function initData(){
+      try {
+        const allCompaniesData = await sendAPIRequest('/company');
+        const allPartiesData = await sendAPIRequest('/ledger');
+        setCompanyData(allCompaniesData);
+        setPartyData(allPartiesData);
+      } catch (err) {
+        console.error(`Companies or Parties data in partywiseDiscount (index) not initialized`);
+      }
+    }
+
+    initData();
+    getAndSetTableData();
+  }, []);
 
   const discountTypeMap: { [key: string]: string } = discountTypeOptions.reduce(
     (map: any, option) => {
@@ -87,7 +95,6 @@ export const PartyWiseDiscount = () => {
 
   const parties = extractKeys(partyMap);
   const companies = extractKeys(companyMap);
-
 
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
@@ -106,11 +113,12 @@ export const PartyWiseDiscount = () => {
           method: 'DELETE',
         }
       );
-      getAndSetPartywiseDiscountHandler();
     } catch (error: any) {
       if (!error?.isErrorHandled) {
         console.log('Partywise discount not deleted');
       }
+    }finally{
+      await getAndSetTableData();
     }
   };
 
@@ -121,30 +129,16 @@ export const PartyWiseDiscount = () => {
 
   const handleCellEditingStopped = async (e: any) => {
     editing.current = false;
-    const { column, oldValue, valueChanged, node, data } = e;
+    const { column, valueChanged, node, data } = e;
     const { newValue } = e;
     if (!valueChanged) return;
     const field = column.colId;
     try{
-      await getDiscountFormSchema.validateAt(field, { [field]: newValue });
-      if (!newValue) {
-        const capitalizedFieldName = field.charAt(0).toUpperCase() + field.slice(1);
-        throw new Error(`${capitalizedFieldName} is required`);
-      }
-      if (field === 'discount') {
-        await discountValidationSchema.validateAt(field, { [field]: newValue });
-      }
-      if (field === 'discountType' && data.discountType === 'dpcoact' && controlRoomSettings.dpcoAct) {
-        data.discount = controlRoomSettings.dpcoDiscount;
-      }
+      console.log('field >> ',field)
+      console.log('newValue >> ',newValue)
       if (data.discountType === 'allCompanies') {
         data.companyId = null;
-      } else {
-        if (!data.companyId) {
-          settingPopupState(false, 'Company name is required for this discount type');
-          return;
-        }
-      }
+      }    
       const payload: {
         [x: string]: any;
         companyId?: number|null;
@@ -155,8 +149,15 @@ export const PartyWiseDiscount = () => {
         partyId:data.partyId,
         companyId: data.companyId,
         discountType: data.discountType !== 'allCompanies' ? data.discountType : 'allCompanies',
-        discount: data.discount
+        discount: data.discount,
       }
+      if (e.data.discountType === 'dpcoact') {
+        payload.dpcoDiscount = newValue;
+        delete payload.discount;
+      }
+      if (field === 'discount' && !newValue) {
+        payload.discount = 0;
+      }  
       await sendAPIRequest(
         `/partyWiseDiscount/${data.discount_id}`,
         {
@@ -164,28 +165,43 @@ export const PartyWiseDiscount = () => {
           body: payload,
         }
       );
-      getAndSetPartywiseDiscountHandler();
-    }catch(err:any){
-      if (!err?.isErrorHandled) {
-        if (err?.response?.status === 409) {
-          settingPopupState(false, err.response.data)
-        } else if (err.message) {
-          settingPopupState(false, err.message)
-        } else {
-          console.log('Error while updateing the Party-wise discount ---> ', err)
+    }catch(error:any){
+      if (!error?.isErrorHandled) {
+        if (error.response?.data.error.message){
+          settingPopupState(false, error.response.data.error.message);
+          return;
         }
-        getAndSetPartywiseDiscountHandler();
+        if (error.response?.data.error.messages) {
+          settingPopupState(false, error.response?.data.messages.map((e: any) => e.message).join('\n'))
+          return
+        }
+        if (error.response?.data) {
+          settingPopupState(false, error.response.data.message);
+          return
+        }
       }
+    }finally{
+      await getAndSetTableData();
     }
   };
 
   const onCellClicked = (params: { data: any }) => {
-    setSelectedRow(selectedRow !== null ? null : params.data);
+    setSelectedRow(params.data);
   };
 
   const cellEditingStarted = () => {
     editing.current = true;
   };
+
+  const valueParser = (params: ValueParserParams): number | null => {
+    const { newValue, colDef } = params;
+    if (parseFloat(newValue) < 0) {  // value must be positive
+      // settingPopupState(false, `${colDef?.field} can't be negative`);
+      return 0;
+    }
+    const parsedValue = parseFloat(newValue);
+    return isNaN(parsedValue) ? null : parsedValue;
+  }
 
   const handleKeyDown = (event: KeyboardEvent) => {
     handleKeyDownCommon(
@@ -241,32 +257,23 @@ export const PartyWiseDiscount = () => {
     {
       headerName: 'Discount Type',
       field: 'discountType',
-      cellEditor: 'agSelectCellEditor',
-      cellEditorParams: (params: any) => {
-        return cellEditorParams(params, discountTypeOptions.map((option) => option.value));
-      },
+      editable:false,
       valueFormatter: (params: { value: string | number }) => {
         return lookupValue(discountTypeMap, params.value);
       }, 
-      valueGetter: (params: { data: any }) => {
-        return lookupValue(discountTypeMap, params.data.discountType);
-      },
-      filterValueGetter: (params: { data: any }) => {
-        return lookupValue(discountTypeMap, params.data.discountType);
-      },
     },
     {
       headerName: 'Company Name',
       field: 'companyId',
-      type: 'rightAligned',
-      editable: (params:any) => params.data.discountType !== 'allCompanies',
-      headerClass: 'custom-header custom_header_class ag-right-aligned-header',
+      // type: 'rightAligned',
+      editable: (params: any) => params.data.discountType === 'companyWise',
+      headerClass: 'custom-header custom_header_class',
       cellEditor: 'agSelectCellEditor',
       cellEditorParams: (params: any) => {
         return cellEditorParams(params, companies);
       },
       valueFormatter: (params: { value: string | number, data: any }) => {
-        if (!params.value && params.data.discountType==='allCompanies') return 'All';
+        if (!params.value) return 'All';
         return lookupValue(companyMap, params.value);
       },
       valueGetter: (params: { data: any }) => {
@@ -277,9 +284,14 @@ export const PartyWiseDiscount = () => {
       },
     },
     {
-      headerName: 'Discount',
+      headerName: 'Discount %',
       field: 'discount',
-      valueFormatter: decimalFormatter,
+      type: 'numberColumn',  
+      cellEditor: 'agNumberCellEditor', 
+      valueParser,
+      valueFormatter: (params: ValueFormatterParams) =>{
+        return params.value.toFixed(decimalValueCount);
+      },
     },
     {
       headerName: 'Actions',
@@ -295,16 +307,16 @@ export const PartyWiseDiscount = () => {
       },
       cellRenderer: (params: { data: any }) => (
         <div className='table_edit_buttons'>
-          <FaEdit
+          {updateAccess && <FaEdit
             style={{ cursor: 'pointer', fontSize: '1.1rem' }}
             onClick={() => {
               setView({ type: 'add', data: params.data });
             }}
-          />
-          <MdDeleteForever
+          />}
+          {deleteAccess && <MdDeleteForever
             style={{ cursor: 'pointer', fontSize: '1.2rem' }}
             onClick={() => handleDelete(params.data)}
-          />
+          />}
         </div>
       ),
     },
@@ -321,7 +333,7 @@ export const PartyWiseDiscount = () => {
               setView({ type: 'add', data: {} });
             }}
           >
-            Add PartyWise discount
+            Add Party-Wise discount
           </Button>}
         </div>
         <div id='account_table' className='ag-theme-quartz'>
@@ -360,6 +372,7 @@ export const PartyWiseDiscount = () => {
           <CreateDiscount
             setView={setView}
             data={view.data}
+            getAndSetTableData={getAndSetTableData}
             discountTypeOptions={discountTypeOptions}
           />
         );

@@ -3,9 +3,13 @@ export const partywiseDiscountViewChain = [
 ]
 
 export const createPartywiseDiscountChain = [
-    'back', 'partyId', 'custom_select_discountType', 'companyId', 'discount', 'save'
+    'back', 'partyId'
 ]
 
-export const createPartywiseDiscountChainWithAllCompanies = [
-    'back', 'partyId', 'custom_select_discountType', 'discount', 'save'
+export const pwDiscountTypeFieldChain = [
+    'custom_select_discountType'
+]
+
+export const pwDiscountFieldChain = [
+    'discount', 'save'
 ]

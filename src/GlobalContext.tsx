@@ -13,6 +13,7 @@ import { useDispatch } from 'react-redux';
 import { AppDispatch } from './store/types/globalTypes';
 import { getAndSetPermssions } from './store/action/globalAction';
 import { useUser } from './UserContext';
+import { loginFormChain } from './constants/focusChain/loginFormFocusChain';
 
 interface GlobalContextType {
   showLoginPopup: () => void;
@@ -60,6 +61,8 @@ export const GlobalProvider: React.FC<{ children: ReactNode }> = ({
         (popup === 401) && <Popup
           heading=""
           className="!z-10"
+          focusChain={loginFormChain}
+          id='loginformPopup'
           childClass='!max-w-[1600px] !p-8 border flex items-center'
           isSuggestionPopup={true}
         >
