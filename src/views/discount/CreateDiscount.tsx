@@ -13,7 +13,7 @@ import { useGetSetData } from '../../hooks/useGetSetData';
 import { getAndSetPartywiseDiscount } from '../../store/action/globalAction';
 import useApi from '../../hooks/useApi';
 import usePartyFooterData from '../../hooks/usePartyFooterData';
-import { partyHeaders, companyHeader, companyFooterData} from './partyHeaders'
+import { useCompanyPopupData } from '../../hooks/useCompanyPopupData';
 import { useTabs } from '../../TabsContext';
 import { Ledger } from '../ledger';
 import { Company } from '../company'
@@ -35,7 +35,8 @@ export const CreateDiscount = ({
     message: '',
   });
   const { openTab } = useTabs()
-  const partyFooterData = usePartyFooterData();
+  const {partyFooterData, partyHeaders} = usePartyFooterData();
+  const { companyHeader, companyFooterData } = useCompanyPopupData();
   const getAndSetPartywiseDiscountHandler = useGetSetData(getAndSetPartywiseDiscount);
   const settingPopupState = (isModal: boolean, message: string) => {
     setPopupState({

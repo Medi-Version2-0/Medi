@@ -68,7 +68,14 @@ const usePartyFooterData = () => {
     },
   ];
 
-  return partyFooterData;
+  const partyHeaders = [
+    { label: 'Name', key: 'partyName',width: '50%'},
+    { label: 'Station', key: 'station_name', width: '30%' },
+    { label: 'CB', key: 'closingBalance', width: '14%',fullForm: 'Closing Balance' },
+    { label: 'CBT', key: 'closingBalanceType', width: '6%', fullForm: 'Closing Balance Type'},
+  ];
+
+  return {partyFooterData, partyHeaders};
 };
 
 export default usePartyFooterData;
