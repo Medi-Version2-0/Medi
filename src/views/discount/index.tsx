@@ -134,30 +134,14 @@ export const PartyWiseDiscount = () => {
 
   const handleCellEditingStopped = async (e: any) => {
     editing.current = false;
-    const { column, oldValue, valueChanged, node, data } = e;
+    const { column, valueChanged, node, data } = e;
     const { newValue } = e;
     if (!valueChanged) return;
     const field = column.colId;
     try{
-      // await getDiscountFormSchema.validateAt(field, { [field]: newValue });
-      // if (!newValue) {
-      //   const capitalizedFieldName = field.charAt(0).toUpperCase() + field.slice(1);
-      //   throw new Error(`${capitalizedFieldName} is required`);
-      // }
-      // if (field === 'discount') {
-      //   await discountValidationSchema.validateAt(field, { [field]: newValue });
-      // }
-      // if (field === 'discountType' && data.discountType === 'dpcoact' && controlRoomSettings.dpcoAct) {
-      //   data.discount = controlRoomSettings.dpcoDiscount;
-      // }
       if (data.discountType === 'allCompanies') {
         data.companyId = null;
-      } else {
-        if (!data.companyId) {
-          settingPopupState(false, 'Company name is required for this discount type');
-          return;
-        }
-      }
+      }      
       const payload: {
         [x: string]: any;
         companyId?: number|null;
@@ -172,6 +156,10 @@ export const PartyWiseDiscount = () => {
         discount: data.discount,
         discount_id: data.discount_id
       }
+      if (e.data.discountType === 'dpcoact') {
+        payload.dpcoDiscount = newValue;
+        delete payload.discount;
+      }
       await sendAPIRequest(
         `/partyWiseDiscount`,
         {
@@ -179,14 +167,15 @@ export const PartyWiseDiscount = () => {
           body: payload,
         }
       );
-    }catch(err:any){
-      if (!err?.isErrorHandled) {
-        if (err?.response?.status === 409) {
-          settingPopupState(false, err.response.data)
-        } else if (err.message) {
-          settingPopupState(false, err.message)
-        } else {
-          console.log('Error while updateing the Party-wise discount ---> ', err)
+    }catch(error:any){
+      if (!error?.isErrorHandled) {
+        if (error.response?.data.messages) {
+          settingPopupState(false, error.response?.data.messages.map((e: any) => e.message).join('\n'))
+          return
+        }
+        if (error.response?.data) {
+          settingPopupState(false, error.response.data.message);
+          return
         }
       }
     }finally{
@@ -284,24 +273,23 @@ export const PartyWiseDiscount = () => {
     {
       headerName: 'Company Name',
       field: 'companyId',
-      editable:false,
       // type: 'rightAligned',
-      // editable: (params:any) => params.data.discountType !== 'allCompanies',
+      editable: (params: any) => params.data.discountType === 'companyWise',
       headerClass: 'custom-header custom_header_class',
-      // cellEditor: 'agSelectCellEditor',
-      // cellEditorParams: (params: any) => {
-      //   return cellEditorParams(params, companies);
-      // },
+      cellEditor: 'agSelectCellEditor',
+      cellEditorParams: (params: any) => {
+        return cellEditorParams(params, companies);
+      },
       valueFormatter: (params: { value: string | number, data: any }) => {
         if (!params.value) return 'All';
         return lookupValue(companyMap, params.value);
       },
-      // valueGetter: (params: { data: any }) => {
-      //   return lookupValue(companyMap, params.data.companyId);
-      // },
-      // filterValueGetter: (params: { data: any }) => {
-      //   return lookupValue(companyMap, params.data.companyId);
-      // },
+      valueGetter: (params: { data: any }) => {
+        return lookupValue(companyMap, params.data.companyId);
+      },
+      filterValueGetter: (params: { data: any }) => {
+        return lookupValue(companyMap, params.data.companyId);
+      },
     },
     {
       headerName: 'Discount',

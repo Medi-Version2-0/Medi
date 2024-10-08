@@ -17,7 +17,7 @@ import { Ledger } from '../ledger';
 import { SelectList } from '../../components/common/customSelectList/customSelectList';
 import NumberInput from '../../components/common/numberInput/numberInput'
 import { TabManager } from '../../components/class/tabManager';
-import { partywiseDiscountViewChain, createPartywiseDiscountChain, createPartywiseDiscountChainWithAllCompanies } from '../../constants/focusChain/partywiseDiscount';
+import { partywiseDiscountViewChain, createPartywiseDiscountChain, createPartywiseDiscountChainForDpco, createPartywiseDiscountChainForDpcoCompanyWise, createPartywiseDiscountChainForCompanyWise } from '../../constants/focusChain/partywiseDiscount';
 import { AgGridReact } from 'ag-grid-react';
 import { CellEditingStoppedEvent, ColDef, GridOptions, ValueFormatterParams, ValueParserParams } from 'ag-grid-community';
 import { useControls } from '../../ControlRoomContext';
@@ -29,15 +29,6 @@ interface requiredTableData{
   discountType: string | undefined,
   discount_id: number | null,
   discount: number | null,
-}
-
-interface updatePartyWiseDiscountData{
-  discountId?: number,
-  discountType: string,
-  partyId: number,
-  discount: number,
-  dpcoDiscount?: number,
-  companyId?: number,
 }
 
 export const CreateDiscount = ({ setView, data, getAndSetTableData, discountTypeOptions, }: any) => {
@@ -53,27 +44,15 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
     isOpen: false,
     data: {}
   })
-  const [selectedCompany, setSelectedCompany] = useState<any>();
   const [selectedParty, setSelectedParty] = useState<any>(null);
-  // const [partyWiseDiscounts, setPartyWiseDiscounts] = useState<any[]>([]);
   const [companiesData, setCompaniesData] = useState<any[]>([]);
   const [gridTableData, setGridTableData] = useState<any[]>([]);
   const [discountsOfCorrespondingParty, setDiscountsOfCorrespondingParty] = useState<any[]>([]);
   const tabManager = TabManager.getInstance()
   const gridRef = useRef<AgGridReact>(null);
 
-  async function updateDiscount(payload: updatePartyWiseDiscountData){
-    try{
-      await sendAPIRequest(`/partyWiseDiscount`,{
-          method: 'POST',
-          body: payload,
-      });
-    }catch(err:any){
-      console.log('Eroor in updating ==> ',err)
-    }
-  }
-
-  async function createDiscount(payload:any){
+  async function makeChanges(payload:any){
+    // all requirements and checks handled by backend 
     try{
       await sendAPIRequest(`/partyWiseDiscount`,{
           method: 'POST',
@@ -86,24 +65,12 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
 
   useEffect(()=>{
     fecthData();
-    // getAndSetPartyWiseDiscounts();
     tabManager.updateFocusChainAndSetFocus([...createPartywiseDiscountChain ] , 'partyId')    
   },[])
-
-  // async function getAndSetPartyWiseDiscounts() {
-  //   try {
-  //     const allPartywiseDiscounts = await sendAPIRequest('/partyWiseDiscount');
-  //     setPartyWiseDiscounts(allPartywiseDiscounts);
-  //   } catch (err) {
-  //     console.error(`PartyWise Discount data in partywiseDiscount (index) not being fetched`);
-  //   }
-  // }
 
   const fecthData = async()=>{
     try {
       const allCompanies = await sendAPIRequest('/company');
-      // const matchedCompanies = allCompanies.find((company: any) => company.party_id === formik.values.company_id);
-      // setSelectedCompany(matchedCompanies);
       setCompaniesData(allCompanies);
       const allParties = await sendAPIRequest('/ledger');
       const matchedParties = allParties.find((party: any) => party.party_id === formik.values.partyId);
@@ -113,8 +80,6 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
     }
   }
   
-
-
   const formik: any = useFormik({
     initialValues: {
       companyId: data?.companyId,
@@ -126,20 +91,16 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
     validationSchema: discountValidationSchema,
     onSubmit: async (values) => {
       try{
-      values.partyId = selectedParty?.party_id;
-      const allData:any = { ...values, discount: Number(values.discount)};
-      delete allData.dpcoDiscount;
-      if (data.discount_id || discountsOfCorrespondingParty.length !== 0) {
+        values.partyId = selectedParty?.party_id;
+        const allData:any = { ...values, discount: Number(values.discount)};
+        delete allData.dpcoDiscount; // as per backend requirements
         if (allData.discountType === 'allCompanies') {
           allData.companyId = null;
         }
         if(data.discount_id){
           allData.discountId = data.discount_id;
         }
-        await updateDiscount(allData);
-      } else {
-        await createDiscount(allData);
-      }
+        await makeChanges(allData);
         setView({ type: '', data: {} });
         await getAndSetTableData();
       }catch(error: any){
@@ -174,10 +135,13 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
   }, [formik.values.discountType, discountsOfCorrespondingParty])
 
   useEffect(() => {
-      const focusChain = formik.values.discountType === 'allCompanies' ? createPartywiseDiscountChainWithAllCompanies : createPartywiseDiscountChain;
+      let focusChain:any[] = [];
       const focusedCol = formik.values.discountType === 'allCompanies' ? 'custom_select_discountType' : 'partyId'
+      focusChain = dpcoAct ? (formik.values.discountType == 'companyWise' ? createPartywiseDiscountChainForDpcoCompanyWise : createPartywiseDiscountChainForDpco) : 
+                              formik.values.discountType === 'companyWise' ? createPartywiseDiscountChainForCompanyWise : createPartywiseDiscountChain;
+      
       tabManager.updateFocusChainAndSetFocus([...focusChain], focusedCol);
-  }, [formik.values.discountType])
+  }, [formik.values.discountType, dpcoAct])
 
   const handlePartyList = () => {
       setPopupList({
@@ -200,30 +164,6 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
         }
       })
   }
-
-  useEffect(() => {
-    if(!!formik.values.discountType && formik.values.discountType === 'allCompanies'){
-      formik.setFieldValue('companyId', null)
-    }
-  }, [formik.values.discountType])
-
-//   const handleCompanyList = () => {
-//     setPopupList({
-//       isOpen: true,
-//       data: {
-//         heading: 'Company',
-//         headers: [...companyHeader],
-//         footers: companyFooterData,
-//         newItem: () => openTab('Company', <Company type='add' />),
-//         autoClose: true,
-//         apiRoute: '/company',
-//         searchFrom: 'companyName',
-//         handleSelect: (rowData: any) => { handleFieldChange({ label: rowData.companyName, value: rowData.company_id }, 'companyId'),
-//         tabManager.focusManager();
-//          setSelectedCompany(rowData) }
-//       }
-//     })
-// }
 
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
@@ -255,40 +195,38 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
     const { valueChanged } = event;
     const { discount, discountType, discount_id, partyId, companyId } = event.data;
     if (!valueChanged) return;
-    if(discount_id){
-      await updateDiscount({
-        discountId: discount_id,
-        discount,
-        discountType,
-        partyId,
-        companyId
-      });
-    }else{
-      await createDiscount({
-        discount,
-        discountType,
-        partyId,
-        companyId
-      })
-    }
+    await makeChanges({
+      discountId: discount_id,
+      discount,
+      discountType,
+      partyId,
+      companyId
+    });
   }
 
   async function setDiscountsAssociatedToParty(){
     try {
       const id = selectedParty?.party_id;
       if (id){
-        const response = await sendAPIRequest(`/partyWiseDiscount/${id}`);
+        const res = await sendAPIRequest(`/partyWiseDiscount/${id}`);
+        const response = res.discounts;
+        if (res.dpcoDiscount) {
+          formik.setFieldValue('dpcoDiscount', res.dpcoDiscount.discount); // setting dpcoDiscount field to saved dpcodiscount in DB for the selected party
+        } else {
+          formik.setFieldValue('dpcoDiscount', dpcoDiscount); // set the dpcoDiscount field to controlRoom setttings if value is not stored in DB
+        }
         if(response.length !== 0) {
           formik.values.discountType = response[0].discountType;
           if (formik.values.discountType === 'companyWise') {
-            const modifiedResponse = response.map((r: any) => {
+            const modifiedResponse = response.map((r: any) => {  // adding companyName field direct to object from company.companyName
               return { ...r, companyName: r.company.companyName }
             })
             setDiscountsOfCorrespondingParty(modifiedResponse);
             return;
           }
           if (formik.values.discountType === 'allCompanies') {
-            formik.values.discount = response[0].discount;
+            formik.setFieldValue('discountId', response[0].discountId); // set the discountId in formik
+            formik.setFieldValue('discount', response[0].discount); // set the discount field to saved discount in DB for the selected party for allCompanies
             setDiscountsOfCorrespondingParty(response);
             return;
           }
@@ -303,10 +241,10 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
   }
 
   useEffect(()=>{
-    setDiscountsAssociatedToParty();
+    setDiscountsAssociatedToParty(); // when party changes then backend send all discounts associated to the selected party
   }, [selectedParty?.party_id])
 
-  async function handleDPCODiscountBlur(){
+  async function handleDPCODiscountBlur(){ // on blur the dpcodiscount field auto send the api to backend to save the dpco %
     if(selectedParty?.party_id){
       const payload = {
         partyId: selectedParty.party_id,
@@ -314,10 +252,7 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
         discountType: 'dpcoact',
         dpcoDiscount: Number(formik.values.dpcoDiscount)
       }
-      await sendAPIRequest(`/partyWiseDiscount`, {
-        method: 'POST',
-        body: payload,
-      });
+      await makeChanges(payload);
     }
   }
   
@@ -407,7 +342,6 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
                           handlePartyList();
                           tabManager.focusManager();
                         }
-                        
                       }}
                     />
 
