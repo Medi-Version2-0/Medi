@@ -3,18 +3,13 @@ export const partywiseDiscountViewChain = [
 ]
 
 export const createPartywiseDiscountChain = [
-    'back', 'partyId', 'custom_select_discountType', 'discount', 'save'
+    'back', 'partyId'
 ]
 
-export const createPartywiseDiscountChainForCompanyWise = [
-    'back', 'partyId', 'custom_select_discountType'
+export const pwDiscountTypeFieldChain = [
+    'custom_select_discountType'
 ]
 
-
-export const createPartywiseDiscountChainForDpco = [
-    'back', 'partyId', 'dpcoDiscount', 'custom_select_discountType', 'discount', 'save'
-]
-
-export const createPartywiseDiscountChainForDpcoCompanyWise = [
-    'back', 'partyId', 'dpcoDiscount', 'custom_select_discountType'
+export const pwDiscountFieldChain = [
+    'discount', 'save'
 ]

@@ -16,7 +16,7 @@ import { Ledger } from '../ledger';
 import { SelectList } from '../../components/common/customSelectList/customSelectList';
 import NumberInput from '../../components/common/numberInput/numberInput'
 import { TabManager } from '../../components/class/tabManager';
-import { partywiseDiscountViewChain, createPartywiseDiscountChain, createPartywiseDiscountChainForDpco, createPartywiseDiscountChainForDpcoCompanyWise, createPartywiseDiscountChainForCompanyWise } from '../../constants/focusChain/partywiseDiscount';
+import { partywiseDiscountViewChain, createPartywiseDiscountChain, pwDiscountTypeFieldChain, pwDiscountFieldChain  } from '../../constants/focusChain/partywiseDiscount';
 import { AgGridReact } from 'ag-grid-react';
 import { CellEditingStoppedEvent, ColDef, GridOptions, ValueFormatterParams, ValueParserParams } from 'ag-grid-community';
 import { useControls } from '../../ControlRoomContext';
@@ -130,15 +130,19 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
   }, [formik.values.discountType, discountsOfCorrespondingParty])
 
   function handleFocusChain():string[] {
-    const focusChain = dpcoAct ? (formik.values.discountType == 'companyWise' ? createPartywiseDiscountChainForDpcoCompanyWise : createPartywiseDiscountChainForDpco) :
-                      (formik.values.discountType === 'companyWise' ? createPartywiseDiscountChainForCompanyWise : createPartywiseDiscountChain);
+    let focusChain: string[] = [];
+    if(dpcoAct){
+      focusChain = formik.values.discountType == 'companyWise' ? [...createPartywiseDiscountChain, 'dpcoDiscount', ...pwDiscountTypeFieldChain, ...pwDiscountFieldChain] : [...createPartywiseDiscountChain, 'dpcoDiscount', ...pwDiscountTypeFieldChain];
+    }else{
+      focusChain = formik.values.discountType == 'companyWise' ? [...createPartywiseDiscountChain, ...pwDiscountTypeFieldChain, ...pwDiscountFieldChain] : [...createPartywiseDiscountChain, ...pwDiscountTypeFieldChain];
+    }
     return focusChain;
   }
 
   useEffect(() => {
-    const focusedCol = formik.values.discountType ? (dpcoAct ? 'dpcoDiscount' : 'custom_select_discountType') : 'custom_select_discountType';
+    const focusedCol = dpcoAct ? 'dpcoDiscount' : 'custom_select_discountType';
     tabManager.updateFocusChainAndSetFocus([...handleFocusChain()], focusedCol);
-  }, [formik.values.discountType, dpcoAct])
+  }, [dpcoAct])
 
   const handlePartyList = () => {
     setPopupList({
@@ -164,7 +168,7 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
 
   useEffect(() => {
     fecthData();
-    tabManager.updateFocusChainAndSetFocus([...createPartywiseDiscountChain], 'partyId')
+    tabManager.updateFocusChainAndSetFocus([...handleFocusChain()], 'partyId')
   }, [])
 
   const handleAlertCloseModal = () => {
@@ -182,6 +186,8 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
 
   const handleCustomFieldChange = (option: Option | null, id: string) => {
     formik.setFieldValue(id, option?.value); 
+    const chain  = handleFocusChain()
+    tabManager.updateFocusChainAndSetFocus([...chain], 'custom_select_discountType');
   };
 
   const defaultColDef: ColDef = {

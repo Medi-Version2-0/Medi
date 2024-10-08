@@ -6,7 +6,6 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import {
   CompanyFormData,
-  PartyWiseDiscountFormData,
   View,
 } from '../../interface/global';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
@@ -16,10 +15,7 @@ import { handleKeyDownCommon } from '../../utilities/handleKeyDown';
 import usePermission from '../../hooks/useRole';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
 import { decimalFormatter, extractKeys, lookupValue } from '../../helper/helper';
-import { discountValidationSchema } from './validation_schema';
-import { useControls } from '../../ControlRoomContext';
 import useApi from '../../hooks/useApi';
-import { getDiscountFormSchema } from './validation_schema'
 import { ValueParserParams } from 'ag-grid-community';
 
 export const PartyWiseDiscount = () => {
@@ -33,7 +29,6 @@ export const PartyWiseDiscount = () => {
   const discountId = useRef('');
   const { createAccess, updateAccess, deleteAccess } = usePermission('partywisediscount')
   
-  const { controlRoomSettings } = useControls();
   const [popupState, setPopupState] = useState({
     isModalOpen: false,
     isAlertOpen: false,
@@ -50,7 +45,6 @@ export const PartyWiseDiscount = () => {
   const discountTypeOptions = [
     { value: 'allCompanies', label: 'All companies same discount' },
     { value: 'companyWise', label: 'Companywise discount' },
-    // { value: 'dpcoact', label: 'DPCO act settings' },
   ];
 
 
@@ -68,24 +62,27 @@ export const PartyWiseDiscount = () => {
   async function getAndSetTableData() {
     try {
       const allPartywiseDiscounts = await sendAPIRequest('/partyWiseDiscount');
+      console.log("alllllllllll",allPartywiseDiscounts)
       setTableData(allPartywiseDiscounts);
     } catch (err) {
       console.error(`PartyWise Discount data in partywiseDiscount (index) not being fetched`);
     }
   }
 
-  async function initData(){
-    try {
-      const allCompaniesData = await sendAPIRequest('/company');
-      const allPartiesData = await sendAPIRequest('/ledger');
-      setCompanyData(allCompaniesData);
-      setPartyData(allPartiesData);
-    } catch (err) {
-      console.error(`Companies or Parties data in partywiseDiscount (index) not initialized`);
-    }
-  }
-
+  console.log('partyMap >> ',partyMap)
+  
   useEffect(() => {
+    async function initData(){
+      try {
+        const allCompaniesData = await sendAPIRequest('/company');
+        const allPartiesData = await sendAPIRequest('/ledger');
+        setCompanyData(allCompaniesData);
+        setPartyData(allPartiesData);
+      } catch (err) {
+        console.error(`Companies or Parties data in partywiseDiscount (index) not initialized`);
+      }
+    }
+
     initData();
     getAndSetTableData();
   }, []);
@@ -158,6 +155,7 @@ export const PartyWiseDiscount = () => {
         payload.dpcoDiscount = newValue;
         delete payload.discount;
       }
+      console.log("PUTtttttttttttttttttt",payload)
       await sendAPIRequest(
         `/partyWiseDiscount/${data.discount_id}`,
         {
@@ -232,6 +230,7 @@ export const PartyWiseDiscount = () => {
       value: params.data[params.colDef.field],
     }
   }
+  console.log("party--------->",tableData)
 
   const colDefs: any[] = [
     {
@@ -248,6 +247,7 @@ export const PartyWiseDiscount = () => {
         return lookupValue(partyMap, params.value);
       },
       valueGetter: (params: { data: any }) => {
+        // console.log('valueGetter >> ', lookupValue(partyMap, params.data.partyId))
         return lookupValue(partyMap, params.data.partyId);
       },
       filterValueGetter: (params: { data: any }) => {
