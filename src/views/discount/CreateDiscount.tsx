@@ -11,7 +11,6 @@ import './discount.css';
 import { discountValidationSchema } from './validation_schema';
 import useApi from '../../hooks/useApi';
 import usePartyFooterData from '../../hooks/usePartyFooterData';
-import { useCompanyPopupData } from '../../hooks/useCompanyPopupData';
 import { useTabs } from '../../TabsContext';
 import { Ledger } from '../ledger';
 import { SelectList } from '../../components/common/customSelectList/customSelectList';
@@ -37,8 +36,6 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
   const [popupState, setPopupState] = useState({ isModalOpen: false, isAlertOpen: false, message: '' });
   const { openTab } = useTabs()
   const {partyFooterData, partyHeaders} = usePartyFooterData();
-  // const { companyHeader, companyFooterData } = useCompanyPopupData();
-  // const getAndSetPartywiseDiscountHandler = useGetSetData(getAndSetPartywiseDiscount);
   const settingPopupState = (isModal: boolean, message: string) => {
     setPopupState({ ...popupState, [isModal ? 'isModalOpen' : 'isAlertOpen']: true, message: message, });
   };
@@ -65,11 +62,6 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
       console.log('Eroor in creating ==> ',err)
     }
   }
-
-  useEffect(()=>{
-    fecthData();
-    tabManager.updateFocusChainAndSetFocus([...createPartywiseDiscountChain ] , 'partyId')    
-  },[])
 
   const fecthData = async()=>{
     try {
@@ -137,36 +129,43 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
     }
   }, [formik.values.discountType, discountsOfCorrespondingParty])
 
+  function handleFocusChain():string[] {
+    const focusChain = dpcoAct ? (formik.values.discountType == 'companyWise' ? createPartywiseDiscountChainForDpcoCompanyWise : createPartywiseDiscountChainForDpco) :
+                      (formik.values.discountType === 'companyWise' ? createPartywiseDiscountChainForCompanyWise : createPartywiseDiscountChain);
+    return focusChain;
+  }
+
   useEffect(() => {
-      let focusChain:any[] = [];
-      const focusedCol = formik.values.discountType === 'allCompanies' ? 'custom_select_discountType' : 'partyId'
-      focusChain = dpcoAct ? (formik.values.discountType == 'companyWise' ? createPartywiseDiscountChainForDpcoCompanyWise : createPartywiseDiscountChainForDpco) : 
-                              (formik.values.discountType === 'companyWise' ? createPartywiseDiscountChainForCompanyWise : createPartywiseDiscountChain)
-      
-      tabManager.updateFocusChainAndSetFocus([...focusChain], focusedCol);
+    const focusedCol = formik.values.discountType ? (dpcoAct ? 'dpcoDiscount' : 'custom_select_discountType') : 'custom_select_discountType';
+    tabManager.updateFocusChainAndSetFocus([...handleFocusChain()], focusedCol);
   }, [formik.values.discountType, dpcoAct])
 
   const handlePartyList = () => {
-      setPopupList({
-        isOpen: true,
-        data: {
-          heading: 'Party',
-          headers: [...partyHeaders],
-          footers: partyFooterData,
-          newItem: () => tabManager.openTab('Ledger', <Ledger type='add' />, [], openTab),
-          autoClose: true,
-          apiRoute: '/ledger',
-          extraQueryParams: { locked: "!Y" },
-          searchFrom: 'partyName',
-          handleSelect: (rowData: any) => {
-            formik.setFieldValue('partyId', rowData.partyName);
-            handleFieldChange({ label: rowData.partyName, value: rowData.party_id }, 'partyId');
-            setSelectedParty(rowData);
-            tabManager.setTabLastFocusedElementId(`${dpcoAct ? 'dpcoDiscount' : 'custom_select_discountType'}`)
-           }
-        }
-      })
+    setPopupList({
+      isOpen: true,
+      data: {
+        heading: 'Party',
+        headers: [...partyHeaders],
+        footers: partyFooterData,
+        newItem: () => tabManager.openTab('Ledger', <Ledger type='add' />, [], openTab),
+        autoClose: true,
+        apiRoute: '/ledger',
+        extraQueryParams: { locked: "!Y" },
+        searchFrom: 'partyName',
+        handleSelect: (rowData: any) => {
+          formik.setFieldValue('partyId', rowData.partyName);
+          handleFieldChange({ label: rowData.partyName, value: rowData.party_id }, 'partyId');
+          setSelectedParty(rowData);
+          tabManager.setTabLastFocusedElementId(`${dpcoAct ? "dpcoDiscount" : "custom_select_discountType"}`)
+         }
+      }
+    })
   }
+
+  useEffect(() => {
+    fecthData();
+    tabManager.updateFocusChainAndSetFocus([...createPartywiseDiscountChain], 'partyId')
+  }, [])
 
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
@@ -182,7 +181,7 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
   };
 
   const handleCustomFieldChange = (option: Option | null, id: string) => {
-    formik.setFieldValue(id, option?.value);    
+    formik.setFieldValue(id, option?.value); 
   };
 
   const defaultColDef: ColDef = {
@@ -217,8 +216,8 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
           dpcoDiscountPreviousValue.current = res.dpcoDiscount.discount;
           formik.setFieldValue('dpcoDiscount', res.dpcoDiscount.discount); // setting dpcoDiscount field to saved dpcodiscount in DB for the selected party
         } else {
-          dpcoDiscountPreviousValue.current = dpcoDiscount;
-          formik.setFieldValue('dpcoDiscount', dpcoDiscount); // set the dpcoDiscount field to controlRoom setttings if value is not stored in DB
+          // dpcoDiscountPreviousValue.current = dpcoDiscount;
+          formik.setFieldValue('dpcoDiscount', dpcoDiscount); // set the dpcoDiscount field from controlRoom setttings if value is not stored in DB
         }
         if(response.length !== 0) {
           formik.setFieldValue('discountType', response[0].discountType);  // setting discountType from backend
@@ -235,8 +234,10 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
             setDiscountsOfCorrespondingParty(response);
             return;
           }
+        }else{
+          formik.setFieldValue('discountType', ''); // resetting discountType value if not stored in BE
+          setDiscountsOfCorrespondingParty([]);
         }
-        setDiscountsOfCorrespondingParty([]);
       }
     }catch (err: any) {
       if (!err.isErrorHandled) {
@@ -360,7 +361,7 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
                     id='dpcoDiscount'
                     name='dpcoDiscount'
                     min={0}
-                    value={formik.values.dpcoDiscount}
+                    value={formik.values.dpcoDiscount || dpcoDiscount}
                     onBlur={handleDPCODiscountBlur}
                     onChange={(value) => {
                       formik.setFieldValue('dpcoDiscount',value);
@@ -436,7 +437,7 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
                     placeholder='0.00'
                     maxLength={16}
                     min={0}
-                    value={formik.values.discountType === 'dpcoact' ? formik.values.discount || dpcoDiscount : formik.values.discount }
+                    value={formik.values.discount}
                     onChange={(value) => formik.setFieldValue('discount', value)}
                     onBlur={() => {
                       formik.setFieldTouched('discount', true); 
