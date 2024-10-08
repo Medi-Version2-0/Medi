@@ -132,9 +132,17 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
   function handleFocusChain():string[] {
     let focusChain: string[] = [];
     if(dpcoAct){
-      focusChain = formik.values.discountType == 'companyWise' ? [...createPartywiseDiscountChain, 'dpcoDiscount', ...pwDiscountTypeFieldChain, ...pwDiscountFieldChain] : [...createPartywiseDiscountChain, 'dpcoDiscount', ...pwDiscountTypeFieldChain];
+      if (formik.values.discountType == 'companyWise'){
+        focusChain = [...createPartywiseDiscountChain, 'dpcoDiscount', ...pwDiscountTypeFieldChain];
+      }else{
+        focusChain = [...createPartywiseDiscountChain, 'dpcoDiscount', ...pwDiscountTypeFieldChain, ...pwDiscountFieldChain];
+      }
     }else{
-      focusChain = formik.values.discountType == 'companyWise' ? [...createPartywiseDiscountChain, ...pwDiscountTypeFieldChain, ...pwDiscountFieldChain] : [...createPartywiseDiscountChain, ...pwDiscountTypeFieldChain];
+      if (formik.values.discountType == 'companyWise'){
+        focusChain = [...createPartywiseDiscountChain, ...pwDiscountTypeFieldChain ];
+      }else{
+        focusChain = [...createPartywiseDiscountChain, ...pwDiscountTypeFieldChain, ...pwDiscountFieldChain];
+      }
     }
     return focusChain;
   }
@@ -186,6 +194,7 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
 
   const handleCustomFieldChange = (option: Option | null, id: string) => {
     formik.setFieldValue(id, option?.value); 
+    formik.values.discountType = option?.value; // to resolve focus issue
     const chain  = handleFocusChain()
     tabManager.updateFocusChainAndSetFocus([...chain], 'custom_select_discountType');
   };
