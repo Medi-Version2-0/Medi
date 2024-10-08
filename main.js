@@ -9,6 +9,8 @@ function createWindow() {
     height: 768,
     webPreferences: {
       nodeIntegration: true,
+      // contextIsolation: false, // Disable context isolation for simplicity
+
     },
   });
 
@@ -17,8 +19,16 @@ function createWindow() {
     protocol: 'file',
   });
 
-  // win.loadURL(startUrl);
-  win.loadURL('http://localhost:3000'); // this is used only for testing purposes this will change in the future
+  win.loadURL(startUrl);
+
+  win.webContents.on('did-finish-load', () => {
+    const { cookies } = win.webContents.session;
+  
+    // Log cookies for debugging
+    cookies.get({}).then((cookies) => {
+    });
+  });
+  // win.loadURL('http://localhost:3000'); // this is used only for testing purposes this will change in the future
 }
 
 app.whenReady().then(createWindow);
