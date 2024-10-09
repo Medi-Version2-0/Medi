@@ -256,7 +256,7 @@ export const ChallanTable = ({
                         <div
                           key={colIndex}
                           style={{ minWidth: header.width }}
-                          className={`${stikyColumn?.includes(colIndex) ? 'sticky left-0 z-[1]' : 'z-[0]'}`}
+                          className={`${stikyColumn?.includes(colIndex) ? 'sticky left-0' : ''}`}
                         >
                           <CustomSelect
                             isPopupOpen={false}
@@ -305,11 +305,18 @@ export const ChallanTable = ({
                                 );
                                 if (!dropdown) {
                                   e.preventDefault();
-                                  document
-                                    .getElementById(
-                                      `cell-${rowIndex}-${colIndex + 1}`
-                                    )
-                                    ?.focus();
+                                  const shouldAddRow = colIndex === newRowTrigger;
+                                  const isLastRow = rowIndex === gridData.length - 1;
+                                  if (shouldAddRow && isLastRow) {
+                                    addRows(1);
+                                    setTimeout(() => focusNextCell(rowIndex + 1, 0), 0);
+                                  } else if (shouldAddRow) {
+                                    focusNextCell(rowIndex + 1, 0);
+                                  }
+                                  else {
+                                    document.getElementById(`cell-${rowIndex}-${colIndex + 1}`)?.focus();
+                                  }
+
                                 }
                               }
                             }}
