@@ -12,6 +12,7 @@ import useHandleKeydown from '../../hooks/useHandleKeydown';
 import { TabManager } from '../../components/class/tabManager';
 import { partywisePriceListViewChain } from '../../constants/focusChain/partywisePriceList';
 import { useSelector } from 'react-redux';
+import { GridOptions } from 'ag-grid-community';
 
 const PriceList = () => {
 
@@ -244,6 +245,13 @@ const PriceList = () => {
     
     const colDefs = [
       {
+        headerName: 'S.No.',
+        field: 'Sno',
+        flex:0.5,
+        valueGetter: (params: any) => params.node ? params.node.rowIndex + 1 : null,
+        editable: false
+      },
+      {
         headerName: 'Item Name',
         field: 'name',
       },
@@ -263,6 +271,13 @@ const PriceList = () => {
         },
       },
     ];
+
+    const gridOptions: GridOptions<any> = {
+      pagination: true,
+      paginationPageSize: 20,
+      paginationPageSizeSelector: [20, 30, 40],
+      defaultColDef: defaultCols
+    };
 
     return (
         <>
@@ -336,6 +351,7 @@ const PriceList = () => {
                 columnDefs={colDefs}
                 defaultColDef={defaultCols}
                 onCellEditingStopped={handleCellEditingStopped}
+                gridOptions={gridOptions}
               />
             </div>
           )}

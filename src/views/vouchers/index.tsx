@@ -137,6 +137,13 @@ const Vouchers = () => {
 
     const colDefs: any[] = [
         {
+            headerName: 'S.No.',
+            field: 'Sno',
+            flex: 0.5,
+            valueGetter: (params: { node: { rowIndex: number } }) => params.node.rowIndex + 1,
+            editable: false
+          },
+        {
             headerName: 'Date',
             field: 'voucherDate',
             valueFormatter: dateFormatter,

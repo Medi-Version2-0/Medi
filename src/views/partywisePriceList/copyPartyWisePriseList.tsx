@@ -6,6 +6,7 @@ import { partyHeaders, partyFooterData } from './partywiseHeader';
 import { SelectList } from '../../components/common/customSelectList/customSelectList';
 import useApi from '../../hooks/useApi';
 import usePermission from '../../hooks/useRole';
+import { GridOptions } from 'ag-grid-community';
 
 const CopyPratywisePriceList: React.FC = () => {
   const { createAccess } = usePermission('ledger')
@@ -88,8 +89,16 @@ const CopyPratywisePriceList: React.FC = () => {
     }
   };
   
-  const colDefs = useMemo(
-    () => [
+  const colDefs =  [
+      {
+        headerName: 'S.No.',
+        field: 'Sno',
+        flex: 0.5,
+        valueGetter: (params: any) => params.node ? params.node.rowIndex + 1 : null,
+        suppressMovable: true,
+        headerClass: 'custom-header',
+        editable: false
+      },
       {
         headerName: 'Item Name',
         field: 'name',
@@ -108,9 +117,7 @@ const CopyPratywisePriceList: React.FC = () => {
         suppressMovable: true,
         headerClass: 'custom-header',
       },
-    ],
-    []
-  );
+    ]
 
   const openCopyToPopup = () => {
     setPopupList({
@@ -147,6 +154,12 @@ const CopyPratywisePriceList: React.FC = () => {
       }
     });
   }
+
+  const gridOptions: GridOptions<any> = {
+    pagination: true,
+    paginationPageSize: 20,
+    paginationPageSizeSelector: [20, 30, 40],
+  };
   
 
   return (
@@ -232,7 +245,7 @@ const CopyPratywisePriceList: React.FC = () => {
           className='ag-theme-quartz w-full my-4'
           style={{ height: '800px' }}
         >
-          <AgGridReact rowData={tableData} columnDefs={colDefs} />
+          <AgGridReact rowData={tableData} columnDefs={colDefs} gridOptions={gridOptions} />
         </div>
       )}
     </div>
