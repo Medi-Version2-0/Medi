@@ -97,6 +97,7 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
         }
         await makeChanges(allData);
         setView({ type: '', data: {} });
+        tabManager.updateFocusChainAndSetFocus(partywiseDiscountViewChain, 'add')
         await getAndSetTableData();
       }catch(error: any){
         if (!error?.isErrorHandled) {
@@ -454,7 +455,7 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
                     placeholder='0.00'
                     maxLength={16}
                     min={0}
-                    value={formik.values.discount}
+                    value={formik.values.discount || 0}
                     onChange={(value) => formik.setFieldValue('discount', value)}
                     onBlur={() => {
                       formik.setFieldTouched('discount', true); 
