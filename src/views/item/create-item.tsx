@@ -300,7 +300,7 @@ const CreateItem = ({ setView, data, setShowBatch , fetchItemData, fieldOptions 
           <Button type='highlight' id='back' handleOnClick={() => {setView(''); tabManager.updateFocusChainAndSetFocus(itemFocusChain, 'add')}} > Back </Button>
         </div>
       </div>
-      <form onSubmit={itemFormInfo.handleSubmit} className='flex flex-col w-full'>
+      <form  className='flex flex-col w-full'>
         <div className='flex flex-row px-4 mx-4 py-2 gap-2'>
           <div className='flex flex-col w-full gap-14 my-4'>
             <Container title='Basic Info' fields={basicInfoFields} formik={itemFormInfo} focused={focused} setFocused={setFocused} className={'!grid-cols-3 !gap-6'} labelClassName={'!min-w-[134px]'} />
@@ -312,7 +312,7 @@ const CreateItem = ({ setView, data, setShowBatch , fetchItemData, fieldOptions 
           </div>
         </div>
         <div className='w-full px-8 py-2'>
-          <CommonBtn id='save' variant='submit' component='itemGroup' handleOnClick={() => itemFormInfo.handleSubmit()} disable={!itemFormInfo.isValid || itemFormInfo.isSubmitting}> {data.id ? 'Update' : 'Submit'} </CommonBtn>
+          <CommonBtn id='save' variant='submit' component='itemGroup' handleOnClick={(e:any) => {e.preventDefault(); itemFormInfo.handleSubmit()}} disable={!itemFormInfo.isValid || itemFormInfo.isSubmitting}> {data.id ? 'Update' : 'Submit'} </CommonBtn>
         </div>
       </form>
       {(popupState.isModalOpen || popupState.isAlertOpen) && (

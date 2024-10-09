@@ -342,7 +342,8 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
     lastElementRef.current = 'partyId'
   }
 
-  const pendingChallans = () => {
+  const pendingChallans = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
     if (formik.values.partyId) {
       setPopupList({
         isOpen: true,
@@ -472,7 +473,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
                     isPopupOpen={false}
                     label='Station Name'
                     id='stationId'
-                    labelClass='min-w-[140px] mr-[3em] text-gray-700'
+                    labelClass='min-w-[150px] mr-[1em] text-gray-700'
                     value={
                       formik.values.stationId === ''
                         ? null
@@ -545,11 +546,12 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
                   isPopupOpen={false}
                   label='Balance'
                   id='runningBalance'
+                  value={selectedParty?.closingBalance}
                   name='runningBalance'
                   formik={formik}
                   className='!mb-0'
-                  inputClassName='disabled:text-gray-800'
-                  labelClassName='min-w-[140px] text-base mr-[3em] text-gray-700'
+                  inputClassName='disabled:text-gray-800 text-right'
+                  labelClassName='min-w-[150px] text-base mr-[1em] text-gray-700'
                 />
               </div>
               <div className='w-[20%]'>
@@ -557,6 +559,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
                   isDisabled={true}
                   isPopupOpen={false}
                   id='runningBalanceType'
+                  value={selectedParty?.closingBalanceType}
                   name='runningBalanceType'
                   formik={formik}
                   className='!mb-0'
@@ -591,7 +594,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
                 formik={formik}
                 className='!mb-0'
                 inputClassName='disabled:text-gray-800'
-                labelClassName='min-w-[140px] mr-[3em] text-base text-gray-700'
+                labelClassName='min-w-[150px] mr-[1em] text-base text-gray-700'
                 isRequired={false}
                 showErrorTooltip={formik.touched.challanNumber && !!formik.errors.challanNumber}
               />
@@ -622,12 +625,6 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
             </div>
 
           </div>
-          <div className='flex w-full justify-end'>
-            <div className='flex gap-1 text-gray-700'>
-              <span>Party Balance:</span>
-              <span>{selectedParty?.closingBalance || 0} {selectedParty?.closingBalanceType}</span>
-            </div>
-          </div>
         </div>
         <div className='my-4 mx-8'>
           <CreateDeliveryChallanTable
@@ -644,13 +641,15 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
         </div>
 
         {formik.values.partyId && <div className="flex justify-end">
-          <button
-            type="button"
-            className="px-4 py-2 bg-[#009196FF] hover:bg-[#009196e3] font-medium text-white rounded-md border-none focus:border-yellow-500 focus-visible:border-yellow-500"
-            onClick={pendingChallans}
+          <Button
+            type='fill'
+            padding='px-4 py-2'
+            id='pendingData'
+            className="bg-[#009196FF] hover:bg-[#009196e3] font-medium text-white rounded-md border-none mx-8 focus:border-yellow-500 focus-visible:border-yellow-500"
+            handleOnClick={pendingChallans}
           >
             Pending Challans
-          </button>
+          </Button>
         </div>}
         <div className='border-[1px] border-solid border-gray-400 my-4 p-4 mx-8'>
           <div className='flex gap-12 justify-between'>
@@ -711,9 +710,6 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
             id='save'
             disable={hasMissingKeys()}
             handleOnClick={() => formik.handleSubmit}
-            handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
-              if (e.key === 'ArrowUp') e.preventDefault();
-            }}
           >
             {data.id ? 'Update' : 'Submit'}
           </Button>

@@ -40,10 +40,10 @@ export const challanHeaderForSaleBill = [
 export const batchHeader = [
   { label: 'Sr.No', key: 'id' , auto: true, width: '2%' },
   { label: 'Batch', key: 'batchNo' },
+  { label: 'Sale Price', key: 'salePrice', className: 'text-right' , width: '10%' },
+  { label: 'Expiry Date', key: 'expiryDate', width: '10%' },
+  { label: 'MRP', key: 'mrp', className: 'text-right' , width: '10%' },
   { label: 'Current Stock', key: 'currentStock', width: '10%' },
-  { label: 'Expiry Date', key: 'expiryDate' },
-  { label: 'Sale Price', key: 'salePrice', className: 'text-right' },
-  { label: 'MRP', key: 'mrp', className: 'text-right' },
 
 ];
 
