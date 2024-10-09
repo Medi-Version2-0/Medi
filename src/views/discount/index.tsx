@@ -16,7 +16,7 @@ import usePermission from '../../hooks/useRole';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
 import { extractKeys, lookupValue } from '../../helper/helper';
 import useApi from '../../hooks/useApi';
-import { ValueFormatterParams, ValueParserParams } from 'ag-grid-community';
+import { ColDef, GridOptions, ValueFormatterParams, ValueParserParams } from 'ag-grid-community';
 import { useControls } from '../../ControlRoomContext';
 
 export const PartyWiseDiscount = () => {
@@ -214,7 +214,7 @@ export const PartyWiseDiscount = () => {
     );
   };
   useHandleKeydown(handleKeyDown, [selectedRow]);
-  const defaultCol = {
+  const defaultColDef: ColDef = {
     floatingFilter: true,
     editable: updateAccess,
     flex:1,
@@ -321,6 +321,13 @@ export const PartyWiseDiscount = () => {
       ),
     },
   ];
+
+  const gridOptions: GridOptions<any> = {
+    pagination: true,
+    paginationPageSize: 20,
+    paginationPageSizeSelector: [20, 30, 40],
+    defaultColDef,
+  };
   const discount = () => {
     return (
       <>
@@ -341,7 +348,7 @@ export const PartyWiseDiscount = () => {
             <AgGridReact
               rowData={tableData}
               columnDefs={colDefs}
-              defaultColDef={defaultCol}
+              gridOptions={gridOptions}
               onCellClicked={onCellClicked}
               onCellEditingStarted={cellEditingStarted}
               onCellEditingStopped={handleCellEditingStopped}

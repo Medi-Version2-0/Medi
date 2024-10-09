@@ -97,6 +97,7 @@ export const CreateDiscount = ({ setView, data, getAndSetTableData, discountType
         }
         await makeChanges(allData);
         setView({ type: '', data: {} });
+        tabManager.updateFocusChainAndSetFocus(partywiseDiscountViewChain, 'add')
         await getAndSetTableData();
       }catch(error: any){
         if (!error?.isErrorHandled) {
