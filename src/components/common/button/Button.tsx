@@ -11,7 +11,7 @@ export const BTN_TYPE = {
 interface ButtonProps {
   type?: string;
   id?: string;
-  handleOnClick?: () => void;
+  handleOnClick?: (e: any) => void;
   handleOnKeyDown?: (event: React.KeyboardEvent<HTMLButtonElement>) => void;
   className?: string;
   icon?: FC<React.SVGProps<SVGSVGElement>>;

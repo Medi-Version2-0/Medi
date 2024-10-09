@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { SchemeSection } from './createDeliveryChallan';
-import { schemeTypeOptions, itemHeader, batchHeader, itemFooters, batchFooters } from '../../constants/saleChallan';
+import { schemeTypeOptions, itemHeader, batchHeader, itemFooters, batchFooters, previousItemsList } from '../../constants/saleChallan';
 import { ChallanTable } from '../../components/common/challanTable';
 import { SelectList } from '../../components/common/customSelectList/customSelectList';
 import Items from '../item';
@@ -22,11 +22,11 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
   const headers = [
     { name: 'Item name', key: 'itemId', width: '20%', type: 'input', props: { inputType: 'text', label: true, handleFocus: (rowIndex: number, colIndex: number) => {}, handleClick : ({rowIndex}:any)=>{openItem(rowIndex)}  }},
     { name: 'Batch no', key: 'batchNo', width: '15%', type: 'input', props: { inputType: 'text', label: true, handleFocus: (rowIndex: number, colIndex: number) => {} , handleClick : ({rowIndex}:any)=>{openBatch(rowIndex)}  } },
-    { name: 'Qty', key: 'qty', width: '10%', type: 'input', props: { inputType: 'number', handleBlur: (args: any) => { handleQtyChange(args); handleTotalAmt(args) }, handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
-    { name: 'Scheme', key: 'scheme', width: '10%', type: 'input', props: { inputType: 'number', handleBlur: (args: any) => { handleQtyChange(args); handleTotalAmt(args) }, handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
+    { name: 'Quantity', key: 'qty', width: '10%', type: 'input', props: { inputType: 'number', allowDecimal: false, handleBlur: (args: any) => { handleQtyChange(args); handleTotalAmt(args) }, handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
+    { name: 'Scheme', key: 'scheme', width: '10%', type: 'input', props: { inputType: 'number', allowDecimal: false, handleBlur: (args: any) => { handleQtyChange(args); handleTotalAmt(args) }, handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
     { name: 'Scheme type', key: 'schemeType', width: '12%', type: 'customSelect', props: { options: schemeTypeOptions, handleChange: (args: any) => { handleSelectChange(args); handleQtyChange(args); handleTotalAmt(args) }, handleBlur: (args: any) => { handleQtyChange(args); handleTotalAmt(args) } } },
     { name: 'Rate', key: 'rate', width: '8%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
-    { name: 'Dis.%', key: 'disPer', width: '8%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
+    { name: 'Discount %', key: 'disPer', width: '12%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
     { name: 'Amount', key: 'amt', width: '10%', type: 'input', props: { inputType: 'number', disable: true } },
     { name: 'MRP', key: 'mrp', width: '10%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
     { name: 'Exp. Date', key: 'expDate', width: '12%', type: 'input', props: { inputType: 'text', handleChange: (args: any) => { handleInputChange(args); handleTotalAmt(args) } } },
@@ -558,6 +558,20 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
     calculateTotals(gridData.filter((_, ind) => ind !== rowIndex))
   }
 
+  const f9Function = ({rowIndex, colIndex}: {rowIndex: number, colIndex: number}) => {
+    if (selectedParty && gridData[rowIndex].columns.itemId?.value) {
+      setPopupList({
+        isOpen: true,
+        data: {
+          heading: 'Previous Challan Items',
+          headers: [...previousItemsList],
+          apiRoute: `/deliveryChallan/items/${selectedParty.party_id}/${gridData[rowIndex].columns.itemId?.value}`,
+          handleSelect: () => {},
+          autoClose: true
+        }
+      });
+    }
+  };
 
   return (
     <div id='challanTable' className="flex flex-col gap-1">
@@ -568,6 +582,7 @@ export const CreateDeliveryChallanTable = ({ setDataFromTable, totalValue, setTo
         withAddRow={() => setCurrentSavedData({ item: {}, batch: {} })}
         rowDeleteCallback={handleDeleteRow}
         newRowTrigger={headers.length - 3}
+        f9Function={f9Function}
       />
 
       {popupState.isAlertOpen && (

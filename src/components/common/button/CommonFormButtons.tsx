@@ -4,7 +4,7 @@ import classNames from "classnames";
 interface ButtonProps {
     id? : string,
     variant?: "submit" | "cancel" | "delete";
-    handleOnClick?: () => void;
+    handleOnClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
     handleOnKeyDown?: (event: React.KeyboardEvent<HTMLButtonElement>) => void;
     children?: React.ReactNode;
     disable?: boolean;

@@ -27,6 +27,7 @@ interface NumberInputProps {
     autoFocus?: boolean;
     maxLength?: number;
     style?: string;
+    allowDecimal?: boolean;
 }
 
 const NumberInput: React.FC<NumberInputProps> = ({
@@ -52,6 +53,7 @@ const NumberInput: React.FC<NumberInputProps> = ({
     autoFocus = false,
     maxLength,
     style,
+    allowDecimal = true,
 }) => {
     const inputRef = useRef<HTMLInputElement>(null);
     const [inputValue, setInputValue] = useState<string>('');
@@ -86,22 +88,20 @@ const NumberInput: React.FC<NumberInputProps> = ({
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         let val = e.target.value;
-        if (maxLength && val.length > maxLength) return; // prevent to enter digits more than max length
-        // Allow empty input to set value to null
+        if (maxLength && val.length > maxLength) return;
+
         if (val === '') {
             setInputValue('');
             onChange(null);
             return;
         }
 
-        // Regex to allow numbers with limited decimal places
-        const regex = new RegExp(
-            `^-?\\d*(\\.\\d{0,${decimalPlaces}})?$`
-        );
-
+        // Adjust regex based on allowDecimal
+        const regex = allowDecimal
+            ? new RegExp(`^-?\\d*(\\.\\d{0,${decimalPlaces}})?$`)
+            : /^-?\d*$/;
 
         if (!regex.test(val)) {
-            // Do not update the input if value is invalid
             return;
         }
 
@@ -132,7 +132,16 @@ const NumberInput: React.FC<NumberInputProps> = ({
                 if (max !== undefined && numericValue > max) {
                     numericValue = max;
                 }
-                const formattedValue = numericValue.toFixed(decimalPlaces).replace(/\.?0+$/, '');
+                
+                let formattedValue: string;
+                if (allowDecimal) {
+                    // Format with decimal places
+                    formattedValue = numericValue.toFixed(decimalPlaces);
+                } else {
+                    // Format as integer
+                    formattedValue = Math.round(numericValue).toString();
+                }
+                
                 setInputValue(formattedValue);
                 onChange(formattedValue);
             } else {
@@ -140,6 +149,9 @@ const NumberInput: React.FC<NumberInputProps> = ({
                 setInputValue('');
                 onChange(null);
             }
+        } else {
+            // If the input is empty, keep it empty
+            onChange(null);
         }
         onBlur?.()
     };

@@ -23,6 +23,7 @@ interface HeaderConfig {
     label?: boolean;
     disable?: boolean;
     required?: boolean;
+    allowDecimal?: boolean;
     options?: { label: string; value: string | number; [key: string]: any }[];
     handleFocus?: (rowIndex: number, colIndex: number) => void;
     handleClick?: (args: {rowIndex: number, colIndex: number}) => void;
@@ -55,6 +56,7 @@ interface ChallanTableProps {
   isFromSaleBill?: boolean;
   required?: any;
   widthRequired?: any;
+  f9Function?: (args: {rowIndex: number, colIndex: number}) => void;
 }
 export const ChallanTable = ({
   headers,
@@ -66,8 +68,8 @@ export const ChallanTable = ({
   newRowTrigger,
   skipIndexes,
   stikyColumn,
-
   widthRequired = '100vw',
+  f9Function
 }: ChallanTableProps) => {
   const [focused, setFocused] = useState('');
   const tabManager = TabManager.getInstance()
@@ -89,6 +91,10 @@ export const ChallanTable = ({
     if (e.key === '-' || e.key === '+' ) {   // || e.key === 'E' || e.key === 'e'
       e.preventDefault();
       return;
+    }
+    if (e.key === 'F9' && f9Function) {   // || e.key === 'E' || e.key === 'e'
+      e.preventDefault();
+      f9Function({rowIndex, colIndex})
     }
     if (e.key === 'Enter' || (e.key === 'Tab' && !e.shiftKey)) {
       if(e.key === 'Enter'){
@@ -213,6 +219,11 @@ export const ChallanTable = ({
         className={`flex flex-col h-[30em] border-[1px] border-solid border-gray-400 overflow-auto`}
       >
         <div className={`flex sticky border-solid w-[${widthRequired}] top-0 z-[1]`}>
+        <div
+            className={`flex-shrink-0 border-[1px] border-solid bg-[#009196FF] border-gray-400 text-center text-white p-2 w-16`}
+          >
+            Sr.No
+          </div>
           {headers.map((header, index) => (
             <div
               key={index}
@@ -232,6 +243,9 @@ export const ChallanTable = ({
           {gridData &&
             gridData.map((row: any, rowIndex: number) => (
               <div key={row.id} className='flex relative'>
+                <div className='border-[1px] border-solid border-gray-400 px-2 flex flex-shrink-0 items-center w-16'>
+                 {rowIndex + 1}
+                </div>
                 {headers.map((header, colIndex) => {
                   const columnValue = header.props.label
                     ? row.columns[header.key]?.label || ''
@@ -308,6 +322,7 @@ export const ChallanTable = ({
                         <div style={{ minWidth: header.width }}>
                           <NumberInput
                             name={`cell-${rowIndex}-${colIndex}`}
+                            allowDecimal={header.props.allowDecimal !== undefined ? header.props.allowDecimal : true}
                             key={colIndex}
                             id={`cell-${rowIndex}-${colIndex}`}
                             value={columnValue}
