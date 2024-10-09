@@ -94,11 +94,12 @@ export const Batch = ({ params }: { params: { showBatch: any; setShowBatch: Reac
         locked: inputRow.locked.toUpperCase(),
         mfgCode: item?.shortName,
       };
-      const length = godownDataDuringCreate?.length;
-      for (let i = 0; i < length; i++) {
-        formattedInputRow[`opGodown${i}`] = Number(godownDataDuringCreate[i]?.stocks);
-        formattedInputRow[`clGodown${i}`] = Number(godownDataDuringCreate[i]?.stocks);
-      }
+      if(!!godownDataDuringCreate){
+        godownDataDuringCreate.forEach((data: any) => {
+          formattedInputRow[`opGodown${data.godownCode}`] = Number( data?.stocks);
+          formattedInputRow[`clGodown${data.godownCode}`] = Number( data?.stocks);
+        })
+      }      
       await sendAPIRequest(`/item/${id}/batch`, { method: 'POST', body: formattedInputRow });
       setGodownDataDuringCreate(null);
       setInputRow(pinnedRow);
@@ -236,13 +237,12 @@ export const Batch = ({ params }: { params: { showBatch: any; setShowBatch: Reac
   };
 
   const mapGodownData = (rowSelected: any) => {
-    let i = 0;
     return fetchedGodown.map((row: any) => {
       const mappedRow: any = {};
       GodownHeaders.forEach(header => {
-        mappedRow[header.key] = header.isInput ? rowSelected[`opGodown${i}`] : row[header.key];
+        mappedRow[header.key] = header.isInput ? rowSelected[`opGodown${row.godownCode}`] : row[header.key];
+        mappedRow['godownCode'] = row?.godownCode;
       });
-      i++;
       return mappedRow;
     });
   };

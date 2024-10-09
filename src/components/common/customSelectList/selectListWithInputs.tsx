@@ -30,9 +30,9 @@ export const SelectListTableWithInput: React.FC<SelectListTableProps> = ({ headi
 
     const handleSaveAndClose = async () => {
         if (!!rowDataDuringUpdation) {
-            updatedTableData.forEach((rowData, index) => {
-                rowDataDuringUpdation[`opGodown${index}`] = Number(rowData?.stocks);
-                rowDataDuringUpdation[`clGodown${index}`] = Number(rowData?.stocks);
+            updatedTableData.forEach((rowData) => {
+                rowDataDuringUpdation[`opGodown${rowData.godownCode}`] = Number(rowData?.stocks);
+                rowDataDuringUpdation[`clGodown${rowData.godownCode}`] = Number(rowData?.stocks);
             });
             const { itemId, id } = rowDataDuringUpdation;
             await sendAPIRequest(`/item/${itemId}/batch/${id}`, { method: 'PUT', body: rowDataDuringUpdation });
@@ -50,8 +50,17 @@ export const SelectListTableWithInput: React.FC<SelectListTableProps> = ({ headi
                 focusNextInput(rowIndex + 1, colIndex);
             }
             else {
-                if (totalGodownStocks <= currentStocks) {
+                if (totalGodownStocks === currentStocks) {
                     setIsValid(true);
+                    await handleSaveAndClose();
+                }else if (totalGodownStocks < currentStocks){
+                    setIsValid(true);
+                    const difference = Number(currentStocks) - Number(totalGodownStocks);
+                    updatedTableData.map((data: any) => {
+                        if(data.godownCode == 0){
+                            data.stocks = Number(data.stocks) + Number(difference);
+                        }
+                    })
                     await handleSaveAndClose();
                 } else {
                     setIsValid(false);
@@ -73,12 +82,12 @@ export const SelectListTableWithInput: React.FC<SelectListTableProps> = ({ headi
     return (
         <Popup heading={`${heading}`} isSuggestionPopup={true} id='dropDownPopup' onClose={closeList} childClass='h-fit w-full min-w-[50vw] !max-h-[100vh] overflow-scroll'>
             <div className="w-full relative">
-                <div id='selectListData' className='mx-4 h-[50vh] overflow-auto border-[1px] border-gray-400 border-solid my-4 outline-none flex justify-between flex-col'>
+                <div id='selectListData' className='mx-4 h-[60vh] overflow-auto border-[1px] border-gray-400 border-solid my-4 outline-none flex justify-between flex-col'>
                     <table className='table-auto w-full border-collapse'>
                         <thead className='sticky top-0'>
                             <tr>
                                 {headers.map((header: any, index: number) => (
-                                    <th key={index} className='w-fit bg-[#009196FF] text-center text-white p-2'>
+                                    <th key={index} className='w-1/2 bg-[#009196FF] text-center text-white p-2'>
                                         {header.label}
                                     </th>
                                 ))}
@@ -88,12 +97,13 @@ export const SelectListTableWithInput: React.FC<SelectListTableProps> = ({ headi
                             {updatedTableData.map((row: any, rowIndex: number) => (
                                 <tr key={rowIndex} id={`row-${rowIndex}`} ref={(el) => (tableRefs.current[rowIndex] = el)} tabIndex={-1}>
                                     {headers.map((header: any, colIndex: number) => (
-                                        <td key={colIndex} className={`border-[1px] border-gray-400 p-2`}>
+                                        <td key={colIndex} className={`border-[1px] border-gray-400 px-4 py-2`}>
                                             {header.isInput ? (
                                                 <NumberInput
                                                     id={`inputField-${rowIndex}-${colIndex}`}
                                                     name={header.key}
                                                     value={row[header.key]}
+                                                    inputClassName='px-2 py-[0.1rem]'
                                                     onChange={(value: any) => handleInputChange(rowIndex, value)}
                                                     onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => handleKeyDown(e, rowIndex, colIndex)}
                                                 />
