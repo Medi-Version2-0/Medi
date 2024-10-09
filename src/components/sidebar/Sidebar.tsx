@@ -47,6 +47,8 @@ import { billBookSetupViewChain } from '../../constants/focusChain/billBookSetup
 import { partywisePriceListViewChain } from '../../constants/focusChain/partywisePriceList'
 import { copyPartywisePriceListViewChain } from '../../constants/focusChain/copyPartywisePriceList'
 import { voucherViewChain } from '../../constants/focusChain/voucherFocusChain'
+import { SaleOrder } from '../../views/SaleOrder';
+import { saleOrderViewChain } from '../../constants/focusChain/saleOrderFocusChain';
 
 interface SidebarProps {
   isGroup?: boolean;
@@ -195,6 +197,12 @@ const Sidebar: React.FC<SidebarProps> = ({
       label: 'Sale Bill',
       onClick: () => openTab?.('Sale Bill', <SaleBill />),
       isDisabled: isNotReadAccess('invoicebill')
+    },
+    {
+      url: '/saleOrder',
+      label: 'Sale Order',
+      onClick: () => tabManager.openTab('Sale Order', <SaleOrder />, saleOrderViewChain, openTab),
+      isDisabled: isNotReadAccess('saleorder')
     }
   ];
 
