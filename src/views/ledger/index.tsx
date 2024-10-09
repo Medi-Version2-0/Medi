@@ -205,6 +205,13 @@ export const Ledger = ({type = ''}) => {
 
   const colDefs: ColDef[]= [
     {
+      headerName: 'S.No.',
+      field: 'Sno',
+      flex:0.5,
+      valueGetter: (params: any) => params.node ? params.node.rowIndex + 1 : null,
+      editable: false
+    },
+    {
       headerName: 'Ledger Name',
       field: 'partyName',
       flex: 2,

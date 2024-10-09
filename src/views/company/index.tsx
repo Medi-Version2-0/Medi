@@ -16,8 +16,8 @@ import { getAndSetCompany } from '../../store/action/globalAction';
 import usePermission from '../../hooks/useRole';
 import useHandleKeydown from '../../hooks/useHandleKeydown';
 import { createMap, extractKeys, lookupValue, decimalFormatter } from '../../helper/helper';
-import { useGetSetData } from '../../hooks/useGetSetData';
 import useApi from '../../hooks/useApi';
+import { GridOptions } from 'ag-grid-community';
 
 export const Company = ({type = ''}) => {
   const [view, setView] = useState<View>({ type: '', data: {} });
@@ -174,7 +174,7 @@ export const Company = ({type = ''}) => {
 
   useHandleKeydown(handleKeyDown, [selectedRow, popupState])
 
-  const defaultCols ={
+  const defaultCols: any ={
     flex: 1,
     filter: true,
     suppressMovable: true,
@@ -184,6 +184,14 @@ export const Company = ({type = ''}) => {
   }
 
   const colDefs: any[] = [
+    {
+      headerName: 'S.No.',
+      field: 'Sno',
+      flex: 0.5,
+      menuTabs: ['filterMenuTab'],
+      valueGetter: (params: { node: { rowIndex: number } }) => params.node.rowIndex + 1,
+      editable: false
+    },
     {
       headerName: 'Company Name',
       field: 'companyName',
@@ -256,6 +264,14 @@ export const Company = ({type = ''}) => {
       ),
     },
   ];
+
+  const gridOptions: GridOptions<any> = {
+    pagination: true,
+    paginationPageSize: 20,
+    paginationPageSizeSelector: [20, 30, 40],
+    defaultColDef: defaultCols
+  };
+
   const company = () => {
     return (
       <>
@@ -280,6 +296,7 @@ export const Company = ({type = ''}) => {
               onCellClicked={onCellClicked}
               onCellEditingStarted={cellEditingStarted}
               onCellEditingStopped={handleCellEditingStopped}
+              gridOptions={gridOptions}
             />
           }
         </div>

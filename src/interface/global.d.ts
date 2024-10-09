@@ -1,4 +1,5 @@
 export interface StationFormData {
+  Sno?: string;
   station_id?: string;
   station_name: string;
   igst_sale?: string;

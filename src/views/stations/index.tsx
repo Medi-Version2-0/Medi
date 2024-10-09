@@ -195,6 +195,13 @@ export const Stations = () => {
   useHandleKeydown(handleKeyDown, [selectedRow])
 
   const columnDefs: ColDef[] = [
+    {
+      headerName: 'S.No.',
+      field: 'Sno',
+      flex:0.5,
+      valueGetter: (params: any) => params.node ? params.node.rowIndex + 1 : null,
+      editable: false
+    },
     { headerName: 'Station Name', field: 'station_name' },
     {
       headerName: 'Station State',

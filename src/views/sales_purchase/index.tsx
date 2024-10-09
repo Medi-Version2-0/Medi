@@ -268,6 +268,13 @@ export const Sales_Table = ({ type }: SalesPurchaseTableProps) => {
 
   const colDefs: any[] = [
     {
+      headerName: 'S.No.',
+      field: 'Sno',
+      flex:0.5,
+      valueGetter: (params: any) => params.node ? params.node.rowIndex + 1 : null,
+      editable: false
+    },
+    {
       headerName: 'Name',
       field: 'sptype',
       valueParser: stringValueParser,

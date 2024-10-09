@@ -264,6 +264,13 @@ export const SubGroups = () => {
   const colDefs: (ColDef<any, any> | ColGroupDef<any>)[] | null | undefined[] =
     [
       {
+        headerName: 'S.No.',
+        field: 'Sno',
+        flex:0.5,
+        valueGetter: (params: any) => params.node ? params.node.rowIndex + 1 : null,
+        editable: false
+      },
+      {
         headerName: 'Sub Group Name',
         field: 'group_name',
         valueParser: stringValueParser,
