@@ -44,7 +44,7 @@ export const CreateSaleOrderTable = ({ selectedParty, formik, dataItems }: Creat
 
   const headers:any[] = [
     { name: 'Item name', key: 'name', width: '40%', type: 'input', props: { inputType: 'text', label: true, handleClick: ({ rowIndex }: any) => { openItem(rowIndex) } } },
-    { name: 'Quantity', key: 'Qty', width: '14%', type: 'input', props: { inputType: 'number', allowDecimal :false ,  max: true , handleChange: (args: any) => { handleInputChange(args) } } },
+    { name: 'Quantity', key: 'Qty', width: '14%', type: 'input', props: { inputType: 'number', allowDecimal :false , handleChange: (args: any) => { handleInputChange(args) } } },
     { name: 'Scheme', key: 'scheme', width: '14%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); } } },
     { name: 'Scheme type', key: 'schemeType', width: '20%', type: 'customSelect', props: { options: schemeTypeOptions, handleChange: (args: any) => { handleSelectChange(args); } } },
   ];
@@ -77,12 +77,11 @@ export const CreateSaleOrderTable = ({ selectedParty, formik, dataItems }: Creat
         return { id: index + 1,
           columns: {
             ...item,
-            Qty: item.Qty.toFixed(decimalValueCount),
+            Qty: item.Qty,
             scheme: item.free.toFixed(decimalValueCount),
             name,
             schemeType,
             hideDeleteIcon: item.qtySupplie ? true : false,
-            max: item.qtySupplie ? item.Qty : undefined,
           }
         }
       });
@@ -143,6 +142,16 @@ export const CreateSaleOrderTable = ({ selectedParty, formik, dataItems }: Creat
   }, [gridData])
 
   const handleInputChange = async ({ rowIndex, header, value }: any) => {
+    if (header === 'Qty'){
+      value = +value;
+      if(dataItems){
+        const dbData = dataItems[rowIndex];
+        if (dbData.qtySupplie && value > dbData.Qty){
+          value = dbData.Qty;
+        }
+      }
+    }
+    console.log('value2 ',value)
     const newGridData = [...gridData];
     newGridData[rowIndex].columns[header] = value;
     setGridData(newGridData);

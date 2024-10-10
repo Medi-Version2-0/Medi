@@ -75,10 +75,13 @@ export const CreateSaleOrder = ({ setView, viewData, getAndSetTableData, decimal
     },
     onSubmit: async (values: any) => {
       if (viewData?.orderNo) {
-        await sendAPIRequest(`/saleOrder/${viewData.orderNo}?type=orderNo`, { method: 'PUT', body: values });
+        // await sendAPIRequest(`/saleOrder/${viewData.orderNo}?type=orderNo`, { method: 'PUT', body: values });
+        console.log('values >> ',values)
       } else {
         await sendAPIRequest(`/saleOrder`, { method: 'POST', body: values });
       }
+      // setView({ type: '', data: {} });
+      await getAndSetTableData();
     },
   });
 
@@ -206,13 +209,6 @@ export const CreateSaleOrder = ({ setView, viewData, getAndSetTableData, decimal
       })
     }
     // lastElementRef.current = 'partyId'
-  }
-
-
-  async function handleSave(){
-      await formik.handleSubmit();
-      setView({ type: '', data: {} });
-      await getAndSetTableData();
   }
 
   function togglePendingItemPopup(){
@@ -470,7 +466,7 @@ export const CreateSaleOrder = ({ setView, viewData, getAndSetTableData, decimal
             padding='px-4 py-2'
             id='save'
             disable={!formik.isValid || formik.isSubmitting}
-            handleOnClick={handleSave}
+            handleOnClick={formik.handleSubmit}
             handleOnKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
               if (e.key === 'ArrowUp') e.preventDefault();
             }}

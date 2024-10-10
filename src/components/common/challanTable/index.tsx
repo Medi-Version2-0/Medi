@@ -24,7 +24,6 @@ interface HeaderConfig {
     disable?: boolean;
     required?: boolean;
     allowDecimal?: boolean;
-    max?: boolean;
     options?: { label: string; value: string | number; [key: string]: any }[];
     handleFocus?: (rowIndex: number, colIndex: number) => void;
     handleClick?: (args: {rowIndex: number, colIndex: number}) => void;
@@ -332,7 +331,6 @@ export const ChallanTable = ({
                             name={`cell-${rowIndex}-${colIndex}`}
                             allowDecimal={header.props.allowDecimal !== undefined ? header.props.allowDecimal : true}
                             key={colIndex}
-                            {...(header.props.max && { max: gridData[rowIndex].columns.max })}
                             id={`cell-${rowIndex}-${colIndex}`}
                             value={columnValue}
                             onFocus={() => {
