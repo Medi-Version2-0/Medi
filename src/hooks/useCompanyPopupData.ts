@@ -1,10 +1,10 @@
 export const useCompanyPopupData = ()=>{
 
     const companyHeader = [
-        { label: 'Company Name', key: 'companyName',width: '50%'},
-        { label: 'Station', key: 'station_id',width: '50%'},
-        { label: 'OB', key: 'openingBal', width: '14%',fullForm: 'Opening Balance' },
-        { label: 'OBT', key: 'openingBalType', width: '6%', fullForm: 'Opening Balance Type'},
+        { label: 'Company Name', key: 'companyName',width: '60%'},
+        { label: 'Station', key: 'station_id',width: '22%'},
+        { label: 'OB', key: 'openingBal', width: '26%',fullForm: 'Opening Balance' },
+        { label: 'OBT', key: 'openingBalType', width: '16%', fullForm: 'Opening Balance Type'},
     ]
     
     const companyFooterData =[
@@ -17,11 +17,11 @@ export const useCompanyPopupData = ()=>{
               },
               {
                 label: 'Sale Account',
-                key: 'salesId'
+                key: 'sale.sptype'
               },
               {
                 label: 'Purchase Account',
-                key: 'purchaseId'
+                key: 'purchase.sptype'
               },
               {
                 label: 'MFG Code',

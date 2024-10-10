@@ -354,7 +354,7 @@ export const SelectList = ({
 
                 {/* Footer */}
                 <div className={`h-[120px] left-0 mx-4 ${footerClass} overflow-auto`}>
-                    <div className={`flex flex-wrap gap-1 h-full w-full text-[.4rem] md:text-[.6rem] xxl:text-[1rem]`}>
+                    <div className={`flex flex-wrap gap-1 h-full w-full text-[.6rem] md:text-[.8rem] xxl:text-[1.5rem]`}>
                         {footers?.map((f: any, index: number) => (
                             <fieldset key={index} className="border flex-1 min-w-[240px] rounded-sm h-full border-gray-300 px-1 py-1 overflow-scroll">
                                 <legend className="font-semibold text-gray-700 px-2">
@@ -364,12 +364,12 @@ export const SelectList = ({
                                     {f.data.map((d: any, idx: number) => (
                                         focusedRowData && (
                                             <li key={idx}>
-                                                <div className="flex">
+                                                <div className="flex justify-between">
                                                     <div className="w-5/12 pr-0 relative after:content-[':'] after:absolute after:-right-1 after:text-black">
                                                         {d.label} <span>{d.key === 'openingBal' && `( ${getNestedValue(focusedRowData, 'openingBalType')} )`}{d.key === 'closingBalance' && `( ${getNestedValue(focusedRowData, 'closingBalanceType')} )`}</span>
                                                     </div>
-                                                    <div className="w-7/12 text-right flex justify-end">
-                                                        <span className=" whitespace-nowrap">&nbsp;{getNestedValue(focusedRowData, d.key)}</span>
+                                                    <div className="w-7/12 text-left ps-2">
+                                                        <span className="w-full whitespace-normal break-words overflow-hidden">{getNestedValue(focusedRowData, d.key)}</span>
                                                     </div>
                                                 </div>
                                             </li>
