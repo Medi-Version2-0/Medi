@@ -65,7 +65,7 @@ export const GeneralInfo = ({
 
   const handleFieldChange = (option: Option | null, id: string) => {
     if (id === 'accountGroup') {
-      onValueChange(option?.label);
+      // onValueChange(option?.label);
       const groupId = groupOptions.find(
         (e:Option) => e.label === option?.value
       )?.value;

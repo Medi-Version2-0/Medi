@@ -332,7 +332,7 @@ export const PartyWiseDiscount = () => {
     return (
       <>
         <div className='flex w-full items-center justify-between px-8 py-1'>
-          <h1 className='font-bold'>Partywise discount</h1>
+          <h1 className='font-bold'>Party-wise discount</h1>
           {createAccess &&<Button
             id = 'add'
             type='highlight'

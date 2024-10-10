@@ -41,7 +41,7 @@ export const CreateLedger = ({ setView, data, getAndSetParties, stations }: any)
     isModalOpen: false,
     isAlertOpen: false,
     message: '',
-    success:false,
+    // success:false,
   });
   const prevClass = useRef('');
   const { controlRoomSettings } = useControls();
@@ -151,12 +151,13 @@ export const CreateLedger = ({ setView, data, getAndSetParties, stations }: any)
       const method = data?.party_id ? 'PUT' : 'POST';
       try{
         await sendAPIRequest(apiPath, { method, body: filteredData });
-        setPopupState({
-          ...popupState,
-          isAlertOpen: true,
-          message: `Ledger ${!!data?.party_id ? 'updated' : 'created'} successfully`,
-          success: true,
-        });
+        // setPopupState({
+        //   ...popupState,
+        //   isAlertOpen: true,
+        //   message: `Ledger ${!!data?.party_id ? 'updated' : 'created'} successfully`,
+        //   success: true,
+        // });
+        setView({ type: '', data: {} });
         getAndSetParties();
       }catch(err:any){
         if (err.response?.data.messages)  setPopupState({ ...popupState, isAlertOpen: true, message: err.response?.data.messages.map((e:any)=>e.message).join('\n')  });
@@ -237,7 +238,7 @@ export const CreateLedger = ({ setView, data, getAndSetParties, stations }: any)
 
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false });
-    if(popupState.success) setView({ type: '', data: {} });
+    // if(popupState.success) setView({ type: '', data: {} });
   };
 
   useEffect(() => {
