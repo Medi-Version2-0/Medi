@@ -19,7 +19,8 @@ import { pendingChallansList } from '../../constants/saleChallan';
 import useApi from '../../hooks/useApi';
 import usePartyFooterData from '../../hooks/usePartyFooterData';
 import { TabManager } from '../../components/class/tabManager';
-import { createSaleChallanAllStation, createSaleChallanOneStation, saleChallanView } from '../../constants/focusChain/saleChallan';
+import { challanTableChain, createSaleChallanAllStation, createSaleChallanOneStation, saleChallanView } from '../../constants/focusChain/saleChallan';
+import { useControls } from '../../ControlRoomContext';
 
 export interface DeliveryChallanFormValues {
   oneStation: string;
@@ -42,7 +43,7 @@ export type DeliveryChallanFormInfoType = FormikProps<DeliveryChallanFormValues>
 
 export const SchemeSection = ({ togglePopup, heading, className, setOpenDataPopup, setSchemeValue }: schemeSectionProps) => {
   const formikRef = useRef<FormikProps<schemeSectionFormProps>>(null);
-
+  
   useEffect(() => {
     const focusTarget = document.getElementById('scheme1');
     focusTarget?.focus();
@@ -126,6 +127,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
   const [challanTableData, setChallanTableData] = useState<any[]>([]);
   const [isNetRateSymbol, setIsNetRateSymbol] = useState<string>('');
   const { sendAPIRequest } = useApi();
+  const { controlRoomSettings } = useControls()
   const queryClient = useQueryClient();
   const lastElementRef = useRef('')
   const [pendingData, setPendingData] = useState({
@@ -193,18 +195,28 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
         } else {
           values.netRateSymbol = 'No';
         }
-        values.total = (+totalValue.totalAmt)?.toFixed(2);
+        values.total = (+totalValue.totalAmt)?.toFixed(controlRoomSettings.decimalValueCount || 2);
         values.qtyTotal = (+totalValue.totalQty)
-        values.totalDiscount = (+totalValue.totalDiscount)?.toFixed(2);
-        values.totalCGST = (+totalValue.totalCGST)?.toFixed(2);
-        values.totalSGST = (+totalValue.totalSGST)?.toFixed(2);
-        values.totalGST = (+totalValue.totalGST)?.toFixed(2);
+        values.totalDiscount = (+totalValue.totalDiscount)?.toFixed(controlRoomSettings.decimalValueCount || 2);
+        values.totalCGST = (+totalValue.totalCGST)?.toFixed(controlRoomSettings.decimalValueCount || 2);
+        values.totalSGST = (+totalValue.totalSGST)?.toFixed(controlRoomSettings.decimalValueCount || 2);
+        values.totalGST = (+totalValue.totalGST)?.toFixed(controlRoomSettings.decimalValueCount || 2);
         const finalData = { ...values, challans: dataFromTable };
 
         if (data.id) {
           await sendAPIRequest(`/deliveryChallan/${data.id}`, { method: 'PUT', body: finalData });
         } else {
-          await sendAPIRequest(`/deliveryChallan`, { method: 'POST', body: finalData });
+         const resp = await sendAPIRequest(`/deliveryChallan`, { method: 'POST', body: finalData });
+         if(resp.nextChallanNumber){
+           formik.setFieldValue('challanNumber', resp.nextChallanNumber)
+           tabManager.setTabLastFocusedElementId('challanNumber')
+          return setPopupState({
+            isModalOpen: false,
+            isAlertOpen: true,
+            message: `${resp.message} Next Challan No. is ${resp.nextChallanNumber}`,
+            shouldBack: false
+          });
+         }
         }
         await queryClient.invalidateQueries({ queryKey: ['get-deliveryChallan'] });
 
@@ -219,7 +231,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
           setPopupState({
             isModalOpen: false,
             isAlertOpen: true,
-            message: `Failed to ${data.id ? 'update' : 'create'} delivery challan`,
+            message: `Failed to ${data.id ? 'update' : 'create'} delivery challan. \n ${error.response?.data?.error?.message || ''}`,
             shouldBack: false
           });
         }
@@ -230,7 +242,6 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
 
 
   const fetchAllData = async () => {
-
     try {
       const stations = await sendAPIRequest<any[]>(`/station`);
       setStationOptions(
@@ -239,6 +250,11 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
           label: titleCase(station.station_name),
         }))
       );
+      if(!data?.challanNumber){
+        const challanNumber = await sendAPIRequest<any[]>(`/deliveryChallan/challanNumber`)
+        formik.setFieldValue('challanNumber', challanNumber)
+      }
+     
     } catch (error: any) {
       if (!error?.isErrorHandled) {
         console.log('Station not fetched in Delivery Challan');
@@ -264,10 +280,10 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
 
   useEffect(() => {
     if(formik.values.oneStation === 'oneStation'){
-      tabManager.updateFocusChainAndSetFocus(createSaleChallanOneStation, 'custom_select_oneStation')
+      tabManager.updateFocusChainAndSetFocus([...createSaleChallanOneStation ,...(data?.challanNumber ? [] : ['challanNumber']) ,...challanTableChain], 'custom_select_oneStation')
     }
     else {
-          tabManager.updateFocusChainAndSetFocus(createSaleChallanAllStation, 'custom_select_oneStation')
+          tabManager.updateFocusChainAndSetFocus([...createSaleChallanAllStation ,...(data?.challanNumber ? [] : ['challanNumber']) ,...challanTableChain], 'custom_select_oneStation')
     }
 
   }, [formik.values.oneStation]);
@@ -279,7 +295,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
       fetchPartyById(data.partyId)
       setChallanTableData(data.challans);
     }
-    tabManager.updateFocusChainAndSetFocus(createSaleChallanOneStation, 'custom_select_oneStation')
+    tabManager.updateFocusChainAndSetFocus([...createSaleChallanOneStation ,...(data?.challanNumber ? [] : ['challanNumber']) ,...challanTableChain], 'custom_select_oneStation')
 
   }, []);
 
@@ -521,7 +537,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
                 formik={formik}
                 className='!mb-0'
                 labelClassName='min-w-[115px] text-base text-gray-700'
-                isRequired={false}
+                isRequired={true}
                 value={
                   formik.values.partyId === '' || !selectedParty
                     ? null : selectedParty?.partyName
@@ -586,7 +602,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
             </div>
             <div className='w-[35%]'>
               <FormikInputField
-                isDisabled={true}
+                isDisabled={data?.challanNumber}
                 isPopupOpen={false}
                 label='Challan Number'
                 id='challanNumber'
@@ -595,7 +611,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
                 className='!mb-0'
                 inputClassName='disabled:text-gray-800'
                 labelClassName='min-w-[150px] mr-[1em] text-base text-gray-700'
-                isRequired={false}
+                isRequired={true}
                 showErrorTooltip={formik.touched.challanNumber && !!formik.errors.challanNumber}
               />
             </div>
@@ -621,7 +637,11 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
             </div>
             <div className='flex gap-1 text-gray-700'>
               <span>Total Pending Amount:</span>
-              <span>{pendingData.pendingChallansAmount}</span>
+              <span>
+                {pendingData.pendingChallansAmount
+                  ? Number(pendingData.pendingChallansAmount).toFixed(controlRoomSettings.decimalValueCount || 2)
+                  : pendingData.pendingChallansAmount}
+              </span>
             </div>
 
           </div>
@@ -658,7 +678,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
               <span className='flex gap-2 text-base text-gray-900 p-2'>
                 Total Discount :{' '}
                 <span className='min-w-[50px] text-gray-700'>
-                  {totalValue.totalDiscount >= 0 && !totalValue.isDefault ? parseFloat(Number(totalValue.totalDiscount)?.toFixed(2)) : (data?.totalDiscount || 0)}
+                  {totalValue.totalDiscount >= 0 && !totalValue.isDefault ? parseFloat(Number(totalValue.totalDiscount)?.toFixed(controlRoomSettings.decimalValueCount || 2)) : (data?.totalDiscount || 0)}
                 </span>
               </span>
             </div>
@@ -667,19 +687,19 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
               <span className='flex gap-2 text-base text-gray-900 mt-3 mx-2'>
                 SGST :{' '}
                 <span className='min-w-[50px] text-gray-700'>
-                  {totalValue.totalSGST >= 0 && !totalValue.isDefault ? parseFloat(Number(totalValue.totalSGST)?.toFixed(2)) : (data?.totalSGST || 0)}
+                  {totalValue.totalSGST >= 0 && !totalValue.isDefault ? parseFloat(Number(totalValue.totalSGST)?.toFixed(controlRoomSettings.decimalValueCount || 2)) : (data?.totalSGST || 0)}
                 </span>
               </span>
               <span className='flex gap-2 text-base text-gray-900 m-2'>
                 CGST :{' '}
                 <span className='min-w-[50px] text-gray-700'>
-                  {totalValue.totalCGST >= 0 && !totalValue.isDefault ? parseFloat(Number(totalValue.totalCGST)?.toFixed(2)) : (data?.totalCGST || 0)}
+                  {totalValue.totalCGST >= 0 && !totalValue.isDefault ? parseFloat(Number(totalValue.totalCGST)?.toFixed(controlRoomSettings.decimalValueCount || 2)) : (data?.totalCGST || 0)}
                 </span>
               </span>
               <span className='flex gap-2 text-base text-gray-900 m-2'>
                 Total GST :{' '}
                 <span className='min-w-[50px] text-gray-700'>
-                  {totalValue.totalGST >= 0 && !totalValue.isDefault ? parseFloat(Number(totalValue.totalGST)?.toFixed(2)) : (data?.totalGST || 0)}
+                  {totalValue.totalGST >= 0 && !totalValue.isDefault ? parseFloat(Number(totalValue.totalGST)?.toFixed(controlRoomSettings.decimalValueCount || 2)) : (data?.totalGST || 0)}
                 </span>
               </span>
             </div>
@@ -688,7 +708,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
               <span className='flex gap-2 text-base text-gray-900 m-2'>
                 Total Quantity :{' '}
                 <span className='min-w-[50px] text-gray-700'>
-                  {totalValue.totalQty >= 0 && !totalValue.isDefault ? parseFloat(Number(totalValue.totalQty)?.toFixed(2)) : (data?.qtyTotal || 0)}
+                  {totalValue.totalQty >= 0 && !totalValue.isDefault ? parseFloat(Number(totalValue.totalQty)?.toFixed(controlRoomSettings.decimalValueCount || 2)) : (data?.qtyTotal || 0)}
                 </span>
               </span>
             </div>
@@ -697,7 +717,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
               <span className='flex gap-2 text-base text-gray-900 m-2'>
                 Total :{' '}
                 <span className='min-w-[50px] text-gray-700'>
-                  {totalValue.totalAmt >= 0 && !totalValue.isDefault ? parseFloat(Number(totalValue.totalAmt)?.toFixed(2)) : (data?.total || 0)}
+                  {totalValue.totalAmt >= 0 && !totalValue.isDefault ? parseFloat(Number(totalValue.totalAmt)?.toFixed(controlRoomSettings.decimalValueCount || 2)) : (data?.total || 0)}
                 </span>
               </span>
             </div>
