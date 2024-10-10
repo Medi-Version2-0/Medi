@@ -263,15 +263,15 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
 
 
   useEffect(() => {
-    if(formik.values.oneStation === 'oneStation'){
+    if (formik.values.oneStation === 'One Station') {
       tabManager.updateFocusChainAndSetFocus(createSaleChallanOneStation, 'custom_select_oneStation')
     }
     else {
-          tabManager.updateFocusChainAndSetFocus(createSaleChallanAllStation, 'custom_select_oneStation')
+      tabManager.updateFocusChainAndSetFocus(createSaleChallanAllStation, 'custom_select_oneStation')
     }
 
   }, [formik.values.oneStation]);
-  
+
 
   useEffect(() => {
     fetchAllData();
@@ -453,13 +453,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
                     if (!dropdown) {
                       e.preventDefault();
                       e.stopPropagation()
-                      if (formik.values.oneStation === 'One Station'){
-                        document.getElementById('custom_select_stationId')?.focus()
-                      }
-                      else if (formik.values.oneStation === 'All Stations'){
-                        tabManager.setLastFocusedElementId('partyId')
-                        document.getElementById('partyId')?.focus()
-                      }
+                      tabManager.focusManager()
                     }
                   }
                 }}
@@ -501,7 +495,7 @@ const CreateDeliveryChallan = ({ setView, data }: any) => {
                         if (!dropdown) {
                           e.preventDefault();
                           e.stopPropagation()
-                          document.getElementById('partyId')?.focus()
+                          tabManager.focusManager()
                         }
                       }
                     }}

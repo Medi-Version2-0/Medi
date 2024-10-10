@@ -44,7 +44,7 @@ export const CreateSaleOrderTable = ({ selectedParty, formik, dataItems }: Creat
 
   const headers:any[] = [
     { name: 'Item name', key: 'name', width: '40%', type: 'input', props: { inputType: 'text', label: true, handleClick: ({ rowIndex }: any) => { openItem(rowIndex) } } },
-    { name: 'Quantity', key: 'Qty', width: '14%', type: 'input', props: { inputType: 'number', max: true , handleChange: (args: any) => { handleInputChange(args) } } },
+    { name: 'Quantity', key: 'Qty', width: '14%', type: 'input', props: { inputType: 'number', allowDecimal :false ,  max: true , handleChange: (args: any) => { handleInputChange(args) } } },
     { name: 'Scheme', key: 'scheme', width: '14%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); } } },
     { name: 'Scheme type', key: 'schemeType', width: '20%', type: 'customSelect', props: { options: schemeTypeOptions, handleChange: (args: any) => { handleSelectChange(args); } } },
   ];

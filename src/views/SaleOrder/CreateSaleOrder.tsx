@@ -132,10 +132,19 @@ export const CreateSaleOrder = ({ setView, viewData, getAndSetTableData, decimal
     fetchAllData();
   }, []);
 
+  // useEffect(() => {
+  //   const focusCol = formik.values.oneStation ? 'custom_select_stationId' : 'partyId';
+  //   tabManager.updateFocusChainAndSetFocus(getSaleOrderFocusChain(), focusCol);
+  // }, [ formik.values.oneStation])
   useEffect(() => {
-    const focusCol = formik.values.oneStation ? 'custom_select_stationId' : 'partyId';
-    tabManager.updateFocusChainAndSetFocus(getSaleOrderFocusChain(), focusCol);
-  }, [pendingItems.length, formik.values.oneStation])
+    if (formik.values.oneStation === 'One Station') {
+      tabManager.updateFocusChainAndSetFocus(getSaleOrderFocusChain(), 'custom_select_oneStation')
+    }
+    else {
+      tabManager.updateFocusChainAndSetFocus(getSaleOrderFocusChain(), 'custom_select_oneStation')
+    }
+
+  }, [pendingItems.length ,formik.values.oneStation]);
 
   useEffect(() => {
     tabManager.updateFocusChainAndSetFocus(getSaleOrderFocusChain(), 'custom_select_oneStation')
@@ -334,12 +343,7 @@ export const CreateSaleOrder = ({ setView, viewData, getAndSetTableData, decimal
                     if (!dropdown) {
                       e.preventDefault();
                       e.stopPropagation()
-                      if (formik.values.oneStation) {
-                        currentTab.current?.querySelector('#custom_select_stationId')?.focus()
-                      }else{
-                        tabManager.setLastFocusedElementId('partyId')
-                        currentTab.current?.querySelector('#partyId')?.focus()
-                      }
+                      tabManager.focusManager()
                     }
                   }
                 }}
@@ -378,7 +382,7 @@ export const CreateSaleOrder = ({ setView, viewData, getAndSetTableData, decimal
                         if (!dropdown) {
                           e.preventDefault();
                           e.stopPropagation()
-                          currentTab.current?.querySelector('#partyId')?.focus()
+                         tabManager.focusManager()
                         }
                       }
                     }}
