@@ -24,6 +24,7 @@ interface HeaderConfig {
     disable?: boolean;
     required?: boolean;
     allowDecimal?: boolean;
+    max?: boolean;
     options?: { label: string; value: string | number; [key: string]: any }[];
     handleFocus?: (rowIndex: number, colIndex: number) => void;
     handleClick?: (args: {rowIndex: number, colIndex: number}) => void;
@@ -331,6 +332,7 @@ export const ChallanTable = ({
                             name={`cell-${rowIndex}-${colIndex}`}
                             allowDecimal={header.props.allowDecimal !== undefined ? header.props.allowDecimal : true}
                             key={colIndex}
+                            {...(header.props.max && { max: gridData[rowIndex].columns.max })}
                             id={`cell-${rowIndex}-${colIndex}`}
                             value={columnValue}
                             onFocus={() => {
@@ -409,8 +411,7 @@ export const ChallanTable = ({
                   }
                 })}
                 <div className='border-[1px] border-solid border-gray-400 min-w-24 flex items-center'>
-                  {
-                    <BsTrash
+                  {!row.columns.hideDeleteIcon && <BsTrash
                       className='text-xl cursor-pointer w-full'
                       onClick={() => {
                         deleteRow(rowIndex, row);

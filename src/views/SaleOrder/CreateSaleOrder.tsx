@@ -9,12 +9,15 @@ import titleCase from '../../utilities/titleCase';
 import usePartyFooterData from '../../hooks/usePartyFooterData';
 import { Ledger } from '../ledger';
 import { useTabs } from '../../TabsContext';
-import { saleOrderViewChain } from '../../constants/focusChain/saleOrderFocusChain';
+import { createSaleOrderAllStation, createSaleOrderOneStation, saleOrderViewChain } from '../../constants/focusChain/saleOrderFocusChain';
 import FormikInputField from '../../components/common/FormikInputField';
 import Confirm_Alert_Popup from '../../components/popup/Confirm_Alert_Popup';
 import { SelectList } from '../../components/common/customSelectList/customSelectList';
 import { CreateSaleOrderTable } from './CreateSaleOrderTable';
 import NumberInput from '../../components/common/numberInput/numberInput';
+import { Popup } from '../../components/popup/Popup';
+import { AgGridReact } from 'ag-grid-react';
+import { ColDef, GridOptions } from 'ag-grid-community';
 
 interface saleOrder {
   id?: number;
@@ -36,15 +39,19 @@ interface createSaleOrderView {
   setView: any;
   viewData?: any;
   getAndSetTableData: any;
+  decimalFormatter: any;
 }
 
-export const CreateSaleOrder = ({ setView, viewData, getAndSetTableData }: createSaleOrderView) => {
+export const CreateSaleOrder = ({ setView, viewData, getAndSetTableData, decimalFormatter }: createSaleOrderView) => {
   const { openTab } = useTabs();
   const [data, setData] = useState<any>(undefined);
   const tabManager = TabManager.getInstance()
   const [stationOptions, setStationOptions] = useState<Option[]>([]);
+  const [pendingItems, setPendingItems] = useState<any[]>([]);
+  const [pendingItemsPopup, setPendingItemsPopup] = useState<boolean>(false);
   const [selectedParty, setSelectedParty] = useState<any>(null);
-  // const lastElementRef = useRef('');
+  const currentTab = useRef<any>(document.querySelector(`div[tab-id=${tabManager.activeTabId}]`));
+
   const [popupState, setPopupState] = useState<any>({
     isModalOpen: false,
     isAlertOpen: false,
@@ -56,6 +63,24 @@ export const CreateSaleOrder = ({ setView, viewData, getAndSetTableData }: creat
     data: {}
   })
   const { partyFooterData, partyHeaders } = usePartyFooterData();
+
+  const formik: any = useFormik({
+    initialValues: {
+      oneStation: false,
+      stationId: null,
+      partyId: null,
+      date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }), // dd//mm//yyyy
+      orderNo: null,
+      items: [],
+    },
+    onSubmit: async (values: any) => {
+      if (viewData?.orderNo) {
+        await sendAPIRequest(`/saleOrder/${viewData.orderNo}?type=orderNo`, { method: 'PUT', body: values });
+      } else {
+        await sendAPIRequest(`/saleOrder`, { method: 'POST', body: values });
+      }
+    },
+  });
 
   useEffect(()=>{
     async function fetchDataToUpdate(){
@@ -96,48 +121,44 @@ export const CreateSaleOrder = ({ setView, viewData, getAndSetTableData }: creat
     }
   },[data])
 
+  function getSaleOrderFocusChain(){
+    if(formik.values.oneStation){
+      return [...createSaleOrderOneStation, ...(pendingItems.length ? ['viewSaleOrderPendingItemsBtn']: [])]
+    }
+    return [...createSaleOrderAllStation, ...(pendingItems.length ? ['viewSaleOrderPendingItemsBtn']: [])]
+  }
+
   useEffect(() => {
     fetchAllData();
-    // if (data) {
-    //   fetchPartyById(data.partyId)
-    //   setChallanTableData(data.challans);
-    // }
-    // tabManager.updateFocusChainAndSetFocus(, 'custom_select_oneStation')
-
   }, []);
 
-  const formik: any = useFormik({
-    initialValues: {
-      oneStation: false,
-      stationId: null,
-      partyId: null,
-      date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }), // dd//mm//yyyy
-      orderNo: null,
-      items: [],
-    },
-    onSubmit: async (values: any) => {
-      console.log('form Submitted -->  ',values)
+  useEffect(() => {
+    const focusCol = formik.values.oneStation ? 'custom_select_stationId' : 'partyId';
+    tabManager.updateFocusChainAndSetFocus(getSaleOrderFocusChain(), focusCol);
+  }, [pendingItems.length, formik.values.oneStation])
 
-      if (viewData?.orderNo) {
-        console.log('put')
-        // await sendAPIRequest(`/deliveryChallan/${data.id}`, { method: 'PUT', body: finalData });
-      } else {
-        await sendAPIRequest(`/saleOrder`, { method: 'POST', body: values });
-      }
-    },
-  });
-
-
+  useEffect(() => {
+    tabManager.updateFocusChainAndSetFocus(getSaleOrderFocusChain(), 'custom_select_oneStation')
+  }, [])
   useEffect(() => { 
-    
+    async function fetchPendingItems(){
+      try {
+        const pendingItems = await sendAPIRequest(`/saleOrder/${formik.values.partyId}?type=partyId&view=true`);
+        setPendingItems(pendingItems);
+      } catch (error: any) {
+        if (!error?.isErrorHandled) {
+          console.log('pendingItems not fetched in createSaleOrder');
+        }
+      }
+    }
+    if (formik.values.partyId){
+      fetchPendingItems();
+    }
   }, [formik.values.partyId])
-
 
   const handleFieldChange = (option: Option | null, id: string) => {
     formik.setFieldValue(id, option?.value);
   };
-
-  // console.log('values fromik --> ', formik.values)
 
   const handleAlertCloseModal = () => {
     setPopupState({ ...popupState, isAlertOpen: false, shouldBack: true });
@@ -170,7 +191,7 @@ export const CreateSaleOrder = ({ setView, viewData, getAndSetTableData }: creat
           handleSelect: (rowData: any) => {
              handleFieldChange({ label: rowData.partyName, value: rowData.party_id }, 'partyId'), 
              setSelectedParty(rowData); 
-             tabManager.setTabLastFocusedElementId('personName') 
+             tabManager.setTabLastFocusedElementId('date') 
           }
         }
       })
@@ -178,11 +199,87 @@ export const CreateSaleOrder = ({ setView, viewData, getAndSetTableData }: creat
     // lastElementRef.current = 'partyId'
   }
 
+
   async function handleSave(){
-      formik.handleSubmit();
+      await formik.handleSubmit();
       setView({ type: '', data: {} });
       await getAndSetTableData();
   }
+
+  function togglePendingItemPopup(){
+    setPendingItemsPopup((pre:boolean)=> !pre)
+  }
+
+  const colDefs: any[] = [
+    {
+      headerName: 'Order No',
+      field: 'orderNo',
+      type: 'numberColumn',
+      editable: false
+    },
+    {
+      headerName: 'Item Name',
+      field: 'item.name',
+      flex: 2,
+      editable: false,
+      headerClass: 'custom-header',
+    },
+    {
+      headerName: 'Date',
+      field: 'date',
+      editable: false,
+      filter: 'agDateColumnFilter',
+      valueFormatter: (params: any) => {
+        const dateParts = params.value.split('/');
+        const formattedDate = new Date(
+          `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`
+        );
+        return formattedDate.toLocaleDateString('en-GB'); // Ensure the displayed format is DD/MM/YYYY
+      },
+      filterParams: {
+        // Custom comparator for handling DD/MM/YYYY format in filtering
+        comparator: (filterLocalDateAtMidnight: Date, cellValue: string) => {
+          const dateParts = cellValue.split('/');
+          const cellDate = new Date(
+            `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`
+          );
+          if (filterLocalDateAtMidnight.getTime() === cellDate.getTime()) {
+            return 0;
+          }
+          return cellDate < filterLocalDateAtMidnight ? -1 : 1;
+        },
+        browserDatePicker: true, // Use the browser's default date picker
+      },
+    },    
+    {
+      headerName: 'Quantity',
+      field: 'Qty',
+      flex: 1,
+      headerClass: 'custom-header',
+      valueFormatter: decimalFormatter,
+      cellStyle: {
+        display: 'flex',
+        justifyContent: 'end',
+        alignItems: 'center',
+      },
+    },
+  ];
+
+  const defaultColDef: ColDef = {
+    floatingFilter: true,
+    editable: false,
+    flex: 1,
+    suppressMovable: true,
+    filter: true,
+    headerClass: 'custom-header',
+  }
+
+  const gridOptions: GridOptions<any> = {
+    pagination: true,
+    paginationPageSize: 20,
+    paginationPageSizeSelector: [20, 30, 40],
+    defaultColDef,
+  };
 
   return (
     <div className='w-full'>
@@ -233,15 +330,15 @@ export const CreateSaleOrder = ({ setView, viewData, getAndSetTableData }: creat
                 }}
                 onKeyDown={(e: any) => {
                   if (e.key === 'Enter') {
-                    const dropdown = document.querySelector('.custom-select__menu');
+                    const dropdown = currentTab.current?.querySelector('.custom-select__menu');
                     if (!dropdown) {
                       e.preventDefault();
                       e.stopPropagation()
                       if (formik.values.oneStation) {
-                        document.getElementById('custom_select_stationId')?.focus()
+                        currentTab.current?.querySelector('#custom_select_stationId')?.focus()
                       }else{
                         tabManager.setLastFocusedElementId('partyId')
-                        document.getElementById('partyId')?.focus()
+                        currentTab.current?.querySelector('#partyId')?.focus()
                       }
                     }
                   }
@@ -277,11 +374,11 @@ export const CreateSaleOrder = ({ setView, viewData, getAndSetTableData }: creat
                     }}
                     onKeyDown={(e: React.KeyboardEvent<HTMLSelectElement>) => {
                       if (e.key === 'Enter') {
-                        const dropdown = document.querySelector('.custom-select__menu');
+                        const dropdown = currentTab.current?.querySelector('.custom-select__menu');
                         if (!dropdown) {
                           e.preventDefault();
                           e.stopPropagation()
-                          document.getElementById('partyId')?.focus()
+                          currentTab.current?.querySelector('#partyId')?.focus()
                         }
                       }
                     }}
@@ -311,14 +408,14 @@ export const CreateSaleOrder = ({ setView, viewData, getAndSetTableData }: creat
                   if (e.key === 'Enter') {
                     e.preventDefault();
                     e.stopPropagation()
-                    document.getElementById('partyId')?.click()
+                    currentTab.current?.querySelector('#partyId')?.click()
                   }
                 }}
                 showErrorTooltip={formik.touched.partyId && !!formik.errors.partyId}
               />
             </div>
             {/* just to show on UI  */}
-            <div className='w-[14%]'>
+            <div className='w-[35%]'>
               <NumberInput
                 label={`Bal.`}
                 id='closingBalance'
@@ -330,7 +427,7 @@ export const CreateSaleOrder = ({ setView, viewData, getAndSetTableData }: creat
                   // nothing to do
                 }}
                 className='items-center justify-between'
-                labelClassName='!h-full !text-base !me-4 w-fit text-nowrap !ps-0'
+                labelClassName='!h-full !text-base !me-4 !min-w-[130px] text-nowrap !ps-0'
                 inputClassName='text-left !text-[10px] px-1 !h-[24px] disabled:bg-white !text-black'
                 error={formik.touched.excessRate && formik.errors.excessRate}
               />
@@ -351,40 +448,19 @@ export const CreateSaleOrder = ({ setView, viewData, getAndSetTableData }: creat
                 inputClassName='disabled:text-gray-800'
               />
             </div>
+
             <div className='flex gap-1 text-gray-700'>
               <span>Order No :</span>
               <span>{data?.orderNo || null}</span>
             </div>
-            {/* <div className='flex gap-1 text-gray-700'>
-              <span>Total Pending Amount:</span>
-              <span>{pendingData.pendingChallansAmount}</span>
-            </div> */}
-
           </div>
-
-          {/* <div className='flex w-full justify-end'>
-            <div className='flex gap-1 text-gray-700'>
-              <span>Party Balance:</span>
-              <span>{selectedParty?.closingBalance || 0} {selectedParty?.closingBalanceType}</span>
-            </div>
-          </div> */}
         </div>
 
         <div className='my-4 mx-8'>
           <CreateSaleOrderTable selectedParty={selectedParty} formik={formik} dataItems={data?.items}/>
         </div>
 
-        {/* {formik.values.partyId && <div className="flex justify-end">
-          <button
-            type="button"
-            className="px-4 py-2 bg-[#009196FF] hover:bg-[#009196e3] font-medium text-white rounded-md border-none focus:border-yellow-500 focus-visible:border-yellow-500"
-            onClick={pendingChallans}
-          >
-            Pending Challans
-          </button>
-        </div>} */}
-
-        <div className='w-full px-8 py-2'>
+        <div className='flex justify-between px-8 py-2'>
           <Button
             type='fill'
             padding='px-4 py-2'
@@ -397,8 +473,40 @@ export const CreateSaleOrder = ({ setView, viewData, getAndSetTableData }: creat
           >
             {viewData?.orderNo ? 'Update' : 'Submit'}
           </Button>
+          {pendingItems.length !== 0 && <div className='flex items-center gap-8'>
+            <Button
+              type='fill'
+              padding='px-4 py-2'
+              btnType='button'
+              handleOnClick={togglePendingItemPopup}
+              id='viewSaleOrderPendingItemsBtn'
+            >
+              View Pending items
+            </Button>
+            <div className='flex gap-1 text-gray-700'>
+              <span>Pending Items:</span>
+              <span>{pendingItems.length}</span>
+            </div>
+          </div>}
         </div>
       </form>
+
+      {pendingItemsPopup && <Popup 
+        id='saleOrderPendingItems'
+        heading='PendingItems'
+        childClass='!min-w-[50%]'
+        onClose={togglePendingItemPopup}
+      >
+        <div id='saleOrderPendingItemsGrid' className='ag-theme-quartz'>
+          {
+            <AgGridReact
+              rowData={pendingItems}
+              columnDefs={colDefs}
+              gridOptions={gridOptions}
+            />
+          }
+        </div>
+      </Popup>}
 
       {(popupState.isModalOpen || popupState.isAlertOpen) && (
         <Confirm_Alert_Popup

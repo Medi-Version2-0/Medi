@@ -36,7 +36,12 @@ code {
   border-radius: 1.4rem;
   height: calc(100vh - 4rem);
 }
-
+#saleOrderPendingItemsGrid{
+  margin: 0.5rem 2rem;
+  background-color: white;
+  border-radius: 1.4rem;
+  height: 60vh;
+}
 #scrollheaders{
   overflow: auto;
   margin: 0.5rem 2rem;

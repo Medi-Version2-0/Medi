@@ -5,6 +5,7 @@ import { useTabs } from "../../TabsContext";
 import Items from "../item";
 import { ChallanTable } from "../../components/common/challanTable";
 import { SelectList } from "../../components/common/customSelectList/customSelectList";
+import { useControls } from "../../ControlRoomContext";
 
 
 interface RowData {
@@ -22,8 +23,15 @@ interface saleOrderItems{
   bigQty?: number,
 }
 
-export const CreateSaleOrderTable = ({ selectedParty, formik, dataItems }:any) => {
+interface CreateSaleOrderTableProps{
+  selectedParty: any;
+  formik: any;
+  dataItems: any;
+}
+
+export const CreateSaleOrderTable = ({ selectedParty, formik, dataItems }: CreateSaleOrderTableProps) => {
   const finalItemsDataFromTable = useRef<saleOrderItems[]>([]);
+  const { decimalValueCount } = useControls().controlRoomSettings;
 
   const schemeTypeOptions = useMemo(() => {
     return [
@@ -36,7 +44,7 @@ export const CreateSaleOrderTable = ({ selectedParty, formik, dataItems }:any) =
 
   const headers:any[] = [
     { name: 'Item name', key: 'name', width: '40%', type: 'input', props: { inputType: 'text', label: true, handleClick: ({ rowIndex }: any) => { openItem(rowIndex) } } },
-    { name: 'Quantity', key: 'Qty', width: '14%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args) } } },
+    { name: 'Quantity', key: 'Qty', width: '14%', type: 'input', props: { inputType: 'number', max: true , handleChange: (args: any) => { handleInputChange(args) } } },
     { name: 'Scheme', key: 'scheme', width: '14%', type: 'input', props: { inputType: 'number', handleChange: (args: any) => { handleInputChange(args); } } },
     { name: 'Scheme type', key: 'schemeType', width: '20%', type: 'customSelect', props: { options: schemeTypeOptions, handleChange: (args: any) => { handleSelectChange(args); } } },
   ];
@@ -62,19 +70,22 @@ export const CreateSaleOrderTable = ({ selectedParty, formik, dataItems }:any) =
     if (dataItems) {
       const newGridData = dataItems.map((item:any,index:number)=>{
         const name = {
-          label: item.itemCode.name,
+          label: item.itemCode.name.toUpperCase(),
           value: item.itemCode.id
         }
         const schemeType = schemeTypeOptions.find((o:any)=> o.value === item.freeType);
         return { id: index + 1,
           columns: {
-            Qty: item.Qty,
-            scheme: item.free,
+            ...item,
+            Qty: item.Qty.toFixed(decimalValueCount),
+            scheme: item.free.toFixed(decimalValueCount),
             name,
             schemeType,
+            hideDeleteIcon: item.qtySupplie ? true : false,
+            max: item.qtySupplie ? item.Qty : undefined,
           }
         }
-      }) 
+      });
       setGridData(newGridData);
     }
   }, [dataItems])
@@ -97,7 +108,7 @@ export const CreateSaleOrderTable = ({ selectedParty, formik, dataItems }:any) =
       }
     })
   }
-
+  
   function updateGridData(indx:number,data:any){
     const newGridData = gridData.map((d:any,idx:number)=>{
       if(idx !== indx) return d;
@@ -121,6 +132,7 @@ export const CreateSaleOrderTable = ({ selectedParty, formik, dataItems }:any) =
     finalItemsDataFromTable.current = gridData.map((d:any)=>{
       const { columns } = d;
       return {
+        ...columns,
         itemCode: columns.name.value,
         Qty: columns.Qty,
         free: columns.scheme,
