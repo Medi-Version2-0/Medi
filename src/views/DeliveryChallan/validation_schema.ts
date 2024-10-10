@@ -12,6 +12,10 @@ export const saleChallanFormValidations = Yup.object({
         otherwise: (schema) => schema.nullable() as CustomStringSchema,
     }),
     partyId: Yup.string().required('Choose the party...'),
+    challanNumber: Yup.string()
+    .required('Please write the Challan Number.')
+    .matches(/^[A-Za-z]{2}[0-9]{6}$/, 'Challan Number must start with 2 characters followed by 6 digits')
+    .length(8, 'Challan Number must contain exactly 8 characters'),
 });
 export const dateSchema = Yup.string()
     .matches(/^(0[1-9]|1[0-2])\/\d{4}$/, 'Expiry date must be valid with format MM/YYYY')
